@@ -61,3 +61,8 @@ vite.config.*.js
 # Build tools cache
 .cache/
 .eslintcache
+
+# Documentation
+TESTING.md
+IMPLEMENTATION.md
+DATABASE_SETUP.md
