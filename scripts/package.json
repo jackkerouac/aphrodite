@@ -1,0 +1,10 @@
+{
+  "name": "aphrodite-scripts",
+  "version": "1.0.0",
+  "description": "Utility scripts for Aphrodite",
+  "type": "module",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "pg": "^8.11.3"
+  }
+}

@@ -1,0 +1,63 @@
+# Node modules
+node_modules/
+scripts/node_modules/
+
+# Build outputs
+dist/
+build/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.*  # includes .env.local, .env.dev, etc.
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS-specific
+*.swp
+*.swo
+
+# VS Code settings
+.vscode/
+
+# Test and mock files
+*.test.js
+*.spec.js
+coverage/
+
+# Database temp or setup files
+*.sqlite
+*.db
+db/*.log
+db/*.tmp
+
+# Batch and shell scripts (optional — include if you don't want them pushed)
+*.bat
+*.sh
+
+# Ignore docker volumes or generated bind-mounts
+docker-volume/
+docker_data/
+
+# Lockfiles (optional if you use only one)
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Other local config files
+*.local
+*.secret
+jsconfig.json
+tsconfig.*.json
+vite.config.*.js
+
+# Build tools cache
+.cache/
+.eslintcache

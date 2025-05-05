@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:14
+    container_name: aphrodite-db-1
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: aphrodite
+      POSTGRES_PASSWORD: aphrodite_secure_password  # Change this in production
+      POSTGRES_DB: aphrodite
+    volumes:
+      - aphrodite_postgres_data:/var/lib/postgresql/data
+      # This will automatically run SQL files in /docker-entrypoint-initdb.d/ on first run
+      - ./db/init:/docker-entrypoint-initdb.d
+    networks:
+      - aphrodite_network
+
+networks:
+  aphrodite_network:
+    driver: bridge
+
+volumes:
+  aphrodite_postgres_data:
