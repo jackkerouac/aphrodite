@@ -2,6 +2,7 @@ import './App.css'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Button } from "@/components/ui/button"
 import Sidebar from "@/components/sidebar"
+import { Toaster } from "@/components/ui/sonner.jsx"
 
 // Import real API settings page
 import ApiSettingsPage from "@/pages/settings/api"
@@ -24,6 +25,7 @@ function App() {
   return (
     <Router>
       <div className="flex min-h-screen">
+        <Toaster position="top-right" closeButton richColors />
         <Sidebar />
         <div className="flex-1 flex flex-col ml-64">
           <main className="flex-1 p-6">
@@ -47,6 +49,7 @@ function App() {
           </main>
         </div>
       </div>
+      {/* The Toaster component will display notifications */}
     </Router>
   )
 }

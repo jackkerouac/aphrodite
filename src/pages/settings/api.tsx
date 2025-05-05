@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Loader2, Server, Film, Tv } from 'lucide-react';
+import { Loader2, Server, Film, Database } from 'lucide-react';
 import { toast } from 'sonner';
 import ApiSettingsCard from '@/components/settings/api-settings-card';
 import { useApiSettings } from '@/hooks/useApiSettings';
@@ -21,8 +21,8 @@ const getIconComponent = (iconName: string) => {
       return <Server className="h-5 w-5" />;
     case 'film':
       return <Film className="h-5 w-5" />;
-    case 'tv':
-      return <Tv className="h-5 w-5" />;
+    case 'database':
+      return <Database className="h-5 w-5" />;
     default:
       return <Server className="h-5 w-5" />;
   }
@@ -35,7 +35,7 @@ export default function ApiSettings() {
     jellyfin: {},
     omdb: {},
     tmdb: {},
-    tvdb: {},
+    anidb: {},
   });
   
   // Set up hooks for each active service
@@ -54,9 +54,9 @@ export default function ApiSettings() {
     fields: serviceFields.tmdb,
   });
   
-  const tvdbSettings = useApiSettings({
-    service: apiServices.tvdb,
-    fields: serviceFields.tvdb,
+  const anidbSettings = useApiSettings({
+    service: apiServices.anidb,
+    fields: serviceFields.anidb,
   });
   
   // Map service IDs to their respective hooks
@@ -64,7 +64,7 @@ export default function ApiSettings() {
     jellyfin: jellyfinSettings,
     omdb: omdbSettings,
     tmdb: tmdbSettings,
-    tvdb: tvdbSettings,
+    anidb: anidbSettings,
   };
   
   // Load all available settings from the DB when the API page first renders
@@ -72,8 +72,12 @@ export default function ApiSettings() {
     console.log('[ApiSettings] Component mounted, fetching all active service settings');
     // Fetch settings for all active services
     activeServices.forEach(serviceId => {
-      console.log(`[ApiSettings] Fetching ${serviceId} settings on mount`);
-      settingsHooks[serviceId as keyof typeof settingsHooks].fetchSettings();
+      if (serviceId in settingsHooks) {
+        console.log(`[ApiSettings] Fetching ${serviceId} settings on mount`);
+        settingsHooks[serviceId as keyof typeof settingsHooks].fetchSettings();
+      } else {
+        console.error(`[ApiSettings] Service not found in settingsHooks: ${serviceId}`);
+      }
     });
   }, []);  // empty deps → run once on mount
 
@@ -81,7 +85,12 @@ export default function ApiSettings() {
   const validateServiceSettings = (serviceId: string, values: Record<string, string>) => {
     console.log(`🚨 [ApiSettings] validateServiceSettings for ${serviceId}:`, values);
     
-    // Only validate if the service is loaded and active
+    // Only validate if the service exists in our hooks and is loaded and active
+    if (!settingsHooks[serviceId as keyof typeof settingsHooks]) {
+      console.log(`🚨 [ApiSettings] Service not found in settingsHooks: ${serviceId}`);
+      return { isValid: true, errors: {} };
+    }
+    
     const settings = settingsHooks[serviceId as keyof typeof settingsHooks];
     if (activeServices.includes(serviceId) && !settings.loading) {
       // Get the validation function for this service
@@ -125,25 +134,29 @@ export default function ApiSettings() {
   useEffect(() => {
     validateServiceSettings('tmdb', tmdbSettings.values);
   }, [tmdbSettings.values, tmdbSettings.loading]);
-
-  // Validate TVDB settings
+  
+  // Validate AniDB settings
   useEffect(() => {
-    validateServiceSettings('tvdb', tvdbSettings.values);
-  }, [tvdbSettings.values, tvdbSettings.loading]);
+    validateServiceSettings('anidb', anidbSettings.values);
+  }, [anidbSettings.values, anidbSettings.loading]);
   
   // Function to activate a service
   const activateService = (serviceId: string) => {
     if (!activeServices.includes(serviceId)) {
       setActiveServices([...activeServices, serviceId]);
       // Enforce loading the service settings
-      settingsHooks[serviceId as keyof typeof settingsHooks].fetchSettings();
+      if (serviceId in settingsHooks) {
+        settingsHooks[serviceId as keyof typeof settingsHooks].fetchSettings();
+      } else {
+        console.error(`[ApiSettings] Cannot activate service - not found in settingsHooks: ${serviceId}`);
+      }
     }
   };
   
   // Available services that can be added
-  const availableServices = Object.keys(apiServices).filter(
-    serviceId => !activeServices.includes(serviceId)
-  );
+  const availableServices = Object.keys(apiServices)
+    .filter(serviceId => serviceId in settingsHooks) // Make sure the service exists in hooks
+    .filter(serviceId => !activeServices.includes(serviceId));
 
   return (
     <div className="space-y-6">
@@ -155,6 +168,12 @@ export default function ApiSettings() {
       {/* Active service cards */}
       <div className="space-y-6">
         {activeServices.map(serviceId => {
+          // Skip services that don't exist in our hooks
+          if (!(serviceId in settingsHooks)) {
+            console.error(`[ApiSettings] Cannot render card - service not found in settingsHooks: ${serviceId}`);
+            return null;
+          }
+          
           const settings = settingsHooks[serviceId as keyof typeof settingsHooks];
           const service = apiServices[serviceId];
           
@@ -192,20 +211,6 @@ export default function ApiSettings() {
           console.log(`📣 [ApiSettings] Rendering ${service.name} card with values:`, settings.values);
           console.log(`📣 [ApiSettings] ${service.name} fields:`, serviceFields[serviceId]);
           console.log(`📣 [ApiSettings] ${service.name} fieldErrors:`, fieldErrors[serviceId]);
-          
-          // Double check the field mappings
-          if (serviceId === 'jellyfin') {
-            const fieldIds = serviceFields.jellyfin.map(f => f.id);
-            const valueKeys = Object.keys(settings.values);
-            console.log(`📣 [ApiSettings] Jellyfin field IDs:`, fieldIds);
-            console.log(`📣 [ApiSettings] Jellyfin value keys:`, valueKeys);
-            
-            // Check if the field IDs match the value keys
-            const missingKeys = fieldIds.filter(id => !valueKeys.includes(id));
-            if (missingKeys.length > 0) {
-              console.warn(`⚠️ [ApiSettings] Missing value keys for fields:`, missingKeys);
-            }
-          }
           
           return (
             <ApiSettingsCard

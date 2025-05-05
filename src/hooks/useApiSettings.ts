@@ -59,6 +59,7 @@ export function useApiSettings({ service, fields }: UseApiSettingsProps): UseApi
       setError(null);
       
       const serviceSettings = await service.fetchSettings();
+      console.log(`DEBUG: About to call toast for ${service.name}`); // Debugging line
       console.log(`[useApiSettings] ${service.id}: Received settings:`, serviceSettings);
       
       // Only update values if we actually got data
@@ -95,11 +96,13 @@ export function useApiSettings({ service, fields }: UseApiSettingsProps): UseApi
       
       console.log(`💾 [useApiSettings] ${service.id}: Saving settings:`, JSON.stringify(values, null, 2));
       await service.saveSettings(values);
-      
+      console.log(`DEBUG: About to call toast for ${service.name}`);
       // Refresh settings after saving to ensure UI is in sync
       await fetchSettings();
       
       toast.success(`${service.name} settings saved successfully`);
+      console.log(`DEBUG: Toast called successfully for ${service.name}`); // Debugging line
+      
       return Promise.resolve();
     } catch (error) {
       console.error(`❌ Error saving ${service.id} settings:`, error);

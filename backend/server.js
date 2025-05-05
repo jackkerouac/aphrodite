@@ -16,6 +16,11 @@ import {
   getTmdbSettingsByUserId,
   upsertTmdbSettings
 } from './models/tmdbSettings.js';
+import {
+  getAnidbSettingsByUserId,
+  upsertAnidbSettings,
+  testAnidbConnection
+} from './models/anidbSettings.js';
 
 
 const { Pool } = pg;
@@ -122,6 +127,102 @@ app.post('/api/tmdb-settings/:userId', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// AniDB API Endpoints
+app.get('/api/anidb-settings/:userId', async (req, res) => {
+  const userId = Number(req.params.userId);
+  console.log(`🔍 API Request: GET /api/anidb-settings/${userId}`);
+  try {
+    const settings = await getAnidbSettingsByUserId(userId);
+    console.log('📦 AniDB settings from DB:', settings);
+    if (!settings) {
+      console.log('⚠️ No AniDB settings found for this user');
+      return res.status(404).json({ message: 'Settings not found' });
+    }
+    console.log('✅ Returning AniDB settings');
+    res.json(settings);
+  } catch (err) {
+    console.error('❌ Server error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.post('/api/anidb-settings/:userId', async (req, res) => {
+  console.log(`📬 API Request: POST /api/anidb-settings/${req.params.userId}`, req.body);
+  const userId = Number(req.params.userId);
+  
+  // Normalize fields to handle both naming conventions
+  const normalizedBody = normalizeAnidbFields(req.body);
+  const { 
+    anidb_username, 
+    anidb_password, 
+    anidb_client, 
+    anidb_version, 
+    anidb_language, 
+    anidb_cache_expiration 
+  } = normalizedBody;
+  
+  // Validate required fields
+  if (!anidb_username || !anidb_password || !anidb_client || !anidb_version) {
+    console.log('⚠️ Missing required fields in save request');
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
+
+  try {
+    const saved = await upsertAnidbSettings({
+      user_id: userId,
+      anidb_username,
+      anidb_password,
+      anidb_client,
+      anidb_version,
+      anidb_language,
+      anidb_cache_expiration
+    });
+    console.log('✅ AniDB settings saved successfully:', { ...saved, anidb_password: '******' });
+    res.json(saved);
+  } catch (err) {
+    console.error('❌ Error saving AniDB settings:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.post('/api/test-anidb-connection', async (req, res) => {
+  console.log('📬 API Request: POST /api/test-anidb-connection', { ...req.body, anidb_password: '******' });
+  
+  // Normalize fields to handle both naming conventions
+  const normalizedBody = normalizeAnidbFields(req.body);
+  const { 
+    anidb_username, 
+    anidb_password, 
+    anidb_client, 
+    anidb_version, 
+    anidb_language, 
+    anidb_cache_expiration 
+  } = normalizedBody;
+  
+  // Validate required fields
+  if (!anidb_username || !anidb_password || !anidb_client || !anidb_version) {
+    console.log('⚠️ Missing required fields in test connection request');
+    return res.status(400).json({ success: false, message: 'Missing required fields' });
+  }
+
+  try {
+    await testAnidbConnection({
+      anidb_username,
+      anidb_password,
+      anidb_client,
+      anidb_version,
+      anidb_language,
+      anidb_cache_expiration
+    });
+    
+    console.log('✅ AniDB connection test successful');
+    return res.json({ success: true, message: 'Successfully connected to AniDB' });
+  } catch (err) {
+    console.error('❌ AniDB test failed:', err.message);
+    return res.status(400).json({ success: false, error: err.message });
   }
 });
 
@@ -250,6 +351,24 @@ const normalizeJellyfinFields = (body) => {
   
   console.log('📣 [normalizeJellyfinFields] Original:', body);
   console.log('📣 [normalizeJellyfinFields] Normalized:', normalized);
+  
+  return normalized;
+};
+
+// Normalize AniDB field names to handle both frontend and backend naming conventions
+const normalizeAnidbFields = (body) => {
+  // Create a new object with standardized field names
+  const normalized = {
+    anidb_username: body.anidb_username || body.username,
+    anidb_password: body.anidb_password || body.password,
+    anidb_client: body.anidb_client || body.client,
+    anidb_version: body.anidb_version || body.version,
+    anidb_language: body.anidb_language || body.language || 'en',
+    anidb_cache_expiration: body.anidb_cache_expiration || body.cacheExpiration || 60
+  };
+  
+  console.log('📣 [normalizeAnidbFields] Original:', { ...body, anidb_password: '******', password: '******' });
+  console.log('📣 [normalizeAnidbFields] Normalized:', { ...normalized, anidb_password: '******' });
   
   return normalized;
 };

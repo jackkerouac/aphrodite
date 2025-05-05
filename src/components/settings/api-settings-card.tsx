@@ -128,7 +128,7 @@ export default function ApiSettingsCard({
       setTimeout(() => setSaveSuccess(false), 3000);
       
       console.log(`✅ [ApiSettingsCard] ${title}: Settings saved successfully`);
-      toast.success(`${title} settings saved successfully`);
+      // Toast is now handled by the useApiSettings hook, no need to duplicate it here
     } catch (error) {
       console.error(`❌ [ApiSettingsCard] Error saving ${title} settings:`, error);
       let errorMessage = `Failed to save ${title} settings`;

@@ -211,6 +211,50 @@ export const validateTvdbConfig = (
   };
 };
 
+// Validate AniDB config
+export const validateAnidbConfig = (
+  config: Record<string, string>
+): { isValid: boolean; errors: Record<string, string> } => {
+  const errors: Record<string, string> = {};
+  
+  // Validate username
+  if (isEmptyField(config.username)) {
+    errors.username = 'Username is required';
+  }
+  
+  // Validate password
+  if (isEmptyField(config.password)) {
+    errors.password = 'Password is required';
+  }
+  
+  // Validate client
+  if (isEmptyField(config.client)) {
+    errors.client = 'Client name is required';
+  }
+  
+  // Validate version
+  if (isEmptyField(config.version)) {
+    errors.version = 'Version is required';
+  } else if (!/^\d+(\.\d+)*$/.test(config.version)) {
+    errors.version = 'Version must be a valid version number (e.g., 1 or 1.0)';
+  }
+  
+  // Validate language (optional)
+  if (config.language && config.language.length !== 2) {
+    errors.language = 'Language should be a 2-letter code (e.g., en, jp)';
+  }
+  
+  // Validate cache expiration (optional)
+  if (config.cacheExpiration && !/^\d+$/.test(config.cacheExpiration)) {
+    errors.cacheExpiration = 'Cache expiration must be a number in minutes';
+  }
+  
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors,
+  };
+};
+
 // Map service IDs to their validation functions
 export const validationFunctions: Record<
   string,
@@ -219,5 +263,5 @@ export const validationFunctions: Record<
   jellyfin: validateJellyfinConfig,
   omdb: validateOmdbConfig,
   tmdb: validateTmdbConfig,
-  tvdb: validateTvdbConfig,
+  anidb: validateAnidbConfig
 };

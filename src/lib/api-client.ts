@@ -294,50 +294,102 @@ export const apiClient = {
     },
   },
   
-  // TVDB API endpoints
-  tvdb: {
-    // Get TVDB settings
+  // AniDB API endpoints
+  anidb: {
+    // Get AniDB settings
     getSettings: async (): Promise<Record<string, string>> => {
       try {
-        const data = await fetchApi<any>(`/tvdb-settings/${DEFAULT_USER_ID}`);
+        console.log('🔧 [apiClient] Fetching AniDB settings...');
+        
+        // Log the full URL being requested
+        console.log(`🔧 Full URL: ${API_BASE_URL}/anidb-settings/${DEFAULT_USER_ID}`);
+        
+        const data = await fetchApi<any>(`/anidb-settings/${DEFAULT_USER_ID}`);
+        console.log('🔧 [apiClient] Received AniDB data:', JSON.stringify({ ...data, anidb_password: '******' }, null, 2));
+        
         // Convert database field names to expected format
-        return {
-          apiKey: data.api_key || '',
-          pin: data.pin || '',
+        const mappedData = {
+          username: data.anidb_username || '',
+          password: data.anidb_password || '',
+          client: data.anidb_client || 'aphrodite',
+          version: data.anidb_version || '1',
+          language: data.anidb_language || 'en',
+          cacheExpiration: data.anidb_cache_expiration || '60'
         };
+        
+        console.log('🔧 [apiClient] Mapped AniDB data:', { ...mappedData, password: '******' });
+        return mappedData;
       } catch (error) {
-        // If 404 (not found), return empty values
+        // If 404 (not found), return empty values with defaults
         if (error instanceof ApiError && error.status === 404) {
-          console.log('No TVDB settings found, using defaults');
-          return { apiKey: '', pin: '' };
+          console.log('❗ No AniDB settings found, using defaults');
+          return { 
+            username: '', 
+            password: '', 
+            client: 'aphrodite',
+            version: '1',
+            language: 'en',
+            cacheExpiration: '60'
+          };
         }
+        console.error('❌ [apiClient] AniDB settings error:', error);
         throw error;
       }
     },
     
-    // Save TVDB settings
+    // Save AniDB settings
     saveSettings: async (settings: Record<string, string>): Promise<void> => {
-      // Convert to the format expected by the backend
+      // Log the incoming settings
+      console.log('🔴 [apiClient] saveSettings received settings:', { ...settings, password: '******' });
+      
+      // Ensure we have proper format for backend API
       const payload = {
-        api_key: settings.apiKey,
-        pin: settings.pin
+        anidb_username: settings.anidb_username || settings.username,
+        anidb_password: settings.anidb_password || settings.password,
+        anidb_client: settings.anidb_client || settings.client || 'aphrodite',
+        anidb_version: settings.anidb_version || settings.version || '1',
+        anidb_language: settings.anidb_language || settings.language || 'en',
+        anidb_cache_expiration: settings.anidb_cache_expiration || settings.cacheExpiration || '60'
       };
       
-      return fetchApi<void>(`/tvdb-settings/${DEFAULT_USER_ID}`, {
+      // Validate required fields
+      if (!payload.anidb_username || !payload.anidb_password) {
+        console.error('⚠️ [apiClient] Missing required fields in payload:', { ...payload, anidb_password: '******' });
+        throw new Error('Missing required fields for AniDB settings');
+      }
+      
+      console.log('📤 [apiClient] Saving AniDB settings with payload:', { ...payload, anidb_password: '******' });
+      
+      return fetchApi<void>(`/anidb-settings/${DEFAULT_USER_ID}`, {
         method: 'POST',
         body: JSON.stringify(payload),
       });
     },
     
-    // Test TVDB connection
+    // Test AniDB connection
     testConnection: async (settings: Record<string, string>): Promise<void> => {
-      // Convert to the format expected by the backend
+      // Log the incoming settings
+      console.log('🔴 [apiClient] testConnection received settings:', { ...settings, password: '******' });
+      
+      // Ensure we have proper format for backend API
       const payload = {
-        api_key: settings.apiKey,
-        pin: settings.pin
+        anidb_username: settings.anidb_username || settings.username,
+        anidb_password: settings.anidb_password || settings.password,
+        anidb_client: settings.anidb_client || settings.client || 'aphrodite',
+        anidb_version: settings.anidb_version || settings.version || '1',
+        anidb_language: settings.anidb_language || settings.language || 'en',
+        anidb_cache_expiration: settings.anidb_cache_expiration || settings.cacheExpiration || '60'
       };
       
-      return fetchApi<void>('/test-tvdb-connection', {
+      // Validate required fields
+      if (!payload.anidb_username || !payload.anidb_password) {
+        console.error('⚠️ [apiClient] Missing required fields in payload:', { ...payload, anidb_password: '******' });
+        throw new Error('Missing required fields for AniDB connection test');
+      }
+      
+      console.log('📤 [apiClient] Testing AniDB connection with payload:', { ...payload, anidb_password: '******' });
+      
+      return fetchApi<void>('/test-anidb-connection', {
         method: 'POST',
         body: JSON.stringify(payload),
       });
