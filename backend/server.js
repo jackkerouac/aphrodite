@@ -373,399 +373,121 @@ const normalizeAnidbFields = (body) => {
   return normalized;
 };
 
-
-// The Jellyfin, OMDB, TMDB, and TVDB routes are already defined above
-// Removing duplicate definitions
-
-// Test connection handlers
-// Removing duplicate test connection endpoints - using the ones defined earlier
-/*
-app.post('/api/test-jellyfin-connection', async (req, res) => {
+// Jellyfin Libraries API Endpoints
+app.get('/api/jellyfin-libraries', async (req, res) => {
+  console.log('📬 API Request: GET /api/jellyfin-libraries');
   try {
-    const { jellyfin_url, jellyfin_api_key, jellyfin_user_id } = req.body;
+    // Get the current user's Jellyfin settings
+    const userId = 1; // Using default user ID
+    const settings = await getJellyfinSettingsByUserId(userId);
     
-    // Validate required parameters
-    if (!jellyfin_url) {
-      return res.status(400).json({ message: 'Jellyfin URL is required' });
-    }
-    
-    // Format URL properly
-    const url = formatUrl(jellyfin_url);
-    
-    // Test connection to Jellyfin server
-    try {
-      // Make a request to the Jellyfin system info endpoint
-      const response = await fetch(`${url}/System/Info`, {
-        headers: {
-          'X-MediaBrowser-Token': jellyfin_api_key || '',
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        return res.status(400).json({ 
-          success: false, 
-          message: `Failed to connect to Jellyfin: ${response.status} ${response.statusText}` 
-        });
-      }
-      
-      const data = await response.json();
-      
-      // Return success with server info
-      return res.status(200).json({ 
-        success: true, 
-        message: 'Successfully connected to Jellyfin server',
-        serverInfo: {
-          serverName: data.ServerName,
-          version: data.Version,
-          operatingSystem: data.OperatingSystem
-        }
-      });
-    } catch (error) {
-      console.error('Error testing Jellyfin connection:', error);
-      return res.status(500).json({ 
+    if (!settings) {
+      console.log('⚠️ No Jellyfin settings found');
+      return res.status(404).json({ 
         success: false, 
-        message: `Failed to connect to Jellyfin: ${error.message}` 
+        message: 'No Jellyfin settings found. Please configure Jellyfin first.' 
       });
     }
-  } catch (error) {
-    console.error('Error processing Jellyfin connection test:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-});
-
-// OMDB API Routes
-// Get OMDB settings for a user
-app.get('/api/omdb-settings/:userId', async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const result = await pool.query(
-      'SELECT * FROM omdb_settings WHERE user_id = $1',
-      [userId]
-    );
     
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'OMDB settings not found for this user' });
+    // Format URL
+    let url = settings.jellyfin_url;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'http://' + url;
+    }
+    if (url.endsWith('/')) {
+      url = url.slice(0, -1);
     }
     
-    res.json(result.rows[0]);
-  } catch (error) {
-    console.error('Error fetching OMDB settings:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Create or update OMDB settings for a user
-app.post('/api/omdb-settings/:userId', async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { api_key } = req.body;
+    console.log(`🔍 Fetching libraries from Jellyfin at: ${url}`);
     
-    // Check if settings already exist for this user
-    const checkResult = await pool.query(
-      'SELECT * FROM omdb_settings WHERE user_id = $1',
-      [userId]
-    );
+    // Fetch libraries from Jellyfin
+    const librariesResponse = await fetch(`${url}/Users/${settings.jellyfin_user_id}/Views`, {
+      headers: { 'X-Emby-Token': settings.jellyfin_api_key }
+    });
     
-    let result;
-    if (checkResult.rows.length === 0) {
-      // Create new settings
-      result = await pool.query(
-        'INSERT INTO omdb_settings (user_id, api_key) VALUES ($1, $2) RETURNING *',
-        [userId, api_key]
-      );
-    } else {
-      // Update existing settings
-      result = await pool.query(
-        'UPDATE omdb_settings SET api_key = $2, updated_at = CURRENT_TIMESTAMP WHERE user_id = $1 RETURNING *',
-        [userId, api_key]
-      );
-    }
-    
-    res.status(200).json(result.rows[0]);
-  } catch (error) {
-    console.error('Error saving OMDB settings:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Test OMDB API connection
-app.post('/api/test-omdb-connection', async (req, res) => {
-  try {
-    const { api_key } = req.body;
-    
-    // Validate required parameters
-    if (!api_key) {
-      return res.status(400).json({ message: 'OMDB API key is required' });
-    }
-    
-    try {
-      // Make a request to the OMDB API
-      const response = await fetch(`http://www.omdbapi.com/?apikey=${api_key}&t=inception`);
-      
-      if (!response.ok) {
-        return res.status(400).json({ 
-          success: false, 
-          message: `Failed to connect to OMDB API: ${response.status} ${response.statusText}` 
-        });
-      }
-      
-      const data = await response.json();
-      
-      // Check for OMDB error response
-      if (data.Response === 'False') {
-        return res.status(400).json({
-          success: false,
-          message: data.Error || 'Invalid OMDB API key'
-        });
-      }
-      
-      // Return success with API info
-      return res.status(200).json({ 
-        success: true, 
-        message: 'Successfully connected to OMDB API',
-        apiInfo: {
-          title: data.Title,
-          year: data.Year
-        }
-      });
-    } catch (error) {
-      console.error('Error testing OMDB connection:', error);
-      return res.status(500).json({ 
+    if (!librariesResponse.ok) {
+      const errorStatus = librariesResponse.status;
+      console.error(`❌ Failed to fetch Jellyfin libraries: ${errorStatus}`);
+      return res.status(400).json({ 
         success: false, 
-        message: `Failed to connect to OMDB API: ${error.message}` 
+        message: `Failed to fetch libraries: Status ${errorStatus}` 
       });
     }
-  } catch (error) {
-    console.error('Error processing OMDB connection test:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-});
-
-// TMDB API Routes
-// Get TMDB settings for a user
-app.get('/api/tmdb-settings/:userId', async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const result = await pool.query(
-      'SELECT * FROM tmdb_settings WHERE user_id = $1',
-      [userId]
-    );
     
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'TMDB settings not found for this user' });
-    }
+    const librariesData = await librariesResponse.json();
+    console.log(`✅ Retrieved ${librariesData.Items.length} libraries`);
     
-    res.json(result.rows[0]);
-  } catch (error) {
-    console.error('Error fetching TMDB settings:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Create or update TMDB settings for a user
-app.post('/api/tmdb-settings/:userId', async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { api_key } = req.body;
-    
-    // Check if settings already exist for this user
-    const checkResult = await pool.query(
-      'SELECT * FROM tmdb_settings WHERE user_id = $1',
-      [userId]
-    );
-    
-    let result;
-    if (checkResult.rows.length === 0) {
-      // Create new settings
-      result = await pool.query(
-        'INSERT INTO tmdb_settings (user_id, api_key) VALUES ($1, $2) RETURNING *',
-        [userId, api_key]
-      );
-    } else {
-      // Update existing settings
-      result = await pool.query(
-        'UPDATE tmdb_settings SET api_key = $2, updated_at = CURRENT_TIMESTAMP WHERE user_id = $1 RETURNING *',
-        [userId, api_key]
-      );
-    }
-    
-    res.status(200).json(result.rows[0]);
-  } catch (error) {
-    console.error('Error saving TMDB settings:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Test TMDB API connection
-app.post('/api/test-tmdb-connection', async (req, res) => {
-  try {
-    const { api_key } = req.body;
-    
-    // Validate required parameters
-    if (!api_key) {
-      return res.status(400).json({ message: 'TMDB API key is required' });
-    }
-    
-    try {
-      // Make a request to the TMDB API
-      const response = await fetch(`https://api.themoviedb.org/3/movie/550?api_key=${api_key}`);
-      
-      if (!response.ok) {
-        return res.status(400).json({ 
-          success: false, 
-          message: `Failed to connect to TMDB API: ${response.status} ${response.statusText}` 
-        });
-      }
-      
-      const data = await response.json();
-      
-      // Return success with API info
-      return res.status(200).json({ 
-        success: true, 
-        message: 'Successfully connected to TMDB API',
-        apiInfo: {
-          title: data.title,
-          year: new Date(data.release_date).getFullYear()
+    // Get actual item counts for each library
+    const librariesWithCounts = await Promise.all(librariesData.Items.map(async (library) => {
+      try {
+        let apiUrl = '';
+        let itemCount = 0;
+        
+        // Different logic based on library name
+        if (library.Name.toLowerCase().includes('movie')) {
+          // For Movies library
+          apiUrl = `${url}/Users/${settings.jellyfin_user_id}/Items?ParentId=${library.Id}&IncludeItemTypes=Movie&Recursive=true&Limit=0&EnableTotalRecordCount=true`;
+        } else if (library.Name.toLowerCase().includes('tv') || library.Name.toLowerCase().includes('television')) {
+          // For TV library
+          apiUrl = `${url}/Users/${settings.jellyfin_user_id}/Items?ParentId=${library.Id}&IncludeItemTypes=Series&Recursive=true&Limit=0&EnableTotalRecordCount=true`;
+        } else if (library.Name.toLowerCase().includes('anime')) {
+          // For Anime library
+          apiUrl = `${url}/Users/${settings.jellyfin_user_id}/Items?ParentId=${library.Id}&IncludeItemTypes=Series&Recursive=true&Limit=0&EnableTotalRecordCount=true`;
+        } else if (library.Name.toLowerCase().includes('home') || library.Name.toLowerCase().includes('video')) {
+          // For Home Videos library
+          apiUrl = `${url}/Users/${settings.jellyfin_user_id}/Items?ParentId=${library.Id}&IncludeItemTypes=Video&Recursive=true&Limit=0&EnableTotalRecordCount=true`;
+        } else if (library.Name.toLowerCase().includes('collection')) {
+          // For Collections library
+          apiUrl = `${url}/Users/${settings.jellyfin_user_id}/Items?ParentId=${library.Id}&IncludeItemTypes=BoxSet&Recursive=true&Limit=0&EnableTotalRecordCount=true`;
+        } else if (library.Name.toLowerCase().includes('playlist')) {
+          // For Playlists library
+          apiUrl = `${url}/Users/${settings.jellyfin_user_id}/Items?ParentId=${library.Id}&IncludeItemTypes=Playlist&Recursive=true&Limit=0&EnableTotalRecordCount=true`;
+        } else {
+          // Generic approach for other libraries
+          apiUrl = `${url}/Users/${settings.jellyfin_user_id}/Items?ParentId=${library.Id}&Recursive=true&Limit=0&EnableTotalRecordCount=true`;
         }
-      });
-    } catch (error) {
-      console.error('Error testing TMDB connection:', error);
-      return res.status(500).json({ 
-        success: false, 
-        message: `Failed to connect to TMDB API: ${error.message}` 
-      });
-    }
-  } catch (error) {
-    console.error('Error processing TMDB connection test:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-});
-
-// TVDB API Routes
-// Get TVDB settings for a user
-app.get('/api/tvdb-settings/:userId', async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const result = await pool.query(
-      'SELECT * FROM tvdb_settings WHERE user_id = $1',
-      [userId]
-    );
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'TVDB settings not found for this user' });
-    }
-    
-    res.json(result.rows[0]);
-  } catch (error) {
-    console.error('Error fetching TVDB settings:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Create or update TVDB settings for a user
-app.post('/api/tvdb-settings/:userId', async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { api_key, pin } = req.body;
-    
-    // Check if settings already exist for this user
-    const checkResult = await pool.query(
-      'SELECT * FROM tvdb_settings WHERE user_id = $1',
-      [userId]
-    );
-    
-    let result;
-    if (checkResult.rows.length === 0) {
-      // Create new settings
-      result = await pool.query(
-        'INSERT INTO tvdb_settings (user_id, api_key, pin) VALUES ($1, $2, $3) RETURNING *',
-        [userId, api_key, pin]
-      );
-    } else {
-      // Update existing settings
-      result = await pool.query(
-        'UPDATE tvdb_settings SET api_key = $2, pin = $3, updated_at = CURRENT_TIMESTAMP WHERE user_id = $1 RETURNING *',
-        [userId, api_key, pin]
-      );
-    }
-    
-    res.status(200).json(result.rows[0]);
-  } catch (error) {
-    console.error('Error saving TVDB settings:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Test TVDB API connection
-app.post('/api/test-tvdb-connection', async (req, res) => {
-  try {
-    const { api_key } = req.body;
-    
-    // Validate required parameters
-    if (!api_key) {
-      return res.status(400).json({ message: 'TVDB API key is required' });
-    }
-    
-    try {
-      // Get TVDB token first
-      const loginResponse = await fetch('https://api.thetvdb.com/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ apikey: api_key })
-      });
-      
-      if (!loginResponse.ok) {
-        return res.status(400).json({ 
-          success: false, 
-          message: `Failed to authenticate with TVDB API: ${loginResponse.status} ${loginResponse.statusText}` 
+        
+        console.log(`🔍 Fetching items for ${library.Name} using URL: ${apiUrl}`);
+        
+        // Make the API request
+        const itemsResponse = await fetch(apiUrl, {
+          headers: { 'X-Emby-Token': settings.jellyfin_api_key }
         });
-      }
-      
-      const loginData = await loginResponse.json();
-      const token = loginData.token;
-      
-      // Now test the API with the token
-      const response = await fetch('https://api.thetvdb.com/search/series?name=game%20of%20thrones', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+        
+        if (itemsResponse.ok) {
+          const itemsData = await itemsResponse.json();
+          itemCount = itemsData.TotalRecordCount || 0;
+          console.log(`✅ Library ${library.Name} has ${itemCount} items`);
+        } else {
+          console.error(`❌ Failed to fetch items for library ${library.Name}: ${itemsResponse.status}`);
         }
-      });
-      
-      if (!response.ok) {
-        return res.status(400).json({ 
-          success: false, 
-          message: `Failed to connect to TVDB API: ${response.status} ${response.statusText}` 
-        });
+        
+        return {
+          id: library.Id,
+          name: library.Name,
+          type: library.Type,
+          itemCount
+        };
+      } catch (err) {
+        console.error(`❌ Error getting items for ${library.Name}:`, err);
+        return {
+          id: library.Id,
+          name: library.Name,
+          type: library.Type,
+          itemCount: 0
+        };
       }
-      
-      const data = await response.json();
-      
-      // Return success with API info
-      return res.status(200).json({ 
-        success: true, 
-        message: 'Successfully connected to TVDB API',
-        apiInfo: {
-          series: data.data && data.data.length > 0 ? data.data[0].seriesName : 'Unknown'
-        }
-      });
-    } catch (error) {
-      console.error('Error testing TVDB connection:', error);
-      return res.status(500).json({ 
-        success: false, 
-        message: `Failed to connect to TVDB API: ${error.message}` 
-      });
-    }
-  } catch (error) {
-    console.error('Error processing TVDB connection test:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    }));
+    
+    return res.json({ 
+      success: true, 
+      libraries: librariesWithCounts 
+    });
+  } catch (err) {
+    console.error('❌ Error fetching Jellyfin libraries:', err);
+    res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }
 });
-
-*/
 
 // Start server
 app.listen(port, () => {

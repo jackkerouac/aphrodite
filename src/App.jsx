@@ -4,7 +4,13 @@ import { Button } from "@/components/ui/button"
 import Sidebar from "@/components/sidebar"
 import { Toaster } from "@/components/ui/sonner.jsx"
 
-// Import real API settings page
+// Import pages
+import Dashboard from "@/pages/dashboard"
+import RunAphrodite from "@/pages/run-aphrodite"
+import Preview from "@/pages/preview"
+import JobHistory from "@/pages/job-history"
+import Logs from "@/pages/logs"
+import Scheduler from "@/pages/scheduler"
 import ApiSettingsPage from "@/pages/settings/api"
 
 // Placeholder components for each settings page
@@ -30,15 +36,13 @@ function App() {
         <div className="flex-1 flex flex-col ml-64">
           <main className="flex-1 p-6">
             <Routes>
-              <Route path="/" element={
-                <div>
-                  <h1 className="text-5xl text-center p-16 text-aphrodite-purple">Aphrodite UI Project</h1>
-                  <div className="flex flex-col items-center justify-center">
-                    <p className="mb-4">Welcome to the Aphrodite UI Project!</p>
-                    <Button variant="outline">Push Me!</Button>
-                  </div>
-                </div>
-              } />
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/run-aphrodite" element={<RunAphrodite />} />
+              <Route path="/preview" element={<Preview />} />
+              <Route path="/job-history" element={<JobHistory />} />
+              <Route path="/logs" element={<Logs />} />
+              <Route path="/scheduler" element={<Scheduler />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/settings/user" element={<UserSettings />} />
               <Route path="/settings/api" element={<ApiSettingsPage />} />

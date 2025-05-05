@@ -116,6 +116,19 @@ async function fetchApi<T>(
 export const apiClient = {
   // Jellyfin API endpoints
   jellyfin: {
+    // Get Jellyfin libraries
+    getLibraries: async (): Promise<any> => {
+      try {
+        console.log('🔧 [apiClient] Fetching Jellyfin libraries...');
+        const data = await fetchApi<any>('/jellyfin-libraries');
+        console.log('🔧 [apiClient] Received libraries data:', data);
+        return data.libraries || [];
+      } catch (error) {
+        console.error('❌ [apiClient] Error fetching Jellyfin libraries:', error);
+        throw error;
+      }
+    },
+    
     // Get Jellyfin settings
     getSettings: async (): Promise<Record<string, string>> => {
       try {
