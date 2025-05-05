@@ -4,6 +4,19 @@ import pg from 'pg';
 import dotenv from 'dotenv';
 import fetch from 'node-fetch';
 import { pool } from './db.js';
+import {
+  getJellyfinSettingsByUserId,
+  upsertJellyfinSettings
+} from './models/jellyfinSettings.js';
+import {
+  getOmdbSettingsByUserId,
+  upsertOmdbSettings
+} from './models/omdbSettings.js';
+import {
+  getTmdbSettingsByUserId,
+  upsertTmdbSettings
+} from './models/tmdbSettings.js';
+
 
 const { Pool } = pg;
 
@@ -17,21 +30,156 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Database connection
-export const pool = new Pool({
-  user: process.env.PG_USER || 'aphrodite',
-  host: process.env.PG_HOST || 'localhost',
-  database: process.env.PG_DATABASE || 'aphrodite',
-  password: process.env.PG_PASSWORD || 'aphrodite_secure_password',
-  port: process.env.PG_PORT || 5432,
+app.get('/api/jellyfin-settings/:userId', async (req, res) => {
+  const userId = Number(req.params.userId);
+  try {
+    const settings = await getJellyfinSettingsByUserId(userId);
+    if (!settings) {
+      return res.status(404).json({ message: 'Settings not found' });
+    }
+    res.json(settings);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
-// Test database connection
-pool.query('SELECT NOW()', (err, res) => {
-  if (err) {
-    console.error('Error connecting to the database:', err);
-  } else {
-    console.log('Successfully connected to the database at:', res.rows[0].now);
+app.get('/api/omdb-settings/:userId', async (req, res) => {
+  const userId = Number(req.params.userId);
+  try {
+    const settings = await getOmdbSettingsByUserId(userId);
+    if (!settings) return res.status(404).json({ message: 'Settings not found' });
+    res.json(settings);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.get('/api/tmdb-settings/:userId', async (req, res) => {
+  const userId = Number(req.params.userId);
+  try {
+    const settings = await getTmdbSettingsByUserId(userId);
+    if (!settings) return res.status(404).json({ message: 'Settings not found' });
+    res.json(settings);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.post('/api/jellyfin-settings/:userId', async (req, res) => {
+  const userId = Number(req.params.userId);
+  const { jellyfin_url, jellyfin_api_key, jellyfin_user_id } = req.body;
+  if (!jellyfin_url || !jellyfin_api_key || !jellyfin_user_id) {
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
+  try {
+    const saved = await upsertJellyfinSettings({
+      user_id: userId,
+      jellyfin_url,
+      jellyfin_api_key,
+      jellyfin_user_id
+    });
+    res.json(saved);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.post('/api/omdb-settings/:userId', async (req, res) => {
+  const userId = Number(req.params.userId);
+  const { api_key } = req.body;
+  if (!api_key) return res.status(400).json({ message: 'Missing API key' });
+  try {
+    const saved = await upsertOmdbSettings({ user_id: userId, api_key });
+    res.json(saved);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.post('/api/tmdb-settings/:userId', async (req, res) => {
+  const userId = Number(req.params.userId);
+  const { api_key } = req.body;
+  if (!api_key) return res.status(400).json({ message: 'Missing API key' });
+  try {
+    const saved = await upsertTmdbSettings({ user_id: userId, api_key });
+    res.json(saved);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Test a Jellyfin connection without saving
+app.post('/api/test-jellyfin-connection', async (req, res) => {
+  const { jellyfin_url, jellyfin_api_key, jellyfin_user_id } = req.body;
+  if (!jellyfin_url || !jellyfin_api_key || !jellyfin_user_id) {
+    return res.status(400).json({ success: false, message: 'Missing required fields' });
+  }
+
+  try {
+    // ensure proper format (adds http://, strips trailing slash)
+    const url = formatUrl(jellyfin_url);
+    const endpoint = `${url}/Users/${jellyfin_user_id}`;
+
+    const response = await fetch(endpoint, {
+      headers: { 'X-Emby-Token': jellyfin_api_key }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Received status ${response.status}`);
+    }
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('Jellyfin test failed:', err.message);
+    return res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// Test an OMDb API key (without saving)
+app.post('/api/test-omdb-connection', async (req, res) => {
+  const { api_key } = req.body;
+  if (!api_key) return res.status(400).json({ success: false, message: 'Missing API key' });
+
+  try {
+    // Hit the example title endpoint (you can choose any valid parameter)
+    const response = await fetch(`http://www.omdbapi.com/?apikey=${api_key}&t=Inception`);
+    const data = await response.json();
+
+    if (data.Response === 'False') {
+      throw new Error(data.Error || 'Unknown OMDb error');
+    }
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('OMDb test failed:', err);
+    return res.status(400).json({ success: false, error: err.toString() });
+  }
+});
+
+// Test a TMDb API key (without saving)
+app.post('/api/test-tmdb-connection', async (req, res) => {
+  const { api_key } = req.body;
+  if (!api_key) return res.status(400).json({ success: false, message: 'Missing API key' });
+
+  try {
+    // Hit a known TMDb endpoint (e.g. movie 550 = Fight Club)
+    const response = await fetch(`https://api.themoviedb.org/3/movie/550?api_key=${api_key}`);
+    if (!response.ok) {
+      throw new Error(`Status ${response.status}`);
+    }
+    const data = await response.json();
+    if (!data.id) {
+      throw new Error('Unexpected response');
+    }
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('TMDb test failed:', err);
+    return res.status(400).json({ success: false, error: err.toString() });
   }
 });
 
