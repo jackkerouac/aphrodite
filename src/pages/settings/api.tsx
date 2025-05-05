@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Loader2, Server, Film, Tv } from 'lucide-react';
 import { toast } from 'sonner';
 import ApiSettingsCard from '@/components/settings/api-settings-card';
@@ -66,29 +66,54 @@ export default function ApiSettings() {
     tmdb: tmdbSettings,
     tvdb: tvdbSettings,
   };
+  
+  // Load all available settings from the DB when the API page first renders
+  useEffect(() => {
+    console.log('[ApiSettings] Component mounted, fetching all active service settings');
+    // Fetch settings for all active services
+    activeServices.forEach(serviceId => {
+      console.log(`[ApiSettings] Fetching ${serviceId} settings on mount`);
+      settingsHooks[serviceId as keyof typeof settingsHooks].fetchSettings();
+    });
+  }, []);  // empty deps → run once on mount
 
   // Validation function for all services
   const validateServiceSettings = (serviceId: string, values: Record<string, string>) => {
+    console.log(`🚨 [ApiSettings] validateServiceSettings for ${serviceId}:`, values);
+    
     // Only validate if the service is loaded and active
     const settings = settingsHooks[serviceId as keyof typeof settingsHooks];
     if (activeServices.includes(serviceId) && !settings.loading) {
       // Get the validation function for this service
       const validationFunction = validationFunctions[serviceId];
       if (validationFunction) {
+        console.log(`🚨 [ApiSettings] Using validation function for ${serviceId}`);
         const { isValid, errors } = validationFunction(values);
-        setFieldErrors(prev => ({
-          ...prev,
-          [serviceId]: errors,
-        }));
+        console.log(`🚨 [ApiSettings] Validation result for ${serviceId}:`, { isValid, errors });
+        
+        setFieldErrors(prev => {
+          const newErrors = {
+            ...prev,
+            [serviceId]: errors,
+          };
+          console.log(`🚨 [ApiSettings] Updated fieldErrors:`, newErrors);
+          return newErrors;
+        });
         return { isValid, errors };
+      } else {
+        console.log(`🚨 [ApiSettings] No validation function found for ${serviceId}`);
       }
+    } else {
+      console.log(`🚨 [ApiSettings] Skipping validation - service not active or still loading`);
     }
     return { isValid: true, errors: {} };
   };
 
   // Validate Jellyfin settings
   useEffect(() => {
-    validateServiceSettings('jellyfin', jellyfinSettings.values);
+    console.log(`🚨 [ApiSettings] Validating Jellyfin settings:`, jellyfinSettings.values);
+    const result = validateServiceSettings('jellyfin', jellyfinSettings.values);
+    console.log(`🚨 [ApiSettings] Jellyfin validation result:`, result);
   }, [jellyfinSettings.values, jellyfinSettings.loading]);
 
   // Validate OMDB settings
@@ -161,6 +186,25 @@ export default function ApiSettings() {
                 </Button>
               </div>
             );
+          }
+          
+          // Debug log the values before rendering
+          console.log(`📣 [ApiSettings] Rendering ${service.name} card with values:`, settings.values);
+          console.log(`📣 [ApiSettings] ${service.name} fields:`, serviceFields[serviceId]);
+          console.log(`📣 [ApiSettings] ${service.name} fieldErrors:`, fieldErrors[serviceId]);
+          
+          // Double check the field mappings
+          if (serviceId === 'jellyfin') {
+            const fieldIds = serviceFields.jellyfin.map(f => f.id);
+            const valueKeys = Object.keys(settings.values);
+            console.log(`📣 [ApiSettings] Jellyfin field IDs:`, fieldIds);
+            console.log(`📣 [ApiSettings] Jellyfin value keys:`, valueKeys);
+            
+            // Check if the field IDs match the value keys
+            const missingKeys = fieldIds.filter(id => !valueKeys.includes(id));
+            if (missingKeys.length > 0) {
+              console.warn(`⚠️ [ApiSettings] Missing value keys for fields:`, missingKeys);
+            }
           }
           
           return (

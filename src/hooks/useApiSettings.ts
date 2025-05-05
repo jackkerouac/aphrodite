@@ -42,6 +42,7 @@ export interface UseApiSettingsReturn {
 }
 
 export function useApiSettings({ service, fields }: UseApiSettingsProps): UseApiSettingsReturn {
+  console.log(`[useApiSettings] initializing hook for service: ${service.id}`);
   // State
   const [values, setValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -53,14 +54,22 @@ export function useApiSettings({ service, fields }: UseApiSettingsProps): UseApi
   // Fetch settings
   const fetchSettings = useCallback(async () => {
     try {
+      console.log(`[useApiSettings] ${service.id}: Fetching settings...`);
       setLoading(true);
       setError(null);
       
       const serviceSettings = await service.fetchSettings();
+      console.log(`[useApiSettings] ${service.id}: Received settings:`, serviceSettings);
       
-      setValues(serviceSettings);
+      // Only update values if we actually got data
+      if (serviceSettings && typeof serviceSettings === 'object') {
+        setValues(serviceSettings);
+        console.log(`[useApiSettings] ${service.id}: Updated values state`);
+      } else {
+        console.warn(`[useApiSettings] ${service.id}: Received empty or invalid settings`);
+      }
     } catch (error) {
-      console.error(`Error fetching ${service.id} settings:`, error);
+      console.error(`[useApiSettings] Error fetching ${service.id} settings:`, error);
       setError(error as Error);
       
       // Only show a toast if it's not a 404 (not found) error
@@ -75,26 +84,32 @@ export function useApiSettings({ service, fields }: UseApiSettingsProps): UseApi
 
   // Handle input changes
   const handleValuesChange = useCallback((newValues: Record<string, string>) => {
+    console.log(`📣 [useApiSettings] ${service.id}: Values changed:`, newValues);
     setValues(newValues);
-  }, []);
+  }, [service]);
 
   // Handle save
   const handleSave = useCallback(async () => {
     try {
       setSaving(true);
       
+      console.log(`💾 [useApiSettings] ${service.id}: Saving settings:`, JSON.stringify(values, null, 2));
       await service.saveSettings(values);
-      toast.success(`${service.name} settings saved successfully`);
       
+      // Refresh settings after saving to ensure UI is in sync
+      await fetchSettings();
+      
+      toast.success(`${service.name} settings saved successfully`);
       return Promise.resolve();
     } catch (error) {
-      console.error(`Error saving ${service.id} settings:`, error);
-      toast.error(`Failed to save ${service.name} settings: ${(error as Error).message}`);
+      console.error(`❌ Error saving ${service.id} settings:`, error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Failed to save ${service.name} settings: ${errorMessage}`);
       return Promise.reject(error);
     } finally {
       setSaving(false);
     }
-  }, [service, values]);
+  }, [service, values, fetchSettings]);
 
   // Handle test connection
   const handleTest = useCallback(async () => {
@@ -102,7 +117,10 @@ export function useApiSettings({ service, fields }: UseApiSettingsProps): UseApi
       setTesting(true);
       setConnectionStatus('idle');
       
+      console.log(`🔍 [useApiSettings] ${service.id}: Testing connection with:`, JSON.stringify(values, null, 2));
       await service.testConnection(values);
+      
+      console.log(`✅ [useApiSettings] ${service.id}: Connection test successful`);
       setConnectionStatus('success');
       toast.success(`${service.name} connection successful`);
       
@@ -111,8 +129,20 @@ export function useApiSettings({ service, fields }: UseApiSettingsProps): UseApi
       
       return Promise.resolve();
     } catch (error) {
+      console.error(`❌ [useApiSettings] ${service.id}: Connection test failed:`, error);
       setConnectionStatus('error');
-      toast.error(`${service.name} connection failed: ${(error as Error).message}`);
+      
+      // Extract error message with better formatting
+      let errorMessage = 'Connection failed';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = (error as {message: string}).message;
+      }
+      
+      toast.error(`${service.name} connection failed: ${errorMessage}`);
       
       // Reset status after a delay
       setTimeout(() => setConnectionStatus('idle'), 5000);

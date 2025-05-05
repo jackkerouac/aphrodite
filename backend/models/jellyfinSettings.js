@@ -1,13 +1,19 @@
 import { pool } from '../db.js';
 
 export async function getJellyfinSettingsByUserId(userId) {
+  console.log(`🔍 [jellyfinSettings] Getting settings for user ID: ${userId}`);
   const result = await pool.query(
     `SELECT id, user_id, jellyfin_url, jellyfin_api_key, jellyfin_user_id
      FROM jellyfin_settings
      WHERE user_id = $1`,
     [userId]
   );
-  return result.rows[0] || null;
+  
+  console.log(`📦 [jellyfinSettings] Query result:`, result.rows);
+  const settings = result.rows[0] || null;
+  console.log(`📦 [jellyfinSettings] Returning settings:`, settings);
+  
+  return settings;
 }
 
 export async function upsertJellyfinSettings(settings) {

@@ -1,7 +1,19 @@
 // src/lib/api-client.ts
 
 // Base API URL - adjust based on your environment
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+// Make sure it points to the correct URL (including port if needed)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+console.log('📡 API_BASE_URL:', API_BASE_URL);
+
+// For debugging, show the full environment variables
+if (import.meta.env.DEV) {
+  console.log('📡 Environment variables:', {
+    VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
+    NODE_ENV: import.meta.env.NODE_ENV,
+    DEV: import.meta.env.DEV,
+    mode: import.meta.env.MODE,
+  });
+}
 
 // Current user ID - in a real app, this would come from authentication
 // For now, we'll use a hardcoded user ID for demo purposes
@@ -30,7 +42,26 @@ async function fetchApi<T>(
   endpoint: string, 
   options: RequestInit = {}
 ): Promise<T> {
+  // Ensure the endpoint starts with '/api/'
+  if (!endpoint.startsWith('/')) {
+    endpoint = '/' + endpoint;
+  }
+  if (!endpoint.startsWith('/api/') && !endpoint.includes('/api/')) {
+    endpoint = '/api' + endpoint;
+  }
+  
   const url = `${API_BASE_URL}${endpoint}`;
+  console.log(`🔍 API REQUEST: ${options.method || 'GET'} ${url}`);
+  
+  // Log request body if present
+  if (options.body) {
+    try {
+      const bodyObj = JSON.parse(options.body.toString());
+      console.log(`📣 REQUEST BODY (parsed):`, bodyObj);
+    } catch (e) {
+      console.log(`📣 REQUEST BODY (raw):`, options.body);
+    }
+  }
   
   try {
     const response = await fetch(url, {
@@ -41,20 +72,36 @@ async function fetchApi<T>(
       ...options,
     });
     
+    console.log(`📥 API RESPONSE: ${response.status} ${response.statusText}`);
+    
     // Parse the JSON response
-    const data = await response.json();
-    
-    // Check if the request was successful
-    if (!response.ok) {
-      throw new ApiError(
-        data.error || data.message || `API error with status ${response.status}`,
-        response.status
-      );
+    try {
+      const data = await response.json();
+      console.log('📦 API DATA:', data);
+      
+      // Check if the request was successful
+      if (!response.ok) {
+        // For test connection endpoints, extract more specific error message if available
+        let errorMessage = data.error || data.message || `API error with status ${response.status}`;
+        if (data.success === false) {
+          errorMessage = data.error || data.message || errorMessage;
+        }
+        
+        console.error('❌ API Error Details:', errorMessage);
+        throw new ApiError(errorMessage, response.status);
+      }
+      
+      // Return the data - note: API might return directly or wrapped in a data property
+      return data.data || data as T;
+    } catch (parseError) {
+      console.error('❌ JSON Parse Error:', parseError);
+      if (!response.ok) {
+        throw new ApiError(`API error with status ${response.status}`, response.status);
+      }
+      throw new ApiError('Failed to parse server response', 500);
     }
-    
-    // Return the data - note: API might return directly or wrapped in a data property
-    return data.data || data as T;
   } catch (error) {
+    console.error('❌ API ERROR:', error);
     if (error instanceof ApiError) {
       throw error;
     } else if (error instanceof Error) {
@@ -72,31 +119,53 @@ export const apiClient = {
     // Get Jellyfin settings
     getSettings: async (): Promise<Record<string, string>> => {
       try {
+        console.log('🔧 [apiClient] Fetching Jellyfin settings...');
+        
+        // Log the full URL being requested
+        console.log(`🔧 Full URL: ${API_BASE_URL}/jellyfin-settings/${DEFAULT_USER_ID}`);
+        
         const data = await fetchApi<any>(`/jellyfin-settings/${DEFAULT_USER_ID}`);
+        console.log('🔧 [apiClient] Received Jellyfin data:', JSON.stringify(data, null, 2));
+        
         // Convert database field names to expected format
-        return {
+        const mappedData = {
           url: data.jellyfin_url || '',
           apiKey: data.jellyfin_api_key || '',
           userId: data.jellyfin_user_id || '',
         };
+        
+        console.log('🔧 [apiClient] Mapped Jellyfin data:', mappedData);
+        return mappedData;
       } catch (error) {
         // If 404 (not found), return empty values
         if (error instanceof ApiError && error.status === 404) {
-          console.log('No Jellyfin settings found, using defaults');
+          console.log('❗ No Jellyfin settings found, using defaults');
           return { url: '', apiKey: '', userId: '' };
         }
+        console.error('❌ [apiClient] Jellyfin settings error:', error);
         throw error;
       }
     },
     
     // Save Jellyfin settings
     saveSettings: async (settings: Record<string, string>): Promise<void> => {
-      // Convert to the format expected by the backend
+      // Log the incoming settings
+      console.log('🔴 [apiClient] saveSettings received settings:', settings);
+      
+      // Ensure we have proper format for backend API
       const payload = {
-        jellyfin_url: settings.url,
-        jellyfin_api_key: settings.apiKey,
-        jellyfin_user_id: settings.userId
+        jellyfin_url: settings.jellyfin_url || settings.url,
+        jellyfin_api_key: settings.jellyfin_api_key || settings.apiKey,
+        jellyfin_user_id: settings.jellyfin_user_id || settings.userId
       };
+      
+      // Validate required fields
+      if (!payload.jellyfin_url || !payload.jellyfin_api_key || !payload.jellyfin_user_id) {
+        console.error('⚠️ [apiClient] Missing required fields in payload:', payload);
+        throw new Error('Missing required fields for Jellyfin settings');
+      }
+      
+      console.log('📤 [apiClient] Saving Jellyfin settings with payload:', payload);
       
       return fetchApi<void>(`/jellyfin-settings/${DEFAULT_USER_ID}`, {
         method: 'POST',
@@ -106,12 +175,23 @@ export const apiClient = {
     
     // Test Jellyfin connection
     testConnection: async (settings: Record<string, string>): Promise<void> => {
-      // Convert to the format expected by the backend
+      // Log the incoming settings
+      console.log('🔴 [apiClient] testConnection received settings:', settings);
+      
+      // Ensure we have proper format for backend API
       const payload = {
-        jellyfin_url: settings.url,
-        jellyfin_api_key: settings.apiKey,
-        jellyfin_user_id: settings.userId
+        jellyfin_url: settings.jellyfin_url || settings.url,
+        jellyfin_api_key: settings.jellyfin_api_key || settings.apiKey,
+        jellyfin_user_id: settings.jellyfin_user_id || settings.userId
       };
+      
+      // Validate required fields
+      if (!payload.jellyfin_url || !payload.jellyfin_api_key || !payload.jellyfin_user_id) {
+        console.error('⚠️ [apiClient] Missing required fields in payload:', payload);
+        throw new Error('Missing required fields for Jellyfin connection test');
+      }
+      
+      console.log('📤 [apiClient] Testing Jellyfin connection with payload:', payload);
       
       return fetchApi<void>('/test-jellyfin-connection', {
         method: 'POST',

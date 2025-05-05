@@ -44,6 +44,8 @@ export default function ApiSettingsCard({
   testDisabled = false,
   fieldErrors = {}
 }: ApiSettingsCardProps) {
+  // Debug log the props
+  console.log(`[ApiSettingsCard] ${title} render:`, { fields, values });
   // State for UI interaction
   const [loading, setLoading] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
@@ -54,7 +56,11 @@ export default function ApiSettingsCard({
 
   // Update local errors when fieldErrors prop changes
   useEffect(() => {
+    console.log(`🚨 [ApiSettingsCard] ${title}: Received fieldErrors:`, fieldErrors);
+    console.log(`🚨 [ApiSettingsCard] ${title}: fieldErrors keys length:`, Object.keys(fieldErrors).length);
+    
     if (fieldErrors && Object.keys(fieldErrors).length > 0) {
+      console.log(`🚨 [ApiSettingsCard] ${title}: Setting errors from fieldErrors props`);
       setErrors(fieldErrors);
     }
   }, [fieldErrors]);
@@ -87,21 +93,33 @@ export default function ApiSettingsCard({
 
   // Rely on the errors passed in through props or set locally
   const hasValidationErrors = (): boolean => {
-    return Object.keys(errors).length > 0;
+    // Log the current errors
+    console.log(`🚨 [ApiSettingsCard] ${title}: Checking validation errors. Current errors:`, errors);
+    console.log(`🚨 [ApiSettingsCard] ${title}: Errors keys length:`, Object.keys(errors).length);
+    
+    // Check if there are any validation errors
+    const hasErrors = Object.keys(errors).length > 0 && Object.values(errors).some(error => error !== '');
+    console.log(`🚨 [ApiSettingsCard] ${title}: Has validation errors:`, hasErrors);
+    
+    return hasErrors;
   };
 
   // Handle save operation
   const handleSave = async () => {
+    // Temporarily bypass validation since we have empty or invalid error objects
     // Check for validation errors
     if (hasValidationErrors()) {
+      console.log(`⚠️ [ApiSettingsCard] ${title}: Validation errors present:`, errors);
       toast.error(`Please fix the errors before saving`);
       return;
     }
     
     try {
+      console.log(`💾 [ApiSettingsCard] ${title}: Saving settings with values:`, JSON.stringify(values, null, 2));
       setLoading(true);
       setSaveSuccess(false);
       
+      // Call the save function
       await onSave();
       
       // Set success state
@@ -109,10 +127,15 @@ export default function ApiSettingsCard({
       // Reset after 3 seconds
       setTimeout(() => setSaveSuccess(false), 3000);
       
+      console.log(`✅ [ApiSettingsCard] ${title}: Settings saved successfully`);
       toast.success(`${title} settings saved successfully`);
     } catch (error) {
-      console.error(`Error saving ${title} settings:`, error);
-      toast.error(error instanceof Error ? error.message : `Failed to save ${title} settings`);
+      console.error(`❌ [ApiSettingsCard] Error saving ${title} settings:`, error);
+      let errorMessage = `Failed to save ${title} settings`;
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -120,25 +143,34 @@ export default function ApiSettingsCard({
 
   // Handle test connection
   const handleTest = async () => {
+    // Temporarily bypass validation since we have empty or invalid error objects
     // Check for validation errors
     if (hasValidationErrors()) {
+      console.log(`⚠️ [ApiSettingsCard] ${title}: Validation errors present:`, errors);
       toast.error(`Please fix the errors before testing connection`);
       return;
     }
     
     try {
+      console.log(`🔍 [ApiSettingsCard] ${title}: Testing connection with values:`, JSON.stringify(values, null, 2));
       setTestingConnection(true);
       setConnectionStatus('idle');
       
+      // Call the test function
       await onTest();
       
       // Set success state
       setConnectionStatus('success');
+      console.log(`✅ [ApiSettingsCard] ${title}: Connection test successful`);
       // Reset after 5 seconds
       setTimeout(() => setConnectionStatus('idle'), 5000);
     } catch (error) {
-      console.error(`Error testing ${title} connection:`, error);
-      toast.error(error instanceof Error ? error.message : `Failed to test ${title} connection`);
+      console.error(`❌ [ApiSettingsCard] Error testing ${title} connection:`, error);
+      let errorMessage = `Failed to test ${title} connection`;
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
       
       // Set error state
       setConnectionStatus('error');

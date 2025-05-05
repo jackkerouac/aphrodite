@@ -32,14 +32,18 @@ app.use(express.json());
 
 app.get('/api/jellyfin-settings/:userId', async (req, res) => {
   const userId = Number(req.params.userId);
+  console.log(`🔍 API Request: GET /api/jellyfin-settings/${userId}`);
   try {
     const settings = await getJellyfinSettingsByUserId(userId);
+    console.log('📦 Jellyfin settings from DB:', settings);
     if (!settings) {
+      console.log('⚠️ No settings found for this user');
       return res.status(404).json({ message: 'Settings not found' });
     }
+    console.log('✅ Returning settings:', settings);
     res.json(settings);
   } catch (err) {
-    console.error(err);
+    console.error('❌ Server error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -69,9 +73,15 @@ app.get('/api/tmdb-settings/:userId', async (req, res) => {
 });
 
 app.post('/api/jellyfin-settings/:userId', async (req, res) => {
+  console.log(`📬 API Request: POST /api/jellyfin-settings/${req.params.userId}`, req.body);
   const userId = Number(req.params.userId);
-  const { jellyfin_url, jellyfin_api_key, jellyfin_user_id } = req.body;
+  
+  // Normalize fields to handle both naming conventions
+  const normalizedBody = normalizeJellyfinFields(req.body);
+  const { jellyfin_url, jellyfin_api_key, jellyfin_user_id } = normalizedBody;
+  
   if (!jellyfin_url || !jellyfin_api_key || !jellyfin_user_id) {
+    console.log('⚠️ Missing required fields in save request');
     return res.status(400).json({ message: 'Missing required fields' });
   }
   try {
@@ -81,9 +91,10 @@ app.post('/api/jellyfin-settings/:userId', async (req, res) => {
       jellyfin_api_key,
       jellyfin_user_id
     });
+    console.log('✅ Jellyfin settings saved successfully:', saved);
     res.json(saved);
   } catch (err) {
-    console.error(err);
+    console.error('❌ Error saving Jellyfin settings:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -114,29 +125,58 @@ app.post('/api/tmdb-settings/:userId', async (req, res) => {
   }
 });
 
-// Test a Jellyfin connection without saving
 app.post('/api/test-jellyfin-connection', async (req, res) => {
-  const { jellyfin_url, jellyfin_api_key, jellyfin_user_id } = req.body;
+  console.log('📬 API Request: POST /api/test-jellyfin-connection', req.body);
+  
+  // Normalize fields to handle both naming conventions
+  const normalizedBody = normalizeJellyfinFields(req.body);
+  const { jellyfin_url, jellyfin_api_key, jellyfin_user_id } = normalizedBody;
+  
   if (!jellyfin_url || !jellyfin_api_key || !jellyfin_user_id) {
+    console.log('⚠️ Missing required fields in test connection request');
     return res.status(400).json({ success: false, message: 'Missing required fields' });
   }
 
   try {
-    // ensure proper format (adds http://, strips trailing slash)
-    const url = formatUrl(jellyfin_url);
+    // Format URL
+    let url = jellyfin_url;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'http://' + url;
+    }
+    if (url.endsWith('/')) {
+      url = url.slice(0, -1);
+    }
+    
     const endpoint = `${url}/Users/${jellyfin_user_id}`;
+    console.log(`🔍 Testing connection to Jellyfin at: ${endpoint}`);
 
+    // Test the connection
     const response = await fetch(endpoint, {
       headers: { 'X-Emby-Token': jellyfin_api_key }
     });
 
     if (!response.ok) {
-      throw new Error(`Received status ${response.status}`);
+      const errorStatus = response.status;
+      let errorMessage = `Received status ${errorStatus}`;
+      
+      try {
+        // Try to get more details from response if possible
+        const errorData = await response.json();
+        if (errorData && errorData.message) {
+          errorMessage = errorData.message;
+        }
+      } catch (parseError) {
+        // Ignore parse errors - use default message
+      }
+      
+      console.error(`❌ Jellyfin connection test failed with status ${errorStatus}: ${errorMessage}`);
+      return res.status(400).json({ success: false, error: errorMessage });
     }
 
+    console.log('✅ Jellyfin connection test successful');
     return res.json({ success: true });
   } catch (err) {
-    console.error('Jellyfin test failed:', err.message);
+    console.error('❌ Jellyfin test failed:', err.message);
     return res.status(400).json({ success: false, error: err.message });
   }
 });
@@ -199,62 +239,28 @@ const formatUrl = (url) => {
   return formattedUrl;
 };
 
-// API Routes
-// Get all Jellyfin settings for a user
-app.get('/api/jellyfin-settings/:userId', async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const result = await pool.query(
-      'SELECT * FROM jellyfin_settings WHERE user_id = $1',
-      [userId]
-    );
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Jellyfin settings not found for this user' });
-    }
-    
-    res.json(result.rows[0]);
-  } catch (error) {
-    console.error('Error fetching Jellyfin settings:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
+// Normalize field names to handle both frontend and backend naming conventions
+const normalizeJellyfinFields = (body) => {
+  // Create a new object with standardized field names
+  const normalized = {
+    jellyfin_url: body.jellyfin_url || body.url,
+    jellyfin_api_key: body.jellyfin_api_key || body.apiKey,
+    jellyfin_user_id: body.jellyfin_user_id || body.userId
+  };
+  
+  console.log('📣 [normalizeJellyfinFields] Original:', body);
+  console.log('📣 [normalizeJellyfinFields] Normalized:', normalized);
+  
+  return normalized;
+};
 
-// Create or update Jellyfin settings for a user
-app.post('/api/jellyfin-settings/:userId', async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { jellyfin_url, jellyfin_api_key, jellyfin_user_id } = req.body;
-    
-    // Check if settings already exist for this user
-    const checkResult = await pool.query(
-      'SELECT * FROM jellyfin_settings WHERE user_id = $1',
-      [userId]
-    );
-    
-    let result;
-    if (checkResult.rows.length === 0) {
-      // Create new settings
-      result = await pool.query(
-        'INSERT INTO jellyfin_settings (user_id, jellyfin_url, jellyfin_api_key, jellyfin_user_id) VALUES ($1, $2, $3, $4) RETURNING *',
-        [userId, jellyfin_url, jellyfin_api_key, jellyfin_user_id]
-      );
-    } else {
-      // Update existing settings
-      result = await pool.query(
-        'UPDATE jellyfin_settings SET jellyfin_url = $2, jellyfin_api_key = $3, jellyfin_user_id = $4, updated_at = CURRENT_TIMESTAMP WHERE user_id = $1 RETURNING *',
-        [userId, jellyfin_url, jellyfin_api_key, jellyfin_user_id]
-      );
-    }
-    
-    res.status(200).json(result.rows[0]);
-  } catch (error) {
-    console.error('Error saving Jellyfin settings:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
 
-// Test Jellyfin connection
+// The Jellyfin, OMDB, TMDB, and TVDB routes are already defined above
+// Removing duplicate definitions
+
+// Test connection handlers
+// Removing duplicate test connection endpoints - using the ones defined earlier
+/*
 app.post('/api/test-jellyfin-connection', async (req, res) => {
   try {
     const { jellyfin_url, jellyfin_api_key, jellyfin_user_id } = req.body;
@@ -639,6 +645,8 @@ app.post('/api/test-tvdb-connection', async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
+
+*/
 
 // Start server
 app.listen(port, () => {

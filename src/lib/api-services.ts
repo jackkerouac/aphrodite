@@ -15,8 +15,7 @@ import apiClient from './api-client';
 export const serviceIconNames = {
   jellyfin: 'server',
   omdb: 'film',
-  tmdb: 'film',
-  tvdb: 'tv',
+  tmdb: 'film'
 };
 
 // Service descriptions
@@ -98,49 +97,83 @@ export const apiServices: Record<string, ApiService> = {
   jellyfin: {
     id: 'jellyfin',
     name: 'Jellyfin',
+
+    // fetchSettings must return an object whose keys match your field IDs: url, apiKey, userId
     fetchSettings: async () => {
       try {
-        // Use the API client to fetch settings
-        return await apiClient.jellyfin.getSettings();
-      } catch (error) {
-        console.error('Error fetching Jellyfin settings:', error);
+        // Fetch settings directly through the API client
+        console.log('🔧 [apiServices] Jellyfin fetchSettings() called');
         
-        // For development, return empty values if API fails
-        // This allows the UI to still work during development
-        if (import.meta.env.DEV) {
-          return {
-            url: '',
-            apiKey: '',
-            userId: '',
-          };
+        // The client already handles the mapping
+        const settings = await apiClient.jellyfin.getSettings();
+        console.log('🔧 [apiServices] Jellyfin settings received:', settings);
+        
+        // Ensure we have proper field values
+        if (!settings.url && !settings.apiKey && !settings.userId) {
+          console.warn('⚠️ [apiServices] All Jellyfin fields are empty!');
         }
         
+        return settings;
+      } catch (error) {
+        console.error('❌ [apiServices] Error fetching Jellyfin settings:', error);
+        if (import.meta.env.DEV) {
+          console.log('💡 [apiServices] Returning default values in DEV mode');
+          return { url: '', apiKey: '', userId: '' };
+        }
         throw error;
       }
     },
-    saveSettings: async (values: Record<string, string>) => {
-      // Validate the settings before saving
-      const validation = validateJellyfinConfig(values);
-      if (!validation.isValid) {
-        // Get the first error
-        const firstError = Object.values(validation.errors)[0];
-        throw new Error(firstError);
+
+
+    saveSettings: async (values) => {
+      // Log the values received by the saveSettings function
+      console.log('🔴 [apiServices] Jellyfin saveSettings received values:', values);
+      
+      // Basic validation
+      if (!values.url) {
+        throw new Error('Jellyfin URL is required');
+      }
+      if (!values.apiKey) {
+        throw new Error('API Key is required');
+      }
+      if (!values.userId) {
+        throw new Error('User ID is required');
       }
       
-      // Save the settings using the API client
-      return apiClient.jellyfin.saveSettings(values);
+      // Prepare the payload exactly as the backend expects it
+      const payload = {
+        jellyfin_url: values.url,
+        jellyfin_api_key: values.apiKey,
+        jellyfin_user_id: values.userId
+      };
+      
+      console.log('🔴 [apiServices] Jellyfin saveSettings sending payload:', payload);
+      return apiClient.jellyfin.saveSettings(payload);
     },
-    testConnection: async (values: Record<string, string>) => {
-      // Validate the settings before testing
-      const validation = validateJellyfinConfig(values);
-      if (!validation.isValid) {
-        // Get the first error
-        const firstError = Object.values(validation.errors)[0];
-        throw new Error(firstError);
+    testConnection: async (values) => {
+      // Log the values received by the testConnection function
+      console.log('🔴 [apiServices] Jellyfin testConnection received values:', values);
+      
+      // Basic validation
+      if (!values.url) {
+        throw new Error('Jellyfin URL is required');
+      }
+      if (!values.apiKey) {
+        throw new Error('API Key is required');
+      }
+      if (!values.userId) {
+        throw new Error('User ID is required');
       }
       
-      // Test the connection using the API client
-      return apiClient.jellyfin.testConnection(values);
+      // Prepare the payload exactly as the backend expects it
+      const payload = {
+        jellyfin_url: values.url,
+        jellyfin_api_key: values.apiKey,
+        jellyfin_user_id: values.userId
+      };
+      
+      console.log('🔴 [apiServices] Jellyfin testConnection sending payload:', payload);
+      return apiClient.jellyfin.testConnection(payload);
     },
   },
   
