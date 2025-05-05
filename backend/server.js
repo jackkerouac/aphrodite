@@ -3,6 +3,7 @@ import cors from 'cors';
 import pg from 'pg';
 import dotenv from 'dotenv';
 import fetch from 'node-fetch';
+import { pool } from './db.js';
 
 const { Pool } = pg;
 
@@ -17,7 +18,7 @@ app.use(cors());
 app.use(express.json());
 
 // Database connection
-const pool = new Pool({
+export const pool = new Pool({
   user: process.env.PG_USER || 'aphrodite',
   host: process.env.PG_HOST || 'localhost',
   database: process.env.PG_DATABASE || 'aphrodite',
