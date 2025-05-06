@@ -493,3 +493,9 @@ app.get('/api/jellyfin-libraries', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
+
+import { errorLogger } from './middleware/errorLogger.js';
+
+// All the routes above here...
+
+app.use(errorLogger);
