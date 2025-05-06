@@ -107,7 +107,7 @@ export default function Sidebar() {
           <span className="text-xs text-muted-foreground">{version}</span>
           <div className="flex items-center space-x-2">
             <a 
-              href="https://github.com/yourusername/aphrodite" 
+              href="https://github.com/jackkerouac/aphrodite" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-muted-foreground hover:text-primary transition-colors"
@@ -115,7 +115,7 @@ export default function Sidebar() {
               <GithubIcon className="h-4 w-4" />
             </a>
             <a 
-              href="https://ko-fi.com/yourusername" 
+              href="https://ko-fi.com/jackkerouac" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-muted-foreground hover:text-primary transition-colors"

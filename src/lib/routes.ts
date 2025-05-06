@@ -44,11 +44,6 @@ export const routes = {
     icon: SettingsIcon,
     children: [
       {
-        path: "/settings/user",
-        name: "User Settings",
-        icon: UserIcon
-      },
-      {
         path: "/settings/api",
         name: "API Settings",
         icon: KeyIcon
