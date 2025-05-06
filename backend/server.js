@@ -3,7 +3,11 @@ import cors from 'cors';
 import pg from 'pg';
 import dotenv from 'dotenv';
 import fetch from 'node-fetch';
+import fs from 'fs';
+import path from 'path';
 import { pool } from './db.js';
+import logger from './lib/logger.js';
+import { errorLogger } from './middleware/errorLogger.js';
 import {
   getJellyfinSettingsByUserId,
   upsertJellyfinSettings
@@ -34,6 +38,10 @@ const port = process.env.PORT || 5000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Import and use request logger middleware
+import { requestLogger } from './requestLogger.js';
+app.use(requestLogger);
 
 app.get('/api/jellyfin-settings/:userId', async (req, res) => {
   const userId = Number(req.params.userId);
@@ -489,7 +497,135 @@ app.get('/api/jellyfin-libraries', async (req, res) => {
   }
 });
 
+// Logs API Endpoints - these do not log themselves to prevent infinite loops
+app.get('/api/logs', async (req, res) => {
+  // Do not log this API call to prevent infinite logging loops
+  try {
+    // Get query parameters for filtering
+    const { level, limit = 100, page = 1 } = req.query;
+    const skip = (page - 1) * limit;
+    
+    // Read the log file
+    const logDir = path.resolve('./logs');
+    const logFile = path.join(logDir, 'aphrodite.log');
+    
+    if (!fs.existsSync(logFile)) {
+      console.log('Log file not found, creating empty one');
+      // Create an empty log file instead of returning error
+      try {
+        if (!fs.existsSync(logDir)) {
+          fs.mkdirSync(logDir, { recursive: true });
+        }
+        fs.writeFileSync(logFile, '');
+      } catch (err) {
+        console.error(`Error creating log file: ${err.message}`);
+      }
+      
+      // Return empty logs array instead of error
+      return res.json({
+        total: 0,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        logs: []
+      });
+    }
+    
+    // Read the log file content
+    const content = fs.readFileSync(logFile, 'utf8');
+    
+    // Handle empty log files
+    if (!content || content.trim() === '') {
+      console.log('Log file is empty');
+      return res.json({
+        total: 0,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        logs: []
+      });
+    }
+    
+    // Split content into lines and parse each line
+    const lines = content.trim().split('\n');
+    let logs = lines.map(line => {
+      try {
+        // Parse the log format
+        // Example: [2023-05-06T12:34:56.789Z] INFO: Server started
+        const timestampMatch = line.match(/\[(.*?)\]/);
+        const levelMatch = line.match(/\] (.*?):\s/);
+        
+        if (timestampMatch && levelMatch) {
+          const timestamp = timestampMatch[1];
+          const logLevel = levelMatch[1];
+          const message = line.substring(line.indexOf(': ') + 2);
+          
+          return {
+            timestamp,
+            level: logLevel,
+            message
+          };
+        }
+        return null;
+      } catch (err) {
+        logger.error(`Error parsing log line: ${err.message}`);
+        return null;
+      }
+    }).filter(log => log !== null);
+    
+    // Filter by level if specified
+    if (level) {
+      logs = logs.filter(log => log.level.toLowerCase() === level.toLowerCase());
+    }
+    
+    // Sort by timestamp (newest first)
+    logs.reverse();
+    
+    // Apply pagination
+    const paginatedLogs = logs.slice(skip, skip + parseInt(limit));
+    
+    res.json({
+      total: logs.length,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      logs: paginatedLogs
+    });
+  } catch (err) {
+    logger.error(`Error fetching logs: ${err.message}`);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Clear logs endpoint
+app.post('/api/logs/clear', async (req, res) => {
+  // Special case - we do log this action, but only once
+  console.log('Logs cleared by user');
+  try {
+    // Get the log file path
+    const logDir = path.resolve('./logs');
+    const logFile = path.join(logDir, 'aphrodite.log');
+    
+    if (!fs.existsSync(logFile)) {
+      logger.warn('Log file not found');
+      return res.status(404).json({ message: 'Log file not found' });
+    }
+    
+    // Clear the log file by writing an empty string
+    fs.writeFileSync(logFile, '');
+    
+    // We'll just console log this action instead of writing to the log file
+    // to avoid creating new logs immediately after clearing
+    console.log('Logs cleared by user - ' + new Date().toISOString());
+    
+    res.json({ success: true, message: 'Logs cleared successfully' });
+  } catch (err) {
+    logger.error(`Error clearing logs: ${err.message}`);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Error logger middleware - should be used after all routes
+app.use(errorLogger);
+
 // Start server
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  logger.info(`Server running on port ${port}`);
 });

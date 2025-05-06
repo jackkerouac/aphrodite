@@ -114,6 +114,64 @@ async function fetchApi<T>(
 
 // API service specific endpoints
 export const apiClient = {
+  // Logs API endpoints
+  logs: {
+    // Get logs with optional filtering
+    getLogs: async (params: { level?: string; limit?: number; page?: number } = {}): Promise<any> => {
+      try {
+        console.log('🔧 [apiClient] Fetching logs with params:', params);
+        
+        // Build query string from params
+        const queryParams = new URLSearchParams();
+        if (params.level) queryParams.append('level', params.level);
+        if (params.limit) queryParams.append('limit', params.limit.toString());
+        if (params.page) queryParams.append('page', params.page.toString());
+        
+        const queryString = queryParams.toString();
+        const endpoint = `/logs${queryString ? `?${queryString}` : ''}`;
+        
+        try {
+          const data = await fetchApi<any>(endpoint);
+          console.log('🔧 [apiClient] Received logs data:', data);
+          
+          // Ensure we have a valid response structure
+          if (!data) {
+            return { logs: [], total: 0 };
+          }
+          
+          // If data is not in the expected format, reshape it
+          if (!data.logs && Array.isArray(data)) {
+            return { logs: data, total: data.length };
+          }
+          
+          return data;
+        } catch (error) {
+          console.error('🔧 [apiClient] JSON parse error in logs response:', error);
+          // Return empty data on parse error
+          return { logs: [], total: 0 };
+        }
+      } catch (error) {
+        console.error('❌ [apiClient] Error fetching logs:', error);
+        // Return empty structure rather than throwing to avoid white screen
+        return { logs: [], total: 0 };
+      }
+    },
+    
+    // Clear logs
+    clearLogs: async (): Promise<any> => {
+      try {
+        console.log('🔧 [apiClient] Clearing logs...');
+        const data = await fetchApi<any>('/logs/clear', {
+          method: 'POST'
+        });
+        console.log('🔧 [apiClient] Logs cleared successfully');
+        return data;
+      } catch (error) {
+        console.error('❌ [apiClient] Error clearing logs:', error);
+        throw error;
+      }
+    }
+  },
   // Jellyfin API endpoints
   jellyfin: {
     // Get Jellyfin libraries

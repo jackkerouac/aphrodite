@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 
 // Ensure logs directory exists
-const logDir = path.resolve('backend/logs');
+const logDir = path.resolve('./logs');
 if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir);
 }
