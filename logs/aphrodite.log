@@ -1,0 +1,10 @@
+[2025-05-06T16:09:09.068Z] INFO: Found 1 pending migrations
+[2025-05-06T16:09:09.071Z] INFO: Running migration: create_resolution_badge_settings_table.sql
+[2025-05-06T16:09:09.074Z] ERROR: ❌ Error running migration create_resolution_badge_settings_table.sql: syntax error at or near "BEGIN"
+[2025-05-06T16:09:09.075Z] ERROR: Failed to apply migration: create_resolution_badge_settings_table.sql
+[2025-05-06T16:09:09.075Z] INFO: Migration process completed
+[2025-05-06T16:10:54.921Z] INFO: Found 1 pending migrations
+[2025-05-06T16:10:54.923Z] INFO: Running migration: create_resolution_badge_settings_table.sql
+[2025-05-06T16:10:54.988Z] INFO: ✅ Successfully ran migration: create_resolution_badge_settings_table.sql
+[2025-05-06T16:10:54.994Z] INFO: Recorded migration: create_resolution_badge_settings_table.sql
+[2025-05-06T16:10:54.994Z] INFO: Migration process completed

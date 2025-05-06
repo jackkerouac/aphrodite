@@ -1,3 +1,5 @@
+// src/App.jsx
+
 import './App.css'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Button } from "@/components/ui/button"
@@ -12,11 +14,11 @@ import JobHistory from "@/pages/job-history"
 import Logs from "@/pages/logs"
 import Scheduler from "@/pages/scheduler"
 import ApiSettingsPage from "@/pages/settings/api"
+import DesignResolutionBadgeSettings from "@/pages/settings/design-resolutionbadge";
 
 // Placeholder components for each settings page
 const UserSettings = () => <div>User Settings Page</div>;
 const AudioBadgeSettings = () => <div>Audio Badge Settings Page</div>;
-const ResolutionBadgeSettings = () => <div>Resolution Badge Settings Page</div>;
 const ReviewBadgeSettings = () => <div>Review Badge Settings Page</div>;
 
 // Main settings page component
@@ -38,16 +40,16 @@ function App() {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/run-aphrodite" element={<RunAphrodite />} />
+              <Route path="/run" element={<RunAphrodite />} />
               <Route path="/preview" element={<Preview />} />
-              <Route path="/job-history" element={<JobHistory />} />
+              <Route path="/history" element={<JobHistory />} />
               <Route path="/logs" element={<Logs />} />
               <Route path="/scheduler" element={<Scheduler />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/settings/user" element={<UserSettings />} />
               <Route path="/settings/api" element={<ApiSettingsPage />} />
               <Route path="/settings/audio-badge" element={<AudioBadgeSettings />} />
-              <Route path="/settings/resolution-badge" element={<ResolutionBadgeSettings />} />
+              <Route path="/settings/resolution-badge" element={<DesignResolutionBadgeSettings />} />
               <Route path="/settings/review-badge" element={<ReviewBadgeSettings />} />
             </Routes>
           </main>

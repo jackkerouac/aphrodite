@@ -114,6 +114,54 @@ async function fetchApi<T>(
 
 // API service specific endpoints
 export const apiClient = {
+  // Resolution Badge Settings endpoints
+  resolutionBadge: {
+    // Get Resolution Badge settings
+    getSettings: async (): Promise<any> => {
+      try {
+        console.log('🔧 [apiClient] Fetching Resolution Badge settings...');
+        
+        const data = await fetchApi<any>(`/resolution-badge-settings/${DEFAULT_USER_ID}`);
+        console.log('🔧 [apiClient] Received Resolution Badge settings:', data);
+        
+        return data;
+      } catch (error) {
+        // If 404 (not found), return empty values with defaults
+        if (error instanceof ApiError && error.status === 404) {
+          console.log('❗ No Resolution Badge settings found, using defaults');
+          return {
+            size: 0.1,
+            margin: 10,
+            background_color: '#ffffff',
+            background_transparency: 0.7,
+            border_radius: 5,
+            border_width: 1,
+            border_color: '#000000',
+            border_transparency: 0.9,
+            shadow_toggle: false,
+            shadow_color: '#000000',
+            shadow_blur_radius: 5,
+            shadow_offset_x: 0,
+            shadow_offset_y: 0,
+            z_index: 10
+          };
+        }
+        console.error('❌ [apiClient] Resolution Badge settings error:', error);
+        throw error;
+      }
+    },
+    
+    // Save Resolution Badge settings
+    saveSettings: async (settings: any): Promise<void> => {
+      console.log('📤 [apiClient] Saving Resolution Badge settings:', settings);
+      
+      return fetchApi<void>(`/resolution-badge-settings/${DEFAULT_USER_ID}`, {
+        method: 'POST',
+        body: JSON.stringify(settings),
+      });
+    }
+  },
+
   // Logs API endpoints
   logs: {
     // Get logs with optional filtering

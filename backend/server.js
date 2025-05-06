@@ -25,6 +25,10 @@ import {
   upsertAnidbSettings,
   testAnidbConnection
 } from './models/anidbSettings.js';
+import {
+  getResolutionBadgeSettingsByUserId,
+  upsertResolutionBadgeSettings
+} from './models/resolutionBadgeSettings.js';
 
 
 const { Pool } = pg;
@@ -81,6 +85,93 @@ app.get('/api/tmdb-settings/:userId', async (req, res) => {
     res.json(settings);
   } catch (err) {
     console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Resolution Badge Settings Endpoints
+app.get('/api/resolution-badge-settings/:userId', async (req, res) => {
+  const userId = Number(req.params.userId);
+  console.log(`🔍 API Request: GET /api/resolution-badge-settings/${userId}`);
+  try {
+    const settings = await getResolutionBadgeSettingsByUserId(userId);
+    console.log('📦 Resolution Badge settings from DB:', settings);
+    if (!settings) {
+      console.log('⚠️ No settings found for this user');
+      return res.status(404).json({ message: 'Settings not found' });
+    }
+    console.log('✅ Returning settings:', settings);
+    res.json(settings);
+  } catch (err) {
+    console.error('❌ Server error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.post('/api/resolution-badge-settings/:userId', async (req, res) => {
+  console.log(`📬 API Request: POST /api/resolution-badge-settings/${req.params.userId}`, req.body);
+  const userId = Number(req.params.userId);
+  
+  // Extract fields from request body
+  const { 
+    size, 
+    margin, 
+    position,
+    resolution_type,
+    background_color, 
+    background_transparency,
+    border_radius,
+    border_width,
+    border_color,
+    border_transparency,
+    shadow_toggle,
+    shadow_color,
+    shadow_blur_radius,
+    shadow_offset_x,
+    shadow_offset_y,
+    z_index
+  } = req.body;
+  
+  // Validate required fields
+  if (size === undefined || 
+      margin === undefined || 
+      !background_color || 
+      background_transparency === undefined || 
+      border_radius === undefined || 
+      border_width === undefined || 
+      !border_color || 
+      border_transparency === undefined || 
+      z_index === undefined ||
+      !position ||
+      !resolution_type) {
+    console.log('⚠️ Missing required fields in save request');
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
+  
+  try {
+    const saved = await upsertResolutionBadgeSettings({
+      user_id: userId,
+      size,
+      margin,
+      position,
+      resolution_type,
+      background_color,
+      background_transparency,
+      border_radius,
+      border_width,
+      border_color,
+      border_transparency,
+      shadow_toggle,
+      shadow_color,
+      shadow_blur_radius,
+      shadow_offset_x,
+      shadow_offset_y,
+      z_index
+    });
+    console.log('✅ Resolution Badge settings saved successfully:', saved);
+    res.json(saved);
+  } catch (err) {
+    console.error('❌ Error saving Resolution Badge settings:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
