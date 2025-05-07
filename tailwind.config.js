@@ -8,18 +8,33 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "#4C1D95",
-        primaryHover: "#7C3AED",
-        secondary: "#EDE9FE",
-        accent: "#8B5CF6",
-        cyanEdge: "#06B6D4",
-        success: "#22C55E",
-        warning: "#F59E0B",
-        error: "#EF4444",
-        neutral: "#9CA3AF",
-        darkText: "#1F2937",
-        bgLight: "#F4F4F5",
-        bgDark: "#1E1B2E",
+        // Primary Colors
+        primary: {
+          white: '#FDFDFD',
+          purple: '#4C1D95',
+        },
+        // Secondary Colors
+        secondary: {
+          purple: '#7C3AED',
+          lilac: '#EDE9FE',
+        },
+        // Accent Colors
+        accent: {
+          indigo: '#8B5CF6',
+          cyan: '#06B6D4',
+        },
+        // Functional Colors
+        success: '#22C55E',
+        warning: '#F59E0B',
+        error: '#EF4444',
+        neutral: '#9CA3AF',
+        dark: '#1F2937',
+        // Background Colors
+        bg: {
+          white: '#FFFFFF',
+          light: '#F4F4F5',
+          dark: '#1E1B2E',
+        },
       },
       borderRadius: {
         DEFAULT: "8px",
@@ -28,6 +43,36 @@ export default {
       fontFamily: {
         sans: ["Inter", ...fontFamily.sans],
         mono: ["JetBrains Mono", ...fontFamily.mono],
+      },
+      fontSize: {
+        'h1': ['30px', {
+          lineHeight: '36px',
+          fontWeight: '700',
+        }],
+        'h2': ['24px', {
+          lineHeight: '32px',
+          fontWeight: '600',
+        }],
+        'h3': ['20px', {
+          lineHeight: '28px',
+          fontWeight: '500',
+        }],
+        'body-large': ['16px', {
+          lineHeight: '24px',
+          fontWeight: '400',
+        }],
+        'body': ['14px', {
+          lineHeight: '20px',
+          fontWeight: '400',
+        }],
+        'body-small': ['12px', {
+          lineHeight: '18px',
+          fontWeight: '500',
+        }],
+        'code': ['13px', {
+          lineHeight: '18px',
+          fontWeight: '500',
+        }],
       },
       boxShadow: {
         card: "0 2px 8px rgba(76, 29, 149, 0.08)",

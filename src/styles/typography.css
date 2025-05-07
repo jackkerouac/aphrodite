@@ -1,0 +1,95 @@
+/* Typography styles for Aphrodite UI */
+
+:root {
+  /* Font Weight Variables */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Font Family Variables */
+  --font-family-sans: 'Inter', system-ui, sans-serif;
+  --font-family-mono: 'JetBrains Mono', monospace;
+}
+
+/* Base Typography */
+html {
+  font-family: var(--font-family-sans);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Link Styles */
+a {
+  color: var(--accent-indigo);
+  text-decoration: none;
+  transition: color 0.2s ease-out;
+}
+
+a:hover {
+  color: var(--accent-cyan);
+  text-decoration: underline;
+}
+
+/* Selection Styles */
+::selection {
+  background-color: var(--secondary-lilac);
+  color: var(--primary-purple);
+}
+
+/* List Styling */
+ul.styled-list, ol.styled-list {
+  padding-left: 1.5rem;
+}
+
+ul.styled-list {
+  list-style-type: disc;
+}
+
+ul.styled-list ul {
+  list-style-type: circle;
+}
+
+ol.styled-list {
+  list-style-type: decimal;
+}
+
+/* Text overflow utilities */
+.text-ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.line-clamp-1,
+.line-clamp-2,
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-1 {
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  -webkit-line-clamp: 3;
+}
+
+/* Dark mode overrides */
+.dark {
+  /* All text colors handled by Tailwind classes in components */
+  --selection-bg: var(--accent-indigo);
+  --selection-color: white;
+}
+
+.dark ::selection {
+  background-color: var(--selection-bg);
+  color: var(--selection-color);
+}
