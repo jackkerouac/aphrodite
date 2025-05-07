@@ -255,3 +255,12 @@
 [2025-05-07T16:13:15.869Z] INFO: Getting review badge settings for user ID: 1
 [2025-05-07T16:13:15.871Z] INFO: Found review badge settings for user ID: 1
 [2025-05-07T16:13:15.873Z] INFO: [GET] /api/review-badge-settings/1 304 — 4ms
+[2025-05-07T20:18:51.464Z] INFO: Server running on port 5000
+[2025-05-07T20:18:52.216Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-07T20:18:52.221Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-07T20:18:52.226Z] INFO: [GET] /api/audio-badge-settings/1 304 — 11ms
+[2025-05-07T20:18:52.231Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-07T20:18:52.233Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-07T20:18:52.237Z] INFO: [GET] /api/audio-badge-settings/1 304 — 7ms
+[2025-05-07T20:21:35.595Z] INFO: Server running on port 5000
+[2025-05-07T20:21:40.510Z] INFO: Server running on port 5000
