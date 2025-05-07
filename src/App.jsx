@@ -15,10 +15,10 @@ import Logs from "@/pages/logs"
 import Scheduler from "@/pages/scheduler"
 import ApiSettingsPage from "@/pages/settings/api"
 import DesignResolutionBadgeSettings from "@/pages/settings/design-resolutionbadge";
+import AudioBadgeSettings from "@/pages/settings/design-audiobadge";
 
 // Placeholder components for each settings page
 const UserSettings = () => <div>User Settings Page</div>;
-const AudioBadgeSettings = () => <div>Audio Badge Settings Page</div>;
 const ReviewBadgeSettings = () => <div>Review Badge Settings Page</div>;
 
 // Main settings page component

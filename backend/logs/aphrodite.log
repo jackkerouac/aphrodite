@@ -1,27 +1,280 @@
-[2025-05-06T20:27:47.116Z] INFO: [GET] /api/jellyfin-settings/1 304 — 53ms
-[2025-05-06T20:27:47.119Z] INFO: [GET] /api/omdb-settings/1 304 — 52ms
-[2025-05-06T20:27:47.125Z] INFO: [GET] /api/tmdb-settings/1 304 — 57ms
-[2025-05-06T20:27:47.130Z] INFO: [GET] /api/jellyfin-settings/1 304 — 4ms
-[2025-05-06T20:27:47.131Z] INFO: [GET] /api/omdb-settings/1 304 — 4ms
-[2025-05-06T20:27:47.138Z] INFO: [GET] /api/tmdb-settings/1 304 — 3ms
-[2025-05-06T20:27:47.144Z] INFO: [GET] /api/anidb-settings/1 304 — 74ms
-[2025-05-06T20:27:47.157Z] INFO: [GET] /api/jellyfin-settings/1 304 — 5ms
-[2025-05-06T20:27:47.163Z] INFO: [GET] /api/anidb-settings/1 304 — 5ms
-[2025-05-06T20:27:47.176Z] INFO: [GET] /api/jellyfin-settings/1 304 — 6ms
-[2025-05-06T20:36:56.011Z] INFO: [GET] /api/jellyfin-libraries 304 — 731ms
-[2025-05-06T20:36:56.282Z] INFO: [GET] /api/jellyfin-libraries 304 — 266ms
-[2025-05-06T20:38:00.380Z] INFO: [GET] /api/jellyfin-libraries 304 — 480ms
-[2025-05-06T20:38:00.644Z] INFO: [GET] /api/jellyfin-libraries 304 — 261ms
-[2025-05-06T20:39:02.997Z] INFO: Server running on port 5000
-[2025-05-06T20:39:07.622Z] INFO: [GET] /api/jellyfin-libraries 304 — 646ms
-[2025-05-06T20:39:07.902Z] INFO: [GET] /api/jellyfin-libraries 304 — 277ms
-[2025-05-06T20:39:10.035Z] INFO: [GET] /api/jellyfin-settings/1 304 — 10ms
-[2025-05-06T20:39:10.046Z] INFO: [GET] /api/jellyfin-settings/1 304 — 5ms
-[2025-05-06T20:39:10.060Z] INFO: [GET] /api/jellyfin-settings/1 304 — 5ms
-[2025-05-06T20:39:10.063Z] INFO: [GET] /api/omdb-settings/1 304 — 36ms
-[2025-05-06T20:39:10.070Z] INFO: [GET] /api/anidb-settings/1 304 — 42ms
-[2025-05-06T20:39:10.071Z] INFO: [GET] /api/tmdb-settings/1 304 — 41ms
-[2025-05-06T20:39:10.077Z] INFO: [GET] /api/jellyfin-settings/1 304 — 5ms
-[2025-05-06T20:39:10.078Z] INFO: [GET] /api/omdb-settings/1 304 — 4ms
-[2025-05-06T20:39:10.084Z] INFO: [GET] /api/anidb-settings/1 304 — 5ms
-[2025-05-06T20:39:10.085Z] INFO: [GET] /api/tmdb-settings/1 304 — 5ms
+[2025-05-06T23:29:52.011Z] INFO: [GET] /api/jellyfin-libraries 304 — 580ms
+[2025-05-06T23:29:52.247Z] INFO: [GET] /api/jellyfin-libraries 304 — 233ms
+[2025-05-06T23:40:35.034Z] INFO: [GET] /api/jellyfin-libraries 200 — 774ms
+[2025-05-06T23:40:35.035Z] INFO: [GET] /api/jellyfin-libraries 200 — 797ms
+[2025-05-06T23:40:43.018Z] INFO: [GET] /api/jellyfin-settings/1 200 — 10ms
+[2025-05-06T23:40:43.025Z] INFO: [GET] /api/omdb-settings/1 200 — 3ms
+[2025-05-06T23:40:43.029Z] INFO: [GET] /api/tmdb-settings/1 200 — 3ms
+[2025-05-06T23:40:43.036Z] INFO: [GET] /api/anidb-settings/1 200 — 5ms
+[2025-05-06T23:40:43.042Z] INFO: [GET] /api/jellyfin-settings/1 200 — 4ms
+[2025-05-06T23:40:43.046Z] INFO: [GET] /api/omdb-settings/1 200 — 35ms
+[2025-05-06T23:40:43.047Z] INFO: [GET] /api/tmdb-settings/1 200 — 36ms
+[2025-05-06T23:40:43.050Z] INFO: [GET] /api/anidb-settings/1 200 — 38ms
+[2025-05-06T23:40:43.055Z] INFO: [GET] /api/jellyfin-settings/1 200 — 42ms
+[2025-05-06T23:40:43.059Z] INFO: [GET] /api/jellyfin-settings/1 200 — 44ms
+[2025-05-06T23:40:45.488Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-06T23:40:45.489Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-06T23:40:45.490Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-06T23:40:45.492Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 5ms
+[2025-05-06T23:40:45.493Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-06T23:40:45.494Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 5ms
+[2025-05-06T23:40:50.555Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-06T23:40:50.557Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-06T23:40:50.558Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 3ms
+[2025-05-06T23:40:50.568Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-06T23:40:50.570Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-06T23:40:50.571Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 4ms
+[2025-05-07T00:14:28.297Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T00:14:28.321Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T00:14:28.322Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 25ms
+[2025-05-07T00:14:28.327Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T00:14:28.329Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T00:14:28.331Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 4ms
+[2025-05-07T00:14:30.972Z] INFO: [GET] /api/jellyfin-settings/1 304 — 5ms
+[2025-05-07T00:14:30.990Z] INFO: [GET] /api/jellyfin-settings/1 304 — 4ms
+[2025-05-07T00:14:31.000Z] INFO: [GET] /api/omdb-settings/1 304 — 31ms
+[2025-05-07T00:14:31.002Z] INFO: [GET] /api/anidb-settings/1 304 — 32ms
+[2025-05-07T00:14:31.003Z] INFO: [GET] /api/tmdb-settings/1 304 — 32ms
+[2025-05-07T00:14:31.004Z] INFO: [GET] /api/jellyfin-settings/1 304 — 6ms
+[2025-05-07T00:14:31.014Z] INFO: [GET] /api/omdb-settings/1 304 — 3ms
+[2025-05-07T00:14:31.020Z] INFO: [GET] /api/anidb-settings/1 304 — 4ms
+[2025-05-07T00:14:31.021Z] INFO: [GET] /api/tmdb-settings/1 304 — 4ms
+[2025-05-07T00:14:31.023Z] INFO: [GET] /api/jellyfin-settings/1 304 — 5ms
+[2025-05-07T00:17:35.172Z] INFO: [GET] /api/omdb-settings/1 304 — 24ms
+[2025-05-07T00:17:35.174Z] INFO: [GET] /api/jellyfin-settings/1 304 — 28ms
+[2025-05-07T00:17:35.175Z] INFO: [GET] /api/anidb-settings/1 304 — 25ms
+[2025-05-07T00:17:35.176Z] INFO: [GET] /api/tmdb-settings/1 304 — 26ms
+[2025-05-07T00:17:35.179Z] INFO: [GET] /api/omdb-settings/1 304 — 2ms
+[2025-05-07T00:17:35.192Z] INFO: [GET] /api/jellyfin-settings/1 304 — 4ms
+[2025-05-07T00:17:35.193Z] INFO: [GET] /api/anidb-settings/1 304 — 4ms
+[2025-05-07T00:17:35.194Z] INFO: [GET] /api/tmdb-settings/1 304 — 5ms
+[2025-05-07T00:17:35.212Z] INFO: [GET] /api/jellyfin-settings/1 304 — 4ms
+[2025-05-07T00:17:35.225Z] INFO: [GET] /api/jellyfin-settings/1 304 — 4ms
+[2025-05-07T00:18:00.770Z] INFO: [GET] /api/jellyfin-settings/1 200 — 30ms
+[2025-05-07T00:18:00.772Z] INFO: [GET] /api/omdb-settings/1 200 — 30ms
+[2025-05-07T00:18:00.776Z] INFO: [GET] /api/tmdb-settings/1 200 — 33ms
+[2025-05-07T00:18:00.779Z] INFO: [GET] /api/anidb-settings/1 200 — 35ms
+[2025-05-07T00:18:00.784Z] INFO: [GET] /api/jellyfin-settings/1 200 — 10ms
+[2025-05-07T00:18:00.787Z] INFO: [GET] /api/omdb-settings/1 200 — 10ms
+[2025-05-07T00:18:00.790Z] INFO: [GET] /api/tmdb-settings/1 200 — 5ms
+[2025-05-07T00:18:00.793Z] INFO: [GET] /api/jellyfin-settings/1 200 — 5ms
+[2025-05-07T00:18:00.795Z] INFO: [GET] /api/anidb-settings/1 200 — 49ms
+[2025-05-07T00:18:00.802Z] INFO: [GET] /api/jellyfin-settings/1 200 — 52ms
+[2025-05-07T00:19:27.659Z] INFO: [GET] /api/jellyfin-settings/1 200 — 24ms
+[2025-05-07T00:19:27.662Z] INFO: [GET] /api/omdb-settings/1 200 — 26ms
+[2025-05-07T00:19:27.663Z] INFO: [GET] /api/tmdb-settings/1 200 — 26ms
+[2025-05-07T00:19:27.668Z] INFO: [GET] /api/omdb-settings/1 200 — 4ms
+[2025-05-07T00:19:27.669Z] INFO: [GET] /api/tmdb-settings/1 200 — 3ms
+[2025-05-07T00:19:27.671Z] INFO: [GET] /api/anidb-settings/1 200 — 5ms
+[2025-05-07T00:19:27.676Z] INFO: [GET] /api/jellyfin-settings/1 200 — 5ms
+[2025-05-07T00:19:27.685Z] INFO: [GET] /api/anidb-settings/1 200 — 48ms
+[2025-05-07T00:19:27.689Z] INFO: [GET] /api/jellyfin-settings/1 200 — 48ms
+[2025-05-07T00:19:27.692Z] INFO: [GET] /api/jellyfin-settings/1 200 — 52ms
+[2025-05-07T00:20:02.161Z] INFO: [GET] /api/jellyfin-settings/1 200 — 32ms
+[2025-05-07T00:20:02.163Z] INFO: [GET] /api/tmdb-settings/1 200 — 31ms
+[2025-05-07T00:20:02.165Z] INFO: [GET] /api/anidb-settings/1 200 — 31ms
+[2025-05-07T00:20:02.169Z] INFO: [GET] /api/jellyfin-settings/1 200 — 34ms
+[2025-05-07T00:20:02.171Z] INFO: [GET] /api/omdb-settings/1 200 — 41ms
+[2025-05-07T00:20:02.172Z] INFO: [GET] /api/tmdb-settings/1 200 — 5ms
+[2025-05-07T00:20:02.175Z] INFO: [GET] /api/jellyfin-settings/1 200 — 9ms
+[2025-05-07T00:20:02.179Z] INFO: [GET] /api/anidb-settings/1 200 — 9ms
+[2025-05-07T00:20:02.181Z] INFO: [GET] /api/jellyfin-settings/1 200 — 5ms
+[2025-05-07T00:20:02.182Z] INFO: [GET] /api/omdb-settings/1 200 — 44ms
+[2025-05-07T00:21:32.840Z] INFO: [GET] /api/jellyfin-settings/1 200 — 29ms
+[2025-05-07T00:21:32.842Z] INFO: [GET] /api/omdb-settings/1 200 — 30ms
+[2025-05-07T00:21:32.848Z] INFO: [GET] /api/omdb-settings/1 200 — 5ms
+[2025-05-07T00:21:32.850Z] INFO: [GET] /api/tmdb-settings/1 200 — 7ms
+[2025-05-07T00:21:32.855Z] INFO: [GET] /api/anidb-settings/1 200 — 7ms
+[2025-05-07T00:21:32.869Z] INFO: [GET] /api/tmdb-settings/1 200 — 55ms
+[2025-05-07T00:21:32.873Z] INFO: [GET] /api/anidb-settings/1 200 — 58ms
+[2025-05-07T00:21:32.875Z] INFO: [GET] /api/jellyfin-settings/1 200 — 19ms
+[2025-05-07T00:21:32.882Z] INFO: [GET] /api/jellyfin-settings/1 200 — 64ms
+[2025-05-07T00:21:32.885Z] INFO: [GET] /api/jellyfin-settings/1 200 — 69ms
+[2025-05-07T00:21:38.953Z] INFO: [GET] /api/jellyfin-settings/1 200 — 5ms
+[2025-05-07T00:21:38.954Z] INFO: [GET] /api/omdb-settings/1 200 — 5ms
+[2025-05-07T00:21:38.955Z] INFO: [GET] /api/tmdb-settings/1 200 — 5ms
+[2025-05-07T00:21:38.963Z] INFO: [GET] /api/anidb-settings/1 200 — 7ms
+[2025-05-07T00:21:38.969Z] INFO: [GET] /api/jellyfin-settings/1 200 — 12ms
+[2025-05-07T00:21:38.972Z] INFO: [GET] /api/jellyfin-settings/1 200 — 14ms
+[2025-05-07T00:21:38.973Z] INFO: [GET] /api/omdb-settings/1 200 — 14ms
+[2025-05-07T00:21:38.974Z] INFO: [GET] /api/tmdb-settings/1 200 — 15ms
+[2025-05-07T00:21:38.975Z] INFO: [GET] /api/anidb-settings/1 200 — 15ms
+[2025-05-07T00:21:38.979Z] INFO: [GET] /api/jellyfin-settings/1 200 — 3ms
+[2025-05-07T00:22:02.494Z] INFO: [GET] /api/jellyfin-settings/1 200 — 29ms
+[2025-05-07T00:22:02.495Z] INFO: [GET] /api/omdb-settings/1 200 — 28ms
+[2025-05-07T00:22:02.496Z] INFO: [GET] /api/tmdb-settings/1 200 — 28ms
+[2025-05-07T00:22:02.497Z] INFO: [GET] /api/anidb-settings/1 200 — 26ms
+[2025-05-07T00:22:02.502Z] INFO: [GET] /api/jellyfin-settings/1 200 — 29ms
+[2025-05-07T00:22:02.505Z] INFO: [GET] /api/omdb-settings/1 200 — 7ms
+[2025-05-07T00:22:02.506Z] INFO: [GET] /api/tmdb-settings/1 200 — 7ms
+[2025-05-07T00:22:02.508Z] INFO: [GET] /api/anidb-settings/1 200 — 9ms
+[2025-05-07T00:22:02.510Z] INFO: [GET] /api/jellyfin-settings/1 200 — 7ms
+[2025-05-07T00:22:02.516Z] INFO: [GET] /api/jellyfin-settings/1 200 — 41ms
+[2025-05-07T00:22:08.053Z] INFO: [GET] /api/jellyfin-settings/1 200 — 5ms
+[2025-05-07T00:22:08.055Z] INFO: [GET] /api/jellyfin-settings/1 200 — 6ms
+[2025-05-07T00:22:08.057Z] INFO: [GET] /api/anidb-settings/1 200 — 7ms
+[2025-05-07T00:22:08.061Z] INFO: [GET] /api/tmdb-settings/1 200 — 3ms
+[2025-05-07T00:22:08.062Z] INFO: [GET] /api/omdb-settings/1 200 — 4ms
+[2025-05-07T00:22:08.063Z] INFO: [GET] /api/jellyfin-settings/1 200 — 4ms
+[2025-05-07T00:22:08.069Z] INFO: [GET] /api/omdb-settings/1 200 — 5ms
+[2025-05-07T00:22:08.071Z] INFO: [GET] /api/tmdb-settings/1 200 — 7ms
+[2025-05-07T00:22:08.073Z] INFO: [GET] /api/anidb-settings/1 200 — 9ms
+[2025-05-07T00:22:08.076Z] INFO: [GET] /api/jellyfin-settings/1 200 — 11ms
+[2025-05-07T00:22:30.439Z] INFO: [GET] /api/jellyfin-settings/1 200 — 30ms
+[2025-05-07T00:22:30.440Z] INFO: [GET] /api/omdb-settings/1 200 — 28ms
+[2025-05-07T00:22:30.441Z] INFO: [GET] /api/tmdb-settings/1 200 — 28ms
+[2025-05-07T00:22:30.446Z] INFO: [GET] /api/omdb-settings/1 200 — 4ms
+[2025-05-07T00:22:30.447Z] INFO: [GET] /api/tmdb-settings/1 200 — 4ms
+[2025-05-07T00:22:30.449Z] INFO: [GET] /api/anidb-settings/1 200 — 6ms
+[2025-05-07T00:22:30.455Z] INFO: [GET] /api/jellyfin-settings/1 200 — 4ms
+[2025-05-07T00:22:30.463Z] INFO: [GET] /api/anidb-settings/1 200 — 48ms
+[2025-05-07T00:22:30.465Z] INFO: [GET] /api/jellyfin-settings/1 200 — 47ms
+[2025-05-07T00:22:30.472Z] INFO: [GET] /api/jellyfin-settings/1 200 — 44ms
+[2025-05-07T00:24:03.119Z] INFO: [GET] /api/jellyfin-settings/1 200 — 32ms
+[2025-05-07T00:24:03.125Z] INFO: [GET] /api/omdb-settings/1 200 — 37ms
+[2025-05-07T00:24:03.127Z] INFO: [GET] /api/omdb-settings/1 200 — 5ms
+[2025-05-07T00:24:03.134Z] INFO: [GET] /api/tmdb-settings/1 200 — 5ms
+[2025-05-07T00:24:03.137Z] INFO: [GET] /api/anidb-settings/1 200 — 6ms
+[2025-05-07T00:24:03.138Z] INFO: [GET] /api/tmdb-settings/1 200 — 49ms
+[2025-05-07T00:24:03.147Z] INFO: [GET] /api/jellyfin-settings/1 200 — 7ms
+[2025-05-07T00:24:03.153Z] INFO: [GET] /api/anidb-settings/1 200 — 63ms
+[2025-05-07T00:24:03.155Z] INFO: [GET] /api/jellyfin-settings/1 200 — 62ms
+[2025-05-07T00:24:03.157Z] INFO: [GET] /api/jellyfin-settings/1 200 — 61ms
+[2025-05-07T00:24:15.832Z] INFO: [GET] /api/jellyfin-settings/1 200 — 27ms
+[2025-05-07T00:24:15.833Z] INFO: [GET] /api/omdb-settings/1 200 — 27ms
+[2025-05-07T00:24:15.834Z] INFO: [GET] /api/tmdb-settings/1 200 — 27ms
+[2025-05-07T00:24:15.835Z] INFO: [GET] /api/anidb-settings/1 200 — 27ms
+[2025-05-07T00:24:15.840Z] INFO: [GET] /api/omdb-settings/1 200 — 4ms
+[2025-05-07T00:24:15.841Z] INFO: [GET] /api/jellyfin-settings/1 200 — 31ms
+[2025-05-07T00:24:15.842Z] INFO: [GET] /api/tmdb-settings/1 200 — 6ms
+[2025-05-07T00:24:15.844Z] INFO: [GET] /api/anidb-settings/1 200 — 7ms
+[2025-05-07T00:24:15.846Z] INFO: [GET] /api/jellyfin-settings/1 200 — 9ms
+[2025-05-07T00:24:15.853Z] INFO: [GET] /api/jellyfin-settings/1 200 — 42ms
+[2025-05-07T00:24:19.639Z] INFO: [GET] /api/jellyfin-settings/1 200 — 4ms
+[2025-05-07T00:24:19.640Z] INFO: [GET] /api/omdb-settings/1 200 — 4ms
+[2025-05-07T00:24:19.643Z] INFO: [GET] /api/tmdb-settings/1 200 — 6ms
+[2025-05-07T00:24:19.648Z] INFO: [GET] /api/anidb-settings/1 200 — 9ms
+[2025-05-07T00:24:19.649Z] INFO: [GET] /api/jellyfin-settings/1 200 — 8ms
+[2025-05-07T00:24:19.652Z] INFO: [GET] /api/omdb-settings/1 200 — 10ms
+[2025-05-07T00:24:19.654Z] INFO: [GET] /api/jellyfin-settings/1 200 — 10ms
+[2025-05-07T00:24:19.656Z] INFO: [GET] /api/tmdb-settings/1 200 — 10ms
+[2025-05-07T00:24:19.657Z] INFO: [GET] /api/anidb-settings/1 200 — 7ms
+[2025-05-07T00:24:19.659Z] INFO: [GET] /api/jellyfin-settings/1 200 — 4ms
+[2025-05-07T00:24:49.514Z] INFO: [GET] /api/jellyfin-libraries 304 — 596ms
+[2025-05-07T00:24:49.787Z] INFO: [GET] /api/jellyfin-libraries 304 — 270ms
+[2025-05-07T00:24:51.760Z] INFO: [GET] /api/jellyfin-libraries 304 — 318ms
+[2025-05-07T00:24:52.101Z] INFO: [GET] /api/jellyfin-libraries 304 — 338ms
+[2025-05-07T00:25:07.769Z] INFO: [GET] /api/jellyfin-settings/1 200 — 26ms
+[2025-05-07T00:25:07.771Z] INFO: [GET] /api/omdb-settings/1 200 — 27ms
+[2025-05-07T00:25:07.776Z] INFO: [GET] /api/jellyfin-settings/1 200 — 29ms
+[2025-05-07T00:25:07.777Z] INFO: [GET] /api/omdb-settings/1 200 — 5ms
+[2025-05-07T00:25:07.779Z] INFO: [GET] /api/anidb-settings/1 200 — 34ms
+[2025-05-07T00:25:07.780Z] INFO: [GET] /api/tmdb-settings/1 200 — 7ms
+[2025-05-07T00:25:07.783Z] INFO: [GET] /api/anidb-settings/1 200 — 3ms
+[2025-05-07T00:25:07.785Z] INFO: [GET] /api/jellyfin-settings/1 200 — 4ms
+[2025-05-07T00:25:07.789Z] INFO: [GET] /api/jellyfin-settings/1 200 — 39ms
+[2025-05-07T00:25:07.791Z] INFO: [GET] /api/tmdb-settings/1 200 — 42ms
+[2025-05-07T00:25:13.017Z] INFO: [GET] /api/jellyfin-settings/1 200 — 4ms
+[2025-05-07T00:25:13.019Z] INFO: [GET] /api/anidb-settings/1 200 — 5ms
+[2025-05-07T00:25:13.020Z] INFO: [GET] /api/omdb-settings/1 200 — 6ms
+[2025-05-07T00:25:13.024Z] INFO: [GET] /api/jellyfin-settings/1 200 — 9ms
+[2025-05-07T00:25:13.027Z] INFO: [GET] /api/tmdb-settings/1 200 — 8ms
+[2025-05-07T00:25:13.029Z] INFO: [GET] /api/jellyfin-settings/1 200 — 8ms
+[2025-05-07T00:25:13.030Z] INFO: [GET] /api/omdb-settings/1 200 — 5ms
+[2025-05-07T00:25:13.032Z] INFO: [GET] /api/anidb-settings/1 200 — 6ms
+[2025-05-07T00:25:13.033Z] INFO: [GET] /api/tmdb-settings/1 200 — 6ms
+[2025-05-07T00:25:13.034Z] INFO: [GET] /api/jellyfin-settings/1 200 — 5ms
+[2025-05-07T00:25:17.137Z] INFO: [GET] /api/jellyfin-settings/1 200 — 4ms
+[2025-05-07T00:25:17.139Z] INFO: [GET] /api/omdb-settings/1 200 — 5ms
+[2025-05-07T00:25:17.141Z] INFO: [GET] /api/tmdb-settings/1 200 — 7ms
+[2025-05-07T00:25:17.145Z] INFO: [GET] /api/anidb-settings/1 200 — 10ms
+[2025-05-07T00:25:17.148Z] INFO: [GET] /api/jellyfin-settings/1 200 — 9ms
+[2025-05-07T00:25:17.149Z] INFO: [GET] /api/jellyfin-settings/1 200 — 7ms
+[2025-05-07T00:25:17.150Z] INFO: [GET] /api/omdb-settings/1 200 — 5ms
+[2025-05-07T00:25:17.151Z] INFO: [GET] /api/tmdb-settings/1 200 — 6ms
+[2025-05-07T00:25:17.152Z] INFO: [GET] /api/anidb-settings/1 200 — 6ms
+[2025-05-07T00:25:17.153Z] INFO: [GET] /api/jellyfin-settings/1 200 — 4ms
+[2025-05-07T00:25:22.032Z] INFO: [GET] /api/jellyfin-settings/1 304 — 4ms
+[2025-05-07T00:25:22.033Z] INFO: [GET] /api/omdb-settings/1 304 — 4ms
+[2025-05-07T00:25:22.034Z] INFO: [GET] /api/tmdb-settings/1 304 — 5ms
+[2025-05-07T00:25:22.035Z] INFO: [GET] /api/anidb-settings/1 304 — 5ms
+[2025-05-07T00:25:22.059Z] INFO: [GET] /api/jellyfin-settings/1 304 — 5ms
+[2025-05-07T00:25:22.062Z] INFO: [GET] /api/omdb-settings/1 304 — 3ms
+[2025-05-07T00:25:22.063Z] INFO: [GET] /api/tmdb-settings/1 304 — 3ms
+[2025-05-07T00:25:22.064Z] INFO: [GET] /api/anidb-settings/1 304 — 4ms
+[2025-05-07T00:25:22.079Z] INFO: [GET] /api/jellyfin-settings/1 304 — 3ms
+[2025-05-07T00:25:22.101Z] INFO: [GET] /api/jellyfin-settings/1 304 — 4ms
+[2025-05-07T00:25:27.226Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T00:25:27.228Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T00:25:27.230Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 4ms
+[2025-05-07T00:25:27.233Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T00:25:27.235Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T00:25:27.236Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 3ms
+[2025-05-07T00:25:40.523Z] INFO: [GET] /api/jellyfin-settings/1 200 — 26ms
+[2025-05-07T00:25:40.525Z] INFO: [GET] /api/omdb-settings/1 200 — 27ms
+[2025-05-07T00:25:40.526Z] INFO: [GET] /api/tmdb-settings/1 200 — 27ms
+[2025-05-07T00:25:40.531Z] INFO: [GET] /api/jellyfin-settings/1 200 — 32ms
+[2025-05-07T00:25:40.532Z] INFO: [GET] /api/omdb-settings/1 200 — 5ms
+[2025-05-07T00:25:40.533Z] INFO: [GET] /api/anidb-settings/1 200 — 32ms
+[2025-05-07T00:25:40.535Z] INFO: [GET] /api/anidb-settings/1 200 — 7ms
+[2025-05-07T00:25:40.536Z] INFO: [GET] /api/tmdb-settings/1 200 — 7ms
+[2025-05-07T00:25:40.541Z] INFO: [GET] /api/jellyfin-settings/1 200 — 4ms
+[2025-05-07T00:25:40.546Z] INFO: [GET] /api/jellyfin-settings/1 200 — 44ms
+[2025-05-07T00:25:50.148Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T00:25:50.150Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T00:25:50.151Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 3ms
+[2025-05-07T00:25:50.158Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T00:25:50.160Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T00:25:50.161Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 3ms
+[2025-05-07T00:25:55.440Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T00:25:55.442Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T00:25:55.444Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 4ms
+[2025-05-07T00:25:55.448Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T00:25:55.450Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T00:25:55.451Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 3ms
+[2025-05-07T00:25:58.871Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T00:25:58.874Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T00:25:58.875Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 5ms
+[2025-05-07T00:25:58.958Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T00:25:58.960Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T00:25:58.962Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 4ms
+[2025-05-07T00:26:00.499Z] INFO: [GET] /api/jellyfin-settings/1 200 — 7ms
+[2025-05-07T00:26:00.506Z] INFO: [GET] /api/jellyfin-settings/1 200 — 7ms
+[2025-05-07T00:26:00.511Z] INFO: [GET] /api/tmdb-settings/1 200 — 3ms
+[2025-05-07T00:26:00.515Z] INFO: [GET] /api/anidb-settings/1 200 — 3ms
+[2025-05-07T00:26:00.522Z] INFO: [GET] /api/jellyfin-settings/1 200 — 6ms
+[2025-05-07T00:26:00.526Z] INFO: [GET] /api/omdb-settings/1 200 — 33ms
+[2025-05-07T00:26:00.528Z] INFO: [GET] /api/anidb-settings/1 200 — 34ms
+[2025-05-07T00:26:00.530Z] INFO: [GET] /api/jellyfin-settings/1 200 — 36ms
+[2025-05-07T00:26:00.531Z] INFO: [GET] /api/tmdb-settings/1 200 — 35ms
+[2025-05-07T00:26:00.533Z] INFO: [GET] /api/omdb-settings/1 200 — 30ms
+[2025-05-07T00:28:00.805Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T00:28:00.822Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T00:28:00.823Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 18ms
+[2025-05-07T00:28:00.826Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T00:28:00.828Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T00:28:00.830Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 4ms
+[2025-05-07T00:30:00.829Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T00:30:00.847Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T00:30:00.848Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 19ms
+[2025-05-07T00:30:00.862Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T00:30:00.864Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T00:30:00.866Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 4ms
+[2025-05-07T00:32:00.975Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T00:32:00.993Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T00:32:00.994Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 20ms
+[2025-05-07T00:32:00.998Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T00:32:01.000Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T00:32:01.002Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 4ms
+[2025-05-07T00:34:00.886Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T00:34:00.903Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T00:34:00.905Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 20ms
+[2025-05-07T00:34:00.920Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T00:34:00.921Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T00:34:00.923Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 4ms
+[2025-05-07T00:36:01.267Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T00:36:01.285Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T00:36:01.286Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 19ms
+[2025-05-07T00:36:01.294Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T00:36:01.296Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T00:36:01.297Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 4ms
