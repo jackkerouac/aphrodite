@@ -1,0 +1,201 @@
+/**
+ * Transition and animation styles for Aphrodite UI
+ * Based on the style guide specifications
+ */
+
+/* Base transition style for interactive elements */
+.transition-base {
+  transition: all 200ms ease-out;
+}
+
+/* Button Press Animation - 150ms ease-in-out */
+.btn-press {
+  transition: all 150ms ease-in-out;
+}
+
+.btn-press:active {
+  transform: scale(0.98);
+}
+
+/* Modal Transitions - 300ms spring */
+.modal-transition {
+  transition: all 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Tab Switching Animation - 250ms cubic-bezier */
+.tab-switch {
+  transition: all 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Hover Glow Animation - 200ms ease-out */
+.hover-glow {
+  transition: all 200ms ease-out;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 10px rgba(124, 58, 237, 0.3);
+}
+
+.dark .hover-glow:hover {
+  box-shadow: 0 0 10px rgba(167, 139, 250, 0.5);
+}
+
+/* Card Scale Animation */
+.card-hover {
+  transition: transform 200ms ease-out, box-shadow 200ms ease-out;
+}
+
+.card-hover:hover {
+  transform: scale(1.01);
+  box-shadow: 0 4px 12px rgba(76, 29, 149, 0.15);
+}
+
+.dark .card-hover:hover {
+  box-shadow: 0 4px 12px rgba(167, 139, 250, 0.2);
+}
+
+/* Badge transitions */
+.badge-transition {
+  transition: background-color 200ms ease-out, color 200ms ease-out, border-color 200ms ease-out;
+}
+
+/* Form field focus transitions */
+.input-transition {
+  transition: border-color 200ms ease-out, box-shadow 200ms ease-out;
+}
+
+/* Dropdown/Select menu transitions */
+.dropdown-transition {
+  transition: opacity 200ms ease-out, transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Keyframe Animations */
+
+/* Fade In Animation */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn 300ms ease-out forwards;
+}
+
+/* Slide In Animation */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-in {
+  animation: slideIn 300ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Loading Animation */
+@keyframes loader {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+.loader {
+  animation: loader 400ms infinite;
+}
+
+/* Bounce Animation */
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.bounce {
+  animation: bounce 1s ease-in-out infinite;
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.pulse {
+  animation: pulse 2s infinite ease-in-out;
+}
+
+/* Badge Appear Animation */
+@keyframes badgeAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.badge-appear {
+  animation: badgeAppear 200ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Spinner Rotation Animation */
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.rotate {
+  animation: rotate 1.5s linear infinite;
+}
+
+/* Shake Animation for error states */
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+  100% { transform: translateX(0); }
+}
+
+.shake {
+  animation: shake 400ms ease-in-out;
+}
+
+/* Progress Bar Animation */
+@keyframes progressFill {
+  from { width: 0; }
+  to { width: var(--progress-value, 100%); }
+}
+
+.progress-animate {
+  animation: progressFill 600ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Page transitions */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.page-transition-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 300ms, transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}

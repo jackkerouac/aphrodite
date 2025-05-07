@@ -1,0 +1,183 @@
+/* Main styles index for Aphrodite UI */
+
+/* Import tailwind base styles */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import our custom styles */
+@import './colors.css';
+@import './typography.css';
+@import './animations.css';
+@import './transitions.css';
+
+/* Base styles and CSS variables */
+:root {
+  /* Primary Colors */
+  --primary-white: #FDFDFD;
+  --primary-purple: #4C1D95;
+  
+  /* Secondary Colors */
+  --secondary-purple: #7C3AED;
+  --secondary-lilac: #EDE9FE;
+  
+  /* Accent Colors */
+  --accent-indigo: #8B5CF6;
+  --accent-cyan: #06B6D4;
+  
+  /* Functional Colors */
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --error: #EF4444;
+  --neutral: #9CA3AF;
+  --dark: #1F2937;
+  
+  /* Background Colors */
+  --bg-white: #FFFFFF;
+  --bg-light: #F4F4F5;
+  --bg-dark: #1E1B2E;
+  
+  /* Spacing System */
+  --space-micro: 4px;
+  --space-small: 8px;
+  --space-default: 16px;
+  --space-section: 24px;
+  --space-page: 32px;
+  --space-modal: 40px;
+}
+
+/* Dark mode variables */
+.dark {
+  --bg-surface: #2A2540;
+  --text-primary: #F3F4F6;
+  --text-secondary: #A3A3A3;
+  --input-bg: #2E2E3E;
+  --accent-purple: #A78BFA;
+}
+
+/* Global styles */
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  background-color: var(--bg-white);
+  color: var(--dark);
+}
+
+.dark body {
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+}
+
+/* Typography scale */
+h1, .h1 {
+  font-size: 30px;
+  line-height: 36px;
+  font-weight: 700;
+}
+
+h2, .h2 {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+}
+
+h3, .h3 {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 500;
+}
+
+.body-large {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+}
+
+.body {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+}
+
+.body-small {
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+}
+
+code, .code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--neutral);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary-purple);
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #3A3559;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-indigo);
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid var(--primary-purple);
+  outline-offset: 2px;
+}
+
+.dark *:focus-visible {
+  outline-color: var(--accent-indigo);
+}
+
+/* Accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Utility classes */
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.responsive-container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 var(--space-page);
+}

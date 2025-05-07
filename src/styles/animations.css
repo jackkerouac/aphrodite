@@ -1,0 +1,160 @@
+/* Animation styles for Aphrodite UI */
+
+/* Button Press Animation */
+.btn-press {
+  transition: all 150ms ease-in-out;
+}
+
+.btn-press:active {
+  transform: scale(0.98);
+}
+
+/* Modal Transitions */
+.modal-transition {
+  transition: all 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.modal-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.modal-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.modal-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.modal-exit-active {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+/* Tab Switching Animation */
+.tab-switch {
+  transition: all 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.tab-active {
+  border-color: var(--primary-purple);
+  color: var(--primary-purple);
+}
+
+.tab-inactive {
+  border-color: transparent;
+  color: var(--neutral);
+}
+
+/* Hover Glow Effect */
+.hover-glow {
+  transition: all 200ms ease-out;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 10px rgba(124, 58, 237, 0.3);
+}
+
+/* Loading Animation */
+@keyframes loader {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+.loader {
+  animation: loader 400ms infinite;
+}
+
+/* Fade In Animation */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn 300ms ease-out forwards;
+}
+
+/* Slide In Animation */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-in {
+  animation: slideIn 300ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.pulse {
+  animation: pulse 2s infinite ease-in-out;
+}
+
+/* Badge Animation */
+@keyframes badgeAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.badge-appear {
+  animation: badgeAppear 200ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Progress Bar Animation */
+@keyframes progressFill {
+  from { width: 0; }
+  to { width: var(--progress-value, 100%); }
+}
+
+.progress-animate {
+  animation: progressFill 600ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Rotation Animation */
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.rotate {
+  animation: rotate 1.5s linear infinite;
+}
+
+/* Shake Animation (for error states) */
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+  100% { transform: translateX(0); }
+}
+
+.shake {
+  animation: shake 400ms ease-in-out;
+}
+
+/* Dark mode specific animations */
+.dark .hover-glow:hover {
+  box-shadow: 0 0 10px rgba(167, 139, 250, 0.5);
+}

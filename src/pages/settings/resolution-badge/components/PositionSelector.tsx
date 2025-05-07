@@ -1,6 +1,6 @@
 import React from 'react';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Button } from '@/components/ui/button';
 
 interface PositionSelectorProps {
   position: string;
@@ -11,39 +11,31 @@ const PositionSelector: React.FC<PositionSelectorProps> = ({
   position,
   handlePositionChange
 }) => {
+  const positions = [
+    { value: 'top-left', label: 'Top Left' },
+    { value: 'top-center', label: 'Top Center' },
+    { value: 'top-right', label: 'Top Right' },
+    { value: 'bottom-left', label: 'Bottom Left' },
+    { value: 'bottom-center', label: 'Bottom Center' },
+    { value: 'bottom-right', label: 'Bottom Right' },
+  ];
+
   return (
-    <div className="space-y-3">
-      <Label className="text-base">Position</Label>
-      <RadioGroup
-        value={position}
-        onValueChange={handlePositionChange}
-        className="grid grid-cols-3 gap-2"
-      >
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="top-left" id="top-left" />
-          <Label htmlFor="top-left">Top Left</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="top-center" id="top-center" />
-          <Label htmlFor="top-center">Top Center</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="top-right" id="top-right" />
-          <Label htmlFor="top-right">Top Right</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="bottom-left" id="bottom-left" />
-          <Label htmlFor="bottom-left">Bottom Left</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="bottom-center" id="bottom-center" />
-          <Label htmlFor="bottom-center">Bottom Center</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="bottom-right" id="bottom-right" />
-          <Label htmlFor="bottom-right">Bottom Right</Label>
-        </div>
-      </RadioGroup>
+    <div className="space-y-2">
+      <Label>Position</Label>
+      <div className="grid grid-cols-3 gap-2">
+        {positions.map((pos) => (
+          <Button
+            key={pos.value}
+            type="button"
+            variant={position === pos.value ? 'default' : 'outline'}
+            className="h-auto py-2 px-3"
+            onClick={() => handlePositionChange(pos.value)}
+          >
+            {pos.label}
+          </Button>
+        ))}
+      </div>
     </div>
   );
 };

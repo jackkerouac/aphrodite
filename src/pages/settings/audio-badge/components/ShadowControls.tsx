@@ -1,6 +1,5 @@
 import React from 'react';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { AudioBadgeSettings } from '../hooks/useAudioBadgeSettings';
@@ -18,130 +17,81 @@ const ShadowControls: React.FC<ShadowControlsProps> = ({
   handleColorChange,
   handleToggleChange
 }) => {
+  // Custom handler for slider that creates the expected event object
+  const handleSliderChange = (name: string) => (value: number[]) => {
+    const syntheticEvent = {
+      target: {
+        name,
+        value: value[0].toString(),
+      },
+    } as React.ChangeEvent<HTMLInputElement>;
+    
+    handleChange(syntheticEvent);
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <Label htmlFor="shadow-toggle" className="text-lg font-semibold">Shadow</Label>
+        <Label htmlFor="shadow_toggle" className="text-base">Enable Shadow</Label>
         <Switch
-          id="shadow-toggle"
+          id="shadow_toggle"
           checked={settings.shadow_toggle}
           onCheckedChange={(checked) => handleToggleChange('shadow_toggle', checked)}
         />
       </div>
-      
-      {settings.shadow_toggle && (
-        <div className="space-y-4 pl-2 border-l-2 border-muted p-2">
-          <div className="flex items-center space-x-2">
-            <Input
-              type="color"
-              id="shadow_color"
-              name="shadow_color"
-              className="w-14 h-8 p-1"
-              value={settings.shadow_color}
-              onChange={(e) => handleColorChange('shadow_color', e.target.value)}
-            />
-            <div className="flex-1">
-              <Label htmlFor="shadow_color">Shadow Color</Label>
-            </div>
-          </div>
 
-          <div>
-            <Label htmlFor="shadow_blur_radius">Blur Radius</Label>
-            <div className="flex items-center space-x-2 mt-1">
+      {settings.shadow_toggle && (
+        <div className="space-y-4 mt-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="shadow_color" className="mb-2 block">Shadow Color</Label>
+              <input
+                type="color"
+                id="shadow_color"
+                name="shadow_color"
+                className="w-full h-8 p-1"
+                value={settings.shadow_color}
+                onChange={(e) => handleColorChange('shadow_color', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="shadow_blur_radius">Blur ({settings.shadow_blur_radius}px)</Label>
               <Slider
                 id="shadow_blur_radius"
+                name="shadow_blur_radius"
                 min={0}
                 max={20}
                 step={1}
                 value={[settings.shadow_blur_radius]}
-                onValueChange={(values) => {
-                  const event = {
-                    target: {
-                      name: 'shadow_blur_radius',
-                      value: values[0].toString()
-                    }
-                  } as React.ChangeEvent<HTMLInputElement>;
-                  handleChange(event);
-                }}
-              />
-              <Input
-                type="number"
-                id="shadow_blur_radius-input"
-                name="shadow_blur_radius"
-                className="w-16"
-                value={settings.shadow_blur_radius}
-                onChange={handleChange}
-                min={0}
-                max={20}
-                step={1}
+                onValueChange={handleSliderChange('shadow_blur_radius')}
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="shadow_offset_x">X Offset</Label>
-              <div className="flex items-center space-x-2 mt-1">
-                <Slider
-                  id="shadow_offset_x"
-                  min={-20}
-                  max={20}
-                  step={1}
-                  value={[settings.shadow_offset_x]}
-                  onValueChange={(values) => {
-                    const event = {
-                      target: {
-                        name: 'shadow_offset_x',
-                        value: values[0].toString()
-                      }
-                    } as React.ChangeEvent<HTMLInputElement>;
-                    handleChange(event);
-                  }}
-                />
-                <Input
-                  type="number"
-                  id="shadow_offset_x-input"
-                  name="shadow_offset_x"
-                  className="w-16"
-                  value={settings.shadow_offset_x}
-                  onChange={handleChange}
-                  min={-20}
-                  max={20}
-                  step={1}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="shadow_offset_x">Offset X ({settings.shadow_offset_x}px)</Label>
+              <Slider
+                id="shadow_offset_x"
+                name="shadow_offset_x"
+                min={-20}
+                max={20}
+                step={1}
+                value={[settings.shadow_offset_x]}
+                onValueChange={handleSliderChange('shadow_offset_x')}
+              />
             </div>
-            <div>
-              <Label htmlFor="shadow_offset_y">Y Offset</Label>
-              <div className="flex items-center space-x-2 mt-1">
-                <Slider
-                  id="shadow_offset_y"
-                  min={-20}
-                  max={20}
-                  step={1}
-                  value={[settings.shadow_offset_y]}
-                  onValueChange={(values) => {
-                    const event = {
-                      target: {
-                        name: 'shadow_offset_y',
-                        value: values[0].toString()
-                      }
-                    } as React.ChangeEvent<HTMLInputElement>;
-                    handleChange(event);
-                  }}
-                />
-                <Input
-                  type="number"
-                  id="shadow_offset_y-input"
-                  name="shadow_offset_y"
-                  className="w-16"
-                  value={settings.shadow_offset_y}
-                  onChange={handleChange}
-                  min={-20}
-                  max={20}
-                  step={1}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="shadow_offset_y">Offset Y ({settings.shadow_offset_y}px)</Label>
+              <Slider
+                id="shadow_offset_y"
+                name="shadow_offset_y"
+                min={-20}
+                max={20}
+                step={1}
+                value={[settings.shadow_offset_y]}
+                onValueChange={handleSliderChange('shadow_offset_y')}
+              />
             </div>
           </div>
         </div>
