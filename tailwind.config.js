@@ -1,81 +1,53 @@
-/** @type {import('tailwindcss').Config} */
+import { fontFamily } from "tailwindcss/defaultTheme";
+
 export default {
-  darkMode: ['class'],
   content: [
-    './index.html',
-    './src/**/*.{js,ts,jsx,tsx}',
+    "./src/**/*.{ts,tsx,js,jsx}",
+    "./components/**/*.{ts,tsx,js,jsx}",
   ],
   theme: {
-    container: {
-      center: true,
-      padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
-    },
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
-        // Aphrodite custom colors
-        aphrodite: {
-          purple: "#8F87F1",
-          violet: "#C68EFD",
-          pink: "#E9A5F1",
-          lightPink: "#FED2E2",
-        },
+        primary: "#4C1D95",
+        primaryHover: "#7C3AED",
+        secondary: "#EDE9FE",
+        accent: "#8B5CF6",
+        cyanEdge: "#06B6D4",
+        success: "#22C55E",
+        warning: "#F59E0B",
+        error: "#EF4444",
+        neutral: "#9CA3AF",
+        darkText: "#1F2937",
+        bgLight: "#F4F4F5",
+        bgDark: "#1E1B2E",
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        DEFAULT: "8px",
+        lg: "12px",
       },
-      keyframes: {
-        "accordion-down": {
-          from: { height: 0 },
-          to: { height: "var(--radix-accordion-content-height)" },
-        },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: 0 },
-        },
+      fontFamily: {
+        sans: ["Inter", ...fontFamily.sans],
+        mono: ["JetBrains Mono", ...fontFamily.mono],
       },
-      animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
+      boxShadow: {
+        card: "0 2px 8px rgba(76, 29, 149, 0.08)",
+      },
+      transitionTimingFunction: {
+        spring: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+      },
+      height: {
+        input: "48px",
+      },
+      spacing: {
+        micro: "4px",
+        small: "8px",
+        default: "16px",
+        section: "24px",
+        page: "32px",
+        modal: "40px",
       },
     },
   },
   plugins: [require("tailwindcss-animate")],
-}
+  darkMode: "class",
+};
