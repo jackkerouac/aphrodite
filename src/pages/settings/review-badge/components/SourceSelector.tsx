@@ -16,18 +16,22 @@ const SourceSelector: React.FC<SourceSelectorProps> = ({
   sourceOrder,
   handleArrayChange
 }) => {
+  // Ensure arrays are defined
+  const sources = Array.isArray(sourceOrder) ? sourceOrder : reviewSources;
+  const selected = Array.isArray(displaySources) ? displaySources : [];
+  
   const toggleSource = (source: string) => {
-    if (displaySources.includes(source)) {
-      handleArrayChange('display_sources', displaySources.filter(s => s !== source));
+    if (selected.includes(source)) {
+      handleArrayChange('display_sources', selected.filter(s => s !== source));
     } else {
-      handleArrayChange('display_sources', [...displaySources, source]);
+      handleArrayChange('display_sources', [...selected, source]);
     }
   };
 
   const moveSourceUp = (source: string) => {
-    const index = sourceOrder.indexOf(source);
+    const index = sources.indexOf(source);
     if (index > 0) {
-      const newOrder = [...sourceOrder];
+      const newOrder = [...sources];
       newOrder[index] = newOrder[index - 1];
       newOrder[index - 1] = source;
       handleArrayChange('source_order', newOrder);
@@ -35,9 +39,9 @@ const SourceSelector: React.FC<SourceSelectorProps> = ({
   };
 
   const moveSourceDown = (source: string) => {
-    const index = sourceOrder.indexOf(source);
-    if (index < sourceOrder.length - 1) {
-      const newOrder = [...sourceOrder];
+    const index = sources.indexOf(source);
+    if (index < sources.length - 1) {
+      const newOrder = [...sources];
       newOrder[index] = newOrder[index + 1];
       newOrder[index + 1] = source;
       handleArrayChange('source_order', newOrder);
@@ -54,12 +58,12 @@ const SourceSelector: React.FC<SourceSelectorProps> = ({
       </div>
       
       <div className="space-y-2 border rounded-md p-4">
-        {sourceOrder.map((source) => (
+        {sources.map((source) => (
           <div key={source} className="flex items-center space-x-2 justify-between">
             <div className="flex items-center space-x-2">
               <Checkbox 
                 id={`source-${source}`}
-                checked={displaySources.includes(source)}
+                checked={selected.includes(source)}
                 onCheckedChange={() => toggleSource(source)}
               />
               <Label 
@@ -76,7 +80,7 @@ const SourceSelector: React.FC<SourceSelectorProps> = ({
                 size="icon"
                 className="h-7 w-7"
                 onClick={() => moveSourceUp(source)}
-                disabled={sourceOrder.indexOf(source) === 0}
+                disabled={sources.indexOf(source) === 0}
               >
                 <ArrowUp className="h-4 w-4" />
                 <span className="sr-only">Move Up</span>
@@ -87,7 +91,7 @@ const SourceSelector: React.FC<SourceSelectorProps> = ({
                 size="icon"
                 className="h-7 w-7"
                 onClick={() => moveSourceDown(source)}
-                disabled={sourceOrder.indexOf(source) === sourceOrder.length - 1}
+                disabled={sources.indexOf(source) === sources.length - 1}
               >
                 <ArrowDown className="h-4 w-4" />
                 <span className="sr-only">Move Down</span>

@@ -57,17 +57,21 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
       const r = parseInt(shadowColor.slice(1, 3), 16);
       const g = parseInt(shadowColor.slice(3, 5), 16);
       const b = parseInt(shadowColor.slice(5, 7), 16);
-      shadow = `${settings.shadow_offset_x}px ${settings.shadow_offset_y}px ${settings.shadow_blur_radius}px rgba(${r}, ${g}, ${b}, 1)`;
+      shadow = `${settings.shadow_offset_x || 0}px ${settings.shadow_offset_y || 0}px ${settings.shadow_blur_radius || 0}px rgba(${r}, ${g}, ${b}, 1)`;
     }
 
+    // Ensure background_color and border_color are not null
+    const bgColor = settings.background_color || '#000000';
+    const borderColor = settings.border_color || '#ffffff';
+
     // Convert hex to rgba for background and border
-    const bgR = parseInt(settings.background_color.slice(1, 3), 16);
-    const bgG = parseInt(settings.background_color.slice(3, 5), 16);
-    const bgB = parseInt(settings.background_color.slice(5, 7), 16);
+    const bgR = parseInt(bgColor.slice(1, 3), 16);
+    const bgG = parseInt(bgColor.slice(3, 5), 16);
+    const bgB = parseInt(bgColor.slice(5, 7), 16);
     
-    const borderR = parseInt(settings.border_color.slice(1, 3), 16);
-    const borderG = parseInt(settings.border_color.slice(3, 5), 16);
-    const borderB = parseInt(settings.border_color.slice(5, 7), 16);
+    const borderR = parseInt(borderColor.slice(1, 3), 16);
+    const borderG = parseInt(borderColor.slice(3, 5), 16);
+    const borderB = parseInt(borderColor.slice(5, 7), 16);
 
     // Get position-based styles
     const positionStyles = getBadgePosition();
@@ -86,9 +90,9 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
       position: 'absolute',
       zIndex: settings.z_index,
       boxShadow: shadow || 'none',
-      backgroundColor: `rgba(${bgR}, ${bgG}, ${bgB}, ${settings.background_transparency})`,
-      borderRadius: `${settings.border_radius}px`,
-      border: `${settings.border_width}px solid rgba(${borderR}, ${borderG}, ${borderB}, ${settings.border_transparency})`,
+      backgroundColor: `rgba(${bgR}, ${bgG}, ${bgB}, ${settings.background_transparency || 0.8})`,
+      borderRadius: `${settings.border_radius || 4}px`,
+      border: `${settings.border_width || 1}px solid rgba(${borderR}, ${borderG}, ${borderB}, ${settings.border_transparency || 0.8})`,
       padding: '8px',
       transform: transformValue,
       transformOrigin: getTransformOrigin(settings.position),
@@ -120,10 +124,13 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
 
   // Get single badge style
   const getBadgeStyle = () => {
+    // Ensure text_color is not null
+    const textColor = settings.text_color || '#ffffff';
+    
     // Convert hex to rgba for text
-    const textR = parseInt(settings.text_color.slice(1, 3), 16);
-    const textG = parseInt(settings.text_color.slice(3, 5), 16);
-    const textB = parseInt(settings.text_color.slice(5, 7), 16);
+    const textR = parseInt(textColor.slice(1, 3), 16);
+    const textG = parseInt(textColor.slice(3, 5), 16);
+    const textB = parseInt(textColor.slice(5, 7), 16);
 
     // Apply scaling factor to font size
     const scaleFactor = settings.size / 100;
@@ -131,10 +138,10 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
     return {
       display: 'flex', 
       alignItems: 'center',
-      color: `rgba(${textR}, ${textG}, ${textB}, ${1 - settings.text_transparency})`,
-      fontFamily: settings.font_family,
-      fontSize: `${settings.font_size}px`, // Font size is scaled at the container level
-      fontWeight: settings.font_weight,
+      color: `rgba(${textR}, ${textG}, ${textB}, ${1 - (settings.text_transparency || 0)})`,
+      fontFamily: settings.font_family || 'Inter',
+      fontSize: `${settings.font_size || 16}px`, // Font size is scaled at the container level
+      fontWeight: settings.font_weight || 600,
     };
   };
 
@@ -245,9 +252,9 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
 
           {/* Badge Information */}
           <div className="text-sm text-muted-foreground">
-            <p>Position: {settings.position}</p>
-            <p>Layout: {settings.badge_layout}</p>
-            <p>Displayed Sources: {settings.display_sources.join(', ')}</p>
+            <p>Position: {settings.position || 'top-right'}</p>
+            <p>Layout: {settings.badge_layout || 'horizontal'}</p>
+            <p>Displayed Sources: {Array.isArray(settings.display_sources) && settings.display_sources.length > 0 ? settings.display_sources.join(', ') : 'None'}</p>
           </div>
         </div>
       </CardContent>

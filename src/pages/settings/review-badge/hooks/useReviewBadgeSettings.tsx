@@ -3,7 +3,7 @@ import apiClient, { ApiError } from '@/lib/api-client';
 import { reviewSources } from '../constants';
 
 // Configuration
-const USE_SIMULATION = true; // Set to false when backend API is implemented
+const USE_SIMULATION = false; // Set to false when backend API is implemented
 const SIMULATION_DELAY = 800; // Milliseconds to simulate network delay
 
 // For simulation mode - store settings in memory
@@ -170,17 +170,17 @@ export const useReviewBadgeSettings = (): UseReviewBadgeSettingsReturn => {
         console.log('🔄 [useReviewBadgeSettings] Fetching review badge settings...');
         
         try {
-          // This will need to be implemented in your API client
-          // const data = await apiClient.reviewBadge.getSettings();
-          // console.log('✅ [useReviewBadgeSettings] Settings loaded:', data);
-          
-          // For now, use default settings until API is implemented
-          const data = defaultSettings;
+          // Use the API client to fetch settings
+          const data = await apiClient.reviewBadge.getSettings();
+          console.log('✅ [useReviewBadgeSettings] Settings loaded:', data);
           
           // Make sure we have all required fields, filling in with defaults if needed
           const mergedSettings = {
             ...defaultSettings, // Start with defaults
             ...data, // Override with loaded data
+            // Ensure array fields are properly initialized
+            display_sources: data.display_sources || defaultSettings.display_sources,
+            source_order: data.source_order || defaultSettings.source_order,
           };
           
           console.log('📊 [useReviewBadgeSettings] Merged settings:', mergedSettings);
@@ -311,8 +311,8 @@ export const useReviewBadgeSettings = (): UseReviewBadgeSettingsReturn => {
       console.log('📤 [useReviewBadgeSettings] Saving review badge settings:', settingsToSave);
       
       try {
-        // This will need to be implemented in your API client
-        // await apiClient.reviewBadge.saveSettings(settingsToSave);
+        // Use the API client to save settings
+        await apiClient.reviewBadge.saveSettings(settingsToSave);
         console.log('✅ [useReviewBadgeSettings] Settings saved successfully');
         
         // Update the settings state to reflect the saved values

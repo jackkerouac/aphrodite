@@ -108,6 +108,7 @@ export async function fetchApi<T>(
 // Import and re-export API endpoint modules
 import { audioBadge } from './api/audio-badge';
 import { resolutionBadge } from './api/resolution-badge';
+import { reviewBadge } from './api/review-badge';
 import { logs } from './api/logs';
 import { jellyfin } from './api/jellyfin';
 import { omdb } from './api/omdb';
@@ -117,6 +118,7 @@ import { anidb } from './api/anidb';
 const apiClient = {
   audioBadge,
   resolutionBadge,
+  reviewBadge,
   logs,
   jellyfin,
   omdb,

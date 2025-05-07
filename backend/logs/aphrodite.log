@@ -104,3 +104,136 @@
 [2025-05-07T12:11:42.404Z] INFO: Getting audio badge settings for user ID: 1
 [2025-05-07T12:11:42.406Z] INFO: Found audio badge settings for user ID: 1
 [2025-05-07T12:11:42.407Z] INFO: [GET] /api/audio-badge-settings/1 304 — 3ms
+[2025-05-07T14:16:20.879Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-07T14:16:20.922Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-07T14:16:20.925Z] INFO: [GET] /api/audio-badge-settings/1 304 — 49ms
+[2025-05-07T14:16:20.931Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-07T14:16:20.933Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-07T14:16:20.935Z] INFO: [GET] /api/audio-badge-settings/1 304 — 5ms
+[2025-05-07T14:16:30.558Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T14:16:30.562Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T14:16:30.563Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 6ms
+[2025-05-07T14:16:30.569Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T14:16:30.572Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T14:16:30.574Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 6ms
+[2025-05-07T15:57:06.428Z] INFO: Server running on port 5000
+[2025-05-07T15:57:33.259Z] INFO: Server running on port 5000
+[2025-05-07T15:57:40.826Z] INFO: Server running on port 5000
+[2025-05-07T15:59:59.696Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T15:59:59.723Z] INFO: No review badge settings found for user ID: 1
+[2025-05-07T15:59:59.728Z] INFO: [GET] /api/review-badge-settings/1 404 — 33ms
+[2025-05-07T15:59:59.737Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T15:59:59.740Z] INFO: No review badge settings found for user ID: 1
+[2025-05-07T15:59:59.741Z] INFO: [GET] /api/review-badge-settings/1 404 — 5ms
+[2025-05-07T16:00:03.180Z] INFO: Saving review badge settings for user ID: 1
+[2025-05-07T16:00:03.180Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:00:03.182Z] INFO: No review badge settings found for user ID: 1
+[2025-05-07T16:00:03.183Z] INFO: Creating new review badge settings for user ID: 1
+[2025-05-07T16:00:03.194Z] INFO: Successfully created review badge settings for user ID: 1
+[2025-05-07T16:00:03.195Z] INFO: [POST] /api/review-badge-settings/1 200 — 17ms
+[2025-05-07T16:00:10.963Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:00:10.966Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:00:10.969Z] INFO: [GET] /api/review-badge-settings/1 200 — 7ms
+[2025-05-07T16:00:10.993Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:00:10.995Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:00:10.997Z] INFO: [GET] /api/review-badge-settings/1 304 — 4ms
+[2025-05-07T16:00:57.683Z] INFO: Server running on port 5000
+[2025-05-07T16:01:01.422Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:01:01.428Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:01:01.435Z] INFO: [GET] /api/review-badge-settings/1 304 — 14ms
+[2025-05-07T16:01:01.474Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:01:01.477Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:01:01.479Z] INFO: [GET] /api/review-badge-settings/1 304 — 5ms
+[2025-05-07T16:01:05.713Z] INFO: Saving review badge settings for user ID: 1
+[2025-05-07T16:01:05.713Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:01:05.716Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:01:05.717Z] INFO: Updating existing review badge settings for user ID: 1
+[2025-05-07T16:01:05.723Z] INFO: Successfully updated review badge settings for user ID: 1
+[2025-05-07T16:01:05.725Z] INFO: [POST] /api/review-badge-settings/1 200 — 13ms
+[2025-05-07T16:01:16.052Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:01:16.073Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:01:16.075Z] INFO: [GET] /api/review-badge-settings/1 200 — 24ms
+[2025-05-07T16:01:16.091Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:01:16.093Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:01:16.095Z] INFO: [GET] /api/review-badge-settings/1 304 — 4ms
+[2025-05-07T16:05:44.310Z] INFO: Server running on port 5000
+[2025-05-07T16:05:46.442Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:05:46.449Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:05:46.456Z] INFO: [GET] /api/review-badge-settings/1 200 — 16ms
+[2025-05-07T16:05:46.495Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:05:46.499Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:05:46.504Z] INFO: [GET] /api/review-badge-settings/1 304 — 10ms
+[2025-05-07T16:05:56.075Z] INFO: Server running on port 5000
+[2025-05-07T16:05:58.719Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:05:58.725Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:05:58.729Z] INFO: [GET] /api/review-badge-settings/1 304 — 12ms
+[2025-05-07T16:05:58.739Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:05:58.743Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:05:58.745Z] INFO: [GET] /api/review-badge-settings/1 304 — 6ms
+[2025-05-07T16:06:16.687Z] INFO: Server running on port 5000
+[2025-05-07T16:06:21.113Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:06:21.121Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:06:21.126Z] INFO: [GET] /api/review-badge-settings/1 304 — 15ms
+[2025-05-07T16:06:21.142Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:06:21.144Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:06:21.148Z] INFO: [GET] /api/review-badge-settings/1 304 — 7ms
+[2025-05-07T16:06:33.933Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:06:33.956Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:06:33.959Z] INFO: [GET] /api/review-badge-settings/1 304 — 26ms
+[2025-05-07T16:06:33.969Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:06:33.972Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:06:33.975Z] INFO: [GET] /api/review-badge-settings/1 304 — 7ms
+[2025-05-07T16:08:42.323Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:08:42.346Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:08:42.349Z] INFO: [GET] /api/review-badge-settings/1 200 — 26ms
+[2025-05-07T16:08:42.350Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:08:42.352Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:08:42.355Z] INFO: [GET] /api/review-badge-settings/1 200 — 4ms
+[2025-05-07T16:09:01.733Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:09:01.741Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:09:01.752Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:09:01.755Z] INFO: [GET] /api/review-badge-settings/1 200 — 22ms
+[2025-05-07T16:09:01.763Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:09:01.765Z] INFO: [GET] /api/review-badge-settings/1 200 — 25ms
+[2025-05-07T16:09:05.515Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:09:05.518Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:09:05.521Z] INFO: [GET] /api/review-badge-settings/1 200 — 7ms
+[2025-05-07T16:09:05.566Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:09:05.569Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:09:05.572Z] INFO: [GET] /api/review-badge-settings/1 200 — 6ms
+[2025-05-07T16:09:05.833Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:09:05.834Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:09:05.835Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:09:05.838Z] INFO: [GET] /api/review-badge-settings/1 200 — 5ms
+[2025-05-07T16:09:05.840Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:09:05.842Z] INFO: [GET] /api/review-badge-settings/1 200 — 8ms
+[2025-05-07T16:09:06.094Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:09:06.097Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:09:06.098Z] INFO: [GET] /api/review-badge-settings/1 200 — 4ms
+[2025-05-07T16:09:06.108Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:09:06.111Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:09:06.114Z] INFO: [GET] /api/review-badge-settings/1 200 — 6ms
+[2025-05-07T16:09:10.761Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:09:10.764Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:09:10.766Z] INFO: [GET] /api/review-badge-settings/1 200 — 6ms
+[2025-05-07T16:09:10.834Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:09:10.837Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:09:10.840Z] INFO: [GET] /api/review-badge-settings/1 200 — 7ms
+[2025-05-07T16:09:11.194Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:09:11.195Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:09:11.196Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:09:11.197Z] INFO: [GET] /api/review-badge-settings/1 200 — 4ms
+[2025-05-07T16:09:11.198Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:09:11.199Z] INFO: [GET] /api/review-badge-settings/1 200 — 4ms
+[2025-05-07T16:10:04.341Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:10:04.343Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:10:04.360Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:10:04.361Z] INFO: [GET] /api/review-badge-settings/1 200 — 20ms
+[2025-05-07T16:10:04.362Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:10:04.363Z] INFO: [GET] /api/review-badge-settings/1 200 — 21ms
+[2025-05-07T16:11:23.515Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:11:23.550Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:11:23.553Z] INFO: [GET] /api/review-badge-settings/1 200 — 38ms
+[2025-05-07T16:11:23.569Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-07T16:11:23.572Z] INFO: Found review badge settings for user ID: 1
+[2025-05-07T16:11:23.573Z] INFO: [GET] /api/review-badge-settings/1 200 — 4ms

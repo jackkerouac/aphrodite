@@ -87,7 +87,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({
                       min="50"
                       max="200"
                       step="5"
-                      value={settings.size}
+                      value={settings.size || 100}
                       onChange={handleChange}
                       className="w-full"
                     />
@@ -105,7 +105,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({
                       min="0"
                       max="50"
                       step="1"
-                      value={settings.margin}
+                      value={settings.margin || 10}
                       onChange={handleChange}
                       className="w-full"
                     />
@@ -124,7 +124,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({
                     min="0"
                     max="30"
                     step="1"
-                    value={settings.spacing}
+                    value={settings.spacing || 5}
                     onChange={handleChange}
                     className="w-full"
                   />
@@ -162,7 +162,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({
                   min="0"
                   max="10"
                   step="1"
-                  value={settings.z_index}
+                  value={settings.z_index || 1}
                   onChange={handleChange}
                   className="w-full"
                 />
