@@ -65,17 +65,39 @@ export const dummyReviewData = {
   }
 };
 
-// Helper function to format review scores based on format type
-export const formatScore = (score: number, format: string): string => {
+// Helper function to format review scores based on format type and source
+export const formatScore = (score: number, format: string, source: string): string => {
   switch (format) {
     case 'percentage':
-      return `${Math.round(score * 10)}%`;
+      // IMDB and TMDB are on a 0-10 scale, convert to percentage
+      if (source === 'IMDB' || source === 'TMDB' || source === 'AniDB') {
+        return `${Math.round(score * 10)}%`;
+      }
+      // Rotten Tomatoes and Metacritic are already on a 0-100 scale
+      else {
+        return `${Math.round(score)}%`;
+      }
     case 'decimal':
-      return score.toFixed(1);
+      // For consistency, all scores displayed in decimal format are on a 0-10 scale
+      if (source === 'RottenTomatoes' || source === 'Metacritic') {
+        return (score / 10).toFixed(1);
+      } else {
+        return score.toFixed(1);
+      }
     case 'stars':
-      return '★'.repeat(Math.round(score / 2)) + '☆'.repeat(5 - Math.round(score / 2));
+      // Convert all scores to a 0-10 scale for star rating
+      let normalizedScore = score;
+      if (source === 'RottenTomatoes' || source === 'Metacritic') {
+        normalizedScore = score / 10;
+      }
+      return '★'.repeat(Math.round(normalizedScore / 2)) + '☆'.repeat(5 - Math.round(normalizedScore / 2));
     case 'fraction':
-      return `${score.toFixed(1)}/10`;
+      // For consistency, all scores in fraction format show as x/10
+      if (source === 'RottenTomatoes' || source === 'Metacritic') {
+        return `${(score / 10).toFixed(1)}/10`;
+      } else {
+        return `${score.toFixed(1)}/10`;
+      }
     default:
       return score.toString();
   }

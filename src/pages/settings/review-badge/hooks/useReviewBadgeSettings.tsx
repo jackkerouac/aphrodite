@@ -17,6 +17,7 @@ export interface ReviewBadgeSettings {
   show_logo: boolean;
   logo_size: number;
   logo_position: string;
+  logoTextSpacing: number;
   score_format: string;
   size: number;
   margin: number;
@@ -66,7 +67,8 @@ const defaultSettings: ReviewBadgeSettings = {
   source_order: ['IMDB', 'TMDB', 'RottenTomatoes', 'Metacritic', 'AniDB'],
   show_logo: true,
   logo_size: 24,
-  logo_position: 'left',
+  logo_position: 'top',
+  logoTextSpacing: 5,
   score_format: 'decimal',
   size: 100,
   margin: 10,

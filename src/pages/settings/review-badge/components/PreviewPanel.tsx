@@ -69,6 +69,19 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
     const borderG = parseInt(settings.border_color.slice(3, 5), 16);
     const borderB = parseInt(settings.border_color.slice(5, 7), 16);
 
+    // Get position-based styles
+    const positionStyles = getBadgePosition();
+    // Apply scaling factor based on size setting
+    const scaleFactor = settings.size / 100;
+    
+    // Handle transform property - combine scale with any existing transforms
+    let transformValue = `scale(${scaleFactor})`;
+    if (positionStyles.transform) {
+      transformValue = `${positionStyles.transform} scale(${scaleFactor})`;
+      // Remove the transform from positionStyles to avoid duplication
+      delete positionStyles.transform;
+    }
+
     return {
       position: 'absolute',
       zIndex: settings.z_index,
@@ -77,8 +90,23 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
       borderRadius: `${settings.border_radius}px`,
       border: `${settings.border_width}px solid rgba(${borderR}, ${borderG}, ${borderB}, ${settings.border_transparency})`,
       padding: '8px',
-      ...getBadgePosition()
+      transform: transformValue,
+      transformOrigin: getTransformOrigin(settings.position),
+      ...positionStyles
     };
+  };
+
+  // Helper function to determine transform-origin based on badge position
+  const getTransformOrigin = (position: string) => {
+    switch (position) {
+      case 'top-left': return 'top left';
+      case 'top-center': return 'top center';
+      case 'top-right': return 'top right';
+      case 'bottom-left': return 'bottom left';
+      case 'bottom-center': return 'bottom center';
+      case 'bottom-right': return 'bottom right';
+      default: return 'top left';
+    }
   };
 
   // Get badge group style (horizontal or vertical)
@@ -97,28 +125,45 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
     const textG = parseInt(settings.text_color.slice(3, 5), 16);
     const textB = parseInt(settings.text_color.slice(5, 7), 16);
 
+    // Apply scaling factor to font size
+    const scaleFactor = settings.size / 100;
+
     return {
       display: 'flex', 
       alignItems: 'center',
       color: `rgba(${textR}, ${textG}, ${textB}, ${1 - settings.text_transparency})`,
       fontFamily: settings.font_family,
-      fontSize: `${settings.font_size}px`,
+      fontSize: `${settings.font_size}px`, // Font size is scaled at the container level
       fontWeight: settings.font_weight,
     };
   };
 
   // Get logo style
-  const getLogoStyle = () => {
-    const marginKey = settings.logo_position === 'left' ? 'marginRight' :
-                      settings.logo_position === 'right' ? 'marginLeft' :
-                      settings.logo_position === 'top' ? 'marginBottom' : 'marginTop';
-    
-    return {
-      width: `${settings.logo_size}px`,
-      height: `${settings.logo_size}px`,
+  const getLogoStyle = (source: string) => {
+    // Base style for all logos
+    const style: React.CSSProperties = {
+      maxWidth: `${settings.logo_size}px`,
+      maxHeight: `${settings.logo_size}px`,
       objectFit: 'contain' as 'contain',
-      [marginKey]: '4px',
+      display: 'block', // Helps with alignment
     };
+    
+    // Only add spacing if it's greater than 0
+    if (settings.logoTextSpacing > 0) {
+      const marginKey = settings.logo_position === 'top' ? 'marginBottom' : 'marginTop';
+      style[marginKey] = `${settings.logoTextSpacing}px`;
+    }
+
+    // Specific adjustments for certain logos to improve centering
+    if (source === 'RottenTomatoes') {
+      style.margin = '0 auto'; // Center horizontally
+    }
+    
+    if (source === 'Metacritic') {
+      style.margin = '0 auto'; // Center horizontally
+    }
+    
+    return style;
   };
 
   // Create a badge for each enabled source
@@ -136,32 +181,30 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
       if (!reviewData[source]) return null;
       
       const { score, logo } = reviewData[source];
-      const formattedScore = formatScore(score, settings.score_format);
+      const formattedScore = formatScore(score, settings.score_format, source);
       
       const badgeStyle = getBadgeStyle();
-      const logoStyle = getLogoStyle();
+      const logoStyle = getLogoStyle(source);
       
-      // For top/bottom logo positioning, wrap in a column flex container
-      const wrapperStyle = settings.logo_position === 'top' || settings.logo_position === 'bottom' 
-        ? { display: 'flex', flexDirection: 'column', alignItems: 'center' } 
-        : {};
+      // For logo positioning, use a column flex container with no padding/margin
+      const wrapperStyle = { 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 0,
+        margin: 0,
+        width: '100%' // Ensure full width for better centering
+      };
       
       return (
         <div key={source} style={badgeStyle}>
           <div style={wrapperStyle as React.CSSProperties}>
-            {settings.show_logo && settings.logo_position === 'left' && (
-              <img src={logo} alt={`${source} logo`} style={logoStyle} />
-            )}
-            
             {settings.show_logo && settings.logo_position === 'top' && (
               <img src={logo} alt={`${source} logo`} style={logoStyle} />
             )}
             
-            <span>{formattedScore}</span>
-            
-            {settings.show_logo && settings.logo_position === 'right' && (
-              <img src={logo} alt={`${source} logo`} style={logoStyle} />
-            )}
+            <span style={{ margin: 0, padding: 0, textAlign: 'center', display: 'block', width: '100%' }}>{formattedScore}</span>
             
             {settings.show_logo && settings.logo_position === 'bottom' && (
               <img src={logo} alt={`${source} logo`} style={logoStyle} />
