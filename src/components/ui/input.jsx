@@ -30,6 +30,10 @@ const Input = React.forwardRef(
           className
         )}
         ref={ref}
+        style={{
+          color: '#1F2937', // Enforce darker text color in light mode
+          ...(props.style || {})
+        }}
         {...props}
       />
     );

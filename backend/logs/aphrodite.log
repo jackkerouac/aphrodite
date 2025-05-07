@@ -413,3 +413,121 @@
 [2025-05-07T11:27:44.795Z] INFO: Getting resolution badge settings for user ID: 1
 [2025-05-07T11:27:44.797Z] INFO: Found resolution badge settings for user ID: 1
 [2025-05-07T11:27:44.799Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 5ms
+[2025-05-07T11:33:19.206Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T11:33:19.224Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T11:33:19.225Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 20ms
+[2025-05-07T11:33:19.229Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T11:33:19.231Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T11:33:19.235Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 6ms
+[2025-05-07T11:45:41.157Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-07T11:45:41.173Z] INFO: No audio badge settings found for user ID: 1
+[2025-05-07T11:45:41.175Z] INFO: [GET] /api/audio-badge-settings/1 404 — 18ms
+[2025-05-07T11:45:41.223Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-07T11:45:41.225Z] INFO: No audio badge settings found for user ID: 1
+[2025-05-07T11:45:41.226Z] INFO: [GET] /api/audio-badge-settings/1 404 — 3ms
+[2025-05-07T11:45:47.235Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-07T11:45:47.236Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-07T11:45:47.238Z] INFO: No audio badge settings found for user ID: 1
+[2025-05-07T11:45:47.239Z] INFO: [GET] /api/audio-badge-settings/1 404 — 4ms
+[2025-05-07T11:45:47.256Z] INFO: No audio badge settings found for user ID: 1
+[2025-05-07T11:45:47.257Z] INFO: [GET] /api/audio-badge-settings/1 404 — 21ms
+[2025-05-07T11:45:50.304Z] INFO: Saving audio badge settings for user ID: 1
+[2025-05-07T11:45:50.304Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-07T11:45:50.307Z] INFO: No audio badge settings found for user ID: 1
+[2025-05-07T11:45:50.307Z] INFO: Creating new audio badge settings for user ID: 1
+[2025-05-07T11:45:50.320Z] INFO: Successfully created audio badge settings for user ID: 1
+[2025-05-07T11:45:50.322Z] INFO: [POST] /api/audio-badge-settings/1 200 — 19ms
+[2025-05-07T11:45:57.738Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-07T11:45:57.740Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-07T11:45:57.741Z] INFO: [GET] /api/audio-badge-settings/1 200 — 4ms
+[2025-05-07T11:45:57.823Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-07T11:45:57.825Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-07T11:45:57.827Z] INFO: [GET] /api/audio-badge-settings/1 304 — 5ms
+[2025-05-07T11:46:05.788Z] INFO: Saving audio badge settings for user ID: 1
+[2025-05-07T11:46:05.788Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-07T11:46:05.790Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-07T11:46:05.790Z] INFO: Updating existing audio badge settings for user ID: 1
+[2025-05-07T11:46:05.796Z] INFO: Successfully updated audio badge settings for user ID: 1
+[2025-05-07T11:46:05.798Z] INFO: [POST] /api/audio-badge-settings/1 200 — 11ms
+[2025-05-07T11:46:08.580Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-07T11:46:08.582Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-07T11:46:08.584Z] INFO: [GET] /api/audio-badge-settings/1 200 — 4ms
+[2025-05-07T11:46:08.606Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-07T11:46:08.608Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-07T11:46:08.610Z] INFO: [GET] /api/audio-badge-settings/1 304 — 5ms
+[2025-05-07T11:46:14.687Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-07T11:46:14.688Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-07T11:46:14.689Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-07T11:46:14.690Z] INFO: [GET] /api/audio-badge-settings/1 200 — 3ms
+[2025-05-07T11:46:14.712Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-07T11:46:14.714Z] INFO: [GET] /api/audio-badge-settings/1 200 — 26ms
+[2025-05-07T11:46:47.084Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-07T11:46:47.107Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-07T11:46:47.111Z] INFO: [GET] /api/audio-badge-settings/1 304 — 27ms
+[2025-05-07T11:46:47.164Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-07T11:46:47.166Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-07T11:46:47.167Z] INFO: [GET] /api/audio-badge-settings/1 304 — 3ms
+[2025-05-07T11:46:52.653Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T11:46:52.655Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T11:46:52.657Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 5ms
+[2025-05-07T11:46:52.663Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-07T11:46:52.665Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-07T11:46:52.666Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 3ms
+[2025-05-07T11:46:54.033Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-07T11:46:54.035Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-07T11:46:54.037Z] INFO: [GET] /api/audio-badge-settings/1 304 — 5ms
+[2025-05-07T11:46:54.048Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-07T11:46:54.050Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-07T11:46:54.052Z] INFO: [GET] /api/audio-badge-settings/1 304 — 5ms
+[2025-05-07T11:46:55.936Z] INFO: [GET] /api/jellyfin-settings/1 304 — 8ms
+[2025-05-07T11:46:55.952Z] INFO: [GET] /api/jellyfin-settings/1 304 — 4ms
+[2025-05-07T11:46:55.960Z] INFO: [GET] /api/omdb-settings/1 304 — 29ms
+[2025-05-07T11:46:55.968Z] INFO: [GET] /api/anidb-settings/1 304 — 37ms
+[2025-05-07T11:46:55.970Z] INFO: [GET] /api/jellyfin-settings/1 304 — 5ms
+[2025-05-07T11:46:55.971Z] INFO: [GET] /api/omdb-settings/1 304 — 5ms
+[2025-05-07T11:46:55.972Z] INFO: [GET] /api/tmdb-settings/1 304 — 40ms
+[2025-05-07T11:46:56.044Z] INFO: [GET] /api/anidb-settings/1 304 — 6ms
+[2025-05-07T11:46:56.046Z] INFO: [GET] /api/jellyfin-settings/1 304 — 6ms
+[2025-05-07T11:46:56.046Z] INFO: [GET] /api/tmdb-settings/1 304 — 5ms
+[2025-05-07T11:47:00.755Z] INFO: [GET] /api/omdb-settings/1 304 — 3ms
+[2025-05-07T11:47:03.758Z] INFO: [POST] /api/test-omdb-connection 200 — 192ms
+[2025-05-07T11:48:09.931Z] INFO: [GET] /api/omdb-settings/1 200 — 31ms
+[2025-05-07T11:48:09.933Z] INFO: [GET] /api/tmdb-settings/1 200 — 32ms
+[2025-05-07T11:48:09.935Z] INFO: [GET] /api/omdb-settings/1 200 — 3ms
+[2025-05-07T11:48:09.940Z] INFO: [GET] /api/tmdb-settings/1 200 — 5ms
+[2025-05-07T11:48:09.943Z] INFO: [GET] /api/jellyfin-settings/1 200 — 44ms
+[2025-05-07T11:48:09.947Z] INFO: [GET] /api/anidb-settings/1 200 — 10ms
+[2025-05-07T11:48:09.951Z] INFO: [GET] /api/jellyfin-settings/1 200 — 7ms
+[2025-05-07T11:48:09.953Z] INFO: [GET] /api/anidb-settings/1 200 — 51ms
+[2025-05-07T11:48:10.017Z] INFO: [GET] /api/jellyfin-settings/1 200 — 111ms
+[2025-05-07T11:48:10.019Z] INFO: [GET] /api/jellyfin-settings/1 200 — 111ms
+[2025-05-07T11:50:05.144Z] INFO: [GET] /api/jellyfin-settings/1 200 — 28ms
+[2025-05-07T11:50:05.146Z] INFO: [GET] /api/tmdb-settings/1 200 — 27ms
+[2025-05-07T11:50:05.148Z] INFO: [GET] /api/omdb-settings/1 200 — 30ms
+[2025-05-07T11:50:05.151Z] INFO: [GET] /api/anidb-settings/1 200 — 30ms
+[2025-05-07T11:50:05.155Z] INFO: [GET] /api/jellyfin-settings/1 200 — 33ms
+[2025-05-07T11:50:05.158Z] INFO: [GET] /api/omdb-settings/1 200 — 7ms
+[2025-05-07T11:50:05.159Z] INFO: [GET] /api/tmdb-settings/1 200 — 6ms
+[2025-05-07T11:50:05.161Z] INFO: [GET] /api/anidb-settings/1 200 — 6ms
+[2025-05-07T11:50:05.164Z] INFO: [GET] /api/jellyfin-settings/1 200 — 7ms
+[2025-05-07T11:50:05.172Z] INFO: [GET] /api/jellyfin-settings/1 200 — 46ms
+[2025-05-07T11:50:07.528Z] INFO: [GET] /api/jellyfin-settings/1 200 — 6ms
+[2025-05-07T11:50:07.529Z] INFO: [GET] /api/omdb-settings/1 200 — 6ms
+[2025-05-07T11:50:07.532Z] INFO: [GET] /api/tmdb-settings/1 200 — 8ms
+[2025-05-07T11:50:07.534Z] INFO: [GET] /api/anidb-settings/1 200 — 9ms
+[2025-05-07T11:50:07.536Z] INFO: [GET] /api/jellyfin-settings/1 200 — 10ms
+[2025-05-07T11:50:07.540Z] INFO: [GET] /api/jellyfin-settings/1 200 — 10ms
+[2025-05-07T11:50:07.542Z] INFO: [GET] /api/tmdb-settings/1 200 — 5ms
+[2025-05-07T11:50:07.543Z] INFO: [GET] /api/omdb-settings/1 200 — 6ms
+[2025-05-07T11:50:07.545Z] INFO: [GET] /api/anidb-settings/1 200 — 7ms
+[2025-05-07T11:50:07.547Z] INFO: [GET] /api/jellyfin-settings/1 200 — 6ms
+[2025-05-07T11:50:18.136Z] INFO: [GET] /api/jellyfin-settings/1 200 — 31ms
+[2025-05-07T11:50:18.138Z] INFO: [GET] /api/omdb-settings/1 200 — 32ms
+[2025-05-07T11:50:18.139Z] INFO: [GET] /api/tmdb-settings/1 200 — 33ms
+[2025-05-07T11:50:18.142Z] INFO: [GET] /api/anidb-settings/1 200 — 32ms
+[2025-05-07T11:50:18.144Z] INFO: [GET] /api/jellyfin-settings/1 200 — 36ms
+[2025-05-07T11:50:18.154Z] INFO: [GET] /api/omdb-settings/1 200 — 11ms
+[2025-05-07T11:50:18.155Z] INFO: [GET] /api/tmdb-settings/1 200 — 10ms
+[2025-05-07T11:50:18.157Z] INFO: [GET] /api/anidb-settings/1 200 — 11ms
+[2025-05-07T11:50:18.159Z] INFO: [GET] /api/jellyfin-settings/1 200 — 10ms
+[2025-05-07T11:50:18.167Z] INFO: [GET] /api/jellyfin-settings/1 200 — 55ms

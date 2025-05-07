@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import apiClient, { ApiError } from '@/lib/api-client';
 
 // Configuration
-const USE_SIMULATION = true; // Set to false when backend API is implemented
-const SIMULATION_DELAY = 800; // Milliseconds to simulate network delay
+const USE_SIMULATION = false;
+const SIMULATION_DELAY = 800;
 
 // For simulation mode - store settings in memory
 let savedSimulationSettings: AudioBadgeSettings | null = null;
