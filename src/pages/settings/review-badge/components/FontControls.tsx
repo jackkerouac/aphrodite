@@ -86,7 +86,7 @@ const FontControls: React.FC<FontControlsProps> = ({
             type="range"
             name="font_size"
             min="8"
-            max="30"
+            max="72"
             step="1"
             value={settings.font_size}
             onChange={handleChange}
@@ -95,7 +95,7 @@ const FontControls: React.FC<FontControlsProps> = ({
           <div className="flex justify-between text-xs">
             <span>8px</span>
             <span>{settings.font_size}px</span>
-            <span>30px</span>
+            <span>72px</span>
           </div>
         </div>
         <div className="space-y-2">

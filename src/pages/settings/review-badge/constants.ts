@@ -45,23 +45,23 @@ export const scoreFormatOptions = [
 export const dummyReviewData = {
   IMDB: {
     score: 7.8,
-    logo: '/src/assets/logos/imdb.png' // This will need to be created
+    logo: '/src/assets/rating/IMDb.png'
   },
   TMDB: {
     score: 8.2,
-    logo: '/src/assets/logos/tmdb.png' // This will need to be created
+    logo: '/src/assets/rating/TMDb.png'
   },
   RottenTomatoes: {
     score: 91,
-    logo: '/src/assets/logos/rottentomatoes.png' // This will need to be created
+    logo: '/src/assets/rating/RT-Crit-Fresh.png'
   },
   Metacritic: {
     score: 74,
-    logo: '/src/assets/logos/metacritic.png' // This will need to be created
+    logo: '/src/assets/rating/metacritic_logo.png'
   },
   AniDB: {
     score: 8.5,
-    logo: '/src/assets/logos/anidb.png' // This will need to be created
+    logo: '/src/assets/rating/AniDB.png'
   }
 };
 
