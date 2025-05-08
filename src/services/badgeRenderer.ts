@@ -130,10 +130,17 @@ const renderAudioBadge = async (
         img.onload = () => {
           // Calculate minimal padding (2.5% of image width or 10px, whichever is smaller)
           const padding = Math.min(Math.round(img.width * 0.025), 10);
-          const imageWidth = img.width;
-          const imageHeight = img.height;
+          let imageWidth = img.width;
+          let imageHeight = img.height;
+
+          // Calculate scale factor based on the size option
+          const scaleFactor = options.size / Math.max(imageWidth, imageHeight);
+
+          // Scale the image dimensions
+          imageWidth *= scaleFactor;
+          imageHeight *= scaleFactor;
           
-          // Resize the canvas to fit the image plus padding
+          // Resize the canvas to fit the scaled image plus padding
           const canvasWidth = imageWidth + (padding * 2);
           const canvasHeight = imageHeight + (padding * 2);
           
@@ -154,32 +161,32 @@ const renderAudioBadge = async (
             ctx.strokeStyle = options.borderColor || '#000000';
             ctx.globalAlpha = options.borderOpacity || 1;
             ctx.lineWidth = options.borderWidth;
-        ctx.strokeRect(
-          options.borderWidth / 2,
-          options.borderWidth / 2,
-          canvas.width - options.borderWidth,
-          canvas.height - options.borderWidth
-        );
-      }
-      
-      // Apply shadow if enabled
-      if (options.shadowEnabled) {
-        ctx.shadowColor = options.shadowColor || 'rgba(0, 0, 0, 0.5)';
-        ctx.shadowBlur = options.shadowBlur || 5;
-        ctx.shadowOffsetX = options.shadowOffsetX || 2;
-        ctx.shadowOffsetY = options.shadowOffsetY || 2;
-      }
-      
-      // Reset alpha for image
-      ctx.globalAlpha = 1;
-      
-      // Position the image with padding
-      const drawWidth = imageWidth;
-      const drawHeight = imageHeight;
-      const x = padding;
-      const y = padding;
+            ctx.strokeRect(
+              options.borderWidth / 2,
+              options.borderWidth / 2,
+              canvas.width - options.borderWidth,
+              canvas.height - options.borderWidth
+            );
+          }
           
-          // Draw the image
+          // Apply shadow if enabled
+          if (options.shadowEnabled) {
+            ctx.shadowColor = options.shadowColor || 'rgba(0, 0, 0, 0.5)';
+            ctx.shadowBlur = options.shadowBlur || 5;
+            ctx.shadowOffsetX = options.shadowOffsetX || 2;
+            ctx.shadowOffsetY = options.shadowOffsetY || 2;
+          }
+          
+          // Reset alpha for image
+          ctx.globalAlpha = 1;
+          
+          // Position the image with padding
+          const drawWidth = imageWidth;
+          const drawHeight = imageHeight;
+          const x = padding;
+          const y = padding;
+          
+          // Draw the image with scaled dimensions
           ctx.drawImage(img, x, y, drawWidth, drawHeight);
           resolve();
         };
@@ -187,7 +194,7 @@ const renderAudioBadge = async (
         img.onerror = () => {
           console.error(`Failed to load codec image: ${imagePath}`);
           ctx.fillStyle = options.textColor || '#FFFFFF';
-          ctx.font = `${options.fontSize || Math.max(badgeSize / 3, 10)}px ${options.fontFamily || 'Arial'}`;
+          ctx.font = `${options.fontSize || Math.max(options.size / 3, 10)}px ${options.fontFamily || 'Arial'}`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(options.codecType || '', canvas.width / 2, canvas.height / 2);
@@ -199,7 +206,7 @@ const renderAudioBadge = async (
     } catch (error) {
       console.error('Error rendering codec image:', error);
       ctx.fillStyle = options.textColor || '#FFFFFF';
-      ctx.font = `${options.fontSize || Math.max(badgeSize / 3, 10)}px ${options.fontFamily || 'Arial'}`;
+      ctx.font = `${options.fontSize || Math.max(options.size / 3, 10)}px ${options.fontFamily || 'Arial'}`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(options.codecType, canvas.width / 2, canvas.height / 2);
