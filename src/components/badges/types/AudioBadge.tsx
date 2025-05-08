@@ -56,6 +56,46 @@ const AudioBadge: React.FC<AudioBadgeProps> = ({ settings, onRender }) => {
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      // Calculate extra space needed for shadow
+      let canvasExtra = 0;
+      let badgeX = 0;
+      let badgeY = 0;
+      const badgeWidth = canvas.width;
+      const badgeHeight = canvas.height;
+      
+      // Add extra space for shadow if enabled
+      if (settings.shadowEnabled) {
+        const shadowOffsetX = settings.shadowOffsetX || 2;
+        const shadowOffsetY = settings.shadowOffsetY || 2;
+        const shadowBlur = settings.shadowBlur || 5;
+        
+        // Calculate shadow padding on all sides
+        const shadowPaddingLeft = Math.max(0, -shadowOffsetX) + shadowBlur;
+        const shadowPaddingTop = Math.max(0, -shadowOffsetY) + shadowBlur;
+        const shadowPaddingRight = Math.max(0, shadowOffsetX) + shadowBlur;
+        const shadowPaddingBottom = Math.max(0, shadowOffsetY) + shadowBlur;
+        
+        // Expand canvas to accommodate shadow
+        const newWidth = canvas.width + shadowPaddingLeft + shadowPaddingRight;
+        const newHeight = canvas.height + shadowPaddingTop + shadowPaddingBottom;
+        
+        // Resize canvas
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+        
+        // Calculate badge position within shadow space
+        badgeX = shadowPaddingLeft;
+        badgeY = shadowPaddingTop;
+      }
+      
+      // Apply shadow if enabled - moved here to affect the entire badge
+      if (settings.shadowEnabled) {
+        ctx.shadowColor = settings.shadowColor || 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = settings.shadowBlur || 5;
+        ctx.shadowOffsetX = settings.shadowOffsetX || 2;
+        ctx.shadowOffsetY = settings.shadowOffsetY || 2;
+      }
+
       // Apply background
       ctx.fillStyle = settings.backgroundColor;
       ctx.globalAlpha = settings.backgroundOpacity;
@@ -64,26 +104,35 @@ const AudioBadge: React.FC<AudioBadgeProps> = ({ settings, onRender }) => {
         // Draw rounded rectangle background
         const radius = settings.borderRadius;
         ctx.beginPath();
-        ctx.moveTo(radius, 0);
-        ctx.lineTo(canvas.width - radius, 0);
-        ctx.quadraticCurveTo(canvas.width, 0, canvas.width, radius);
-        ctx.lineTo(canvas.width, canvas.height - radius);
-        ctx.quadraticCurveTo(canvas.width, canvas.height, canvas.width - radius, canvas.height);
-        ctx.lineTo(radius, canvas.height);
-        ctx.quadraticCurveTo(0, canvas.height, 0, canvas.height - radius);
-        ctx.lineTo(0, radius);
-        ctx.quadraticCurveTo(0, 0, radius, 0);
+        ctx.moveTo(badgeX + radius, badgeY);
+        ctx.lineTo(badgeX + badgeWidth - radius, badgeY);
+        ctx.quadraticCurveTo(badgeX + badgeWidth, badgeY, badgeX + badgeWidth, badgeY + radius);
+        ctx.lineTo(badgeX + badgeWidth, badgeY + badgeHeight - radius);
+        ctx.quadraticCurveTo(badgeX + badgeWidth, badgeY + badgeHeight, badgeX + badgeWidth - radius, badgeY + badgeHeight);
+        ctx.lineTo(badgeX + radius, badgeY + badgeHeight);
+        ctx.quadraticCurveTo(badgeX, badgeY + badgeHeight, badgeX, badgeY + badgeHeight - radius);
+        ctx.lineTo(badgeX, badgeY + radius);
+        ctx.quadraticCurveTo(badgeX, badgeY, badgeX + radius, badgeY);
         ctx.closePath();
         ctx.fill();
       } else {
         // Draw rectangle background
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(badgeX, badgeY, badgeWidth, badgeHeight);
       }
+
+      // Reset shadow for border to avoid doubling the effect
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
 
       // Apply border if specified
       if (settings.borderWidth && settings.borderWidth > 0) {
+        // Ensure border color is properly specified or use black as default
         ctx.strokeStyle = settings.borderColor || '#000000';
-        ctx.globalAlpha = settings.borderOpacity || 1;
+        // Ensure appropriate border opacity is applied
+        ctx.globalAlpha = settings.borderOpacity !== undefined ? settings.borderOpacity : 1;
+        // Set correct line width
         ctx.lineWidth = settings.borderWidth;
         
         if (settings.borderRadius) {
@@ -91,41 +140,37 @@ const AudioBadge: React.FC<AudioBadgeProps> = ({ settings, onRender }) => {
           const radius = settings.borderRadius;
           const offset = settings.borderWidth / 2; // Adjust for line width
           ctx.beginPath();
-          ctx.moveTo(radius, offset);
-          ctx.lineTo(canvas.width - radius, offset);
-          ctx.quadraticCurveTo(canvas.width - offset, offset, canvas.width - offset, radius);
-          ctx.lineTo(canvas.width - offset, canvas.height - radius);
-          ctx.quadraticCurveTo(canvas.width - offset, canvas.height - offset, canvas.width - radius, canvas.height - offset);
-          ctx.lineTo(radius, canvas.height - offset);
-          ctx.quadraticCurveTo(offset, canvas.height - offset, offset, canvas.height - radius);
-          ctx.lineTo(offset, radius);
-          ctx.quadraticCurveTo(offset, offset, radius, offset);
+          ctx.moveTo(badgeX + radius, badgeY + offset);
+          ctx.lineTo(badgeX + badgeWidth - radius, badgeY + offset);
+          ctx.quadraticCurveTo(badgeX + badgeWidth - offset, badgeY + offset, badgeX + badgeWidth - offset, badgeY + radius);
+          ctx.lineTo(badgeX + badgeWidth - offset, badgeY + badgeHeight - radius);
+          ctx.quadraticCurveTo(badgeX + badgeWidth - offset, badgeY + badgeHeight - offset, badgeX + badgeWidth - radius, badgeY + badgeHeight - offset);
+          ctx.lineTo(badgeX + radius, badgeY + badgeHeight - offset);
+          ctx.quadraticCurveTo(badgeX + offset, badgeY + badgeHeight - offset, badgeX + offset, badgeY + badgeHeight - radius);
+          ctx.lineTo(badgeX + offset, badgeY + radius);
+          ctx.quadraticCurveTo(badgeX + offset, badgeY + offset, badgeX + radius, badgeY + offset);
           ctx.closePath();
           ctx.stroke();
         } else {
           // Draw rectangle border
           ctx.strokeRect(
-            settings.borderWidth / 2,
-            settings.borderWidth / 2,
-            canvas.width - settings.borderWidth,
-            canvas.height - settings.borderWidth
+            badgeX + settings.borderWidth / 2,
+            badgeY + settings.borderWidth / 2,
+            badgeWidth - settings.borderWidth,
+            badgeHeight - settings.borderWidth
           );
         }
-      }
-
-      // Apply shadow if enabled
-      if (settings.shadowEnabled) {
-        ctx.shadowColor = settings.shadowColor || 'rgba(0, 0, 0, 0.5)';
-        ctx.shadowBlur = settings.shadowBlur || 5;
-        ctx.shadowOffsetX = settings.shadowOffsetX || 2;
-        ctx.shadowOffsetY = settings.shadowOffsetY || 2;
       }
 
       // Draw codec image if specified
       if (settings.codecType) {
         try {
-          // Reset alpha for image
+          // Reset alpha and shadow for image
           ctx.globalAlpha = 1;
+          ctx.shadowColor = 'transparent';
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
           
           // Load the codec image
           const imagePath = getAudioCodecImagePath(settings.codecType);
@@ -133,117 +178,37 @@ const AudioBadge: React.FC<AudioBadgeProps> = ({ settings, onRender }) => {
           
           await new Promise<void>((resolve, reject) => {
             img.onload = () => {
-              // Instead of fitting image into a fixed-size badge, size the badge to fit the image
-              const aspectRatio = img.width / img.height;
+              // Calculate image position to center it within the badge with proper padding
+              // Add additional padding (8% of badge width) to ensure image doesn't touch borders
+              const padding = Math.max(Math.round(badgeWidth * 0.08), 12);
+              const availableWidth = badgeWidth - (padding * 2);
+              const availableHeight = badgeHeight - (padding * 2);
               
-              // Define a minimal padding (2.5% of image width or 10px, whichever is smaller)
-              const padding = Math.min(Math.round(img.width * 0.025), 10);
+              // Scale image to fit within available space while maintaining aspect ratio
+              const scale = Math.min(
+                availableWidth / img.width,
+                availableHeight / img.height
+              );
               
-              // Set the badge size based on the image size plus padding
-              const imageWidth = img.width;
-              const imageHeight = img.height;
+              const scaledWidth = img.width * scale;
+              const scaledHeight = img.height * scale;
               
-              // Resize canvas to exactly fit the image plus padding
-              const canvasWidth = imageWidth + (padding * 2);
-              const canvasHeight = imageHeight + (padding * 2);
+              // Center the scaled image within the available space
+              const x = badgeX + (badgeWidth - scaledWidth) / 2;
+              const y = badgeY + (badgeHeight - scaledHeight) / 2;
               
-              // Resize the canvas to match the image dimensions plus padding
-              canvas.width = canvasWidth;
-              canvas.height = canvasHeight;
-              
-              console.log(`AudioBadge: Resized canvas to ${canvasWidth}x${canvasHeight} based on image size`);
-              
-              // Clear canvas with the new dimensions and redraw background/border
-              ctx.clearRect(0, 0, canvas.width, canvas.height);
-              
-              // Redraw background with new dimensions
-              ctx.fillStyle = settings.backgroundColor;
-              ctx.globalAlpha = settings.backgroundOpacity;
-              
-              if (settings.borderRadius) {
-                // Draw rounded rectangle background
-                const radius = Math.min(settings.borderRadius, canvasWidth/4, canvasHeight/4); // Ensure radius isn't too large
-                ctx.beginPath();
-                ctx.moveTo(radius, 0);
-                ctx.lineTo(canvas.width - radius, 0);
-                ctx.quadraticCurveTo(canvas.width, 0, canvas.width, radius);
-                ctx.lineTo(canvas.width, canvas.height - radius);
-                ctx.quadraticCurveTo(canvas.width, canvas.height, canvas.width - radius, canvas.height);
-                ctx.lineTo(radius, canvas.height);
-                ctx.quadraticCurveTo(0, canvas.height, 0, canvas.height - radius);
-                ctx.lineTo(0, radius);
-                ctx.quadraticCurveTo(0, 0, radius, 0);
-                ctx.closePath();
-                ctx.fill();
-              } else {
-                // Draw rectangle background
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-              }
-              
-              // Redraw border if needed
-              if (settings.borderWidth && settings.borderWidth > 0) {
-                ctx.strokeStyle = settings.borderColor || '#000000';
-                ctx.globalAlpha = settings.borderOpacity || 1;
-                ctx.lineWidth = settings.borderWidth;
-                
-                if (settings.borderRadius) {
-                  // Draw rounded rectangle border
-                  const radius = Math.min(settings.borderRadius, canvasWidth/4, canvasHeight/4);
-                  const offset = settings.borderWidth / 2;
-                  ctx.beginPath();
-                  ctx.moveTo(radius, offset);
-                  ctx.lineTo(canvas.width - radius, offset);
-                  ctx.quadraticCurveTo(canvas.width - offset, offset, canvas.width - offset, radius);
-                  ctx.lineTo(canvas.width - offset, canvas.height - radius);
-                  ctx.quadraticCurveTo(canvas.width - offset, canvas.height - offset, canvas.width - radius, canvas.height - offset);
-                  ctx.lineTo(radius, canvas.height - offset);
-                  ctx.quadraticCurveTo(offset, canvas.height - offset, offset, canvas.height - radius);
-                  ctx.lineTo(offset, radius);
-                  ctx.quadraticCurveTo(offset, offset, radius, offset);
-                  ctx.closePath();
-                  ctx.stroke();
-                } else {
-                  // Draw rectangle border
-                  ctx.strokeRect(
-                    settings.borderWidth / 2,
-                    settings.borderWidth / 2,
-                    canvas.width - settings.borderWidth,
-                    canvas.height - settings.borderWidth
-                  );
-                }
-              }
-              
-              // Apply shadow if enabled
-              if (settings.shadowEnabled) {
-                ctx.shadowColor = settings.shadowColor || 'rgba(0, 0, 0, 0.5)';
-                ctx.shadowBlur = settings.shadowBlur || 5;
-                ctx.shadowOffsetX = settings.shadowOffsetX || 2;
-                ctx.shadowOffsetY = settings.shadowOffsetY || 2;
-              }
-              
-              // Reset alpha for image
-              ctx.globalAlpha = 1;
-              
-              // Center the image with padding
-              const drawWidth = imageWidth;
-              const drawHeight = imageHeight;
-              const x = padding;
-              const y = padding;
-              
-              // Draw the image
-              ctx.drawImage(img, x, y, drawWidth, drawHeight);
+              // Draw the image with scaled dimensions to ensure proper padding
+              ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
               resolve();
             };
-            
             img.onerror = () => {
               console.error(`Failed to load codec image: ${imagePath}`);
               // Fallback to text if image fails to load
               ctx.fillStyle = settings.textColor || '#FFFFFF';
-              // Ensure font size scales with badge size but stays readable
-              ctx.font = `${settings.fontSize || Math.max(constrainedSize / 3, 10)}px ${settings.fontFamily || 'Arial'}`;
+              ctx.font = `${settings.fontSize || 12}px ${settings.fontFamily || 'Arial'}`;
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
-              ctx.fillText(settings.codecType || '', canvas.width / 2, canvas.height / 2);
+              ctx.fillText(settings.codecType || '', badgeX + badgeWidth / 2, badgeY + badgeHeight / 2);
               resolve();
             };
             
@@ -253,11 +218,10 @@ const AudioBadge: React.FC<AudioBadgeProps> = ({ settings, onRender }) => {
           console.error('Error rendering codec image:', error);
           // Fallback to text if there's an error
           ctx.fillStyle = settings.textColor || '#FFFFFF';
-          // Ensure font size scales with badge size but stays readable
-          ctx.font = `${settings.fontSize || Math.max(constrainedSize / 3, 10)}px ${settings.fontFamily || 'Arial'}`;
+          ctx.font = `${settings.fontSize || 12}px ${settings.fontFamily || 'Arial'}`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(settings.codecType, canvas.width / 2, canvas.height / 2);
+          ctx.fillText(settings.codecType || '', badgeX + badgeWidth / 2, badgeY + badgeHeight / 2);
         }
       }
 
