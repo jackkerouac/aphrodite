@@ -281,3 +281,5 @@
 [2025-05-08T21:04:22.292Z] INFO: Server running on port 5000
 [2025-05-08T21:04:38.346Z] INFO: [GET] /api/jellyfin-libraries 304 — 718ms
 [2025-05-08T21:04:38.607Z] INFO: [GET] /api/jellyfin-libraries 304 — 257ms
+[2025-05-08T21:56:59.435Z] INFO: [GET] /api/jellyfin-libraries 304 — 618ms
+[2025-05-08T21:56:59.696Z] INFO: [GET] /api/jellyfin-libraries 304 — 255ms

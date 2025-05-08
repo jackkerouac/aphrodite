@@ -147,8 +147,8 @@ export default function Preview() {
           console.log(`Drawing audio badge at position: ${posX.toFixed(2)}, ${posY.toFixed(2)} with dimensions ${result.canvas.width}x${result.canvas.height}`);
           ctx.drawImage(result.canvas, posX, posY);
           
-          // Highlight active badge with a border if it's currently selected
-          if (activeBadgeType === "audio") {
+          // Highlight active badge with a non-visible indicator if it's currently selected
+          if (activeBadgeType === "audio" && debugMode) {
             ctx.strokeStyle = '#4f46e5'; // Indigo color for highlight
             ctx.lineWidth = 2;
             ctx.strokeRect(posX - 2, posY - 2, result.canvas.width + 4, result.canvas.height + 4);
@@ -191,8 +191,8 @@ export default function Preview() {
           console.log(`Drawing resolution badge at position: ${posX.toFixed(2)}, ${posY.toFixed(2)} with dimensions ${result.canvas.width}x${result.canvas.height}`);
           ctx.drawImage(result.canvas, posX, posY);
           
-          // Highlight active badge with a border if it's currently selected
-          if (activeBadgeType === "resolution") {
+          // Highlight active badge with a non-visible indicator if it's currently selected
+          if (activeBadgeType === "resolution" && debugMode) {
             ctx.strokeStyle = '#4f46e5'; // Indigo color for highlight
             ctx.lineWidth = 2;
             ctx.strokeRect(posX - 2, posY - 2, result.canvas.width + 4, result.canvas.height + 4);
@@ -235,8 +235,8 @@ export default function Preview() {
           console.log(`Drawing review badge at position: ${posX.toFixed(2)}, ${posY.toFixed(2)} with dimensions ${result.canvas.width}x${result.canvas.height}`);
           ctx.drawImage(result.canvas, posX, posY);
           
-          // Highlight active badge with a border if it's currently selected
-          if (activeBadgeType === "review") {
+          // Highlight active badge with a non-visible indicator if it's currently selected
+          if (activeBadgeType === "review" && debugMode) {
             ctx.strokeStyle = '#4f46e5'; // Indigo color for highlight
             ctx.lineWidth = 2;
             ctx.strokeRect(posX - 2, posY - 2, result.canvas.width + 4, result.canvas.height + 4);

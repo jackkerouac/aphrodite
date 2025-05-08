@@ -55,67 +55,74 @@ export const renderAudioBadge = async (
       
       await new Promise<void>((resolve, reject) => {
         img.onload = () => {
-          // Increase padding to ensure proper spacing between image and badge borders
-          // Now using 5% of image width with a minimum of 12px for better visual appearance
-          const baseImagePadding = Math.max(Math.round(img.width * 0.05), 12);
+          // Get original image dimensions
+          const originalWidth = img.width;
+          const originalHeight = img.height;
           
-          // Calculate scale factor based on the size option
-          const scaleFactor = options.size / Math.max(img.width, img.height);
+          // Calculate the scaling factor based on the size option
+          // Use size to determine the target width of the image
+          const targetImageWidth = options.size || 100;
+          const scaleFactor = targetImageWidth / originalWidth;
           
-          // Scale the image dimensions
-          const imageWidth = img.width * scaleFactor;
-          const imageHeight = img.height * scaleFactor;
+          // Scale image dimensions
+          const imageWidth = Math.round(originalWidth * scaleFactor);
+          const imageHeight = Math.round(originalHeight * scaleFactor);
           
-          // Add extra padding for border radius (if specified)
-          // This ensures we have enough space for the rounded corners
-          const borderRadius = options.borderRadius || 0;
-          let totalPadding = Math.max(baseImagePadding, borderRadius / 2);
+          // Set border radius (if any)
+          // Scale border radius proportionally with the size
+          const borderRadius = options.borderRadius ? options.borderRadius * scaleFactor : 0;
           
-          // Calculate dimensions for the canvas, including extra space for shadow if enabled
-          let canvasWidth = imageWidth + (totalPadding * 2);
-          let canvasHeight = imageHeight + (totalPadding * 2);
+          // Set GENEROUS padding - minimum 15% of scaled image dimensions, but scale with image size
+          const minPadding = Math.round(Math.max(imageWidth * 0.05, 5));
+          const horizontalPadding = Math.max(Math.round(imageWidth * 0.15), minPadding);
+          const verticalPadding = Math.max(Math.round(imageHeight * 0.15), minPadding);
           
-          // Add extra padding for shadow if enabled
+          // Calculate badge dimensions including proper padding
+          const badgeWidth = imageWidth + (horizontalPadding * 2);
+          const badgeHeight = imageHeight + (verticalPadding * 2);
+          
+          // Calculate shadow padding
+          let shadowPaddingLeft = 0;
+          let shadowPaddingTop = 0;
+          let shadowPaddingRight = 0;
+          let shadowPaddingBottom = 0;
+          
           if (options.shadowEnabled) {
-            const shadowOffsetX = options.shadowOffsetX || 2;
-            const shadowOffsetY = options.shadowOffsetY || 2;
-            const shadowBlur = options.shadowBlur || 5;
+            // Scale shadow parameters with the image size
+            const shadowScaleFactor = Math.max(0.5, Math.min(1, scaleFactor));
+            const shadowOffsetX = (options.shadowOffsetX || 2) * shadowScaleFactor;
+            const shadowOffsetY = (options.shadowOffsetY || 2) * shadowScaleFactor;
+            const shadowBlur = (options.shadowBlur || 5) * shadowScaleFactor;
             
-            // Add space for shadow to extend beyond the badge
-            // For right and bottom, we add offset + blur
-            // For left and top, we add extra space only if offset is negative
-            const shadowPaddingLeft = Math.max(0, -shadowOffsetX) + shadowBlur;
-            const shadowPaddingTop = Math.max(0, -shadowOffsetY) + shadowBlur;
-            const shadowPaddingRight = Math.max(0, shadowOffsetX) + shadowBlur;
-            const shadowPaddingBottom = Math.max(0, shadowOffsetY) + shadowBlur;
-            
-            canvasWidth += shadowPaddingLeft + shadowPaddingRight;
-            canvasHeight += shadowPaddingTop + shadowPaddingBottom;
-            
-            // Adjust totalPadding to center the badge within the shadow space
-            totalPadding = Math.max(totalPadding, Math.max(shadowPaddingLeft, shadowPaddingTop));
+            // Calculate shadow padding for each side
+            shadowPaddingLeft = Math.max(0, -shadowOffsetX) + shadowBlur;
+            shadowPaddingTop = Math.max(0, -shadowOffsetY) + shadowBlur;
+            shadowPaddingRight = Math.max(0, shadowOffsetX) + shadowBlur;
+            shadowPaddingBottom = Math.max(0, shadowOffsetY) + shadowBlur;
           }
           
-          // Resize the canvas
+          // Calculate final canvas size including badge and shadow
+          const canvasWidth = badgeWidth + shadowPaddingLeft + shadowPaddingRight;
+          const canvasHeight = badgeHeight + shadowPaddingTop + shadowPaddingBottom;
+          
+          // Resize canvas to fit badge with padding and shadow
           canvas.width = canvasWidth;
           canvas.height = canvasHeight;
           
-          // Clear canvas
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          // Clear canvas before drawing
+          ctx.clearRect(0, 0, canvasWidth, canvasHeight);
           
-          // Calculate the actual badge position within the canvas (considering shadow space)
-          // For backgrounds, borders, and other elements that make up the badge
-          let badgeX = totalPadding;
-          let badgeY = totalPadding;
-          const badgeWidth = imageWidth;
-          const badgeHeight = imageHeight;
+          // Calculate badge position within canvas (considering shadow)
+          const badgeX = shadowPaddingLeft;
+          const badgeY = shadowPaddingTop;
           
-          // Apply shadow if enabled - moved here to affect the entire badge
+          // Apply shadow if enabled
           if (options.shadowEnabled) {
+            const shadowScaleFactor = Math.max(0.5, Math.min(1, scaleFactor));
             ctx.shadowColor = options.shadowColor || 'rgba(0, 0, 0, 0.5)';
-            ctx.shadowBlur = options.shadowBlur || 5;
-            ctx.shadowOffsetX = options.shadowOffsetX || 2;
-            ctx.shadowOffsetY = options.shadowOffsetY || 2;
+            ctx.shadowBlur = (options.shadowBlur || 5) * shadowScaleFactor;
+            ctx.shadowOffsetX = (options.shadowOffsetX || 2) * shadowScaleFactor;
+            ctx.shadowOffsetY = (options.shadowOffsetY || 2) * shadowScaleFactor;
           }
           
           // Apply background with or without rounded corners
@@ -124,7 +131,6 @@ export const renderAudioBadge = async (
           
           if (borderRadius > 0) {
             // Draw rounded rectangle background
-            console.log(`Drawing audio badge with border radius: ${borderRadius}`);
             drawRoundedRect(ctx, badgeX, badgeY, badgeWidth, badgeHeight, borderRadius);
             ctx.fill();
           } else {
@@ -132,75 +138,62 @@ export const renderAudioBadge = async (
             ctx.fillRect(badgeX, badgeY, badgeWidth, badgeHeight);
           }
           
-          // Reset shadow for border to avoid doubling the effect
+          // Reset shadow settings before drawing border
           ctx.shadowColor = 'transparent';
           ctx.shadowBlur = 0;
           ctx.shadowOffsetX = 0;
           ctx.shadowOffsetY = 0;
           
-          // Apply border if specified
-          if (options.borderWidth && options.borderWidth > 0) {
-            // Ensure border color is properly specified or use black as default
+          // Calculate border width based on size
+          const scaledBorderWidth = options.borderWidth ? options.borderWidth * Math.min(1, scaleFactor) : 0;
+          
+          // ONLY draw a border if it's explicitly requested AND has width > 0 AND opacity > 0
+          if (scaledBorderWidth > 0 && 
+              options.borderOpacity !== undefined && 
+              options.borderOpacity > 0) {
+            
+            // Set border properties
             ctx.strokeStyle = options.borderColor || '#000000';
-            // Ensure appropriate border opacity is applied (using explicit check to avoid 0 being treated as falsy)
-            ctx.globalAlpha = options.borderOpacity !== undefined ? options.borderOpacity : 1;
-            // Set correct line width
-            ctx.lineWidth = options.borderWidth;
+            ctx.globalAlpha = options.borderOpacity;
+            ctx.lineWidth = scaledBorderWidth;
             
             if (borderRadius > 0) {
               // Draw rounded rectangle border
-              const offset = options.borderWidth / 2;
+              const offset = scaledBorderWidth / 2;
               drawRoundedRect(
                 ctx, 
                 badgeX + offset, 
                 badgeY + offset, 
-                badgeWidth - options.borderWidth, 
-                badgeHeight - options.borderWidth, 
+                badgeWidth - scaledBorderWidth, 
+                badgeHeight - scaledBorderWidth, 
                 borderRadius - offset
               );
               ctx.stroke();
             } else {
               // Draw rectangle border
               ctx.strokeRect(
-                badgeX + options.borderWidth / 2,
-                badgeY + options.borderWidth / 2,
-                badgeWidth - options.borderWidth,
-                badgeHeight - options.borderWidth
+                badgeX + scaledBorderWidth / 2,
+                badgeY + scaledBorderWidth / 2,
+                badgeWidth - scaledBorderWidth,
+                badgeHeight - scaledBorderWidth
               );
             }
+          } else {
+            // Explicitly ensure no border is drawn
+            ctx.strokeStyle = 'transparent';
+            ctx.lineWidth = 0;
           }
           
-          // Reset alpha and shadow for image
+          // Reset alpha before drawing image
           ctx.globalAlpha = 1;
-          ctx.shadowColor = 'transparent';
-          ctx.shadowBlur = 0;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
           
-          // Center the image within the canvas with proper padding on all sides
-          // Add internal padding to ensure the image doesn't touch the badge borders
-          const internalPadding = Math.max(baseImagePadding, 12);
-          const x = totalPadding + internalPadding;
-          const y = totalPadding + internalPadding;
+          // Calculate image position within badge with padding
+          const imageX = badgeX + horizontalPadding;
+          const imageY = badgeY + verticalPadding;
           
-          // Calculate available space after padding is applied
-          const availableWidth = imageWidth - (internalPadding * 2);
-          const availableHeight = imageHeight - (internalPadding * 2);
+          // Draw image at the correct position with scaled dimensions
+          ctx.drawImage(img, imageX, imageY, imageWidth, imageHeight);
           
-          // Scale image to fit within available space while maintaining aspect ratio
-          const scale = Math.min(
-            availableWidth / img.width,
-            availableHeight / img.height
-          );
-          
-          // Calculate final dimensions that preserve aspect ratio
-          const adjustedWidth = img.width * scale;
-          const adjustedHeight = img.height * scale;
-          
-          // Recalculate position to ensure image is centered in available space
-          const centeredX = totalPadding + (imageWidth - adjustedWidth) / 2;
-          const centeredY = totalPadding + (imageHeight - adjustedHeight) / 2;
-          ctx.drawImage(img, centeredX, centeredY, adjustedWidth, adjustedHeight);
           resolve();
         };
         
