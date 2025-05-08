@@ -41,8 +41,11 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
     // Update local state first for immediate UI feedback
     setLocalSettings(newSettings);
     
-    // Then update parent settings
-    onChange(newSettings);
+    // Force a synchronous execution to ensure local state is updated
+    setTimeout(() => {
+      // Then update parent settings
+      onChange(newSettings);
+    }, 0);
   }
 
   return (
@@ -135,13 +138,13 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
               <div className="flex items-center gap-4">
                 <Slider 
                   id="backgroundOpacity"
-                  value={[settings.backgroundOpacity * 100]} 
+                  value={[localSettings.backgroundOpacity * 100]} 
                   min={0} 
                   max={100} 
                   step={1}
                   onValueChange={(values: number[]) => handleChange('backgroundOpacity', values[0] / 100)}
                 />
-                <span>{Math.round(settings.backgroundOpacity * 100)}%</span>
+                <span>{Math.round(localSettings.backgroundOpacity * 100)}%</span>
               </div>
             </div>
 
@@ -151,7 +154,7 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
               <div className="flex items-center gap-4">
                 <Slider
                   id="borderWidth"
-                  value={[settings.borderWidth || 0]}
+                  value={[localSettings.borderWidth || 0]}
                   min={0}
                   max={10}
                   step={1}
@@ -159,7 +162,7 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                 />
                 <Input
                   type="number"
-                  value={settings.borderWidth || 0}
+                  value={localSettings.borderWidth || 0}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('borderWidth', parseFloat(e.target.value))}
                   className="w-20"
                 />
@@ -173,13 +176,13 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                 <Input
                   type="color"
                   id="borderColor"
-                  value={settings.borderColor || '#000000'}
+                  value={localSettings.borderColor || '#000000'}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('borderColor', e.target.value)}
                   className="w-12 h-8 p-1"
                 />
                 <Input
                   type="text"
-                  value={settings.borderColor || '#000000'}
+                  value={localSettings.borderColor || '#000000'}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('borderColor', e.target.value)}
                   className="flex-1"
                 />
@@ -192,13 +195,13 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
               <div className="flex items-center gap-4">
                 <Slider
                   id="borderOpacity"
-                  value={[settings.borderOpacity === undefined ? 100 : settings.borderOpacity * 100]}
+                  value={[localSettings.borderOpacity === undefined ? 100 : localSettings.borderOpacity * 100]}
                   min={0}
                   max={100}
                   step={1}
                   onValueChange={(values: number[]) => handleChange('borderOpacity', values[0] / 100)}
                 />
-                <span>{Math.round((settings.borderOpacity === undefined ? 100 : settings.borderOpacity * 100))}%</span>
+                <span>{Math.round((localSettings.borderOpacity === undefined ? 100 : localSettings.borderOpacity * 100))}%</span>
               </div>
             </div>
           </AccordionContent>
@@ -213,7 +216,7 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
               <div className="flex items-center gap-4">
                 <Slider 
                   id="borderRadius"
-                  value={[settings.borderRadius || 0]} 
+                  value={[localSettings.borderRadius || 0]} 
                   min={0} 
                   max={50} 
                   step={1}
@@ -221,7 +224,7 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                 />
                 <Input 
                   type="number" 
-                  value={settings.borderRadius || 0}
+                  value={localSettings.borderRadius || 0}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('borderRadius', parseFloat(e.target.value))}
                   className="w-20"
                 />
@@ -230,11 +233,11 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
 
             {/* Border Width */}
             <div className="space-y-2 mb-4">
-              <Label htmlFor="borderWidth">Border Width</Label>
+              <Label htmlFor="borderWidthSettings">Border Width</Label>
               <div className="flex items-center gap-4">
                 <Slider 
-                  id="borderWidth"
-                  value={[settings.borderWidth || 0]} 
+                  id="borderWidthSettings"
+                  value={[localSettings.borderWidth || 0]} 
                   min={0} 
                   max={10} 
                   step={1}
@@ -242,7 +245,7 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                 />
                 <Input 
                   type="number" 
-                  value={settings.borderWidth || 0}
+                  value={localSettings.borderWidth || 0}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('borderWidth', parseFloat(e.target.value))}
                   className="w-20"
                 />
@@ -253,13 +256,13 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
             <div className="flex items-center space-x-2 mb-4">
               <Switch
                 id="shadowEnabled"
-                checked={settings.shadowEnabled || false}
+                checked={localSettings.shadowEnabled || false}
                 onCheckedChange={(checked: boolean) => handleChange('shadowEnabled', checked)}
               />
               <Label htmlFor="shadowEnabled">Enable Shadow</Label>
             </div>
 
-            {settings.shadowEnabled && (
+            {localSettings.shadowEnabled && (
               <>
                 {/* Shadow Color */}
                 <div className="space-y-2 mb-4">
@@ -268,13 +271,13 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                     <Input 
                       type="color" 
                       id="shadowColor"
-                      value={settings.shadowColor || '#000000'}
+                      value={localSettings.shadowColor || '#000000'}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('shadowColor', e.target.value)}
                       className="w-12 h-8 p-1"
                     />
                     <Input
                       type="text"
-                      value={settings.shadowColor || '#000000'}
+                      value={localSettings.shadowColor || '#000000'}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('shadowColor', e.target.value)}
                       className="flex-1"
                     />
@@ -287,7 +290,7 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                   <div className="flex items-center gap-4">
                     <Slider 
                       id="shadowBlur"
-                      value={[settings.shadowBlur || 5]} 
+                      value={[localSettings.shadowBlur || 5]} 
                       min={0} 
                       max={20} 
                       step={1}
@@ -295,7 +298,7 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                     />
                     <Input 
                       type="number" 
-                      value={settings.shadowBlur || 5}
+                      value={localSettings.shadowBlur || 5}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('shadowBlur', parseFloat(e.target.value))}
                       className="w-20"
                     />
@@ -308,7 +311,7 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                   <div className="flex items-center gap-4">
                     <Slider 
                       id="shadowOffsetX"
-                      value={[settings.shadowOffsetX || 2]} 
+                      value={[localSettings.shadowOffsetX || 2]} 
                       min={-20} 
                       max={20} 
                       step={1}
@@ -316,7 +319,7 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                     />
                     <Input 
                       type="number" 
-                      value={settings.shadowOffsetX || 2}
+                      value={localSettings.shadowOffsetX || 2}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('shadowOffsetX', parseFloat(e.target.value))}
                       className="w-20"
                     />
@@ -329,7 +332,7 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                   <div className="flex items-center gap-4">
                     <Slider 
                       id="shadowOffsetY"
-                      value={[settings.shadowOffsetY || 2]} 
+                      value={[localSettings.shadowOffsetY || 2]} 
                       min={-20} 
                       max={20} 
                       step={1}
@@ -337,7 +340,7 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                     />
                     <Input 
                       type="number" 
-                      value={settings.shadowOffsetY || 2}
+                      value={localSettings.shadowOffsetY || 2}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('shadowOffsetY', parseFloat(e.target.value))}
                       className="w-20"
                     />
