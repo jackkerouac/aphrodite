@@ -283,3 +283,27 @@
 [2025-05-08T21:04:38.607Z] INFO: [GET] /api/jellyfin-libraries 304 — 257ms
 [2025-05-08T21:56:59.435Z] INFO: [GET] /api/jellyfin-libraries 304 — 618ms
 [2025-05-08T21:56:59.696Z] INFO: [GET] /api/jellyfin-libraries 304 — 255ms
+[2025-05-08T22:34:25.247Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:34:25.268Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:34:25.270Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 25ms
+[2025-05-08T22:34:25.275Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:34:25.278Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:34:25.280Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 6ms
+[2025-05-08T22:34:59.951Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:34:59.969Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:34:59.971Z] INFO: [GET] /api/audio-badge-settings/1 304 — 20ms
+[2025-05-08T22:35:00.066Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:35:00.069Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:35:00.071Z] INFO: [GET] /api/audio-badge-settings/1 304 — 5ms
+[2025-05-08T22:35:22.132Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:35:22.134Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:35:22.152Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:35:22.154Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 20ms
+[2025-05-08T22:35:22.154Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:35:22.155Z] INFO: [GET] /api/audio-badge-settings/1 304 — 23ms
+[2025-05-08T22:35:22.157Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:35:22.160Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:35:22.161Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:35:22.162Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 5ms
+[2025-05-08T22:35:22.163Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:35:22.166Z] INFO: [GET] /api/audio-badge-settings/1 304 — 7ms

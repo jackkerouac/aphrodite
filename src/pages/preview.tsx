@@ -1,11 +1,14 @@
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
+import ResolutionBadgeToggle from "@/components/resolution-badge-toggle/ResolutionBadgeToggle";
+import AudioBadgeToggle from "@/components/audio-badge-toggle/AudioBadgeToggle";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileSliders, ScanEye, Download } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { renderBadgeToCanvas, extractBadgeWithTransparency } from "@/services/badgeRenderer";
+import { getResolutionImagePath, getResolutionDisplayName } from "@/utils/resolutionUtils";
 import { useBadgeSettings } from "@/hooks/useBadgeSettings";
 import BadgeControls from "@/components/badges/BadgeControls";
 import FixedPosterPreview from "@/components/badges/FixedPosterPreview";
@@ -39,6 +42,9 @@ const defaultResolutionBadgeSettings = {
   backgroundOpacity: 0.7,
   textColor: '#FFFFFF',
   resolutionType: '1080p',
+  // Use utility functions for resolution image path and display name
+  getResolutionImagePath: getResolutionImagePath,
+  getResolutionDisplayName: getResolutionDisplayName,
   position: {
     percentX: 5,
     percentY: 15,
@@ -170,7 +176,14 @@ export default function Preview() {
     if (showResolutionBadge) {
       renderPromises.push((async () => {
         try {
-          const result = await renderBadgeToCanvas("resolution", actualResolutionSettings);
+          // Enhance resolution badge settings with utility functions if not already present
+          const enhancedResolutionSettings = {
+            ...actualResolutionSettings,
+            getResolutionImagePath: actualResolutionSettings.getResolutionImagePath || getResolutionImagePath,
+            getResolutionDisplayName: actualResolutionSettings.getResolutionDisplayName || getResolutionDisplayName
+          };
+          
+          const result = await renderBadgeToCanvas("resolution", enhancedResolutionSettings);
           if (!result || !result.canvas) {
             console.error("Failed to get canvas for resolution badge");
             return;
@@ -444,7 +457,13 @@ export default function Preview() {
           console.log(`Extracting audio badge with dimensions: ${result.canvas.width}x${result.canvas.height}`);
           break;
         case "resolution":
-          result = await renderBadgeToCanvas("resolution", actualResolutionSettings);
+          // Enhance resolution settings with utility functions
+          const enhancedResolutionSettings = {
+            ...actualResolutionSettings,
+            getResolutionImagePath: actualResolutionSettings.getResolutionImagePath || getResolutionImagePath,
+            getResolutionDisplayName: actualResolutionSettings.getResolutionDisplayName || getResolutionDisplayName
+          };
+          result = await renderBadgeToCanvas("resolution", enhancedResolutionSettings);
           bounds = { 
             x: 0, 
             y: 0, 
@@ -501,23 +520,15 @@ export default function Preview() {
                 <div className="space-y-3">
                   <h3 className="text-lg font-medium">Display Badges</h3>
                   <div className="flex flex-col gap-3">
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="show-audio-badge"
-                        checked={showAudioBadge}
-                        onCheckedChange={setShowAudioBadge}
-                      />
-                      <Label htmlFor="show-audio-badge">Audio Badge</Label>
-                    </div>
+                    <AudioBadgeToggle
+                      onChange={setShowAudioBadge}
+                      className="justify-between"
+                    />
                     
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="show-resolution-badge"
-                        checked={showResolutionBadge}
-                        onCheckedChange={setShowResolutionBadge}
-                      />
-                      <Label htmlFor="show-resolution-badge">Resolution Badge</Label>
-                    </div>
+                    <ResolutionBadgeToggle
+                      onChange={setShowResolutionBadge}
+                      className="justify-between"
+                    />
                     
                     <div className="flex items-center space-x-2">
                       <Switch
