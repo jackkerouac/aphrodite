@@ -160,9 +160,10 @@ export const useBadgeSettings = <T>(
   }, [userId, type]);
 
   /**
-   * Save badge settings with debounce to prevent too many storage operations
+   * Save badge settings with immediate UI update
    */
   const saveBadgeSettings = async (newSettings: T) => {
+    console.log(`saveBadgeSettings called for ${type} with:`, newSettings);
     try {
       // Create a unique key for the settings
       const settingsKey = `badgeSettings-${userId}-${type}`;
@@ -171,19 +172,18 @@ export const useBadgeSettings = <T>(
       const defaultSettings = getDefaultSettings<T>(type);
       const mergedSettings = { ...defaultSettings, ...newSettings };
       
-      // Update state immediately for responsive UI
+      console.log(`Settings after merging with defaults:`, mergedSettings);
+      
+      // Update state IMMEDIATELY for responsive UI
       setBadgeSettings(mergedSettings);
       
-      // Save to local storage with a small delay to batch operations
-      setTimeout(() => {
-        try {
-          localStorage.setItem(settingsKey, JSON.stringify(mergedSettings));
-        } catch (storageError) {
-          console.error(`Error saving ${type} badge settings to localStorage:`, storageError);
-        }
-      }, 100);
-      
-      // TODO: Add API save functionality when ready
+      // Save to local storage immediately for real-time updates
+      try {
+        console.log(`Saving settings to localStorage with key: ${settingsKey}`);
+        localStorage.setItem(settingsKey, JSON.stringify(mergedSettings));
+      } catch (storageError) {
+        console.error(`Error saving ${type} badge settings to localStorage:`, storageError);
+      }
       
       return true;
     } catch (error) {

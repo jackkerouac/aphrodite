@@ -43,6 +43,9 @@ export const renderBadgeToCanvas = async (
   const position = options.position || { percentX: 0, percentY: 0 };
   let canvas: HTMLCanvasElement;
   
+  // Debug: Log the options being passed in
+  console.log(`renderBadgeToCanvas called for type ${type} with options:`, options);
+  
   switch (type) {
     case 'audio': {
       const audioOptions = options as AudioBadgeSettings;
@@ -79,9 +82,11 @@ const renderAudioBadge = async (
   options: AudioBadgeSettings, 
   sourceImageUrl?: string
 ): Promise<HTMLCanvasElement> => {
-  // Scale the size to a reasonable value relative to the poster
-  // Keep the original size for calculations but use a scaled version for the canvas
-  const badgeSize = Math.min(options.size, 200);
+  // Force the size to be a number between 20 and 200
+  const size = typeof options.size === 'number' ? options.size : 80;
+  const badgeSize = Math.min(Math.max(size, 20), 200);
+  
+  // Create canvas with explicit dimensions
   const canvas = createTempCanvas(badgeSize, badgeSize);
   const ctx = canvas.getContext('2d');
 
@@ -106,58 +111,19 @@ const renderAudioBadge = async (
   // Apply background
   ctx.fillStyle = options.backgroundColor;
   ctx.globalAlpha = options.backgroundOpacity;
-  
-  if (options.borderRadius) {
-    // Draw rounded rectangle background
-    const radius = options.borderRadius;
-    ctx.beginPath();
-    ctx.moveTo(radius, 0);
-    ctx.lineTo(canvas.width - radius, 0);
-    ctx.quadraticCurveTo(canvas.width, 0, canvas.width, radius);
-    ctx.lineTo(canvas.width, canvas.height - radius);
-    ctx.quadraticCurveTo(canvas.width, canvas.height, canvas.width - radius, canvas.height);
-    ctx.lineTo(radius, canvas.height);
-    ctx.quadraticCurveTo(0, canvas.height, 0, canvas.height - radius);
-    ctx.lineTo(0, radius);
-    ctx.quadraticCurveTo(0, 0, radius, 0);
-    ctx.closePath();
-    ctx.fill();
-  } else {
-    // Draw rectangle background
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // Apply border if specified
   if (options.borderWidth && options.borderWidth > 0) {
     ctx.strokeStyle = options.borderColor || '#000000';
     ctx.globalAlpha = options.borderOpacity || 1;
     ctx.lineWidth = options.borderWidth;
-    
-    if (options.borderRadius) {
-      // Draw rounded rectangle border
-      const radius = options.borderRadius;
-      const offset = options.borderWidth / 2; // Adjust for line width
-      ctx.beginPath();
-      ctx.moveTo(radius, offset);
-      ctx.lineTo(canvas.width - radius, offset);
-      ctx.quadraticCurveTo(canvas.width - offset, offset, canvas.width - offset, radius);
-      ctx.lineTo(canvas.width - offset, canvas.height - radius);
-      ctx.quadraticCurveTo(canvas.width - offset, canvas.height - offset, canvas.width - radius, canvas.height - offset);
-      ctx.lineTo(radius, canvas.height - offset);
-      ctx.quadraticCurveTo(offset, canvas.height - offset, offset, canvas.height - radius);
-      ctx.lineTo(offset, radius);
-      ctx.quadraticCurveTo(offset, offset, radius, offset);
-      ctx.closePath();
-      ctx.stroke();
-    } else {
-      // Draw rectangle border
-      ctx.strokeRect(
-        options.borderWidth / 2,
-        options.borderWidth / 2,
-        canvas.width - options.borderWidth,
-        canvas.height - options.borderWidth
-      );
-    }
+    ctx.strokeRect(
+      options.borderWidth / 2,
+      options.borderWidth / 2,
+      canvas.width - options.borderWidth,
+      canvas.height - options.borderWidth
+    );
   }
 
   // Apply shadow if enabled
@@ -180,22 +146,32 @@ const renderAudioBadge = async (
       
       await new Promise<void>((resolve, reject) => {
         img.onload = () => {
-          // Calculate dimensions to maintain aspect ratio
-          const aspectRatio = img.width / img.height;
+          // FIXED PADDING OF 10 PIXELS
+          const padding = 10;
+          const imageWidth = img.width;
+          const imageHeight = img.height;
+          const aspectRatio = imageWidth / imageHeight;
+          
+          // Calculate available space
+          const availableWidth = canvas.width - (padding * 2);
+          const availableHeight = canvas.height - (padding * 2);
+          
+          // Calculate size while maintaining aspect ratio
           let drawWidth, drawHeight;
           
-          // If image is wider than tall
-          if (aspectRatio > 1) {
-            drawWidth = canvas.width * 0.8;
-            drawHeight = drawWidth / aspectRatio;
-          } else {
-            drawHeight = canvas.height * 0.8;
+          // Start with using the full available width
+          drawWidth = availableWidth;
+          drawHeight = drawWidth / aspectRatio;
+          
+          // If that makes the height too big, scale down
+          if (drawHeight > availableHeight) {
+            drawHeight = availableHeight;
             drawWidth = drawHeight * aspectRatio;
           }
           
-          // Center the image
-          const x = (canvas.width - drawWidth) / 2;
-          const y = (canvas.height - drawHeight) / 2;
+          // Calculate position to center the image within the available space
+          const x = padding + (availableWidth - drawWidth) / 2;
+          const y = padding + (availableHeight - drawHeight) / 2;
           
           // Draw the image
           ctx.drawImage(img, x, y, drawWidth, drawHeight);
@@ -204,9 +180,8 @@ const renderAudioBadge = async (
         
         img.onerror = () => {
           console.error(`Failed to load codec image: ${imagePath}`);
-          // Fallback to text if image fails to load
           ctx.fillStyle = options.textColor || '#FFFFFF';
-          ctx.font = `${options.fontSize || options.size / 3}px ${options.fontFamily || 'Arial'}`;
+          ctx.font = `${options.fontSize || Math.max(badgeSize / 3, 10)}px ${options.fontFamily || 'Arial'}`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(options.codecType || '', canvas.width / 2, canvas.height / 2);
@@ -217,9 +192,8 @@ const renderAudioBadge = async (
       });
     } catch (error) {
       console.error('Error rendering codec image:', error);
-      // Fallback to text if there's an error
       ctx.fillStyle = options.textColor || '#FFFFFF';
-      ctx.font = `${options.fontSize || options.size / 3}px ${options.fontFamily || 'Arial'}`;
+      ctx.font = `${options.fontSize || Math.max(badgeSize / 3, 10)}px ${options.fontFamily || 'Arial'}`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(options.codecType, canvas.width / 2, canvas.height / 2);

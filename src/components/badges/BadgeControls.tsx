@@ -12,12 +12,18 @@ interface BadgeControlsProps {
   userId: string;
   onBadgeTypeChange?: (type: string) => void;
   initialBadgeType?: string;
+  saveHandlers?: {
+    audio: (settings: AudioBadgeSettings) => void;
+    resolution: (settings: ResolutionBadgeSettings) => void;
+    review: (settings: ReviewBadgeSettings) => void;
+  };
 }
 
 const BadgeControls: React.FC<BadgeControlsProps> = ({ 
   userId, 
   onBadgeTypeChange, 
-  initialBadgeType = "audio" 
+  initialBadgeType = "audio",
+  saveHandlers
 }) => {
   const [activeTab, setActiveTab] = useState<string>(initialBadgeType);
   
@@ -67,21 +73,21 @@ const BadgeControls: React.FC<BadgeControlsProps> = ({
       <TabsContent value="audio" className="space-y-4">
         <AudioBadgeControls 
           settings={audioBadgeSettings as AudioBadgeSettings} 
-          onChange={saveAudioBadgeSettings}
+          onChange={saveHandlers?.audio || saveAudioBadgeSettings}
         />
       </TabsContent>
       
       <TabsContent value="resolution" className="space-y-4">
         <ResolutionBadgeControls 
           settings={resolutionBadgeSettings as ResolutionBadgeSettings} 
-          onChange={saveResolutionBadgeSettings}
+          onChange={saveHandlers?.resolution || saveResolutionBadgeSettings}
         />
       </TabsContent>
       
       <TabsContent value="review" className="space-y-4">
         <ReviewBadgeControls 
           settings={reviewBadgeSettings as ReviewBadgeSettings} 
-          onChange={saveReviewBadgeSettings}
+          onChange={saveHandlers?.review || saveReviewBadgeSettings}
         />
       </TabsContent>
     </Tabs>

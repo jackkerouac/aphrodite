@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AudioBadgeSettings } from '../types/AudioBadge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,16 +15,33 @@ interface AudioBadgeControlsProps {
 }
 
 const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onChange }) => {
+  // Local state to track all settings for consistent updates
+  const [localSettings, setLocalSettings] = useState(settings);
+  
+  // Update local settings when props change
+  React.useEffect(() => {
+    setLocalSettings(settings);
+  }, [settings]);
   const handleChange = (field: keyof AudioBadgeSettings, value: any) => {
-    let newSettings: AudioBadgeSettings = {
-      ...settings,
+    // Log just the essential info
+    console.log(`Updating ${field} to:`, value);
+    
+    // Create new settings based on current local settings
+    const newSettings = {
+      ...localSettings,
       [field]: value,
     };
 
+    // When changing size, scale the font size proportionally
     if (field === 'size') {
-      newSettings.fontSize = value / 3;
+      // Ensure fontSize is never smaller than 10px for readability
+      newSettings.fontSize = Math.max(value / 3, 10);
     }
 
+    // Update local state first for immediate UI feedback
+    setLocalSettings(newSettings);
+    
+    // Then update parent settings
     onChange(newSettings);
   }
 
@@ -39,16 +56,19 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
               <Label htmlFor="size">Size</Label>
               <div className="flex items-center gap-4">
                 <Slider 
-                  id="size"
-                  value={[settings.size]} 
+                  id="size-slider"
+                  value={[localSettings.size]} 
                   min={20} 
                   max={200} 
                   step={1}
-                  onValueChange={(values: number[]) => handleChange('size', values[0])}
+                  onValueChange={(values: number[]) => {
+                    const newSize = values[0];
+                    handleChange('size', newSize);
+                  }}
                 />
                 <Input 
                   type="number" 
-                  value={settings.size} 
+                  value={localSettings.size} 
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     // Constrain the size to the slider range
                     const newSize = Math.max(20, Math.min(200, parseFloat(e.target.value) || 20));
@@ -65,7 +85,7 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
             <div className="space-y-2 mb-4">
               <Label htmlFor="codecType">Audio Codec</Label>
               <Select 
-                value={settings.codecType || 'dolby_atmos'}
+                value={localSettings.codecType || 'dolby_atmos'}
                 onValueChange={(value: string) => handleChange('codecType', value)}
               >
                 <SelectTrigger>

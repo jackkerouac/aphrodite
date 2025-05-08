@@ -56,16 +56,18 @@ const FixedPosterPreview: React.FC<FixedPosterPreviewProps> = ({
     }
   };
 
-  // Re-render badges when active badge type changes
+  // Re-render badges when active badge type changes or when dimensions might have updated
   useEffect(() => {
     if (loaded && canvasRef.current && renderBadges) {
       const ctx = canvasRef.current.getContext('2d');
       if (ctx) {
-        console.log('Re-rendering badges after activeBadgeType change');
+        console.log('FixedPosterPreview: Forcing badge re-render');
+        // Force clear the canvas to ensure a complete redraw
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
         renderBadges(ctx, posterDimensions);
       }
     }
-  }, [activeBadgeType, loaded, renderBadges, posterDimensions]);
+  }, [activeBadgeType, loaded, renderBadges, posterDimensions, canvasRef]);
 
   // Handle drag events for badge positioning
   const handleDragOver = (e: React.DragEvent) => {
@@ -130,10 +132,10 @@ const FixedPosterPreview: React.FC<FixedPosterPreviewProps> = ({
   }, []);
 
   return (
-    <div ref={containerRef} className="w-full flex justify-center">
+    <div ref={containerRef} className="w-full flex justify-center p-0 m-0">
       <div 
         ref={posterContainerRef} 
-        className="relative" 
+        className="relative m-0" 
         style={{ width: '400px', height: '600px' }}
       >
         <img 
@@ -143,7 +145,7 @@ const FixedPosterPreview: React.FC<FixedPosterPreviewProps> = ({
           width={400}
           height={600}
           onLoad={handleImageLoad}
-          className="block"
+          className="block m-0 p-0"
         />
         
         {loaded && (

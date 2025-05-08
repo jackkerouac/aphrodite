@@ -92,12 +92,133 @@ export default function Preview() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
+  // Render badges on canvas
+  const renderBadges = async (ctx: CanvasRenderingContext2D, dimensions: PosterDimensions) => {
+    // Return early if dimensions are invalid
+    if (!dimensions || dimensions.width < 50 || dimensions.height < 50) {
+      console.log('Invalid dimensions, skipping badge rendering');
+      return;
+    }
+
+    // Use defaults if settings are not available
+    const actualAudioSettings = audioBadgeSettings || defaultAudioBadgeSettings;
+    const actualResolutionSettings = resolutionBadgeSettings || defaultResolutionBadgeSettings;
+    const actualReviewSettings = reviewBadgeSettings || defaultReviewBadgeSettings;
+    
+    // Add a console log to debug
+    console.log('Rendering badges with dimensions:', dimensions);
+    console.log('Active badge type:', activeBadgeType);
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, dimensions.width, dimensions.height);
+
+    // Create promises array to handle all badge rendering
+    const renderPromises = [];
+
+    // Add render tasks to the array
+    if (showAudioBadge) {
+      renderPromises.push((async () => {
+        try {
+          // Log the EXACT settings being used
+          console.log('Rendering audio badge with settings:', actualAudioSettings);
+          console.log('Audio badge size about to be used:', actualAudioSettings.size);
+          
+          // Render the audio badge
+          const result = await renderBadgeToCanvas("audio", actualAudioSettings);
+          if (!result || !result.canvas) {
+            console.error("Failed to get canvas for audio badge");
+            return;
+          }
+          
+          console.log('Result canvas dimensions:', result.canvas.width, 'x', result.canvas.height);
+          
+          const posX = ((actualAudioSettings.position?.percentX || 5) / 100) * dimensions.width;
+          const posY = ((actualAudioSettings.position?.percentY || 5) / 100) * dimensions.height;
+          
+          console.log(`Drawing audio badge at position: ${posX.toFixed(2)}, ${posY.toFixed(2)}`);
+          ctx.drawImage(result.canvas, posX, posY);
+          
+          // Highlight active badge with a border if it's currently selected
+          if (activeBadgeType === "audio") {
+            ctx.strokeStyle = '#4f46e5'; // Indigo color for highlight
+            ctx.lineWidth = 2;
+            ctx.strokeRect(posX - 2, posY - 2, result.canvas.width + 4, result.canvas.height + 4);
+          }
+        } catch (error) {
+          console.error("Error rendering audio badge:", error);
+        }
+      })());
+    }
+
+    if (showResolutionBadge) {
+      renderPromises.push((async () => {
+        try {
+          const result = await renderBadgeToCanvas("resolution", actualResolutionSettings);
+          if (!result || !result.canvas) {
+            console.error("Failed to get canvas for resolution badge");
+            return;
+          }
+          
+          const posX = ((actualResolutionSettings.position?.percentX || 5) / 100) * dimensions.width;
+          const posY = ((actualResolutionSettings.position?.percentY || 15) / 100) * dimensions.height;
+          
+          console.log(`Drawing resolution badge at position: ${posX.toFixed(2)}, ${posY.toFixed(2)}`);
+          ctx.drawImage(result.canvas, posX, posY);
+          
+          // Highlight active badge with a border if it's currently selected
+          if (activeBadgeType === "resolution") {
+            ctx.strokeStyle = '#4f46e5'; // Indigo color for highlight
+            ctx.lineWidth = 2;
+            ctx.strokeRect(posX - 2, posY - 2, result.canvas.width + 4, result.canvas.height + 4);
+          }
+        } catch (error) {
+          console.error("Error rendering resolution badge:", error);
+        }
+      })());
+    }
+
+    if (showReviewBadge) {
+      renderPromises.push((async () => {
+        try {
+          const result = await renderBadgeToCanvas("review", actualReviewSettings);
+          if (!result || !result.canvas) {
+            console.error("Failed to get canvas for review badge");
+            return;
+          }
+          
+          const posX = ((actualReviewSettings.position?.percentX || 5) / 100) * dimensions.width;
+          const posY = ((actualReviewSettings.position?.percentY || 25) / 100) * dimensions.height;
+          
+          console.log(`Drawing review badge at position: ${posX.toFixed(2)}, ${posY.toFixed(2)}`);
+          ctx.drawImage(result.canvas, posX, posY);
+          
+          // Highlight active badge with a border if it's currently selected
+          if (activeBadgeType === "review") {
+            ctx.strokeStyle = '#4f46e5'; // Indigo color for highlight
+            ctx.lineWidth = 2;
+            ctx.strokeRect(posX - 2, posY - 2, result.canvas.width + 4, result.canvas.height + 4);
+          }
+        } catch (error) {
+          console.error("Error rendering review badge:", error);
+        }
+      })());
+    }
+
+    // Wait for all rendering to complete
+    await Promise.all(renderPromises);
+  };
+  
   // Get badge settings for each type using our hook
   const { 
     badgeSettings: audioBadgeSettings, 
     saveBadgeSettings: saveAudioBadgeSettings,
     isLoading: isLoadingAudio
   } = useBadgeSettings<AudioBadgeSettings>("123", "audio");
+  
+  // Debug: Watch for changes to audioBadgeSettings
+  useEffect(() => {
+    console.log('Preview: audioBadgeSettings changed:', audioBadgeSettings);
+  }, [audioBadgeSettings]);
   
   const { 
     badgeSettings: resolutionBadgeSettings, 
@@ -124,6 +245,43 @@ export default function Preview() {
       console.log('Review badge settings loaded:', reviewBadgeSettings);
     }
   }, [loading, audioBadgeSettings, resolutionBadgeSettings, reviewBadgeSettings]);
+  
+  // Function to immediately update the preview canvas
+  const updatePreview = () => {
+    if (canvasRef.current && posterDimensions.width > 50 && !loading) {
+      const ctx = canvasRef.current.getContext('2d');
+      if (ctx) {
+        console.log('Forcing immediate preview update');
+        // Clear the canvas and redraw all badges
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        renderBadges(ctx, posterDimensions);
+      }
+    }
+  };
+
+  // Call updatePreview whenever badge settings change
+  useEffect(() => {
+    updatePreview();
+  }, [audioBadgeSettings, resolutionBadgeSettings, reviewBadgeSettings]);
+  
+  // Create wrapped save functions that force immediate updates
+  const saveAudioBadgeSettingsWithUpdate = (settings: AudioBadgeSettings) => {
+    saveAudioBadgeSettings(settings);
+    // Force immediate update instead of waiting for effect
+    setTimeout(updatePreview, 0);
+  };
+  
+  const saveResolutionBadgeSettingsWithUpdate = (settings: ResolutionBadgeSettings) => {
+    saveResolutionBadgeSettings(settings);
+    // Force immediate update instead of waiting for effect
+    setTimeout(updatePreview, 0);
+  };
+  
+  const saveReviewBadgeSettingsWithUpdate = (settings: ReviewBadgeSettings) => {
+    saveReviewBadgeSettings(settings);
+    // Force immediate update instead of waiting for effect
+    setTimeout(updatePreview, 0);
+  };
   
   // Force canvas redraw when settings change, with debounce
   useEffect(() => {
@@ -209,116 +367,6 @@ export default function Preview() {
       setActivePoster("light");
       setPosterImage(lightPoster);
     }
-  };
-
-  // Render badges on canvas
-  const renderBadges = async (ctx: CanvasRenderingContext2D, dimensions: PosterDimensions) => {
-    // Return early if dimensions are invalid
-    if (!dimensions || dimensions.width < 50 || dimensions.height < 50) {
-      console.log('Invalid dimensions, skipping badge rendering');
-      return;
-    }
-
-    // Use defaults if settings are not available
-    const actualAudioSettings = audioBadgeSettings || defaultAudioBadgeSettings;
-    const actualResolutionSettings = resolutionBadgeSettings || defaultResolutionBadgeSettings;
-    const actualReviewSettings = reviewBadgeSettings || defaultReviewBadgeSettings;
-    
-    // Add a console log to debug
-    console.log('Rendering badges with dimensions:', dimensions);
-    console.log('Active badge type:', activeBadgeType);
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, dimensions.width, dimensions.height);
-
-    // Create promises array to handle all badge rendering
-    const renderPromises = [];
-
-    // Add render tasks to the array
-    if (showAudioBadge) {
-      renderPromises.push((async () => {
-        try {
-          // Render the audio badge
-          const result = await renderBadgeToCanvas("audio", actualAudioSettings);
-          if (!result || !result.canvas) {
-            console.error("Failed to get canvas for audio badge");
-            return;
-          }
-          
-          const posX = ((actualAudioSettings.position?.percentX || 5) / 100) * dimensions.width;
-          const posY = ((actualAudioSettings.position?.percentY || 5) / 100) * dimensions.height;
-          
-          console.log(`Drawing audio badge at position: ${posX.toFixed(2)}, ${posY.toFixed(2)}`);
-          ctx.drawImage(result.canvas, posX, posY);
-          
-          // Highlight active badge with a border if it's currently selected
-          if (activeBadgeType === "audio") {
-            ctx.strokeStyle = '#4f46e5'; // Indigo color for highlight
-            ctx.lineWidth = 2;
-            ctx.strokeRect(posX - 2, posY - 2, result.canvas.width + 4, result.canvas.height + 4);
-          }
-        } catch (error) {
-          console.error("Error rendering audio badge:", error);
-        }
-      })());
-    }
-
-    if (showResolutionBadge) {
-      renderPromises.push((async () => {
-        try {
-          const result = await renderBadgeToCanvas("resolution", actualResolutionSettings);
-          if (!result || !result.canvas) {
-            console.error("Failed to get canvas for resolution badge");
-            return;
-          }
-          
-          const posX = ((actualResolutionSettings.position?.percentX || 5) / 100) * dimensions.width;
-          const posY = ((actualResolutionSettings.position?.percentY || 15) / 100) * dimensions.height;
-          
-          console.log(`Drawing resolution badge at position: ${posX.toFixed(2)}, ${posY.toFixed(2)}`);
-          ctx.drawImage(result.canvas, posX, posY);
-          
-          // Highlight active badge with a border if it's currently selected
-          if (activeBadgeType === "resolution") {
-            ctx.strokeStyle = '#4f46e5'; // Indigo color for highlight
-            ctx.lineWidth = 2;
-            ctx.strokeRect(posX - 2, posY - 2, result.canvas.width + 4, result.canvas.height + 4);
-          }
-        } catch (error) {
-          console.error("Error rendering resolution badge:", error);
-        }
-      })());
-    }
-
-    if (showReviewBadge) {
-      renderPromises.push((async () => {
-        try {
-          const result = await renderBadgeToCanvas("review", actualReviewSettings);
-          if (!result || !result.canvas) {
-            console.error("Failed to get canvas for review badge");
-            return;
-          }
-          
-          const posX = ((actualReviewSettings.position?.percentX || 5) / 100) * dimensions.width;
-          const posY = ((actualReviewSettings.position?.percentY || 25) / 100) * dimensions.height;
-          
-          console.log(`Drawing review badge at position: ${posX.toFixed(2)}, ${posY.toFixed(2)}`);
-          ctx.drawImage(result.canvas, posX, posY);
-          
-          // Highlight active badge with a border if it's currently selected
-          if (activeBadgeType === "review") {
-            ctx.strokeStyle = '#4f46e5'; // Indigo color for highlight
-            ctx.lineWidth = 2;
-            ctx.strokeRect(posX - 2, posY - 2, result.canvas.width + 4, result.canvas.height + 4);
-          }
-        } catch (error) {
-          console.error("Error rendering review badge:", error);
-        }
-      })());
-    }
-
-    // Wait for all rendering to complete
-    await Promise.all(renderPromises);
   };
 
   // Save a badge as PNG with transparency
@@ -436,6 +484,11 @@ export default function Preview() {
                     userId="123" 
                     onBadgeTypeChange={handleBadgeTypeChange}
                     initialBadgeType="audio"
+                    saveHandlers={{
+                      audio: saveAudioBadgeSettingsWithUpdate,
+                      resolution: saveResolutionBadgeSettingsWithUpdate,
+                      review: saveReviewBadgeSettingsWithUpdate
+                    }}
                   />
                 </div>
 
@@ -506,7 +559,7 @@ export default function Preview() {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="flex flex-col justify-center flex-grow items-center pb-6 relative">
+            <CardContent className="flex flex-col justify-center flex-grow items-center p-0 relative">
               <div ref={containerRef} className="relative w-full flex justify-center">
                 {loading ? (
                   <div className="flex flex-col items-center justify-center h-64">
@@ -531,7 +584,7 @@ export default function Preview() {
                   </>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground mt-4 absolute bottom-0">
+              <p className="text-sm text-muted-foreground mt-2 absolute bottom-0">
                 {activeBadgeType ? `Click and drag to position the ${activeBadgeType} badge` : "Select a badge type to position it"}
               </p>
             </CardContent>

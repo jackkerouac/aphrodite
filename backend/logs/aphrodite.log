@@ -272,3 +272,9 @@
 [2025-05-08T13:50:26.542Z] INFO: [GET] /api/jellyfin-libraries 304 — 332ms
 [2025-05-08T14:28:36.065Z] INFO: [GET] /api/jellyfin-libraries 304 — 668ms
 [2025-05-08T14:28:36.325Z] INFO: [GET] /api/jellyfin-libraries 304 — 255ms
+[2025-05-08T16:34:17.616Z] INFO: Server running on port 5000
+[2025-05-08T16:34:32.660Z] INFO: [GET] /api/jellyfin-libraries 304 — 719ms
+[2025-05-08T16:34:33.088Z] INFO: [GET] /api/jellyfin-libraries 304 — 425ms
+[2025-05-08T16:34:33.459Z] INFO: [GET] /api/jellyfin-libraries 304 — 366ms
+[2025-05-08T16:34:33.786Z] INFO: [GET] /api/jellyfin-libraries 304 — 324ms
+[2025-05-08T17:27:00.435Z] INFO: Server running on port 5000

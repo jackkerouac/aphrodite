@@ -32,6 +32,11 @@ interface AudioBadgeProps {
 const AudioBadge: React.FC<AudioBadgeProps> = ({ settings, onRender }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  // Log when size settings change explicitly
+  useEffect(() => {
+    console.log('AudioBadge: Size setting changed to:', settings.size);
+  }, [settings.size]);
+
   useEffect(() => {
     const renderBadge = async () => {
       if (!canvasRef.current) return;
@@ -40,9 +45,13 @@ const AudioBadge: React.FC<AudioBadgeProps> = ({ settings, onRender }) => {
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Set canvas dimensions based on badge size
-      canvas.width = settings.size;
-      canvas.height = settings.size;
+      // Set canvas dimensions based on badge size, constrained to reasonable limits
+      const size = typeof settings.size === 'number' ? settings.size : 80;
+      const constrainedSize = Math.min(Math.max(size, 20), 200);
+      
+      console.log(`AudioBadge: Setting canvas size to ${constrainedSize}x${constrainedSize}`);
+      canvas.width = constrainedSize;
+      canvas.height = constrainedSize;
 
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -124,17 +133,36 @@ const AudioBadge: React.FC<AudioBadgeProps> = ({ settings, onRender }) => {
           
           await new Promise<void>((resolve, reject) => {
             img.onload = () => {
-              // Calculate dimensions to maintain aspect ratio
+              // Calculate dimensions for a balanced padding all around
               const aspectRatio = img.width / img.height;
               let drawWidth, drawHeight;
               
-              // If image is wider than tall
-              if (aspectRatio > 1) {
-                drawWidth = canvas.width * 0.8;
+              // Fixed padding of 10px on all sides
+              const padding = 10;
+              const maxWidth = canvas.width - (padding * 2);
+              const maxHeight = canvas.height - (padding * 2);
+              
+              // Calculate dimensions to best fit within the available space
+              if (aspectRatio > 1) { // Image is wider than tall
+                // For wide images, use the full width minus padding
+                drawWidth = maxWidth;
                 drawHeight = drawWidth / aspectRatio;
-              } else {
-                drawHeight = canvas.height * 0.8;
+                
+                // If the height is too large, scale down
+                if (drawHeight > maxHeight) {
+                  drawHeight = maxHeight;
+                  drawWidth = drawHeight * aspectRatio;
+                }
+              } else { // Image is taller than wide or square
+                // For tall images, use the full height minus padding
+                drawHeight = maxHeight;
                 drawWidth = drawHeight * aspectRatio;
+                
+                // If the width is too large, scale down
+                if (drawWidth > maxWidth) {
+                  drawWidth = maxWidth;
+                  drawHeight = drawWidth / aspectRatio;
+                }
               }
               
               // Center the image
@@ -150,7 +178,8 @@ const AudioBadge: React.FC<AudioBadgeProps> = ({ settings, onRender }) => {
               console.error(`Failed to load codec image: ${imagePath}`);
               // Fallback to text if image fails to load
               ctx.fillStyle = settings.textColor || '#FFFFFF';
-              ctx.font = `${settings.fontSize || settings.size / 3}px ${settings.fontFamily || 'Arial'}`;
+              // Ensure font size scales with badge size but stays readable
+              ctx.font = `${settings.fontSize || Math.max(constrainedSize / 3, 10)}px ${settings.fontFamily || 'Arial'}`;
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
               ctx.fillText(settings.codecType || '', canvas.width / 2, canvas.height / 2);
@@ -163,7 +192,8 @@ const AudioBadge: React.FC<AudioBadgeProps> = ({ settings, onRender }) => {
           console.error('Error rendering codec image:', error);
           // Fallback to text if there's an error
           ctx.fillStyle = settings.textColor || '#FFFFFF';
-          ctx.font = `${settings.fontSize || settings.size / 3}px ${settings.fontFamily || 'Arial'}`;
+          // Ensure font size scales with badge size but stays readable
+          ctx.font = `${settings.fontSize || Math.max(constrainedSize / 3, 10)}px ${settings.fontFamily || 'Arial'}`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(settings.codecType, canvas.width / 2, canvas.height / 2);
@@ -179,11 +209,17 @@ const AudioBadge: React.FC<AudioBadgeProps> = ({ settings, onRender }) => {
     renderBadge();
   }, [settings, onRender]);
 
+  // Get a properly constrained size value for the badge
+  const getConstrainedSize = () => {
+    const size = typeof settings.size === 'number' ? settings.size : 80;
+    return Math.min(Math.max(size, 20), 200);
+  };
+  
   return (
     <canvas
       ref={canvasRef}
-      width={settings.size}
-      height={settings.size}
+      width={getConstrainedSize()}
+      height={getConstrainedSize()}
       style={{ 
         display: 'none', // Hide the canvas as it's only used for rendering
       }}
