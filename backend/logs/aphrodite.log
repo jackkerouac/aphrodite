@@ -319,3 +319,315 @@
 [2025-05-08T22:35:48.333Z] INFO: [GET] /api/audio-badge-settings/1 304 — 4ms
 [2025-05-08T22:35:48.334Z] INFO: Found resolution badge settings for user ID: 1
 [2025-05-08T22:35:48.335Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 5ms
+[2025-05-08T22:47:11.802Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:47:11.805Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:47:11.830Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:47:11.834Z] INFO: [GET] /api/audio-badge-settings/1 304 — 33ms
+[2025-05-08T22:47:11.843Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:47:11.848Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 44ms
+[2025-05-08T22:47:11.856Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:47:11.857Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:47:11.859Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:47:11.862Z] INFO: [GET] /api/audio-badge-settings/1 304 — 7ms
+[2025-05-08T22:47:11.863Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:47:11.865Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 8ms
+[2025-05-08T22:47:31.047Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:47:31.048Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:47:31.066Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:47:31.067Z] INFO: [GET] /api/audio-badge-settings/1 304 — 21ms
+[2025-05-08T22:47:31.068Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:47:31.070Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 22ms
+[2025-05-08T22:47:31.071Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:47:31.073Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:47:31.075Z] INFO: [GET] /api/audio-badge-settings/1 304 — 5ms
+[2025-05-08T22:47:31.076Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:47:31.079Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:47:31.081Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 6ms
+[2025-05-08T22:48:31.571Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:48:31.574Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:48:31.580Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:48:31.583Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:48:31.597Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:48:31.600Z] INFO: [GET] /api/audio-badge-settings/1 200 — 29ms
+[2025-05-08T22:48:31.601Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:48:31.602Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 28ms
+[2025-05-08T22:48:31.610Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:48:31.612Z] INFO: [GET] /api/audio-badge-settings/1 200 — 29ms
+[2025-05-08T22:48:31.612Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:48:31.614Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 35ms
+[2025-05-08T22:50:32.895Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:50:32.897Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:50:32.915Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:50:32.917Z] INFO: [GET] /api/audio-badge-settings/1 304 — 23ms
+[2025-05-08T22:50:32.921Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:50:32.922Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 26ms
+[2025-05-08T22:50:32.992Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:50:32.993Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:50:32.994Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:50:32.996Z] INFO: [GET] /api/audio-badge-settings/1 304 — 4ms
+[2025-05-08T22:50:32.996Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:50:32.997Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 4ms
+[2025-05-08T22:50:53.519Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:50:53.520Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:50:53.537Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:50:53.538Z] INFO: [GET] /api/audio-badge-settings/1 304 — 20ms
+[2025-05-08T22:50:53.539Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:50:53.540Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 20ms
+[2025-05-08T22:50:53.542Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:50:53.545Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:50:53.545Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:50:53.547Z] INFO: [GET] /api/audio-badge-settings/1 304 — 4ms
+[2025-05-08T22:50:53.547Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:50:53.549Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 5ms
+[2025-05-08T22:53:02.144Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:53:02.146Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:53:02.171Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:53:02.173Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 28ms
+[2025-05-08T22:53:02.181Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:53:02.183Z] INFO: [GET] /api/audio-badge-settings/1 304 — 39ms
+[2025-05-08T22:53:02.195Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:53:02.198Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:53:02.200Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 5ms
+[2025-05-08T22:53:02.214Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:53:02.216Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:53:02.218Z] INFO: [GET] /api/audio-badge-settings/1 304 — 5ms
+[2025-05-08T22:55:44.885Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:55:44.887Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:55:44.905Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:55:44.907Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 20ms
+[2025-05-08T22:55:44.908Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:55:44.909Z] INFO: [GET] /api/audio-badge-settings/1 304 — 24ms
+[2025-05-08T22:55:44.918Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:55:44.919Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:55:44.921Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:55:44.922Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 4ms
+[2025-05-08T22:55:44.923Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:55:44.924Z] INFO: [GET] /api/audio-badge-settings/1 304 — 5ms
+[2025-05-08T22:56:00.434Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:56:00.435Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:56:00.452Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:56:00.454Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 19ms
+[2025-05-08T22:56:00.454Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:56:00.455Z] INFO: [GET] /api/audio-badge-settings/1 304 — 21ms
+[2025-05-08T22:56:00.457Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:56:00.460Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:56:00.462Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 5ms
+[2025-05-08T22:56:00.463Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:56:00.465Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:56:00.468Z] INFO: [GET] /api/audio-badge-settings/1 304 — 6ms
+[2025-05-08T22:56:05.939Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:56:05.940Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:56:05.941Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:56:05.942Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:56:05.943Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:56:05.945Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 6ms
+[2025-05-08T22:56:05.947Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:56:05.949Z] INFO: [GET] /api/audio-badge-settings/1 200 — 9ms
+[2025-05-08T22:56:05.967Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:56:05.970Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 29ms
+[2025-05-08T22:56:05.973Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:56:05.975Z] INFO: [GET] /api/audio-badge-settings/1 200 — 33ms
+[2025-05-08T22:56:28.923Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:56:28.924Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:56:28.941Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:56:28.942Z] INFO: [GET] /api/audio-badge-settings/1 304 — 19ms
+[2025-05-08T22:56:28.944Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:56:28.946Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 22ms
+[2025-05-08T22:56:28.951Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:56:28.953Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:56:28.954Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:56:28.956Z] INFO: [GET] /api/audio-badge-settings/1 304 — 6ms
+[2025-05-08T22:56:28.957Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:56:28.959Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 6ms
+[2025-05-08T22:57:12.480Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:57:12.481Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:57:12.498Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:57:12.499Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 18ms
+[2025-05-08T22:57:12.500Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:57:12.501Z] INFO: [GET] /api/audio-badge-settings/1 304 — 22ms
+[2025-05-08T22:57:12.504Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:57:12.506Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:57:12.508Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 4ms
+[2025-05-08T22:57:12.516Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:57:12.518Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:57:12.520Z] INFO: [GET] /api/audio-badge-settings/1 304 — 5ms
+[2025-05-08T22:57:16.839Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:57:16.840Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:57:16.841Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:57:16.843Z] INFO: [GET] /api/audio-badge-settings/1 304 — 4ms
+[2025-05-08T22:57:16.844Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:57:16.846Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 6ms
+[2025-05-08T22:57:16.879Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:57:16.881Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:57:16.882Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:57:16.883Z] INFO: [GET] /api/audio-badge-settings/1 304 — 4ms
+[2025-05-08T22:57:16.884Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:57:16.885Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 4ms
+[2025-05-08T22:57:21.268Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:57:21.269Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:57:21.270Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:57:21.271Z] INFO: [GET] /api/audio-badge-settings/1 304 — 4ms
+[2025-05-08T22:57:21.272Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:57:21.273Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 4ms
+[2025-05-08T22:57:21.295Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:57:21.297Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:57:21.297Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:57:21.299Z] INFO: [GET] /api/audio-badge-settings/1 304 — 4ms
+[2025-05-08T22:57:21.299Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:57:21.301Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 5ms
+[2025-05-08T22:59:08.312Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:59:08.314Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:59:08.338Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:59:08.341Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 28ms
+[2025-05-08T22:59:08.343Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:59:08.345Z] INFO: [GET] /api/audio-badge-settings/1 304 — 33ms
+[2025-05-08T22:59:08.346Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:59:08.349Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:59:08.351Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 5ms
+[2025-05-08T22:59:08.352Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:59:08.354Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:59:08.355Z] INFO: [GET] /api/audio-badge-settings/1 304 — 3ms
+[2025-05-08T22:59:14.443Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:59:14.444Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:59:14.445Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:59:14.446Z] INFO: [GET] /api/audio-badge-settings/1 304 — 4ms
+[2025-05-08T22:59:14.447Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:59:14.449Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 5ms
+[2025-05-08T22:59:14.450Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:59:14.452Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:59:14.453Z] INFO: [GET] /api/audio-badge-settings/1 304 — 3ms
+[2025-05-08T22:59:14.454Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:59:14.456Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:59:14.459Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 5ms
+[2025-05-08T22:59:37.709Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:59:37.710Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:59:37.728Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:59:37.729Z] INFO: [GET] /api/audio-badge-settings/1 304 — 21ms
+[2025-05-08T22:59:37.730Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:59:37.731Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 21ms
+[2025-05-08T22:59:37.733Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T22:59:37.736Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T22:59:37.737Z] INFO: [GET] /api/audio-badge-settings/1 304 — 4ms
+[2025-05-08T22:59:37.745Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T22:59:37.747Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T22:59:37.749Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 4ms
+[2025-05-08T23:01:16.068Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T23:01:16.069Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T23:01:16.086Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T23:01:16.087Z] INFO: [GET] /api/audio-badge-settings/1 304 — 20ms
+[2025-05-08T23:01:16.088Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T23:01:16.089Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 20ms
+[2025-05-08T23:01:16.091Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T23:01:16.094Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T23:01:16.095Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T23:01:16.096Z] INFO: [GET] /api/audio-badge-settings/1 304 — 5ms
+[2025-05-08T23:01:16.096Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T23:01:16.098Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 5ms
+[2025-05-08T23:01:32.509Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T23:01:32.510Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T23:01:32.526Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T23:01:32.527Z] INFO: [GET] /api/audio-badge-settings/1 304 — 18ms
+[2025-05-08T23:01:32.528Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T23:01:32.529Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 19ms
+[2025-05-08T23:01:32.534Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T23:01:32.535Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T23:01:32.537Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T23:01:32.539Z] INFO: [GET] /api/audio-badge-settings/1 304 — 5ms
+[2025-05-08T23:01:32.539Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T23:01:32.540Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 5ms
+[2025-05-08T23:01:44.616Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T23:01:44.617Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T23:01:44.634Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T23:01:44.635Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 18ms
+[2025-05-08T23:01:44.635Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T23:01:44.636Z] INFO: [GET] /api/audio-badge-settings/1 304 — 20ms
+[2025-05-08T23:01:44.639Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T23:01:44.641Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T23:01:44.642Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T23:01:44.643Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 5ms
+[2025-05-08T23:01:44.644Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T23:01:44.645Z] INFO: [GET] /api/audio-badge-settings/1 304 — 5ms
+[2025-05-08T23:04:25.726Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T23:04:25.728Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T23:04:25.748Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T23:04:25.749Z] INFO: [GET] /api/audio-badge-settings/1 304 — 23ms
+[2025-05-08T23:04:25.750Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T23:04:25.752Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 24ms
+[2025-05-08T23:04:25.753Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T23:04:25.756Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T23:04:25.759Z] INFO: [GET] /api/audio-badge-settings/1 304 — 6ms
+[2025-05-08T23:04:25.763Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T23:04:25.765Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T23:04:25.767Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 4ms
+[2025-05-08T23:08:06.757Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T23:08:06.758Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T23:08:06.760Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T23:08:06.764Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T23:08:06.786Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T23:08:06.788Z] INFO: [GET] /api/audio-badge-settings/1 200 — 31ms
+[2025-05-08T23:08:06.789Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T23:08:06.790Z] INFO: [GET] /api/audio-badge-settings/1 200 — 31ms
+[2025-05-08T23:08:06.791Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T23:08:06.793Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 35ms
+[2025-05-08T23:08:06.797Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T23:08:06.800Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 37ms
+[2025-05-08T23:10:11.133Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T23:10:11.134Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T23:10:11.136Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T23:10:11.137Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T23:10:11.153Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T23:10:11.156Z] INFO: [GET] /api/audio-badge-settings/1 200 — 23ms
+[2025-05-08T23:10:11.157Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T23:10:11.159Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 25ms
+[2025-05-08T23:10:11.160Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T23:10:11.161Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 25ms
+[2025-05-08T23:10:11.162Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T23:10:11.163Z] INFO: [GET] /api/audio-badge-settings/1 200 — 28ms
+[2025-05-08T23:10:40.918Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T23:10:40.928Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T23:10:40.929Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T23:10:40.931Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T23:10:40.944Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T23:10:40.945Z] INFO: [GET] /api/audio-badge-settings/1 200 — 27ms
+[2025-05-08T23:10:40.954Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T23:10:40.955Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 24ms
+[2025-05-08T23:10:40.956Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T23:10:40.958Z] INFO: [GET] /api/audio-badge-settings/1 200 — 29ms
+[2025-05-08T23:10:40.958Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T23:10:40.959Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 31ms
+[2025-05-08T23:10:52.757Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T23:10:52.758Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T23:10:52.775Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T23:10:52.776Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 18ms
+[2025-05-08T23:10:52.777Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T23:10:52.778Z] INFO: [GET] /api/audio-badge-settings/1 304 — 22ms
+[2025-05-08T23:10:52.782Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T23:10:52.783Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T23:10:52.785Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T23:10:52.787Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 5ms
+[2025-05-08T23:10:52.788Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T23:10:52.789Z] INFO: [GET] /api/audio-badge-settings/1 304 — 6ms
+[2025-05-08T23:11:16.113Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T23:11:16.115Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T23:11:16.131Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T23:11:16.133Z] INFO: [GET] /api/audio-badge-settings/1 304 — 21ms
+[2025-05-08T23:11:16.137Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T23:11:16.139Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 24ms
+[2025-05-08T23:11:16.140Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T23:11:16.143Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T23:11:16.145Z] INFO: [GET] /api/audio-badge-settings/1 304 — 5ms
+[2025-05-08T23:11:16.147Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T23:11:16.149Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T23:11:16.152Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 5ms
+[2025-05-08T23:11:29.704Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T23:11:29.705Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T23:11:29.723Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T23:11:29.724Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 19ms
+[2025-05-08T23:11:29.724Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T23:11:29.725Z] INFO: [GET] /api/audio-badge-settings/1 304 — 21ms
+[2025-05-08T23:11:29.728Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-08T23:11:29.730Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-08T23:11:29.731Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 3ms
+[2025-05-08T23:11:29.735Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-08T23:11:29.738Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-08T23:11:29.739Z] INFO: [GET] /api/audio-badge-settings/1 304 — 4ms

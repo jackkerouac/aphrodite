@@ -199,7 +199,7 @@ export const useAudioBadgeSettings = (): UseAudioBadgeSettingsReturn => {
     const { name, value } = e.target;
     setSettings(prevSettings => ({
       ...prevSettings,
-      [name]: name.includes('transparency') || name.includes('size') ? parseFloat(value) : value,
+      [name]: name.includes('transparency') || name.includes('size') || name.includes('radius') ? parseFloat(value) : value,
     }));
   };
   
@@ -244,7 +244,7 @@ export const useAudioBadgeSettings = (): UseAudioBadgeSettingsReturn => {
       }
 
       // Capture the badge image if badgeRef is available
-      let badgeImage = null;
+      let badgeImage: string | undefined = undefined;
       if (badgeRef.current) {
         console.log('📸 [useAudioBadgeSettings] Capturing badge image...');
         try {

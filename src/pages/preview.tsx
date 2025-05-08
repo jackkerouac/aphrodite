@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
-import ResolutionBadgeToggle from "@/components/resolution-badge-toggle/ResolutionBadgeToggle";
-import AudioBadgeToggle from "@/components/audio-badge-toggle/AudioBadgeToggle";
+// Remove ResolutionBadgeToggle and AudioBadgeToggle imports
+import BadgeToggles from "./preview/components/BadgeToggles";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileSliders, ScanEye, Download } from "lucide-react";
@@ -520,24 +520,19 @@ export default function Preview() {
                 <div className="space-y-3">
                   <h3 className="text-lg font-medium">Display Badges</h3>
                   <div className="flex flex-col gap-3">
-                    <AudioBadgeToggle
-                      onChange={setShowAudioBadge}
-                      className="justify-between"
+                    <BadgeToggles
+                      displaySettings={{
+                        showAudioBadge,
+                        showResolutionBadge,
+                        showReviewBadge,
+                      }}
+                      toggleBadge={(badge) => {
+                        if (badge === 'showAudioBadge') setShowAudioBadge(!showAudioBadge);
+                        if (badge === 'showResolutionBadge') setShowResolutionBadge(!showResolutionBadge);
+                        if (badge === 'showReviewBadge') setShowReviewBadge(!showReviewBadge);
+                      }}
+                      loading={loading}
                     />
-                    
-                    <ResolutionBadgeToggle
-                      onChange={setShowResolutionBadge}
-                      className="justify-between"
-                    />
-                    
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="show-review-badge"
-                        checked={showReviewBadge}
-                        onCheckedChange={setShowReviewBadge}
-                      />
-                      <Label htmlFor="show-review-badge">Review Badge</Label>
-                    </div>
                   </div>
                 </div>
 

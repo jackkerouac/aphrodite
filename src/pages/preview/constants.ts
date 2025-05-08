@@ -24,3 +24,8 @@ export const audioCodecImages: Record<string, string> = {
   'atmos': '/src/assets/audio_codec/standard/atmos.png',
   'digital': '/src/assets/audio_codec/standard/digital.png',
 };
+export const badgeDescriptions = {
+  showAudioBadge: 'Display the audio badge on the poster.',
+  showResolutionBadge: 'Display the resolution badge on the poster.',
+  showReviewBadge: 'Display the review badge on the poster.',
+};
