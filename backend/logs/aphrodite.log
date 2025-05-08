@@ -270,3 +270,5 @@
 [2025-05-08T13:45:52.315Z] INFO: [GET] /api/jellyfin-libraries 304 — 255ms
 [2025-05-08T13:50:26.200Z] INFO: [GET] /api/jellyfin-libraries 304 — 622ms
 [2025-05-08T13:50:26.542Z] INFO: [GET] /api/jellyfin-libraries 304 — 332ms
+[2025-05-08T14:28:36.065Z] INFO: [GET] /api/jellyfin-libraries 304 — 668ms
+[2025-05-08T14:28:36.325Z] INFO: [GET] /api/jellyfin-libraries 304 — 255ms

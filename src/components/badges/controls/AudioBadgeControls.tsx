@@ -16,11 +16,17 @@ interface AudioBadgeControlsProps {
 
 const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onChange }) => {
   const handleChange = (field: keyof AudioBadgeSettings, value: any) => {
-    onChange({
+    let newSettings: AudioBadgeSettings = {
       ...settings,
       [field]: value,
-    });
-  };
+    };
+
+    if (field === 'size') {
+      newSettings.fontSize = value / 3;
+    }
+
+    onChange(newSettings);
+  }
 
   return (
     <div className="space-y-4">
@@ -38,12 +44,12 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                   min={20} 
                   max={200} 
                   step={1}
-                  onValueChange={(values) => handleChange('size', values[0])}
+                  onValueChange={(values: number[]) => handleChange('size', values[0])}
                 />
                 <Input 
                   type="number" 
                   value={settings.size} 
-                  onChange={(e) => {
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     // Constrain the size to the slider range
                     const newSize = Math.max(20, Math.min(200, parseFloat(e.target.value) || 20));
                     handleChange('size', newSize);
@@ -60,7 +66,7 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
               <Label htmlFor="codecType">Audio Codec</Label>
               <Select 
                 value={settings.codecType || 'dolby_atmos'}
-                onValueChange={(value) => handleChange('codecType', value)}
+                onValueChange={(value: string) => handleChange('codecType', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select codec" />
@@ -90,14 +96,14 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                 <Input 
                   type="color" 
                   id="backgroundColor"
-                  value={settings.backgroundColor} 
-                  onChange={(e) => handleChange('backgroundColor', e.target.value)}
+                  value={settings.backgroundColor}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('backgroundColor', e.target.value)}
                   className="w-12 h-8 p-1"
                 />
-                <Input 
-                  type="text" 
-                  value={settings.backgroundColor} 
-                  onChange={(e) => handleChange('backgroundColor', e.target.value)}
+                <Input
+                  type="text"
+                  value={settings.backgroundColor}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('backgroundColor', e.target.value)}
                   className="flex-1"
                 />
               </div>
@@ -113,7 +119,7 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                   min={0} 
                   max={100} 
                   step={1}
-                  onValueChange={(values) => handleChange('backgroundOpacity', values[0] / 100)}
+                  onValueChange={(values: number[]) => handleChange('backgroundOpacity', values[0] / 100)}
                 />
                 <span>{Math.round(settings.backgroundOpacity * 100)}%</span>
               </div>
@@ -129,12 +135,12 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                   min={0}
                   max={10}
                   step={1}
-                  onValueChange={(values) => handleChange('borderWidth', values[0])}
+                  onValueChange={(values: number[]) => handleChange('borderWidth', values[0])}
                 />
                 <Input
                   type="number"
                   value={settings.borderWidth || 0}
-                  onChange={(e) => handleChange('borderWidth', parseFloat(e.target.value))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('borderWidth', parseFloat(e.target.value))}
                   className="w-20"
                 />
               </div>
@@ -148,13 +154,13 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                   type="color"
                   id="borderColor"
                   value={settings.borderColor || '#000000'}
-                  onChange={(e) => handleChange('borderColor', e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('borderColor', e.target.value)}
                   className="w-12 h-8 p-1"
                 />
                 <Input
                   type="text"
                   value={settings.borderColor || '#000000'}
-                  onChange={(e) => handleChange('borderColor', e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('borderColor', e.target.value)}
                   className="flex-1"
                 />
               </div>
@@ -170,7 +176,7 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                   min={0}
                   max={100}
                   step={1}
-                  onValueChange={(values) => handleChange('borderOpacity', values[0] / 100)}
+                  onValueChange={(values: number[]) => handleChange('borderOpacity', values[0] / 100)}
                 />
                 <span>{Math.round((settings.borderOpacity === undefined ? 100 : settings.borderOpacity * 100))}%</span>
               </div>
@@ -191,12 +197,12 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                   min={0} 
                   max={50} 
                   step={1}
-                  onValueChange={(values) => handleChange('borderRadius', values[0])}
+                  onValueChange={(values: number[]) => handleChange('borderRadius', values[0])}
                 />
                 <Input 
                   type="number" 
-                  value={settings.borderRadius || 0} 
-                  onChange={(e) => handleChange('borderRadius', parseFloat(e.target.value))}
+                  value={settings.borderRadius || 0}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('borderRadius', parseFloat(e.target.value))}
                   className="w-20"
                 />
               </div>
@@ -212,12 +218,12 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                   min={0} 
                   max={10} 
                   step={1}
-                  onValueChange={(values) => handleChange('borderWidth', values[0])}
+                  onValueChange={(values: number[]) => handleChange('borderWidth', values[0])}
                 />
                 <Input 
                   type="number" 
-                  value={settings.borderWidth || 0} 
-                  onChange={(e) => handleChange('borderWidth', parseFloat(e.target.value))}
+                  value={settings.borderWidth || 0}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('borderWidth', parseFloat(e.target.value))}
                   className="w-20"
                 />
               </div>
@@ -228,7 +234,7 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
               <Switch
                 id="shadowEnabled"
                 checked={settings.shadowEnabled || false}
-                onCheckedChange={(checked) => handleChange('shadowEnabled', checked)}
+                onCheckedChange={(checked: boolean) => handleChange('shadowEnabled', checked)}
               />
               <Label htmlFor="shadowEnabled">Enable Shadow</Label>
             </div>
@@ -242,14 +248,14 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                     <Input 
                       type="color" 
                       id="shadowColor"
-                      value={settings.shadowColor || '#000000'} 
-                      onChange={(e) => handleChange('shadowColor', e.target.value)}
+                      value={settings.shadowColor || '#000000'}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('shadowColor', e.target.value)}
                       className="w-12 h-8 p-1"
                     />
-                    <Input 
-                      type="text" 
-                      value={settings.shadowColor || '#000000'} 
-                      onChange={(e) => handleChange('shadowColor', e.target.value)}
+                    <Input
+                      type="text"
+                      value={settings.shadowColor || '#000000'}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('shadowColor', e.target.value)}
                       className="flex-1"
                     />
                   </div>
@@ -265,12 +271,12 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                       min={0} 
                       max={20} 
                       step={1}
-                      onValueChange={(values) => handleChange('shadowBlur', values[0])}
+                      onValueChange={(values: number[]) => handleChange('shadowBlur', values[0])}
                     />
                     <Input 
                       type="number" 
-                      value={settings.shadowBlur || 5} 
-                      onChange={(e) => handleChange('shadowBlur', parseFloat(e.target.value))}
+                      value={settings.shadowBlur || 5}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('shadowBlur', parseFloat(e.target.value))}
                       className="w-20"
                     />
                   </div>
@@ -286,12 +292,12 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                       min={-20} 
                       max={20} 
                       step={1}
-                      onValueChange={(values) => handleChange('shadowOffsetX', values[0])}
+                      onValueChange={(values: number[]) => handleChange('shadowOffsetX', values[0])}
                     />
                     <Input 
                       type="number" 
-                      value={settings.shadowOffsetX || 2} 
-                      onChange={(e) => handleChange('shadowOffsetX', parseFloat(e.target.value))}
+                      value={settings.shadowOffsetX || 2}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('shadowOffsetX', parseFloat(e.target.value))}
                       className="w-20"
                     />
                   </div>
@@ -307,12 +313,12 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                       min={-20} 
                       max={20} 
                       step={1}
-                      onValueChange={(values) => handleChange('shadowOffsetY', values[0])}
+                      onValueChange={(values: number[]) => handleChange('shadowOffsetY', values[0])}
                     />
                     <Input 
                       type="number" 
-                      value={settings.shadowOffsetY || 2} 
-                      onChange={(e) => handleChange('shadowOffsetY', parseFloat(e.target.value))}
+                      value={settings.shadowOffsetY || 2}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('shadowOffsetY', parseFloat(e.target.value))}
                       className="w-20"
                     />
                   </div>

@@ -81,8 +81,8 @@ const renderAudioBadge = async (
 ): Promise<HTMLCanvasElement> => {
   // Scale the size to a reasonable value relative to the poster
   // Keep the original size for calculations but use a scaled version for the canvas
-  const scaledSize = Math.min(options.size, 200);
-  const canvas = createTempCanvas(scaledSize, scaledSize);
+  const badgeSize = Math.min(options.size, 200);
+  const canvas = createTempCanvas(badgeSize, badgeSize);
   const ctx = canvas.getContext('2d');
 
   if (!ctx) {
@@ -209,7 +209,7 @@ const renderAudioBadge = async (
           ctx.font = `${options.fontSize || options.size / 3}px ${options.fontFamily || 'Arial'}`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(options.codecType, canvas.width / 2, canvas.height / 2);
+          ctx.fillText(options.codecType || '', canvas.width / 2, canvas.height / 2);
           resolve();
         };
         
