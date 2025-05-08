@@ -153,7 +153,7 @@ const AudioBadge: React.FC<AudioBadgeProps> = ({ settings, onRender }) => {
               ctx.font = `${settings.fontSize || settings.size / 3}px ${settings.fontFamily || 'Arial'}`;
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
-              ctx.fillText(settings.codecType, canvas.width / 2, canvas.height / 2);
+              ctx.fillText(settings.codecType || '', canvas.width / 2, canvas.height / 2);
               resolve();
             };
             

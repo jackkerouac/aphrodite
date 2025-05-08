@@ -118,6 +118,63 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                 <span>{Math.round(settings.backgroundOpacity * 100)}%</span>
               </div>
             </div>
+
+            {/* Border Size */}
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="borderWidth">Border Size</Label>
+              <div className="flex items-center gap-4">
+                <Slider
+                  id="borderWidth"
+                  value={[settings.borderWidth || 0]}
+                  min={0}
+                  max={10}
+                  step={1}
+                  onValueChange={(values) => handleChange('borderWidth', values[0])}
+                />
+                <Input
+                  type="number"
+                  value={settings.borderWidth || 0}
+                  onChange={(e) => handleChange('borderWidth', parseFloat(e.target.value))}
+                  className="w-20"
+                />
+              </div>
+            </div>
+
+            {/* Border Color */}
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="borderColor">Border Color</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="color"
+                  id="borderColor"
+                  value={settings.borderColor || '#000000'}
+                  onChange={(e) => handleChange('borderColor', e.target.value)}
+                  className="w-12 h-8 p-1"
+                />
+                <Input
+                  type="text"
+                  value={settings.borderColor || '#000000'}
+                  onChange={(e) => handleChange('borderColor', e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+
+            {/* Border Opacity */}
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="borderOpacity">Border Opacity</Label>
+              <div className="flex items-center gap-4">
+                <Slider
+                  id="borderOpacity"
+                  value={[settings.borderOpacity === undefined ? 100 : settings.borderOpacity * 100]}
+                  min={0}
+                  max={100}
+                  step={1}
+                  onValueChange={(values) => handleChange('borderOpacity', values[0] / 100)}
+                />
+                <span>{Math.round((settings.borderOpacity === undefined ? 100 : settings.borderOpacity * 100))}%</span>
+              </div>
+            </div>
           </AccordionContent>
         </AccordionItem>
 
@@ -162,26 +219,6 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                   value={settings.borderWidth || 0} 
                   onChange={(e) => handleChange('borderWidth', parseFloat(e.target.value))}
                   className="w-20"
-                />
-              </div>
-            </div>
-
-            {/* Border Color */}
-            <div className="space-y-2 mb-4">
-              <Label htmlFor="borderColor">Border Color</Label>
-              <div className="flex gap-2">
-                <Input 
-                  type="color" 
-                  id="borderColor"
-                  value={settings.borderColor || '#000000'} 
-                  onChange={(e) => handleChange('borderColor', e.target.value)}
-                  className="w-12 h-8 p-1"
-                />
-                <Input 
-                  type="text" 
-                  value={settings.borderColor || '#000000'} 
-                  onChange={(e) => handleChange('borderColor', e.target.value)}
-                  className="flex-1"
                 />
               </div>
             </div>
