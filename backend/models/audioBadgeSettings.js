@@ -54,8 +54,9 @@ export const upsertAudioBadgeSettings = async (settings) => {
           shadow_offset_x = $14,
           shadow_offset_y = $15,
           z_index = $16,
+          badge_image = $17,
           updated_at = CURRENT_TIMESTAMP
-        WHERE user_id = $17
+        WHERE user_id = $18
         RETURNING *`,
         [
           settings.size,
@@ -74,6 +75,7 @@ export const upsertAudioBadgeSettings = async (settings) => {
           settings.shadow_offset_x,
           settings.shadow_offset_y,
           settings.z_index,
+          settings.badge_image || null,
           settings.user_id
         ]
       );
@@ -103,9 +105,10 @@ export const upsertAudioBadgeSettings = async (settings) => {
           shadow_offset_x,
           shadow_offset_y,
           z_index,
+          badge_image,
           created_at,
           updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         RETURNING *`,
         [
           settings.user_id,
@@ -124,7 +127,8 @@ export const upsertAudioBadgeSettings = async (settings) => {
           settings.shadow_blur_radius,
           settings.shadow_offset_x,
           settings.shadow_offset_y,
-          settings.z_index
+          settings.z_index,
+          settings.badge_image || null
         ]
       );
       

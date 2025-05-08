@@ -83,10 +83,13 @@ export const audioBadge = {
       shadow_blur_radius: Number(settings.shadow_blur_radius || 0),
       shadow_offset_x: Number(settings.shadow_offset_x || 0),
       shadow_offset_y: Number(settings.shadow_offset_y || 0),
-      z_index: Number(settings.z_index)
+      z_index: Number(settings.z_index),
+      badge_image: settings.badge_image || null
     };
 
-    console.log('📤 [apiClient] Processed settings to send:', settingsToSend);
+    console.log('📤 [apiClient] Processed settings to send:');
+    console.log('  - Has badge_image:', !!settingsToSend.badge_image);
+    console.log('  - Badge image length:', settingsToSend.badge_image ? settingsToSend.badge_image.length : 0);
 
     return fetchApi<void>(`/audio-badge-settings/${DEFAULT_USER_ID}`, {
       method: 'POST',

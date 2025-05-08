@@ -29,6 +29,24 @@ const AppearanceControls: React.FC<AppearanceControlsProps> = ({
     handleChange(syntheticEvent);
   };
 
+  // Function to ensure color is a hex code
+  const ensureHexFormat = (color: string) => {
+    if (color.startsWith('#')) {
+      return color;
+    }
+    // If the color is not a hex, it might be 'rgb(r, g, b)' or 'rgba(r, g, b, a)'
+    // This is a basic check, you might need a more robust parsing logic
+    if (color.startsWith('rgb')) {
+      const values = color.substring(color.indexOf('(') + 1, color.lastIndexOf(')')).split(',').map(s => s.trim());
+      const r = parseInt(values[0]);
+      const g = parseInt(values[1]);
+      const b = parseInt(values[2]);
+      const a = values.length > 3 ? parseFloat(values[3]) : 1; // Default alpha to 1 if not provided
+      return `#${(1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1)}`;
+    }
+    return '#000000'; // Default to black if parsing fails
+  };
+
   return (
     <div className="space-y-4">
       {/* Background Settings */}
@@ -40,7 +58,7 @@ const AppearanceControls: React.FC<AppearanceControlsProps> = ({
             <Label htmlFor="background_color" className="mb-2 block">Color</Label>
             <ColorPicker
               color={settings.background_color}
-              onChange={(color) => handleColorChange('background_color', color)}
+              onChange={(color) => handleColorChange('background_color', ensureHexFormat(color))}
             />
           </div>
           
@@ -70,7 +88,7 @@ const AppearanceControls: React.FC<AppearanceControlsProps> = ({
             <Label htmlFor="border_color" className="mb-2 block">Color</Label>
             <ColorPicker
               color={settings.border_color}
-              onChange={(color) => handleColorChange('border_color', color)}
+              onChange={(color) => handleColorChange('border_color', ensureHexFormat(color))}
             />
           </div>
           

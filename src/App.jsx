@@ -14,9 +14,9 @@ import JobHistory from "@/pages/job-history"
 import Logs from "@/pages/logs"
 import Scheduler from "@/pages/scheduler"
 import ApiSettingsPage from "@/pages/settings/api"
-import DesignResolutionBadgeSettings from "@/pages/settings/design-resolutionbadge";
-import AudioBadgeSettings from "@/pages/settings/design-audiobadge";
-import ReviewBadgeSettings from "@/pages/settings/review-badge";
+import DesignResolutionBadgeSettings from "@/pages/settings/design-resolutionbadge.tsx";
+import AudioBadgeSettings from "@/pages/settings/design-audiobadge.tsx";
+import ReviewBadgeSettings from "@/pages/preview";
 
 // Placeholder components for each settings page
 const UserSettings = () => <div>User Settings Page</div>;

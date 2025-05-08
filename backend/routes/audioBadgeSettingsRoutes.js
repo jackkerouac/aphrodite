@@ -33,7 +33,15 @@ router.get('/:userId', async (req, res) => {
  * @description Saves or updates audio badge settings for a specific user
  */
 router.post('/:userId', async (req, res) => {
-  console.log(`📬 API Request: POST /api/audio-badge-settings/${req.params.userId}`, req.body);
+  console.log(`📬 API Request: POST /api/audio-badge-settings/${req.params.userId}`);
+  console.log('📦 Request body:', JSON.stringify(req.body, null, 2)); 
+  console.log('📊 Badge image received:', !!req.body.badge_image); 
+  if (req.body.badge_image) { 
+    console.log(`📏 Badge image length: ${req.body.badge_image.length}`); 
+    console.log(`🔍 Badge image preview: ${req.body.badge_image.substring(0, 50)}...`); 
+  } else { 
+    console.log('⚠️ No badge image in request body'); 
+  }
   const userId = Number(req.params.userId);
   
   // Extract fields from request body
@@ -53,7 +61,8 @@ router.post('/:userId', async (req, res) => {
     shadow_blur_radius,
     shadow_offset_x,
     shadow_offset_y,
-    z_index
+    z_index,
+    badge_image
   } = req.body;
   
   // Validate required fields
@@ -96,7 +105,8 @@ router.post('/:userId', async (req, res) => {
       shadow_blur_radius,
       shadow_offset_x,
       shadow_offset_y,
-      z_index
+      z_index,
+      badge_image
     });
     console.log('✅ Audio Badge settings saved successfully:', saved);
     res.json(saved);
