@@ -106,11 +106,8 @@ export const useBadgeSettings = <T>(
           try {
             const parsedSettings = JSON.parse(savedSettings);
             
-            // Check if size is too large and reset if needed
-            if (parsedSettings.size > 200) {
-              parsedSettings.size = 80; // Reset to a reasonable size
-              localStorage.setItem(settingsKey, JSON.stringify(parsedSettings));
-            }
+            // No need to constrain the size anymore since badge size is now determined by the codec image
+            // The size property is still kept for backward compatibility but isn't used for audio badges
             
             // Merge with default settings to ensure all properties exist
             const defaultSettings = getDefaultSettings<T>(type);

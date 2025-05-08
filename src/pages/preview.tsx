@@ -123,7 +123,7 @@ export default function Preview() {
           console.log('Rendering audio badge with settings:', actualAudioSettings);
           console.log('Audio badge size about to be used:', actualAudioSettings.size);
           
-          // Render the audio badge
+          // Render the audio badge - this now returns a dynamically sized canvas based on the image
           const result = await renderBadgeToCanvas("audio", actualAudioSettings);
           if (!result || !result.canvas) {
             console.error("Failed to get canvas for audio badge");
@@ -132,10 +132,19 @@ export default function Preview() {
           
           console.log('Result canvas dimensions:', result.canvas.width, 'x', result.canvas.height);
           
-          const posX = ((actualAudioSettings.position?.percentX || 5) / 100) * dimensions.width;
-          const posY = ((actualAudioSettings.position?.percentY || 5) / 100) * dimensions.height;
+          // Calculate position based on center point - adjust for badge dimensions
+          const percentX = actualAudioSettings.position?.percentX || 5;
+          const percentY = actualAudioSettings.position?.percentY || 5;
           
-          console.log(`Drawing audio badge at position: ${posX.toFixed(2)}, ${posY.toFixed(2)}`);
+          // Convert from percentage to absolute position
+          const centerX = (percentX / 100) * dimensions.width;
+          const centerY = (percentY / 100) * dimensions.height;
+          
+          // Calculate the top-left position by accounting for badge dimensions
+          const posX = centerX - (result.canvas.width / 2);
+          const posY = centerY - (result.canvas.height / 2);
+          
+          console.log(`Drawing audio badge at position: ${posX.toFixed(2)}, ${posY.toFixed(2)} with dimensions ${result.canvas.width}x${result.canvas.height}`);
           ctx.drawImage(result.canvas, posX, posY);
           
           // Highlight active badge with a border if it's currently selected
@@ -143,6 +152,14 @@ export default function Preview() {
             ctx.strokeStyle = '#4f46e5'; // Indigo color for highlight
             ctx.lineWidth = 2;
             ctx.strokeRect(posX - 2, posY - 2, result.canvas.width + 4, result.canvas.height + 4);
+            
+            // Draw center point marker for debugging
+            if (debugMode) {
+              ctx.fillStyle = '#ff0000';
+              ctx.beginPath();
+              ctx.arc(centerX, centerY, 3, 0, Math.PI * 2);
+              ctx.fill();
+            }
           }
         } catch (error) {
           console.error("Error rendering audio badge:", error);
@@ -159,10 +176,19 @@ export default function Preview() {
             return;
           }
           
-          const posX = ((actualResolutionSettings.position?.percentX || 5) / 100) * dimensions.width;
-          const posY = ((actualResolutionSettings.position?.percentY || 15) / 100) * dimensions.height;
+          // Calculate position based on center point - adjust for badge dimensions
+          const percentX = actualResolutionSettings.position?.percentX || 5;
+          const percentY = actualResolutionSettings.position?.percentY || 15;
           
-          console.log(`Drawing resolution badge at position: ${posX.toFixed(2)}, ${posY.toFixed(2)}`);
+          // Convert from percentage to absolute position
+          const centerX = (percentX / 100) * dimensions.width;
+          const centerY = (percentY / 100) * dimensions.height;
+          
+          // Calculate the top-left position by accounting for badge dimensions
+          const posX = centerX - (result.canvas.width / 2);
+          const posY = centerY - (result.canvas.height / 2);
+          
+          console.log(`Drawing resolution badge at position: ${posX.toFixed(2)}, ${posY.toFixed(2)} with dimensions ${result.canvas.width}x${result.canvas.height}`);
           ctx.drawImage(result.canvas, posX, posY);
           
           // Highlight active badge with a border if it's currently selected
@@ -170,6 +196,14 @@ export default function Preview() {
             ctx.strokeStyle = '#4f46e5'; // Indigo color for highlight
             ctx.lineWidth = 2;
             ctx.strokeRect(posX - 2, posY - 2, result.canvas.width + 4, result.canvas.height + 4);
+            
+            // Draw center point marker for debugging
+            if (debugMode) {
+              ctx.fillStyle = '#ff0000';
+              ctx.beginPath();
+              ctx.arc(centerX, centerY, 3, 0, Math.PI * 2);
+              ctx.fill();
+            }
           }
         } catch (error) {
           console.error("Error rendering resolution badge:", error);
@@ -186,10 +220,19 @@ export default function Preview() {
             return;
           }
           
-          const posX = ((actualReviewSettings.position?.percentX || 5) / 100) * dimensions.width;
-          const posY = ((actualReviewSettings.position?.percentY || 25) / 100) * dimensions.height;
+          // Calculate position based on center point - adjust for badge dimensions
+          const percentX = actualReviewSettings.position?.percentX || 5;
+          const percentY = actualReviewSettings.position?.percentY || 25;
           
-          console.log(`Drawing review badge at position: ${posX.toFixed(2)}, ${posY.toFixed(2)}`);
+          // Convert from percentage to absolute position
+          const centerX = (percentX / 100) * dimensions.width;
+          const centerY = (percentY / 100) * dimensions.height;
+          
+          // Calculate the top-left position by accounting for badge dimensions
+          const posX = centerX - (result.canvas.width / 2);
+          const posY = centerY - (result.canvas.height / 2);
+          
+          console.log(`Drawing review badge at position: ${posX.toFixed(2)}, ${posY.toFixed(2)} with dimensions ${result.canvas.width}x${result.canvas.height}`);
           ctx.drawImage(result.canvas, posX, posY);
           
           // Highlight active badge with a border if it's currently selected
@@ -197,6 +240,14 @@ export default function Preview() {
             ctx.strokeStyle = '#4f46e5'; // Indigo color for highlight
             ctx.lineWidth = 2;
             ctx.strokeRect(posX - 2, posY - 2, result.canvas.width + 4, result.canvas.height + 4);
+            
+            // Draw center point marker for debugging
+            if (debugMode) {
+              ctx.fillStyle = '#ff0000';
+              ctx.beginPath();
+              ctx.arc(centerX, centerY, 3, 0, Math.PI * 2);
+              ctx.fill();
+            }
           }
         } catch (error) {
           console.error("Error rendering review badge:", error);
@@ -383,12 +434,14 @@ export default function Preview() {
       switch (type) {
         case "audio":
           result = await renderBadgeToCanvas("audio", actualAudioSettings);
+          // Use the entire canvas as the bounds since we're now sizing it exactly to the image
           bounds = { 
             x: 0, 
             y: 0, 
             width: result.canvas.width, 
             height: result.canvas.height 
           };
+          console.log(`Extracting audio badge with dimensions: ${result.canvas.width}x${result.canvas.height}`);
           break;
         case "resolution":
           result = await renderBadgeToCanvas("resolution", actualResolutionSettings);

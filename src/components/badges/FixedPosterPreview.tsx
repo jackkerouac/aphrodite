@@ -89,6 +89,7 @@ const FixedPosterPreview: React.FC<FixedPosterPreviewProps> = ({
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || !activeBadgeType) return;
     updateBadgePosition(e.clientX, e.clientY);
+    e.preventDefault(); // Prevent any text selection during dragging
   };
   
   const handleMouseUp = () => {
@@ -106,7 +107,7 @@ const FixedPosterPreview: React.FC<FixedPosterPreviewProps> = ({
     const constrainedX = Math.max(0, Math.min(rect.width, x));
     const constrainedY = Math.max(0, Math.min(rect.height, y));
     
-    // Convert to percentages
+    // Convert to percentages - this is the center position of badge
     const percentX = (constrainedX / rect.width) * 100;
     const percentY = (constrainedY / rect.height) * 100;
     

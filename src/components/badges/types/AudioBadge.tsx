@@ -45,13 +45,13 @@ const AudioBadge: React.FC<AudioBadgeProps> = ({ settings, onRender }) => {
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Set canvas dimensions based on badge size, constrained to reasonable limits
-      const size = typeof settings.size === 'number' ? settings.size : 80;
-      const constrainedSize = Math.min(Math.max(size, 20), 200);
+      // We'll start with a temporary size, but adjust based on image dimensions later
+      // Initialize with a placeholder size that will be replaced with actual image dimensions
+      const initialSize = 200; // Temporary size before we know the image dimensions
       
-      console.log(`AudioBadge: Setting canvas size to ${constrainedSize}x${constrainedSize}`);
-      canvas.width = constrainedSize;
-      canvas.height = constrainedSize;
+      console.log(`AudioBadge: Setting initial canvas size to ${initialSize}x${initialSize}`);
+      canvas.width = initialSize;
+      canvas.height = initialSize;
 
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -133,41 +133,102 @@ const AudioBadge: React.FC<AudioBadgeProps> = ({ settings, onRender }) => {
           
           await new Promise<void>((resolve, reject) => {
             img.onload = () => {
-              // Calculate dimensions for a balanced padding all around
+              // Instead of fitting image into a fixed-size badge, size the badge to fit the image
               const aspectRatio = img.width / img.height;
-              let drawWidth, drawHeight;
               
-              // Fixed padding of 10px on all sides
-              const padding = 10;
-              const maxWidth = canvas.width - (padding * 2);
-              const maxHeight = canvas.height - (padding * 2);
+              // Define a minimal padding (2.5% of image width or 10px, whichever is smaller)
+              const padding = Math.min(Math.round(img.width * 0.025), 10);
               
-              // Calculate dimensions to best fit within the available space
-              if (aspectRatio > 1) { // Image is wider than tall
-                // For wide images, use the full width minus padding
-                drawWidth = maxWidth;
-                drawHeight = drawWidth / aspectRatio;
+              // Set the badge size based on the image size plus padding
+              const imageWidth = img.width;
+              const imageHeight = img.height;
+              
+              // Resize canvas to exactly fit the image plus padding
+              const canvasWidth = imageWidth + (padding * 2);
+              const canvasHeight = imageHeight + (padding * 2);
+              
+              // Resize the canvas to match the image dimensions plus padding
+              canvas.width = canvasWidth;
+              canvas.height = canvasHeight;
+              
+              console.log(`AudioBadge: Resized canvas to ${canvasWidth}x${canvasHeight} based on image size`);
+              
+              // Clear canvas with the new dimensions and redraw background/border
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              
+              // Redraw background with new dimensions
+              ctx.fillStyle = settings.backgroundColor;
+              ctx.globalAlpha = settings.backgroundOpacity;
+              
+              if (settings.borderRadius) {
+                // Draw rounded rectangle background
+                const radius = Math.min(settings.borderRadius, canvasWidth/4, canvasHeight/4); // Ensure radius isn't too large
+                ctx.beginPath();
+                ctx.moveTo(radius, 0);
+                ctx.lineTo(canvas.width - radius, 0);
+                ctx.quadraticCurveTo(canvas.width, 0, canvas.width, radius);
+                ctx.lineTo(canvas.width, canvas.height - radius);
+                ctx.quadraticCurveTo(canvas.width, canvas.height, canvas.width - radius, canvas.height);
+                ctx.lineTo(radius, canvas.height);
+                ctx.quadraticCurveTo(0, canvas.height, 0, canvas.height - radius);
+                ctx.lineTo(0, radius);
+                ctx.quadraticCurveTo(0, 0, radius, 0);
+                ctx.closePath();
+                ctx.fill();
+              } else {
+                // Draw rectangle background
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+              }
+              
+              // Redraw border if needed
+              if (settings.borderWidth && settings.borderWidth > 0) {
+                ctx.strokeStyle = settings.borderColor || '#000000';
+                ctx.globalAlpha = settings.borderOpacity || 1;
+                ctx.lineWidth = settings.borderWidth;
                 
-                // If the height is too large, scale down
-                if (drawHeight > maxHeight) {
-                  drawHeight = maxHeight;
-                  drawWidth = drawHeight * aspectRatio;
-                }
-              } else { // Image is taller than wide or square
-                // For tall images, use the full height minus padding
-                drawHeight = maxHeight;
-                drawWidth = drawHeight * aspectRatio;
-                
-                // If the width is too large, scale down
-                if (drawWidth > maxWidth) {
-                  drawWidth = maxWidth;
-                  drawHeight = drawWidth / aspectRatio;
+                if (settings.borderRadius) {
+                  // Draw rounded rectangle border
+                  const radius = Math.min(settings.borderRadius, canvasWidth/4, canvasHeight/4);
+                  const offset = settings.borderWidth / 2;
+                  ctx.beginPath();
+                  ctx.moveTo(radius, offset);
+                  ctx.lineTo(canvas.width - radius, offset);
+                  ctx.quadraticCurveTo(canvas.width - offset, offset, canvas.width - offset, radius);
+                  ctx.lineTo(canvas.width - offset, canvas.height - radius);
+                  ctx.quadraticCurveTo(canvas.width - offset, canvas.height - offset, canvas.width - radius, canvas.height - offset);
+                  ctx.lineTo(radius, canvas.height - offset);
+                  ctx.quadraticCurveTo(offset, canvas.height - offset, offset, canvas.height - radius);
+                  ctx.lineTo(offset, radius);
+                  ctx.quadraticCurveTo(offset, offset, radius, offset);
+                  ctx.closePath();
+                  ctx.stroke();
+                } else {
+                  // Draw rectangle border
+                  ctx.strokeRect(
+                    settings.borderWidth / 2,
+                    settings.borderWidth / 2,
+                    canvas.width - settings.borderWidth,
+                    canvas.height - settings.borderWidth
+                  );
                 }
               }
               
-              // Center the image
-              const x = (canvas.width - drawWidth) / 2;
-              const y = (canvas.height - drawHeight) / 2;
+              // Apply shadow if enabled
+              if (settings.shadowEnabled) {
+                ctx.shadowColor = settings.shadowColor || 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = settings.shadowBlur || 5;
+                ctx.shadowOffsetX = settings.shadowOffsetX || 2;
+                ctx.shadowOffsetY = settings.shadowOffsetY || 2;
+              }
+              
+              // Reset alpha for image
+              ctx.globalAlpha = 1;
+              
+              // Center the image with padding
+              const drawWidth = imageWidth;
+              const drawHeight = imageHeight;
+              const x = padding;
+              const y = padding;
               
               // Draw the image
               ctx.drawImage(img, x, y, drawWidth, drawHeight);
@@ -209,17 +270,17 @@ const AudioBadge: React.FC<AudioBadgeProps> = ({ settings, onRender }) => {
     renderBadge();
   }, [settings, onRender]);
 
-  // Get a properly constrained size value for the badge
-  const getConstrainedSize = () => {
-    const size = typeof settings.size === 'number' ? settings.size : 80;
-    return Math.min(Math.max(size, 20), 200);
+  // We no longer need to constrain the size as it will be determined by the image
+  // This is just used for the initial canvas render
+  const getInitialSize = () => {
+    return 200; // Initial size that will be replaced when image loads
   };
   
   return (
     <canvas
       ref={canvasRef}
-      width={getConstrainedSize()}
-      height={getConstrainedSize()}
+      width={getInitialSize()}
+      height={getInitialSize()}
       style={{ 
         display: 'none', // Hide the canvas as it's only used for rendering
       }}

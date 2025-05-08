@@ -82,12 +82,12 @@ const renderAudioBadge = async (
   options: AudioBadgeSettings, 
   sourceImageUrl?: string
 ): Promise<HTMLCanvasElement> => {
-  // Force the size to be a number between 20 and 200
-  const size = typeof options.size === 'number' ? options.size : 80;
-  const badgeSize = Math.min(Math.max(size, 20), 200);
+  // Start with a default size canvas, but we'll resize it based on the image dimensions
+  // We'll use a temporary size that will be replaced once the image loads
+  const initialSize = 200;
   
-  // Create canvas with explicit dimensions
-  const canvas = createTempCanvas(badgeSize, badgeSize);
+  // Create canvas with initial dimensions
+  const canvas = createTempCanvas(initialSize, initialSize);
   const ctx = canvas.getContext('2d');
 
   if (!ctx) {
@@ -108,31 +108,13 @@ const renderAudioBadge = async (
     return canvas;
   }
 
-  // Apply background
+  // Apply background to the initial canvas
   ctx.fillStyle = options.backgroundColor;
   ctx.globalAlpha = options.backgroundOpacity;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Apply border if specified
-  if (options.borderWidth && options.borderWidth > 0) {
-    ctx.strokeStyle = options.borderColor || '#000000';
-    ctx.globalAlpha = options.borderOpacity || 1;
-    ctx.lineWidth = options.borderWidth;
-    ctx.strokeRect(
-      options.borderWidth / 2,
-      options.borderWidth / 2,
-      canvas.width - options.borderWidth,
-      canvas.height - options.borderWidth
-    );
-  }
-
-  // Apply shadow if enabled
-  if (options.shadowEnabled) {
-    ctx.shadowColor = options.shadowColor || 'rgba(0, 0, 0, 0.5)';
-    ctx.shadowBlur = options.shadowBlur || 5;
-    ctx.shadowOffsetX = options.shadowOffsetX || 2;
-    ctx.shadowOffsetY = options.shadowOffsetY || 2;
-  }
+  
+  // Note: The canvas will be resized when the image is loaded, so we don't need to worry
+  // about borders or shadows until then. They will be applied during the image loading process.
 
   // Draw codec image if specified
   if (options.codecType) {
@@ -146,32 +128,56 @@ const renderAudioBadge = async (
       
       await new Promise<void>((resolve, reject) => {
         img.onload = () => {
-          // FIXED PADDING OF 10 PIXELS
-          const padding = 10;
+          // Calculate minimal padding (2.5% of image width or 10px, whichever is smaller)
+          const padding = Math.min(Math.round(img.width * 0.025), 10);
           const imageWidth = img.width;
           const imageHeight = img.height;
-          const aspectRatio = imageWidth / imageHeight;
           
-          // Calculate available space
-          const availableWidth = canvas.width - (padding * 2);
-          const availableHeight = canvas.height - (padding * 2);
+          // Resize the canvas to fit the image plus padding
+          const canvasWidth = imageWidth + (padding * 2);
+          const canvasHeight = imageHeight + (padding * 2);
           
-          // Calculate size while maintaining aspect ratio
-          let drawWidth, drawHeight;
+          // Update canvas dimensions to exactly match the image size plus padding
+          canvas.width = canvasWidth;
+          canvas.height = canvasHeight;
           
-          // Start with using the full available width
-          drawWidth = availableWidth;
-          drawHeight = drawWidth / aspectRatio;
+          // Clear canvas and redraw background with new dimensions
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
           
-          // If that makes the height too big, scale down
-          if (drawHeight > availableHeight) {
-            drawHeight = availableHeight;
-            drawWidth = drawHeight * aspectRatio;
-          }
+          // Redraw background
+          ctx.fillStyle = options.backgroundColor;
+          ctx.globalAlpha = options.backgroundOpacity;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
           
-          // Calculate position to center the image within the available space
-          const x = padding + (availableWidth - drawWidth) / 2;
-          const y = padding + (availableHeight - drawHeight) / 2;
+          // Redraw border if necessary
+          if (options.borderWidth && options.borderWidth > 0) {
+            ctx.strokeStyle = options.borderColor || '#000000';
+            ctx.globalAlpha = options.borderOpacity || 1;
+            ctx.lineWidth = options.borderWidth;
+        ctx.strokeRect(
+          options.borderWidth / 2,
+          options.borderWidth / 2,
+          canvas.width - options.borderWidth,
+          canvas.height - options.borderWidth
+        );
+      }
+      
+      // Apply shadow if enabled
+      if (options.shadowEnabled) {
+        ctx.shadowColor = options.shadowColor || 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = options.shadowBlur || 5;
+        ctx.shadowOffsetX = options.shadowOffsetX || 2;
+        ctx.shadowOffsetY = options.shadowOffsetY || 2;
+      }
+      
+      // Reset alpha for image
+      ctx.globalAlpha = 1;
+      
+      // Position the image with padding
+      const drawWidth = imageWidth;
+      const drawHeight = imageHeight;
+      const x = padding;
+      const y = padding;
           
           // Draw the image
           ctx.drawImage(img, x, y, drawWidth, drawHeight);
