@@ -41,14 +41,14 @@ export const upsertReviewBadgeSettings = async (settings) => {
           size = $1,
           margin = $2,
           background_color = $3,
-          background_transparency = $4,
+          background_opacity = $4,
           border_radius = $5,
           border_width = $6,
           border_color = $7,
-          border_transparency = $8,
-          shadow_toggle = $9,
+          border_opacity = $8,
+          shadow_enabled = $9,
           shadow_color = $10,
-          shadow_blur_radius = $11,
+          shadow_blur = $11,
           shadow_offset_x = $12,
           shadow_offset_y = $13,
           z_index = $14,
@@ -66,21 +66,22 @@ export const upsertReviewBadgeSettings = async (settings) => {
           font_size = $26,
           font_weight = $27,
           text_color = $28,
-          text_transparency = $29
-        WHERE user_id = $30
+          text_opacity = $29,
+          enabled = $30
+        WHERE user_id = $31
         RETURNING *`,
         [
           settings.size,
           settings.margin,
           settings.background_color,
-          settings.background_transparency,
+          settings.background_opacity || settings.background_transparency,
           settings.border_radius,
           settings.border_width, 
           settings.border_color,
-          settings.border_transparency,
-          settings.shadow_toggle,
+          settings.border_opacity || settings.border_transparency,
+          settings.shadow_enabled || settings.shadow_toggle,
           settings.shadow_color,
-          settings.shadow_blur_radius,
+          settings.shadow_blur || settings.shadow_blur_radius,
           settings.shadow_offset_x,
           settings.shadow_offset_y,
           settings.z_index,
@@ -98,7 +99,8 @@ export const upsertReviewBadgeSettings = async (settings) => {
           settings.font_size,
           settings.font_weight,
           settings.text_color,
-          settings.text_transparency,
+          settings.text_opacity || settings.text_transparency,
+          settings.enabled !== undefined ? settings.enabled : true,
           settings.user_id
         ]
       );
@@ -115,14 +117,14 @@ export const upsertReviewBadgeSettings = async (settings) => {
           size,
           margin,
           background_color,
-          background_transparency,
+          background_opacity,
           border_radius,
           border_width,
           border_color,
-          border_transparency,
-          shadow_toggle,
+          border_opacity,
+          shadow_enabled,
           shadow_color,
-          shadow_blur_radius,
+          shadow_blur,
           shadow_offset_x,
           shadow_offset_y,
           z_index,
@@ -140,22 +142,23 @@ export const upsertReviewBadgeSettings = async (settings) => {
           font_size,
           font_weight,
           text_color,
-          text_transparency
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30)
+          text_opacity,
+          enabled
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31)
         RETURNING *`,
         [
           settings.user_id,
           settings.size,
           settings.margin,
           settings.background_color,
-          settings.background_transparency,
+          settings.background_opacity || settings.background_transparency,
           settings.border_radius,
           settings.border_width,
           settings.border_color,
-          settings.border_transparency,
-          settings.shadow_toggle,
+          settings.border_opacity || settings.border_transparency,
+          settings.shadow_enabled || settings.shadow_toggle,
           settings.shadow_color,
-          settings.shadow_blur_radius,
+          settings.shadow_blur || settings.shadow_blur_radius,
           settings.shadow_offset_x,
           settings.shadow_offset_y,
           settings.z_index,
@@ -173,7 +176,8 @@ export const upsertReviewBadgeSettings = async (settings) => {
           settings.font_size,
           settings.font_weight,
           settings.text_color,
-          settings.text_transparency
+          settings.text_opacity || settings.text_transparency,
+          settings.enabled !== undefined ? settings.enabled : true
         ]
       );
       

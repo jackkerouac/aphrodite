@@ -33,6 +33,7 @@ export interface ReviewBadgeSettings {
   dividerColor?: string;
   showIcons?: boolean;
   useBrandColors?: boolean;
+  enabled?: boolean; // Whether this badge is enabled (visible)
 }
 
 interface ReviewBadgeProps {

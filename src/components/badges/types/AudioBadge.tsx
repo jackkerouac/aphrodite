@@ -21,6 +21,7 @@ export interface AudioBadgeSettings {
   position: BadgePosition; // Updated to use BadgePosition enum
   margin: number; // Edge padding in pixels
   codecType?: string;
+  enabled?: boolean; // Whether this badge is enabled (visible)
 }
 
 interface AudioBadgeProps {
