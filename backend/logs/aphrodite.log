@@ -1,2 +1,8 @@
 [2025-05-09T14:58:42.501Z] INFO: [GET] /api/jellyfin-libraries 200 — 741ms
 [2025-05-09T14:58:42.806Z] INFO: [GET] /api/jellyfin-libraries 304 — 303ms
+[2025-05-09T15:01:47.611Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-09T15:01:47.617Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-09T15:01:47.637Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-09T15:01:47.640Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 30ms
+[2025-05-09T15:01:47.644Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-09T15:01:47.646Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 30ms
