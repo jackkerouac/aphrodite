@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { getAudioCodecImagePath } from '@/utils/audioCodecUtils';
+import { BadgePosition } from '../PositionSelector';
 
 export interface AudioBadgeSettings {
   size: number;
@@ -17,10 +18,8 @@ export interface AudioBadgeSettings {
   textColor?: string;
   fontFamily?: string;
   fontSize?: number;
-  position?: {
-    percentX: number;
-    percentY: number;
-  };
+  position: BadgePosition; // Updated to use BadgePosition enum
+  margin: number; // Edge padding in pixels
   codecType?: string;
 }
 
@@ -75,16 +74,16 @@ const AudioBadge: React.FC<AudioBadgeProps> = ({ settings, onRender }) => {
               const imageHeight = Math.round(originalHeight * scaleFactor);
               
               // Set border radius (if any) - scale proportionally with the size
-          const borderRadius = settings.borderRadius ? settings.borderRadius * scaleFactor : 0;
-          
-          // Set GENEROUS padding - minimum 15% of scaled image dimensions, but scale with image size
-          const minPadding = Math.round(Math.max(imageWidth * 0.05, 5));
-          const horizontalPadding = Math.max(Math.round(imageWidth * 0.15), minPadding);
-          const verticalPadding = Math.max(Math.round(imageHeight * 0.15), minPadding);
-          
-          // Calculate badge dimensions including proper padding
-          const badgeWidth = imageWidth + (horizontalPadding * 2);
-          const badgeHeight = imageHeight + (verticalPadding * 2);
+              const borderRadius = settings.borderRadius ? settings.borderRadius * scaleFactor : 0;
+              
+              // Set GENEROUS padding - minimum 15% of scaled image dimensions, but scale with image size
+              const minPadding = Math.round(Math.max(imageWidth * 0.05, 5));
+              const horizontalPadding = Math.max(Math.round(imageWidth * 0.15), minPadding);
+              const verticalPadding = Math.max(Math.round(imageHeight * 0.15), minPadding);
+              
+              // Calculate badge dimensions including proper padding
+              const badgeWidth = imageWidth + (horizontalPadding * 2);
+              const badgeHeight = imageHeight + (verticalPadding * 2);
               
               // Calculate shadow padding
               let shadowPaddingLeft = 0;

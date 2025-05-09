@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ScanEye } from "lucide-react";
 import FixedPosterPreview from "@/components/badges/FixedPosterPreview";
 import { PosterDimensions } from "@/services/posterService";
+import { BadgePosition } from "@/components/badges/PositionSelector";
 
 interface BadgePreviewAreaProps {
   activeBadgeType: string | null;
@@ -15,7 +16,7 @@ interface BadgePreviewAreaProps {
   toggleDebugMode: () => void;
   activePoster: string;
   renderBadges: (ctx: CanvasRenderingContext2D, dimensions: PosterDimensions) => Promise<void>;
-  onBadgePositionChange: (type: string, position: { percentX: number; percentY: number }) => void;
+  onBadgePositionChange: (type: string, position: BadgePosition) => void;
   onPosterLoad: (dimensions: PosterDimensions) => void;
 }
 
@@ -42,7 +43,7 @@ const BadgePreviewArea: React.FC<BadgePreviewAreaProps> = ({
           Preview
         </CardTitle>
         <CardDescription>
-          Poster Preview - Drag badges to position them
+        Preview your badge designs with selectable positions
         </CardDescription>
         {/* Poster Switcher and Debug Mode Toggle */}
         <div className="mt-4 flex gap-2">
@@ -88,7 +89,7 @@ const BadgePreviewArea: React.FC<BadgePreviewAreaProps> = ({
           )}
         </div>
         <p className="text-sm text-muted-foreground mt-2 absolute bottom-0">
-          {activeBadgeType ? `Click and drag to position the ${activeBadgeType} badge` : "Select a badge type to position it"}
+          {activeBadgeType ? `Use the position grid buttons to place the ${activeBadgeType} badge` : "Select a badge type to edit its position"}
         </p>
       </CardContent>
     </Card>

@@ -4,6 +4,8 @@ import { PosterDimensions } from "@/services/posterService";
 import { AudioBadgeSettings } from "@/components/badges/types/AudioBadge";
 import { ResolutionBadgeSettings } from "@/components/badges/types/ResolutionBadge";
 import { ReviewBadgeSettings } from "@/components/badges/types/ReviewBadge";
+import { BadgePosition } from "@/components/badges/PositionSelector";
+import { getBadgePositionStyles } from "@/lib/utils/badge-position";
 
 /**
  * Renders all badges to the canvas
@@ -126,13 +128,47 @@ const renderAudioBadge = async (
     
     console.log('Result canvas dimensions:', result.canvas.width, 'x', result.canvas.height);
     
-    // Calculate position based on center point - adjust for badge dimensions
-    const percentX = badgeSettings.position?.percentX || 5;
-    const percentY = badgeSettings.position?.percentY || 5;
+    // Calculate position based on the new BadgePosition enum
+    const badgePosition = badgeSettings.position as BadgePosition || BadgePosition.TopLeft;
     
-    // Convert from percentage to absolute position
-    const centerX = (percentX / 100) * dimensions.width;
-    const centerY = (percentY / 100) * dimensions.height;
+    // Get the position styles based on the BadgePosition
+    const positionStyles = getBadgePositionStyles(badgePosition, badgeSettings.margin || 16);
+    
+    // Calculate the actual position based on the styles
+    const { top, right, bottom, left, transform } = positionStyles;
+    
+    // Calculate centerX and centerY based on the position
+    let centerX, centerY;
+    
+    // Calculate X position
+    if (left === '50%') {
+      // Center horizontally
+      centerX = dimensions.width / 2;
+    } else if (left !== undefined) {
+      // Left positioning
+      centerX = parseInt(left, 10) + result.canvas.width / 2;
+    } else if (right !== undefined) {
+      // Right positioning
+      centerX = dimensions.width - parseInt(right, 10) - result.canvas.width / 2;
+    } else {
+      // Fallback to default (left)
+      centerX = 16 + result.canvas.width / 2;
+    }
+    
+    // Calculate Y position
+    if (top === '50%') {
+      // Center vertically
+      centerY = dimensions.height / 2;
+    } else if (top !== undefined) {
+      // Top positioning
+      centerY = parseInt(top, 10) + result.canvas.height / 2;
+    } else if (bottom !== undefined) {
+      // Bottom positioning
+      centerY = dimensions.height - parseInt(bottom, 10) - result.canvas.height / 2;
+    } else {
+      // Fallback to default (top)
+      centerY = 16 + result.canvas.height / 2;
+    }
     
     // Calculate the top-left position by accounting for badge dimensions
     const posX = centerX - (result.canvas.width / 2);
@@ -189,13 +225,47 @@ const renderResolutionBadge = async (
         return;
       }
       
-      // Calculate position based on center point - adjust for badge dimensions
-      const percentX = badgeSettings.position?.percentX || 5;
-      const percentY = badgeSettings.position?.percentY || 15;
+      // Calculate position based on the new BadgePosition enum
+      const badgePosition = badgeSettings.position as BadgePosition || BadgePosition.TopRight;
       
-      // Convert from percentage to absolute position
-      const centerX = (percentX / 100) * dimensions.width;
-      const centerY = (percentY / 100) * dimensions.height;
+      // Get the position styles based on the BadgePosition
+      const positionStyles = getBadgePositionStyles(badgePosition, badgeSettings.margin || 16);
+      
+      // Calculate the actual position based on the styles
+      const { top, right, bottom, left, transform } = positionStyles;
+      
+      // Calculate centerX and centerY based on the position
+      let centerX, centerY;
+      
+      // Calculate X position
+      if (left === '50%') {
+        // Center horizontally
+        centerX = dimensions.width / 2;
+      } else if (left !== undefined) {
+        // Left positioning
+        centerX = parseInt(left, 10) + result.canvas.width / 2;
+      } else if (right !== undefined) {
+        // Right positioning
+        centerX = dimensions.width - parseInt(right, 10) - result.canvas.width / 2;
+      } else {
+        // Fallback to default (right)
+        centerX = dimensions.width - 16 - result.canvas.width / 2;
+      }
+      
+      // Calculate Y position
+      if (top === '50%') {
+        // Center vertically
+        centerY = dimensions.height / 2;
+      } else if (top !== undefined) {
+        // Top positioning
+        centerY = parseInt(top, 10) + result.canvas.height / 2;
+      } else if (bottom !== undefined) {
+        // Bottom positioning
+        centerY = dimensions.height - parseInt(bottom, 10) - result.canvas.height / 2;
+      } else {
+        // Fallback to default (top)
+        centerY = 16 + result.canvas.height / 2;
+      }
       
       // Calculate the top-left position by accounting for badge dimensions
       const posX = centerX - (result.canvas.width / 2);
@@ -243,13 +313,47 @@ const renderReviewBadge = async (
       return;
     }
     
-    // Calculate position based on center point - adjust for badge dimensions
-    const percentX = badgeSettings.position?.percentX || 5;
-    const percentY = badgeSettings.position?.percentY || 25;
+    // Calculate position based on the new BadgePosition enum
+    const badgePosition = badgeSettings.position as BadgePosition || BadgePosition.BottomLeft;
     
-    // Convert from percentage to absolute position
-    const centerX = (percentX / 100) * dimensions.width;
-    const centerY = (percentY / 100) * dimensions.height;
+    // Get the position styles based on the BadgePosition
+    const positionStyles = getBadgePositionStyles(badgePosition, badgeSettings.margin || 16);
+    
+    // Calculate the actual position based on the styles
+    const { top, right, bottom, left, transform } = positionStyles;
+    
+    // Calculate centerX and centerY based on the position
+    let centerX, centerY;
+    
+    // Calculate X position
+    if (left === '50%') {
+      // Center horizontally
+      centerX = dimensions.width / 2;
+    } else if (left !== undefined) {
+      // Left positioning
+      centerX = parseInt(left, 10) + result.canvas.width / 2;
+    } else if (right !== undefined) {
+      // Right positioning
+      centerX = dimensions.width - parseInt(right, 10) - result.canvas.width / 2;
+    } else {
+      // Fallback to default (left)
+      centerX = 16 + result.canvas.width / 2;
+    }
+    
+    // Calculate Y position
+    if (top === '50%') {
+      // Center vertically
+      centerY = dimensions.height / 2;
+    } else if (top !== undefined) {
+      // Top positioning
+      centerY = parseInt(top, 10) + result.canvas.height / 2;
+    } else if (bottom !== undefined) {
+      // Bottom positioning
+      centerY = dimensions.height - parseInt(bottom, 10) - result.canvas.height / 2;
+    } else {
+      // Fallback to default (bottom)
+      centerY = dimensions.height - 16 - result.canvas.height / 2;
+    }
     
     // Calculate the top-left position by accounting for badge dimensions
     const posX = centerX - (result.canvas.width / 2);

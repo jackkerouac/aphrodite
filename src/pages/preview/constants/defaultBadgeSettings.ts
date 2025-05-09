@@ -2,6 +2,7 @@ import { getResolutionDisplayName, getResolutionImagePath } from "@/utils/resolu
 import { AudioBadgeSettings } from "@/components/badges/types/AudioBadge";
 import { ResolutionBadgeSettings } from "@/components/badges/types/ResolutionBadge";
 import { ReviewBadgeSettings } from "@/components/badges/types/ReviewBadge";
+import { BadgePosition } from "@/components/badges/PositionSelector";
 
 // Default settings for each badge type if hook fails to load
 export const defaultAudioBadgeSettings: AudioBadgeSettings = {
@@ -11,10 +12,8 @@ export const defaultAudioBadgeSettings: AudioBadgeSettings = {
   backgroundOpacity: 0.7,
   textColor: '#FFFFFF',
   codecType: 'Dolby Atmos',
-  position: {
-    percentX: 5,
-    percentY: 5,
-  },
+  position: BadgePosition.TopLeft,
+  margin: 16,
 };
 
 export const defaultResolutionBadgeSettings: ResolutionBadgeSettings = {
@@ -33,10 +32,8 @@ export const defaultResolutionBadgeSettings: ResolutionBadgeSettings = {
   // Use utility functions for resolution image path and display name
   getResolutionImagePath: getResolutionImagePath,
   getResolutionDisplayName: getResolutionDisplayName,
-  position: {
-    percentX: 5,
-    percentY: 15,
-  },
+  position: BadgePosition.TopRight,
+  margin: 16,
 };
 
 export const defaultReviewBadgeSettings: ReviewBadgeSettings = {
@@ -48,12 +45,12 @@ export const defaultReviewBadgeSettings: ReviewBadgeSettings = {
   displayFormat: 'horizontal',
   maxSourcesToShow: 2,
   showDividers: true,
+  useBrandColors: false,
+  borderRadius: 4,
   sources: [
     { name: 'IMDB', rating: 8.5, outOf: 10 },
     { name: 'RT', rating: 90, outOf: 100 }
   ],
-  position: {
-    percentX: 5,
-    percentY: 25,
-  },
+  position: BadgePosition.BottomLeft,
+  margin: 16,
 };

@@ -9,6 +9,7 @@ import { Plus, Trash } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import PositionSelector, { BadgePosition } from '../PositionSelector';
 
 interface ReviewBadgeControlsProps {
   settings: ReviewBadgeSettings;
@@ -39,6 +40,11 @@ const ReviewBadgeControls: React.FC<ReviewBadgeControlsProps> = ({ settings, onC
       // Then update parent settings
       onChange(newSettings);
     }, 0);
+  };
+
+  // Handle position change from the position selector
+  const handlePositionChange = (position: BadgePosition) => {
+    handleChange('position', position);
   };
 
   const handleSourceChange = (index: number, field: keyof ReviewSource, value: any) => {
@@ -95,6 +101,42 @@ const ReviewBadgeControls: React.FC<ReviewBadgeControlsProps> = ({ settings, onC
                   }}
                   min={20}
                   max={200}
+                  className="w-20"
+                />
+              </div>
+            </div>
+
+            {/* Position Selector */}
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="position">Badge Position</Label>
+              <PositionSelector 
+                value={localSettings.position as BadgePosition || BadgePosition.BottomLeft} 
+                onChange={handlePositionChange}
+                className="mt-2"
+              />
+            </div>
+
+            {/* Padding/Margin Control */}
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="margin">Edge Padding (px)</Label>
+              <div className="flex items-center gap-4">
+                <Slider 
+                  id="margin"
+                  value={[localSettings.margin || 16]} 
+                  min={0} 
+                  max={50} 
+                  step={1}
+                  onValueChange={(values) => handleChange('margin', values[0])}
+                />
+                <Input 
+                  type="number" 
+                  value={localSettings.margin || 16} 
+                  onChange={(e) => {
+                    const newMargin = Math.max(0, Math.min(50, parseFloat(e.target.value) || 0));
+                    handleChange('margin', newMargin);
+                  }}
+                  min={0}
+                  max={50}
                   className="w-20"
                 />
               </div>
@@ -356,6 +398,22 @@ const ReviewBadgeControls: React.FC<ReviewBadgeControlsProps> = ({ settings, onC
                   onChange={(e) => handleChange('borderColor', e.target.value)}
                   className="flex-1"
                 />
+              </div>
+            </div>
+
+            {/* Border Opacity */}
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="borderOpacity">Border Opacity</Label>
+              <div className="flex items-center gap-4">
+                <Slider 
+                  id="borderOpacity"
+                  value={[(localSettings.borderOpacity || 1) * 100]} 
+                  min={0} 
+                  max={100} 
+                  step={1}
+                  onValueChange={(values) => handleChange('borderOpacity', values[0] / 100)}
+                />
+                <span>{Math.round((localSettings.borderOpacity || 1) * 100)}%</span>
               </div>
             </div>
 

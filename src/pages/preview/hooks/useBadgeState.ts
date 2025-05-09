@@ -3,6 +3,8 @@ import { useBadgeSettings } from "@/hooks/useBadgeSettings";
 import { AudioBadgeSettings } from "@/components/badges/types/AudioBadge";
 import { ResolutionBadgeSettings } from "@/components/badges/types/ResolutionBadge";
 import { ReviewBadgeSettings } from "@/components/badges/types/ReviewBadge";
+import { BadgePosition } from "@/components/badges/PositionSelector";
+import { convertLegacyPosition } from "@/lib/utils/badge-position";
 import { 
   defaultAudioBadgeSettings,
   defaultResolutionBadgeSettings, 
@@ -18,7 +20,7 @@ export interface BadgeState {
   saveResolutionBadgeSettings: (settings: ResolutionBadgeSettings) => void;
   saveReviewBadgeSettings: (settings: ReviewBadgeSettings) => void;
   setActiveBadgeType: (type: string) => void;
-  handleBadgePositionChange: (type: string, position: { percentX: number, percentY: number }) => void;
+  handleBadgePositionChange: (type: string, position: BadgePosition) => void;
   loading: boolean;
   updatePreview: () => void;
 }
@@ -73,7 +75,7 @@ export const useBadgeState = (
   };
 
   // Handle badge position changes
-  const handleBadgePositionChange = (type: string, position: { percentX: number, percentY: number }) => {
+  const handleBadgePositionChange = (type: string, position: BadgePosition) => {
     // Update the position for the appropriate badge type
     switch (type) {
       case "audio":

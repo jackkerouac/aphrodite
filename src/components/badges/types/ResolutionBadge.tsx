@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { BadgePosition } from '../PositionSelector';
 
 export interface ResolutionBadgeSettings {
   size: number;
@@ -16,10 +17,8 @@ export interface ResolutionBadgeSettings {
   textColor?: string;
   fontFamily?: string;
   fontSize?: number;
-  position?: {
-    percentX: number;
-    percentY: number;
-  };
+  position: BadgePosition; // Updated to use the BadgePosition enum
+  margin: number; // Edge padding in pixels
   resolutionType?: string;
   useCustomText?: boolean;
   customText?: string;

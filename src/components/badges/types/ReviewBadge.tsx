@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { BadgePosition } from '../PositionSelector';
 
 export interface ReviewSource {
   name: string;
@@ -22,16 +23,15 @@ export interface ReviewBadgeSettings {
   textColor?: string;
   fontFamily?: string;
   fontSize?: number;
-  position?: {
-    percentX: number;
-    percentY: number;
-  };
+  position: BadgePosition; // Updated to use BadgePosition enum
+  margin: number; // Edge padding in pixels
   sources?: ReviewSource[];
   displayFormat?: 'horizontal' | 'vertical';
   maxSourcesToShow?: number;
   showDividers?: boolean;
   dividerColor?: string;
   showIcons?: boolean;
+  useBrandColors?: boolean;
 }
 
 interface ReviewBadgeProps {

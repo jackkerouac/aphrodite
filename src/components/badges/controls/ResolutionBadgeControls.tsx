@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { resolutionOptions } from '@/pages/settings/resolution-badge/constants';
 import { getResolutionDisplayName } from '@/utils/resolutionUtils';
+import PositionSelector, { BadgePosition } from '../PositionSelector';
 
 interface ResolutionBadgeControlsProps {
   settings: ResolutionBadgeSettings;
@@ -47,6 +48,11 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
   const handleColorSliderChange = (field: keyof ResolutionBadgeSettings, value: number) => {
     // For opacity sliders, convert the percentage to a decimal value
     handleChange(field, value / 100);
+  };
+
+  // Update position from the position selector
+  const handlePositionChange = (position: BadgePosition) => {
+    handleChange('position', position);
   };
 
   // Helper function to sort resolutions in a logical order
@@ -160,7 +166,41 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
               </Select>
             </div>
             
-            {/* Removed "Use Custom Text" toggle as requested */}
+            {/* Position Selector */}
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="position">Badge Position</Label>
+              <PositionSelector 
+                value={localSettings.position as BadgePosition || BadgePosition.TopRight} 
+                onChange={handlePositionChange}
+                className="mt-2"
+              />
+            </div>
+
+            {/* Padding/Margin Control */}
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="margin">Edge Padding (px)</Label>
+              <div className="flex items-center gap-4">
+                <Slider 
+                  id="margin"
+                  value={[localSettings.margin || 10]} 
+                  min={0} 
+                  max={50} 
+                  step={1}
+                  onValueChange={(values) => handleSliderChange('margin', values[0])}
+                />
+                <Input 
+                  type="number" 
+                  value={localSettings.margin || 10} 
+                  onChange={(e) => {
+                    const newMargin = Math.max(0, Math.min(50, parseFloat(e.target.value) || 0));
+                    handleChange('margin', newMargin);
+                  }}
+                  min={0}
+                  max={50}
+                  className="w-20"
+                />
+              </div>
+            </div>
           </AccordionContent>
         </AccordionItem>
 
@@ -202,8 +242,6 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                 <span>{Math.round(localSettings.backgroundOpacity * 100)}%</span>
               </div>
             </div>
-            
-            {/* Removed Text Color and Font Size functionality as requested */}
           </AccordionContent>
         </AccordionItem>
 

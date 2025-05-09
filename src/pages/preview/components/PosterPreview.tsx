@@ -1,5 +1,6 @@
 import React from 'react';
 import { BadgeDisplaySettings } from '../hooks/useBadgePreviewSettings';
+import { getBadgePositionStyles } from '@/lib/utils/badge-position';
 
 interface PosterPreviewProps {
   posterImage: string;
@@ -36,78 +37,69 @@ const PosterPreview: React.FC<PosterPreviewProps> = ({
           className="max-w-full h-auto object-contain"
         />
         
-        {/* Resolution Badge Placeholder */}
+        {/* Resolution Badge */}
         {displaySettings.showResolutionBadge && resolutionBadgeSettings && (
           <div
             className="absolute bg-black bg-opacity-80 text-white px-2 py-1 rounded"
             style={{
-              top: resolutionBadgeSettings.position.includes('top') ? `${resolutionBadgeSettings.margin}px` : 'auto',
-              bottom: resolutionBadgeSettings.position.includes('bottom') ? `${resolutionBadgeSettings.margin}px` : 'auto',
-              left: resolutionBadgeSettings.position.includes('left') ? `${resolutionBadgeSettings.margin}px` : 'auto',
-              right: resolutionBadgeSettings.position.includes('right') ? `${resolutionBadgeSettings.margin}px` : 'auto',
+              ...getBadgePositionStyles(resolutionBadgeSettings.position, resolutionBadgeSettings.margin),
               fontSize: `${resolutionBadgeSettings.size / 10}rem`,
-              backgroundColor: `${resolutionBadgeSettings.background_color}${Math.round(resolutionBadgeSettings.background_transparency * 255).toString(16)}`,
-              borderRadius: `${resolutionBadgeSettings.border_radius}px`,
-              borderWidth: `${resolutionBadgeSettings.border_width}px`,
+              backgroundColor: `${resolutionBadgeSettings.backgroundColor}${Math.round(resolutionBadgeSettings.backgroundOpacity * 255).toString(16)}`,
+              borderRadius: `${resolutionBadgeSettings.borderRadius}px`,
+              borderWidth: `${resolutionBadgeSettings.borderWidth}px`,
               borderStyle: 'solid',
-              borderColor: `${resolutionBadgeSettings.border_color}${Math.round(resolutionBadgeSettings.border_transparency * 255).toString(16)}`,
-              boxShadow: resolutionBadgeSettings.shadow_toggle 
-                ? `${resolutionBadgeSettings.shadow_offset_x}px ${resolutionBadgeSettings.shadow_offset_y}px ${resolutionBadgeSettings.shadow_blur_radius}px ${resolutionBadgeSettings.shadow_color}` 
+              borderColor: `${resolutionBadgeSettings.borderColor}${Math.round(resolutionBadgeSettings.borderOpacity * 255).toString(16)}`,
+              boxShadow: resolutionBadgeSettings.shadowEnabled 
+                ? `${resolutionBadgeSettings.shadowOffsetX}px ${resolutionBadgeSettings.shadowOffsetY}px ${resolutionBadgeSettings.shadowBlur}px ${resolutionBadgeSettings.shadowColor}` 
                 : 'none',
-              zIndex: resolutionBadgeSettings.z_index
+              zIndex: resolutionBadgeSettings.zIndex || 10
             }}
           >
-            {resolutionBadgeSettings.resolution_type}
+            {resolutionBadgeSettings.resolutionType}
           </div>
         )}
         
-        {/* Audio Badge Placeholder */}
+        {/* Audio Badge */}
         {displaySettings.showAudioBadge && audioBadgeSettings && (
           <div
             className="absolute bg-black bg-opacity-80 text-white px-2 py-1 rounded"
             style={{
-              top: audioBadgeSettings.position.includes('top') ? `${audioBadgeSettings.margin}px` : 'auto',
-              bottom: audioBadgeSettings.position.includes('bottom') ? `${audioBadgeSettings.margin}px` : 'auto',
-              left: audioBadgeSettings.position.includes('left') ? `${audioBadgeSettings.margin}px` : 'auto',
-              right: audioBadgeSettings.position.includes('right') ? `${audioBadgeSettings.margin}px` : 'auto',
+              ...getBadgePositionStyles(audioBadgeSettings.position, audioBadgeSettings.margin),
               fontSize: `${audioBadgeSettings.size / 10}rem`,
-              backgroundColor: `${audioBadgeSettings.background_color}${Math.round(audioBadgeSettings.background_transparency * 255).toString(16)}`,
-              borderRadius: `${audioBadgeSettings.border_radius}px`,
-              borderWidth: `${audioBadgeSettings.border_width}px`,
+              backgroundColor: `${audioBadgeSettings.backgroundColor}${Math.round(audioBadgeSettings.backgroundOpacity * 255).toString(16)}`,
+              borderRadius: `${audioBadgeSettings.borderRadius}px`,
+              borderWidth: `${audioBadgeSettings.borderWidth}px`,
               borderStyle: 'solid',
-              borderColor: `${audioBadgeSettings.border_color}${Math.round(audioBadgeSettings.border_transparency * 255).toString(16)}`,
-              boxShadow: audioBadgeSettings.shadow_toggle 
-                ? `${audioBadgeSettings.shadow_offset_x}px ${audioBadgeSettings.shadow_offset_y}px ${audioBadgeSettings.shadow_blur_radius}px ${audioBadgeSettings.shadow_color}` 
+              borderColor: `${audioBadgeSettings.borderColor}${Math.round(audioBadgeSettings.borderOpacity * 255).toString(16)}`,
+              boxShadow: audioBadgeSettings.shadowEnabled 
+                ? `${audioBadgeSettings.shadowOffsetX}px ${audioBadgeSettings.shadowOffsetY}px ${audioBadgeSettings.shadowBlur}px ${audioBadgeSettings.shadowColor}` 
                 : 'none',
-              zIndex: audioBadgeSettings.z_index
+              zIndex: audioBadgeSettings.zIndex || 10
             }}
           >
-            {audioBadgeSettings.audio_codec_type}
+            {audioBadgeSettings.codecType}
           </div>
         )}
         
-        {/* Review Badge Placeholder */}
+        {/* Review Badge */}
         {displaySettings.showReviewBadge && reviewBadgeSettings && (
           <div
             className="absolute bg-black bg-opacity-80 text-white px-2 py-1 rounded"
             style={{
-              top: reviewBadgeSettings.position.includes('top') ? `${reviewBadgeSettings.margin}px` : 'auto',
-              bottom: reviewBadgeSettings.position.includes('bottom') ? `${reviewBadgeSettings.margin}px` : 'auto',
-              left: reviewBadgeSettings.position.includes('left') ? `${reviewBadgeSettings.margin}px` : 'auto',
-              right: reviewBadgeSettings.position.includes('right') ? `${reviewBadgeSettings.margin}px` : 'auto',
+              ...getBadgePositionStyles(reviewBadgeSettings.position, reviewBadgeSettings.margin),
               fontSize: `${reviewBadgeSettings.size / 10}rem`,
-              backgroundColor: `${reviewBadgeSettings.background_color}${Math.round(reviewBadgeSettings.background_transparency * 255).toString(16)}`,
-              borderRadius: `${reviewBadgeSettings.border_radius}px`,
-              borderWidth: `${reviewBadgeSettings.border_width}px`,
+              backgroundColor: `${reviewBadgeSettings.backgroundColor}${Math.round(reviewBadgeSettings.backgroundOpacity * 255).toString(16)}`,
+              borderRadius: `${reviewBadgeSettings.borderRadius}px`,
+              borderWidth: `${reviewBadgeSettings.borderWidth}px`,
               borderStyle: 'solid',
-              borderColor: `${reviewBadgeSettings.border_color}${Math.round(reviewBadgeSettings.border_transparency * 255).toString(16)}`,
-              boxShadow: reviewBadgeSettings.shadow_toggle 
-                ? `${reviewBadgeSettings.shadow_offset_x}px ${reviewBadgeSettings.shadow_offset_y}px ${reviewBadgeSettings.shadow_blur_radius}px ${reviewBadgeSettings.shadow_color}` 
+              borderColor: `${reviewBadgeSettings.borderColor}${Math.round(reviewBadgeSettings.borderOpacity * 255).toString(16)}`,
+              boxShadow: reviewBadgeSettings.shadowEnabled 
+                ? `${reviewBadgeSettings.shadowOffsetX}px ${reviewBadgeSettings.shadowOffsetY}px ${reviewBadgeSettings.shadowBlur}px ${reviewBadgeSettings.shadowColor}` 
                 : 'none',
-              zIndex: reviewBadgeSettings.z_index
+              zIndex: reviewBadgeSettings.zIndex || 10
             }}
           >
-            {reviewBadgeSettings.display_sources?.slice(0, 2).map((source: string) => `${source}: 8.5`).join(' | ')}
+            {reviewBadgeSettings.sources?.slice(0, 2).map((source: any) => `${source.name}: ${source.rating}`).join(' | ')}
           </div>
         )}
       </div>

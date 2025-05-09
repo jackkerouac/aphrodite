@@ -35,6 +35,45 @@ export default function Preview() {
   // Use badge state hook to manage badge settings
   const badgeState = useBadgeState("123", () => updateCanvasCallbackRef.current());
   
+  // Convert any legacy positions to the new BadgePosition format
+  useEffect(() => {
+    if (!badgeState.loading) {
+      // Check if the audio badge position needs to be converted
+      if (badgeState.audioBadgeSettings && typeof badgeState.audioBadgeSettings.position === 'object' && 'percentX' in badgeState.audioBadgeSettings.position) {
+        console.log('Converting legacy audio badge position');
+        const newPosition = convertLegacyPosition(badgeState.audioBadgeSettings.position);
+        
+        badgeState.saveAudioBadgeSettings({
+          ...badgeState.audioBadgeSettings,
+          position: newPosition
+        });
+      }
+      
+      // Check if the resolution badge position needs to be converted
+      if (badgeState.resolutionBadgeSettings && typeof badgeState.resolutionBadgeSettings.position === 'object' && 'percentX' in badgeState.resolutionBadgeSettings.position) {
+        console.log('Converting legacy resolution badge position');
+        const newPosition = convertLegacyPosition(badgeState.resolutionBadgeSettings.position);
+        
+        badgeState.saveResolutionBadgeSettings({
+          ...badgeState.resolutionBadgeSettings,
+          position: newPosition
+        });
+      }
+      
+      // Check if the review badge position needs to be converted
+      if (badgeState.reviewBadgeSettings && typeof badgeState.reviewBadgeSettings.position === 'object' && 'percentX' in badgeState.reviewBadgeSettings.position) {
+        console.log('Converting legacy review badge position');
+        const newPosition = convertLegacyPosition(badgeState.reviewBadgeSettings.position);
+        
+        badgeState.saveReviewBadgeSettings({
+          ...badgeState.reviewBadgeSettings,
+          position: newPosition
+        });
+      }
+    }
+  }, [badgeState.loading]);
+  
+  
   // Effect to update loading state
   useEffect(() => {
     posterState.setLoading(badgeState.loading || badgeSettingsLoading);
@@ -175,3 +214,5 @@ export default function Preview() {
 
 // Import PosterDimensions type at end to avoid circular dependency
 import { PosterDimensions } from "@/services/posterService";
+import { BadgePosition } from "@/components/badges/PositionSelector";
+import { convertLegacyPosition } from "@/lib/utils/badge-position";

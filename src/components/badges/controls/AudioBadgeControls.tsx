@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { audioCodecOptions } from '@/utils/audioCodecUtils';
+import PositionSelector, { BadgePosition } from '../PositionSelector';
 
 interface AudioBadgeControlsProps {
   settings: AudioBadgeSettings;
@@ -22,6 +23,7 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
   React.useEffect(() => {
     setLocalSettings(settings);
   }, [settings]);
+  
   const handleChange = (field: keyof AudioBadgeSettings, value: any) => {
     // Log just the essential info
     console.log(`Updating ${field} to:`, value);
@@ -46,7 +48,12 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
       // Then update parent settings
       onChange(newSettings);
     }, 0);
-  }
+  };
+
+  // Handle position change from the position selector
+  const handlePositionChange = (position: BadgePosition) => {
+    handleChange('position', position);
+  };
 
   return (
     <div className="space-y-4">
@@ -104,6 +111,42 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
               </Select>
               <div className="text-xs text-gray-500 mt-1">
                 The selected codec will appear as an image in the badge
+              </div>
+            </div>
+
+            {/* Position Selector */}
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="position">Badge Position</Label>
+              <PositionSelector 
+                value={localSettings.position as BadgePosition || BadgePosition.TopLeft} 
+                onChange={handlePositionChange}
+                className="mt-2"
+              />
+            </div>
+
+            {/* Padding/Margin Control */}
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="margin">Edge Padding (px)</Label>
+              <div className="flex items-center gap-4">
+                <Slider 
+                  id="margin"
+                  value={[localSettings.margin || 16]} 
+                  min={0} 
+                  max={50} 
+                  step={1}
+                  onValueChange={(values) => handleChange('margin', values[0])}
+                />
+                <Input 
+                  type="number" 
+                  value={localSettings.margin || 16} 
+                  onChange={(e) => {
+                    const newMargin = Math.max(0, Math.min(50, parseFloat(e.target.value) || 0));
+                    handleChange('margin', newMargin);
+                  }}
+                  min={0}
+                  max={50}
+                  className="w-20"
+                />
               </div>
             </div>
           </AccordionContent>
