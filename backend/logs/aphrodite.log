@@ -981,3 +981,21 @@
 [2025-05-09T11:44:56.385Z] INFO: Getting resolution badge settings for user ID: 1
 [2025-05-09T11:44:56.388Z] INFO: Found resolution badge settings for user ID: 1
 [2025-05-09T11:44:56.389Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 4ms
+[2025-05-09T11:45:09.810Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-09T11:45:09.834Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-09T11:45:09.836Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 26ms
+[2025-05-09T11:45:09.843Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-09T11:45:09.846Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-09T11:45:09.849Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 6ms
+[2025-05-09T11:45:26.350Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-09T11:45:26.372Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-09T11:45:26.373Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 23ms
+[2025-05-09T11:45:26.388Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-09T11:45:26.390Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-09T11:45:26.392Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 4ms
+[2025-05-09T11:45:38.908Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-09T11:45:38.949Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-09T11:45:38.953Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 46ms
+[2025-05-09T11:45:38.958Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-09T11:45:38.961Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-09T11:45:38.963Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 6ms
