@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ResolutionBadgeSettings } from '../types/ResolutionBadge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,27 +15,38 @@ interface ResolutionBadgeControlsProps {
 }
 
 const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ settings, onChange }) => {
-  const handleSliderChange = (field: keyof ResolutionBadgeSettings, value: number) => {
-    // Immediately update the slider value and preview
-    onChange({
-      ...settings,
+  // Local state to track all settings for consistent updates - this is key to making UI controls update properly
+  const [localSettings, setLocalSettings] = useState(settings);
+  
+  // Update local settings when props change
+  useEffect(() => {
+    setLocalSettings(settings);
+  }, [settings]);
+
+  const handleChange = (field: keyof ResolutionBadgeSettings, value: any) => {
+    // Create new settings based on current local settings
+    const newSettings = {
+      ...localSettings,
       [field]: value,
-    });
+    };
+
+    // Update local state first for immediate UI feedback
+    setLocalSettings(newSettings);
+    
+    // Force a synchronous execution to ensure local state is updated
+    setTimeout(() => {
+      // Then update parent settings
+      onChange(newSettings);
+    }, 0);
+  };
+  
+  const handleSliderChange = (field: keyof ResolutionBadgeSettings, value: number) => {
+    handleChange(field, value);
   };
   
   const handleColorSliderChange = (field: keyof ResolutionBadgeSettings, value: number) => {
     // For opacity sliders, convert the percentage to a decimal value
-    onChange({
-      ...settings,
-      [field]: value / 100,
-    });
-  };
-
-  const handleChange = (field: keyof ResolutionBadgeSettings, value: any) => {
-    onChange({
-      ...settings,
-      [field]: value,
-    });
+    handleChange(field, value / 100);
   };
 
   // Helper function to sort resolutions in a logical order
@@ -108,7 +119,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
               <div className="flex items-center gap-4">
                 <Slider 
                   id="size"
-                  value={[settings.size]} 
+                  value={[localSettings.size]} 
                   min={20} 
                   max={200} 
                   step={1}
@@ -116,7 +127,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                 />
                 <Input 
                   type="number" 
-                  value={settings.size} 
+                  value={localSettings.size} 
                   onChange={(e) => {
                     // Constrain the size to the slider range
                     const newSize = Math.max(20, Math.min(200, parseFloat(e.target.value) || 20));
@@ -133,7 +144,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
             <div className="space-y-2 mb-4">
               <Label htmlFor="resolutionType">Resolution</Label>
               <Select 
-                value={settings.resolutionType || '4k'}
+                value={localSettings.resolutionType || '4k'}
                 onValueChange={(value) => handleChange('resolutionType', value)}
               >
                 <SelectTrigger>
@@ -163,13 +174,13 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                 <Input 
                   type="color" 
                   id="backgroundColor"
-                  value={settings.backgroundColor} 
+                  value={localSettings.backgroundColor} 
                   onChange={(e) => handleChange('backgroundColor', e.target.value)}
                   className="w-12 h-8 p-1"
                 />
                 <Input 
                   type="text" 
-                  value={settings.backgroundColor} 
+                  value={localSettings.backgroundColor} 
                   onChange={(e) => handleChange('backgroundColor', e.target.value)}
                   className="flex-1"
                 />
@@ -182,13 +193,13 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
               <div className="flex items-center gap-4">
                 <Slider 
                   id="backgroundOpacity"
-                  value={[settings.backgroundOpacity * 100]} 
+                  value={[localSettings.backgroundOpacity * 100]} 
                   min={0} 
                   max={100} 
                   step={1}
                   onValueChange={(values) => handleColorSliderChange('backgroundOpacity', values[0])}
                 />
-                <span>{Math.round(settings.backgroundOpacity * 100)}%</span>
+                <span>{Math.round(localSettings.backgroundOpacity * 100)}%</span>
               </div>
             </div>
             
@@ -205,7 +216,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
               <div className="flex items-center gap-4">
                 <Slider 
                   id="borderRadius"
-                  value={[settings.borderRadius || 0]} 
+                  value={[localSettings.borderRadius || 0]} 
                   min={0} 
                   max={50} 
                   step={1}
@@ -213,7 +224,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                 />
                 <Input 
                   type="number" 
-                  value={settings.borderRadius || 0} 
+                  value={localSettings.borderRadius || 0} 
                   onChange={(e) => handleChange('borderRadius', parseFloat(e.target.value))}
                   className="w-20"
                 />
@@ -226,7 +237,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
               <div className="flex items-center gap-4">
                 <Slider 
                   id="borderWidth"
-                  value={[settings.borderWidth || 0]} 
+                  value={[localSettings.borderWidth || 0]} 
                   min={0} 
                   max={10} 
                   step={1}
@@ -234,7 +245,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                 />
                 <Input 
                   type="number" 
-                  value={settings.borderWidth || 0} 
+                  value={localSettings.borderWidth || 0} 
                   onChange={(e) => handleChange('borderWidth', parseFloat(e.target.value))}
                   className="w-20"
                 />
@@ -248,13 +259,13 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                 <Input 
                   type="color" 
                   id="borderColor"
-                  value={settings.borderColor || '#000000'} 
+                  value={localSettings.borderColor || '#000000'} 
                   onChange={(e) => handleChange('borderColor', e.target.value)}
                   className="w-12 h-8 p-1"
                 />
                 <Input 
                   type="text" 
-                  value={settings.borderColor || '#000000'} 
+                  value={localSettings.borderColor || '#000000'} 
                   onChange={(e) => handleChange('borderColor', e.target.value)}
                   className="flex-1"
                 />
@@ -267,13 +278,13 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
               <div className="flex items-center gap-4">
                 <Slider 
                   id="borderOpacity"
-                  value={[(settings.borderOpacity || 1) * 100]} 
+                  value={[(localSettings.borderOpacity || 1) * 100]} 
                   min={0} 
                   max={100} 
                   step={1}
                   onValueChange={(values) => handleColorSliderChange('borderOpacity', values[0])}
                 />
-                <span>{Math.round((settings.borderOpacity || 1) * 100)}%</span>
+                <span>{Math.round((localSettings.borderOpacity || 1) * 100)}%</span>
               </div>
             </div>
 
@@ -281,13 +292,13 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
             <div className="flex items-center space-x-2 mb-4">
               <Switch
                 id="shadowEnabled"
-                checked={settings.shadowEnabled || false}
+                checked={localSettings.shadowEnabled || false}
                 onCheckedChange={(checked) => handleChange('shadowEnabled', checked)}
               />
               <Label htmlFor="shadowEnabled">Enable Shadow</Label>
             </div>
 
-            {settings.shadowEnabled && (
+            {localSettings.shadowEnabled && (
               <>
                 {/* Shadow Color */}
                 <div className="space-y-2 mb-4">
@@ -296,13 +307,13 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                     <Input 
                       type="color" 
                       id="shadowColor"
-                      value={settings.shadowColor || '#000000'} 
+                      value={localSettings.shadowColor || '#000000'} 
                       onChange={(e) => handleChange('shadowColor', e.target.value)}
                       className="w-12 h-8 p-1"
                     />
                     <Input 
                       type="text" 
-                      value={settings.shadowColor || '#000000'} 
+                      value={localSettings.shadowColor || '#000000'} 
                       onChange={(e) => handleChange('shadowColor', e.target.value)}
                       className="flex-1"
                     />
@@ -315,7 +326,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                   <div className="flex items-center gap-4">
                     <Slider 
                       id="shadowBlur"
-                      value={[settings.shadowBlur || 5]} 
+                      value={[localSettings.shadowBlur || 5]} 
                       min={0} 
                       max={20} 
                       step={1}
@@ -323,7 +334,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                     />
                     <Input 
                       type="number" 
-                      value={settings.shadowBlur || 5} 
+                      value={localSettings.shadowBlur || 5} 
                       onChange={(e) => handleChange('shadowBlur', parseFloat(e.target.value))}
                       className="w-20"
                     />
@@ -336,7 +347,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                   <div className="flex items-center gap-4">
                     <Slider 
                       id="shadowOffsetX"
-                      value={[settings.shadowOffsetX || 2]} 
+                      value={[localSettings.shadowOffsetX || 2]} 
                       min={-20} 
                       max={20} 
                       step={1}
@@ -344,7 +355,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                     />
                     <Input 
                       type="number" 
-                      value={settings.shadowOffsetX || 2} 
+                      value={localSettings.shadowOffsetX || 2} 
                       onChange={(e) => handleChange('shadowOffsetX', parseFloat(e.target.value))}
                       className="w-20"
                     />
@@ -357,7 +368,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                   <div className="flex items-center gap-4">
                     <Slider 
                       id="shadowOffsetY"
-                      value={[settings.shadowOffsetY || 2]} 
+                      value={[localSettings.shadowOffsetY || 2]} 
                       min={-20} 
                       max={20} 
                       step={1}
@@ -365,7 +376,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                     />
                     <Input 
                       type="number" 
-                      value={settings.shadowOffsetY || 2} 
+                      value={localSettings.shadowOffsetY || 2} 
                       onChange={(e) => handleChange('shadowOffsetY', parseFloat(e.target.value))}
                       className="w-20"
                     />
