@@ -4,7 +4,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { resolutionOptions } from '@/pages/settings/resolution-badge/constants';
@@ -18,12 +17,18 @@ interface ResolutionBadgeControlsProps {
 const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ settings, onChange }) => {
   const handleSliderChange = (field: keyof ResolutionBadgeSettings, value: number) => {
     // Immediately update the slider value and preview
-    handleChange(field, value);
+    onChange({
+      ...settings,
+      [field]: value,
+    });
   };
   
   const handleColorSliderChange = (field: keyof ResolutionBadgeSettings, value: number) => {
     // For opacity sliders, convert the percentage to a decimal value
-    handleChange(field, value / 100);
+    onChange({
+      ...settings,
+      [field]: value / 100,
+    });
   };
 
   const handleChange = (field: keyof ResolutionBadgeSettings, value: any) => {
@@ -143,28 +148,8 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Custom Text Toggle */}
-            <div className="flex items-center space-x-2 mb-4">
-              <Switch
-                id="useCustomText"
-                checked={settings.useCustomText || false}
-                onCheckedChange={(checked) => handleChange('useCustomText', checked)}
-              />
-              <Label htmlFor="useCustomText">Use Custom Text</Label>
-            </div>
-
-            {/* Custom Text Input */}
-            {settings.useCustomText && (
-              <div className="space-y-2 mb-4">
-                <Label htmlFor="customText">Custom Text</Label>
-                <Input 
-                  id="customText"
-                  value={settings.customText || ''} 
-                  onChange={(e) => handleChange('customText', e.target.value)}
-                />
-              </div>
-            )}
+            
+            {/* Removed "Use Custom Text" toggle as requested */}
           </AccordionContent>
         </AccordionItem>
 
@@ -206,47 +191,8 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                 <span>{Math.round(settings.backgroundOpacity * 100)}%</span>
               </div>
             </div>
-
-            {/* Text Color */}
-            <div className="space-y-2 mb-4">
-              <Label htmlFor="textColor">Text Color</Label>
-              <div className="flex gap-2">
-                <Input 
-                  type="color" 
-                  id="textColor"
-                  value={settings.textColor || '#FFFFFF'} 
-                  onChange={(e) => handleChange('textColor', e.target.value)}
-                  className="w-12 h-8 p-1"
-                />
-                <Input 
-                  type="text" 
-                  value={settings.textColor || '#FFFFFF'} 
-                  onChange={(e) => handleChange('textColor', e.target.value)}
-                  className="flex-1"
-                />
-              </div>
-            </div>
-
-            {/* Font Size */}
-            <div className="space-y-2 mb-4">
-              <Label htmlFor="fontSize">Font Size</Label>
-              <div className="flex items-center gap-4">
-                <Slider 
-                  id="fontSize"
-                  value={[settings.fontSize || settings.size / 2]} 
-                  min={8} 
-                  max={72} 
-                  step={1}
-                  onValueChange={(values) => handleSliderChange('fontSize', values[0])}
-                />
-                <Input 
-                  type="number" 
-                  value={settings.fontSize || Math.round(settings.size / 2)} 
-                  onChange={(e) => handleChange('fontSize', parseFloat(e.target.value))}
-                  className="w-20"
-                />
-              </div>
-            </div>
+            
+            {/* Removed Text Color and Font Size functionality as requested */}
           </AccordionContent>
         </AccordionItem>
 

@@ -20,6 +20,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 aphrodite.log*
+aphrodite.log
 backend/logs/*
 backend/logs/aphrodite.log
 
@@ -78,3 +79,4 @@ ENDPOINT.md
 
 # Google Drive
 *.tmp.driveupload
+backend/logs/aphrodite.log
