@@ -12,3 +12,62 @@
 [2025-05-09T20:17:03.699Z] INFO: Server running on port 5000
 [2025-05-09T20:17:15.107Z] INFO: Created badges directory at: E:\programming\aphrodite\backend\storage\badges
 [2025-05-09T20:17:15.126Z] INFO: Server running on port 5000
+[2025-05-09T20:21:10.045Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-09T20:21:10.062Z] INFO: Server running on port 5000
+[2025-05-09T20:21:21.601Z] INFO: Received request to save badge file: audio for user 123
+[2025-05-09T20:21:21.602Z] INFO: Image data received, length: 9174 characters
+[2025-05-09T20:21:21.602Z] INFO: User directory path: E:\programming\aphrodite\backend\storage\badges\123
+[2025-05-09T20:21:21.603Z] INFO: Creating user directory: E:\programming\aphrodite\backend\storage\badges\123
+[2025-05-09T20:21:21.604Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\audio-badge.png
+[2025-05-09T20:21:21.624Z] INFO: Successfully saved audio badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\audio-badge.png
+[2025-05-09T20:21:21.629Z] INFO: [POST] /api/badge-files/123/audio 200 — 28ms
+[2025-05-09T20:21:21.633Z] INFO: Received request to save badge file: review for user 123
+[2025-05-09T20:21:21.634Z] INFO: Image data received, length: 21990 characters
+[2025-05-09T20:21:21.634Z] INFO: User directory path: E:\programming\aphrodite\backend\storage\badges\123
+[2025-05-09T20:21:21.635Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\review-badge.png
+[2025-05-09T20:21:21.637Z] INFO: Successfully saved review badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\review-badge.png
+[2025-05-09T20:21:21.640Z] INFO: [POST] /api/badge-files/123/review 200 — 8ms
+[2025-05-09T20:21:21.641Z] INFO: Received request to save badge file: resolution for user 123
+[2025-05-09T20:21:21.642Z] INFO: Image data received, length: 7646 characters
+[2025-05-09T20:21:21.642Z] INFO: User directory path: E:\programming\aphrodite\backend\storage\badges\123
+[2025-05-09T20:21:21.642Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\resolution-badge.png
+[2025-05-09T20:21:21.645Z] INFO: Successfully saved resolution badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\resolution-badge.png
+[2025-05-09T20:21:21.646Z] INFO: [POST] /api/badge-files/123/resolution 200 — 5ms
+[2025-05-09T20:23:27.769Z] INFO: Received request to save badge file: audio for user 123
+[2025-05-09T20:23:27.769Z] INFO: Image data received, length: 9174 characters
+[2025-05-09T20:23:27.769Z] INFO: User directory path: E:\programming\aphrodite\backend\storage\badges\123
+[2025-05-09T20:23:27.770Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\audio-badge.png
+[2025-05-09T20:23:27.772Z] INFO: Successfully saved audio badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\audio-badge.png
+[2025-05-09T20:23:27.774Z] INFO: [POST] /api/badge-files/123/audio 200 — 6ms
+[2025-05-09T20:23:27.801Z] INFO: Received request to save badge file: review for user 123
+[2025-05-09T20:23:27.802Z] INFO: Image data received, length: 21990 characters
+[2025-05-09T20:23:27.802Z] INFO: User directory path: E:\programming\aphrodite\backend\storage\badges\123
+[2025-05-09T20:23:27.802Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\review-badge.png
+[2025-05-09T20:23:27.839Z] INFO: Successfully saved review badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\review-badge.png
+[2025-05-09T20:23:27.840Z] INFO: [POST] /api/badge-files/123/review 200 — 39ms
+[2025-05-09T20:23:27.842Z] INFO: Received request to save badge file: resolution for user 123
+[2025-05-09T20:23:27.842Z] INFO: Image data received, length: 7646 characters
+[2025-05-09T20:23:27.843Z] INFO: User directory path: E:\programming\aphrodite\backend\storage\badges\123
+[2025-05-09T20:23:27.843Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\resolution-badge.png
+[2025-05-09T20:23:27.850Z] INFO: Successfully saved resolution badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\resolution-badge.png
+[2025-05-09T20:23:27.851Z] INFO: [POST] /api/badge-files/123/resolution 200 — 9ms
+[2025-05-09T20:23:48.054Z] INFO: Received request to save badge file: audio for user 123
+[2025-05-09T20:23:48.055Z] INFO: Image data received, length: 4066 characters
+[2025-05-09T20:23:48.055Z] INFO: User directory path: E:\programming\aphrodite\backend\storage\badges\123
+[2025-05-09T20:23:48.055Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\audio-badge.png
+[2025-05-09T20:23:48.058Z] INFO: Successfully saved audio badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\audio-badge.png
+[2025-05-09T20:23:48.060Z] INFO: [POST] /api/badge-files/123/audio 200 — 6ms
+[2025-05-09T20:23:48.063Z] INFO: Received request to save badge file: review for user 123
+[2025-05-09T20:23:48.064Z] INFO: Image data received, length: 21990 characters
+[2025-05-09T20:23:48.064Z] INFO: User directory path: E:\programming\aphrodite\backend\storage\badges\123
+[2025-05-09T20:23:48.064Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\review-badge.png
+[2025-05-09T20:23:48.066Z] INFO: Successfully saved review badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\review-badge.png
+[2025-05-09T20:23:48.067Z] INFO: [POST] /api/badge-files/123/review 200 — 4ms
+[2025-05-09T20:23:48.070Z] INFO: Received request to save badge file: resolution for user 123
+[2025-05-09T20:23:48.070Z] INFO: Image data received, length: 7646 characters
+[2025-05-09T20:23:48.071Z] INFO: User directory path: E:\programming\aphrodite\backend\storage\badges\123
+[2025-05-09T20:23:48.071Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\resolution-badge.png
+[2025-05-09T20:23:48.073Z] INFO: Successfully saved resolution badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\resolution-badge.png
+[2025-05-09T20:23:48.076Z] INFO: [POST] /api/badge-files/123/resolution 200 — 6ms
+[2025-05-09T20:29:39.792Z] INFO: [GET] /api/jellyfin-libraries 304 — 711ms
+[2025-05-09T20:29:40.082Z] INFO: [GET] /api/jellyfin-libraries 304 — 285ms
