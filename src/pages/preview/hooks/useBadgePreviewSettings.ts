@@ -1,92 +1,68 @@
 import { useState, useEffect } from 'react';
-import apiClient from '@/lib/api-client';
 
+// Type definition for badge display settings
 export interface BadgeDisplaySettings {
-  showResolutionBadge: boolean;
   showAudioBadge: boolean;
+  showResolutionBadge: boolean;
   showReviewBadge: boolean;
 }
 
+// Type definition for hook return
 export interface UseBadgePreviewSettingsReturn {
   displaySettings: BadgeDisplaySettings;
-  resolutionBadgeSettings: any | null;
-  audioBadgeSettings: any | null;
-  reviewBadgeSettings: any | null;
+  toggleBadge: (badgeName: keyof BadgeDisplaySettings) => void;
   loading: boolean;
-  error: Error | null;
-  toggleBadge: (badge: keyof BadgeDisplaySettings) => void;
 }
 
-export const useBadgePreviewSettings = (): UseBadgePreviewSettingsReturn => {
-  const [displaySettings, setDisplaySettings] = useState<BadgeDisplaySettings>({
-    showResolutionBadge: true,
-    showAudioBadge: true,
-    showReviewBadge: true,
-  });
-  
-  const [resolutionBadgeSettings, setResolutionBadgeSettings] = useState<any | null>(null);
-  const [audioBadgeSettings, setAudioBadgeSettings] = useState<any | null>(null);
-  const [reviewBadgeSettings, setReviewBadgeSettings] = useState<any | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<Error | null>(null);
+// Default settings
+const defaultDisplaySettings: BadgeDisplaySettings = {
+  showAudioBadge: true,
+  showResolutionBadge: true,
+  showReviewBadge: true
+};
 
-  const toggleBadge = (badge: keyof BadgeDisplaySettings) => {
+// Hook for managing badge display settings in preview
+export const useBadgePreviewSettings = (): UseBadgePreviewSettingsReturn => {
+  const [displaySettings, setDisplaySettings] = useState<BadgeDisplaySettings>(defaultDisplaySettings);
+  const [loading, setLoading] = useState(true);
+
+  // Load settings from localStorage if available
+  useEffect(() => {
+    try {
+      setLoading(true);
+      const savedSettings = localStorage.getItem('badgePreviewSettings');
+      if (savedSettings) {
+        setDisplaySettings(JSON.parse(savedSettings));
+      }
+    } catch (error) {
+      console.error('Error loading badge preview settings from localStorage:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Save settings to localStorage when they change
+  useEffect(() => {
+    try {
+      if (!loading) {
+        localStorage.setItem('badgePreviewSettings', JSON.stringify(displaySettings));
+      }
+    } catch (error) {
+      console.error('Error saving badge preview settings to localStorage:', error);
+    }
+  }, [displaySettings, loading]);
+
+  // Function to toggle a badge's visibility
+  const toggleBadge = (badgeName: keyof BadgeDisplaySettings) => {
     setDisplaySettings(prev => ({
       ...prev,
-      [badge]: !prev[badge]
+      [badgeName]: !prev[badgeName]
     }));
   };
 
-  useEffect(() => {
-    const fetchAllBadgeSettings = async () => {
-      setLoading(true);
-      setError(null);
-      
-      try {
-        // Fetch resolution badge settings
-        try {
-          const resolutionData = await apiClient.resolutionBadge.getSettings();
-          setResolutionBadgeSettings(resolutionData);
-        } catch (resolutionError) {
-          console.error('Failed to fetch resolution badge settings:', resolutionError);
-          // We continue even if one badge type fails
-        }
-        
-        // Fetch audio badge settings
-        try {
-          const audioData = await apiClient.audioBadge.getSettings();
-          setAudioBadgeSettings(audioData);
-        } catch (audioError) {
-          console.error('Failed to fetch audio badge settings:', audioError);
-          // We continue even if one badge type fails
-        }
-        
-        // Fetch review badge settings
-        try {
-          const reviewData = await apiClient.reviewBadge.getSettings();
-          setReviewBadgeSettings(reviewData);
-        } catch (reviewError) {
-          console.error('Failed to fetch review badge settings:', reviewError);
-          // We continue even if one badge type fails
-        }
-      } catch (err) {
-        console.error('Error fetching badge settings:', err);
-        setError(err instanceof Error ? err : new Error('Unknown error fetching badge settings'));
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchAllBadgeSettings();
-  }, []);
-
   return {
     displaySettings,
-    resolutionBadgeSettings,
-    audioBadgeSettings,
-    reviewBadgeSettings,
-    loading,
-    error,
-    toggleBadge
+    toggleBadge,
+    loading
   };
 };

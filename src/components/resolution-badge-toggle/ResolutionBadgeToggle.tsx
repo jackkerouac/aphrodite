@@ -2,36 +2,45 @@ import React, { useState, useEffect } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import apiClient from '@/lib/api-client';
-import { ResolutionBadgeSettings } from '@/pages/settings/resolution-badge/hooks/useResolutionBadgeSettings';
+// Import from the settings hook for consistency
+import { useResolutionBadgeSettings, ResolutionBadgeSettings } from '@/pages/settings/resolution-badge/hooks/useResolutionBadgeSettings';
+import { getSourceImageUrlForResolution } from '@/utils/resolutionUtils';
 
 interface ResolutionBadgeToggleProps {
   onChange?: (isEnabled: boolean) => void;
   className?: string;
+  initialEnabled?: boolean;
 }
 
 const ResolutionBadgeToggle: React.FC<ResolutionBadgeToggleProps> = ({ 
   onChange, 
-  className = '' 
+  className = '',
+  initialEnabled = true
 }) => {
-  const [enabled, setEnabled] = useState(true);
-  const [settings, setSettings] = useState<ResolutionBadgeSettings | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
+  const [enabled, setEnabled] = useState(initialEnabled);
+  const { settings, loading: isLoading } = useResolutionBadgeSettings();
+  const [iconSrc, setIconSrc] = useState<string | undefined>(undefined);
+  
+  // Set initial state based on settings if available
   useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        setIsLoading(true);
-        const data = await apiClient.resolutionBadge.getSettings();
-        setSettings(data);
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error loading resolution badge settings:', error);
-        setIsLoading(false);
-      }
-    };
-
-    loadSettings();
-  }, []);
+    if (settings && settings.resolution_type) {
+      // If settings are loaded successfully, we assume the badge is enabled
+      // This could be enhanced later to store an explicit enabled state
+      setEnabled(true);
+      
+      // Load the icon when settings are available
+      const loadIcon = async () => {
+        try {
+          const imagePath = await getSourceImageUrlForResolution(settings.resolution_type);
+          setIconSrc(imagePath);
+        } catch (error) {
+          console.error('Error loading resolution badge icon:', error);
+        }
+      };
+      
+      loadIcon();
+    }
+  }, [settings]);
 
   const handleToggle = (value: boolean) => {
     setEnabled(value);
@@ -48,9 +57,19 @@ const ResolutionBadgeToggle: React.FC<ResolutionBadgeToggleProps> = ({
         disabled={isLoading}
         onCheckedChange={handleToggle}
       />
-      <Label htmlFor="resolution-badge-toggle" className="cursor-pointer">
-        Resolution Badge {isLoading ? '(Loading...)' : ''}
-      </Label>
+      <div className="flex items-center">
+        <Label htmlFor="resolution-badge-toggle" className="cursor-pointer mr-2">
+          Resolution Badge {isLoading ? '(Loading...)' : ''}
+        </Label>
+        {iconSrc && !isLoading && (
+          <img 
+            src={iconSrc} 
+            alt="Resolution badge preview" 
+            className="w-6 h-4 object-contain" 
+            title={settings?.resolution_type || 'Resolution badge'}
+          />
+        )}
+      </div>
     </div>
   );
 };

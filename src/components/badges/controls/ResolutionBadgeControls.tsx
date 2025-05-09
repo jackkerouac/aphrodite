@@ -7,6 +7,8 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { resolutionOptions } from '@/pages/settings/resolution-badge/constants';
+import { getResolutionDisplayName } from '@/utils/resolutionUtils';
 
 interface ResolutionBadgeControlsProps {
   settings: ResolutionBadgeSettings;
@@ -14,12 +16,80 @@ interface ResolutionBadgeControlsProps {
 }
 
 const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ settings, onChange }) => {
+  const handleSliderChange = (field: keyof ResolutionBadgeSettings, value: number) => {
+    // Immediately update the slider value and preview
+    handleChange(field, value);
+  };
+  
+  const handleColorSliderChange = (field: keyof ResolutionBadgeSettings, value: number) => {
+    // For opacity sliders, convert the percentage to a decimal value
+    handleChange(field, value / 100);
+  };
+
   const handleChange = (field: keyof ResolutionBadgeSettings, value: any) => {
     onChange({
       ...settings,
       [field]: value,
     });
   };
+
+  // Helper function to sort resolutions in a logical order
+  const getSortedResolutions = () => {
+    // Define resolution categories for sorting
+    const categories = {
+      standard: ['4k', '2160', '1080', '1080p', '720', '720p', '576p', '480', '480p'],
+      plus: ['4kplus', '1080pplus', '720pplus', '576pplus', '480pplus', 'plus'],
+      hdr: ['4khdr', '1080phdr', '720phdr', '576phdr', '480phdr', 'hdr'],
+      dv: ['4kdv', '1080pdv', '720pdv', '576pdv', '480pdv', 'dv'],
+      advanced: ['4kdvhdr', '4kdvhdrplus', '1080pdvhdr', '1080pdvhdrplus', '720pdvhdr', '720pdvhdrplus', 
+               '576pdvhdr', '576pdvhdrplus', '480pdvhdr', '480pdvhdrplus', 'dvhdr', 'dvhdrplus']
+    };
+    
+    // Create a lookup map for sorting within categories
+    const resolutionOrder: Record<string, number> = {};
+    
+    // Assign sort values to each resolution type
+    let sortIndex = 0;
+    
+    // First add standard resolutions in descending order
+    categories.standard.forEach(res => {
+      resolutionOrder[res] = sortIndex++;
+    });
+    
+    // Then add plus versions
+    categories.plus.forEach(res => {
+      resolutionOrder[res] = sortIndex++;
+    });
+    
+    // Then add HDR versions
+    categories.hdr.forEach(res => {
+      resolutionOrder[res] = sortIndex++;
+    });
+    
+    // Then add DV versions
+    categories.dv.forEach(res => {
+      resolutionOrder[res] = sortIndex++;
+    });
+    
+    // Finally add advanced combinations
+    categories.advanced.forEach(res => {
+      resolutionOrder[res] = sortIndex++;
+    });
+    
+    // Sort the resolutions
+    return [...resolutionOptions].sort((a, b) => {
+      // If both resolutions are in our order map, use that
+      if (resolutionOrder[a] !== undefined && resolutionOrder[b] !== undefined) {
+        return resolutionOrder[a] - resolutionOrder[b];
+      }
+      
+      // Otherwise, just sort alphabetically
+      return a.localeCompare(b);
+    });
+  };
+  
+  // Get the sorted resolutions
+  const sortedResolutions = getSortedResolutions();
 
   return (
     <div className="space-y-4">
@@ -37,7 +107,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                   min={20} 
                   max={200} 
                   step={1}
-                  onValueChange={(values) => handleChange('size', values[0])}
+                  onValueChange={(values) => handleSliderChange('size', values[0])}
                 />
                 <Input 
                   type="number" 
@@ -58,20 +128,18 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
             <div className="space-y-2 mb-4">
               <Label htmlFor="resolutionType">Resolution</Label>
               <Select 
-                value={settings.resolutionType || '4K'}
+                value={settings.resolutionType || '4k'}
                 onValueChange={(value) => handleChange('resolutionType', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select resolution" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="4K">4K</SelectItem>
-                  <SelectItem value="1080p">1080p</SelectItem>
-                  <SelectItem value="720p">720p</SelectItem>
-                  <SelectItem value="8K">8K</SelectItem>
-                  <SelectItem value="SD">SD</SelectItem>
-                  <SelectItem value="HDR">HDR</SelectItem>
-                  <SelectItem value="Dolby Vision">Dolby Vision</SelectItem>
+                  {sortedResolutions.map((resolution) => (
+                    <SelectItem key={resolution} value={resolution}>
+                      {getResolutionDisplayName(resolution)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -133,7 +201,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                   min={0} 
                   max={100} 
                   step={1}
-                  onValueChange={(values) => handleChange('backgroundOpacity', values[0] / 100)}
+                  onValueChange={(values) => handleColorSliderChange('backgroundOpacity', values[0])}
                 />
                 <span>{Math.round(settings.backgroundOpacity * 100)}%</span>
               </div>
@@ -169,7 +237,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                   min={8} 
                   max={72} 
                   step={1}
-                  onValueChange={(values) => handleChange('fontSize', values[0])}
+                  onValueChange={(values) => handleSliderChange('fontSize', values[0])}
                 />
                 <Input 
                   type="number" 
@@ -195,7 +263,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                   min={0} 
                   max={50} 
                   step={1}
-                  onValueChange={(values) => handleChange('borderRadius', values[0])}
+                  onValueChange={(values) => handleSliderChange('borderRadius', values[0])}
                 />
                 <Input 
                   type="number" 
@@ -216,7 +284,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                   min={0} 
                   max={10} 
                   step={1}
-                  onValueChange={(values) => handleChange('borderWidth', values[0])}
+                  onValueChange={(values) => handleSliderChange('borderWidth', values[0])}
                 />
                 <Input 
                   type="number" 
@@ -244,6 +312,22 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                   onChange={(e) => handleChange('borderColor', e.target.value)}
                   className="flex-1"
                 />
+              </div>
+            </div>
+
+            {/* Border Opacity */}
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="borderOpacity">Border Opacity</Label>
+              <div className="flex items-center gap-4">
+                <Slider 
+                  id="borderOpacity"
+                  value={[(settings.borderOpacity || 1) * 100]} 
+                  min={0} 
+                  max={100} 
+                  step={1}
+                  onValueChange={(values) => handleColorSliderChange('borderOpacity', values[0])}
+                />
+                <span>{Math.round((settings.borderOpacity || 1) * 100)}%</span>
               </div>
             </div>
 
@@ -289,7 +373,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                       min={0} 
                       max={20} 
                       step={1}
-                      onValueChange={(values) => handleChange('shadowBlur', values[0])}
+                      onValueChange={(values) => handleSliderChange('shadowBlur', values[0])}
                     />
                     <Input 
                       type="number" 
@@ -310,7 +394,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                       min={-20} 
                       max={20} 
                       step={1}
-                      onValueChange={(values) => handleChange('shadowOffsetX', values[0])}
+                      onValueChange={(values) => handleSliderChange('shadowOffsetX', values[0])}
                     />
                     <Input 
                       type="number" 
@@ -331,7 +415,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                       min={-20} 
                       max={20} 
                       step={1}
-                      onValueChange={(values) => handleChange('shadowOffsetY', values[0])}
+                      onValueChange={(values) => handleSliderChange('shadowOffsetY', values[0])}
                     />
                     <Input 
                       type="number" 

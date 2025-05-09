@@ -23,6 +23,7 @@ export interface ResolutionBadgeSettings {
   resolutionType?: string;
   useCustomText?: boolean;
   customText?: string;
+  directImageRender?: boolean; // New property to allow direct image rendering without container
 }
 
 interface ResolutionBadgeProps {

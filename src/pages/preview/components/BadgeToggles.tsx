@@ -3,6 +3,7 @@ import { badgeDescriptions } from '../constants';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { BadgeDisplaySettings } from '../hooks/useBadgePreviewSettings';
+import ResolutionBadgeToggle from '@/components/resolution-badge-toggle/ResolutionBadgeToggle';
 
 interface BadgeTogglesProps {
   displaySettings: BadgeDisplaySettings;
@@ -35,17 +36,14 @@ const BadgeToggles: React.FC<BadgeTogglesProps> = ({
           </div>
         </div>
 
+        {/* Enhanced Resolution Badge Toggle */}
         <div className="flex items-center space-x-2 justify-start">
-          <Switch
-            id="resolutionBadge"
-            disabled={loading}
-            checked={displaySettings.showResolutionBadge}
-            onCheckedChange={() => toggleBadge('showResolutionBadge')}
+          <ResolutionBadgeToggle 
+            initialEnabled={displaySettings.showResolutionBadge}
+            onChange={(isEnabled) => toggleBadge('showResolutionBadge')}
+            className="flex items-center space-x-2"
           />
           <div>
-            <Label htmlFor="resolutionBadge" className="cursor-pointer">
-              Resolution Badge
-            </Label>
             <p className="text-xs text-muted-foreground">
               {badgeDescriptions.showResolutionBadge}
             </p>
