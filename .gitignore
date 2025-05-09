@@ -80,3 +80,4 @@ ENDPOINT.md
 # Google Drive
 *.tmp.driveupload
 backend/logs/aphrodite.log
+backend/logs/aphrodite.log
