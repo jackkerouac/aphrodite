@@ -57,6 +57,7 @@ const FixedPosterPreview: React.FC<FixedPosterPreviewProps> = ({
   };
 
   // Re-render badges when active badge type changes or when dimensions might have updated
+  // The renderBadges function reference will change when any badge toggle state changes
   useEffect(() => {
     if (loaded && canvasRef.current && renderBadges) {
       const ctx = canvasRef.current.getContext('2d');
@@ -67,7 +68,7 @@ const FixedPosterPreview: React.FC<FixedPosterPreviewProps> = ({
         renderBadges(ctx, posterDimensions);
       }
     }
-  }, [activeBadgeType, loaded, renderBadges, posterDimensions, canvasRef]);
+  }, [activeBadgeType, loaded, renderBadges, posterDimensions]);
 
   // Handle drag events for badge positioning
   const handleDragOver = (e: React.DragEvent) => {

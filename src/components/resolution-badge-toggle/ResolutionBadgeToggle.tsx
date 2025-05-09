@@ -17,6 +17,7 @@ const ResolutionBadgeToggle: React.FC<ResolutionBadgeToggleProps> = ({
   className = '',
   initialEnabled = true
 }) => {
+  // Use the initialEnabled prop to set the initial state
   const [enabled, setEnabled] = useState(initialEnabled);
   const { settings, loading: isLoading } = useResolutionBadgeSettings();
   const [iconSrc, setIconSrc] = useState<string | undefined>(undefined);
@@ -24,9 +25,8 @@ const ResolutionBadgeToggle: React.FC<ResolutionBadgeToggleProps> = ({
   // Set initial state based on settings if available
   useEffect(() => {
     if (settings && settings.resolution_type) {
-      // If settings are loaded successfully, we assume the badge is enabled
-      // This could be enhanced later to store an explicit enabled state
-      setEnabled(true);
+      // Only load the icon, but don't change the enabled state
+      // This ensures we respect the initialEnabled value from props
       
       // Load the icon when settings are available
       const loadIcon = async () => {
@@ -45,7 +45,9 @@ const ResolutionBadgeToggle: React.FC<ResolutionBadgeToggleProps> = ({
   const handleToggle = (value: boolean) => {
     setEnabled(value);
     if (onChange) {
+      // Ensure the parent component gets notified of the change
       onChange(value);
+      console.log('Resolution badge toggle changed to:', value);
     }
   };
 

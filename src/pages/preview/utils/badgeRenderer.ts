@@ -20,24 +20,39 @@ export const renderBadges = async (
   activeBadgeType: string | null,
   debugMode: boolean
 ) => {
+  // Comprehensive debug logging 
+  console.group('Badge Renderer');
+  console.log('Toggle States:', { showAudioBadge, showResolutionBadge, showReviewBadge });
+  console.log('Canvas Dimensions:', dimensions);
+  console.log('Active Badge:', activeBadgeType);
+  console.log('Debug Mode:', debugMode);
+  
   // Return early if dimensions are invalid
   if (!dimensions || dimensions.width < 50 || dimensions.height < 50) {
     console.log('Invalid dimensions, skipping badge rendering');
+    console.groupEnd();
     return;
   }
   
-  // Add a console log to debug
-  console.log('Rendering badges with dimensions:', dimensions);
-  console.log('Active badge type:', activeBadgeType);
-  
-  // Clear canvas
+  // Clear the entire canvas before drawing
+  console.log('Clearing canvas...');
   ctx.clearRect(0, 0, dimensions.width, dimensions.height);
 
+  // Track which badges will be rendered
+  const badgesToRender = [];
+  if (showAudioBadge === true) badgesToRender.push('audio');
+  if (showResolutionBadge === true) badgesToRender.push('resolution');
+  if (showReviewBadge === true) badgesToRender.push('review');
+  
+  console.log(`Will render badges: ${badgesToRender.join(', ') || 'none'}`);
+  
   // Create promises array to handle all badge rendering
   const renderPromises = [];
 
-  // Add render tasks to the array
-  if (showAudioBadge) {
+  // Add render tasks to the array - each badge will only be rendered if its toggle is ON
+  // Explicit equality check to ensure proper boolean comparison
+  if (showAudioBadge === true) {
+    console.log('Adding audio badge to render queue');
     renderPromises.push(renderAudioBadge(
       ctx,
       dimensions,
@@ -45,9 +60,12 @@ export const renderBadges = async (
       activeBadgeType === "audio",
       debugMode
     ));
+  } else {
+    console.log('Audio badge toggle is OFF, not rendering');
   }
 
-  if (showResolutionBadge) {
+  if (showResolutionBadge === true) {
+    console.log('Adding resolution badge to render queue');
     renderPromises.push(renderResolutionBadge(
       ctx,
       dimensions,
@@ -55,9 +73,12 @@ export const renderBadges = async (
       activeBadgeType === "resolution",
       debugMode
     ));
+  } else {
+    console.log('Resolution badge toggle is OFF, not rendering');
   }
 
-  if (showReviewBadge) {
+  if (showReviewBadge === true) {
+    console.log('Adding review badge to render queue');
     renderPromises.push(renderReviewBadge(
       ctx,
       dimensions,
@@ -65,10 +86,20 @@ export const renderBadges = async (
       activeBadgeType === "review",
       debugMode
     ));
+  } else {
+    console.log('Review badge toggle is OFF, not rendering');
   }
 
   // Wait for all rendering to complete
-  await Promise.all(renderPromises);
+  if (renderPromises.length > 0) {
+    console.log(`Rendering ${renderPromises.length} badges...`);
+    await Promise.all(renderPromises);
+    console.log('Badge rendering complete');
+  } else {
+    console.log('No badges to render');
+  }
+  
+  console.groupEnd();
 };
 
 /**

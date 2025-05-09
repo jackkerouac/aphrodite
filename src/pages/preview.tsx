@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useBadgePreviewSettings } from "./preview/hooks/useBadgePreviewSettings";
 import { usePosterState } from "./preview/hooks/usePosterState";
 import { useBadgeState } from "./preview/hooks/useBadgeState";
@@ -17,35 +17,47 @@ export default function Preview() {
     loading: badgeSettingsLoading
   } = useBadgePreviewSettings();
   
+  // Log current toggle states whenever they change, for debugging
+  useEffect(() => {
+    console.log('Toggle states updated in Preview component:', { 
+      showAudioBadge, 
+      showResolutionBadge, 
+      showReviewBadge 
+    });
+  }, [showAudioBadge, showResolutionBadge, showReviewBadge]);
+  
   // Use poster state hook to manage poster display
   const posterState = usePosterState();
   
-  // Function to update preview immediately
-  const updateCanvasCallback = () => {
-    // Logic to force canvas redraw
-    if (canvasRef.current && posterState.posterDimensions.width > 50 && !posterState.loading) {
-      const ctx = canvasRef.current.getContext('2d');
-      if (ctx) {
-        console.log('Forcing immediate preview update from main component');
-        badgeRenderCallbackRef.current(ctx, posterState.posterDimensions);
-      }
-    }
-  };
+  // Create a placeholder updateCanvasCallback to avoid hook ordering issues
+  const updateCanvasCallbackRef = useRef(() => {});
   
   // Use badge state hook to manage badge settings
-  const badgeState = useBadgeState("123", updateCanvasCallback);
+  const badgeState = useBadgeState("123", () => updateCanvasCallbackRef.current());
   
   // Effect to update loading state
   useEffect(() => {
     posterState.setLoading(badgeState.loading || badgeSettingsLoading);
   }, [badgeState.loading, badgeSettingsLoading]);
   
-  // Function to render badges to canvas (will be passed to child components)
-  const badgeRenderCallback = async (ctx: CanvasRenderingContext2D, dimensions: PosterDimensions) => {
-    // Import here to prevent circular dependency
-    const { renderBadges } = await import("./preview/utils/badgeRenderer");
+  // Completely rewritten badge rendering approach
+  const renderBadges = async (ctx: CanvasRenderingContext2D, dimensions: PosterDimensions) => {
+    // Import rendering utility
+    const { renderBadges: applyBadgesToCanvas } = await import("./preview/utils/badgeRenderer");
     
-    return renderBadges(
+    // Log this render request with all relevant state
+    console.log('Render badges called with dimensions:', dimensions);
+    console.log('Current toggle states:', { 
+      showAudioBadge, 
+      showResolutionBadge, 
+      showReviewBadge 
+    });
+    
+    // First clear the canvas completely
+    ctx.clearRect(0, 0, dimensions.width, dimensions.height);
+    
+    // Then apply badges based on current toggle states
+    return applyBadgesToCanvas(
       ctx,
       dimensions,
       showAudioBadge,
@@ -59,13 +71,8 @@ export default function Preview() {
     );
   };
   
-  // Use a ref to keep the render callback function stable
-  const badgeRenderCallbackRef = useRef(badgeRenderCallback);
-  
-  // Update the ref when dependencies change
-  useEffect(() => {
-    badgeRenderCallbackRef.current = badgeRenderCallback;
-  }, [
+  // Create a memoized render function that updates when any dependency changes
+  const badgeRenderCallback = useCallback(renderBadges, [
     showAudioBadge,
     showResolutionBadge,
     showReviewBadge,
@@ -75,6 +82,31 @@ export default function Preview() {
     badgeState.activeBadgeType,
     posterState.debugMode
   ]);
+  
+  // Force re-render of canvas when toggle states change
+  useEffect(() => {
+    if (canvasRef.current && !posterState.loading) {
+      const ctx = canvasRef.current.getContext('2d');
+      if (ctx) {
+        console.log('Toggle state changed - forcing canvas update');
+        badgeRenderCallback(ctx, posterState.posterDimensions);
+      }
+    }
+  }, [showAudioBadge, showResolutionBadge, showReviewBadge, posterState.loading, posterState.posterDimensions, badgeRenderCallback]);
+  
+  // Update the canvas callback ref with latest function
+  useEffect(() => {
+    // Now define the real update function using all current dependencies
+    updateCanvasCallbackRef.current = () => {
+      if (canvasRef.current && posterState.posterDimensions.width > 50 && !posterState.loading) {
+        const ctx = canvasRef.current.getContext('2d');
+        if (ctx) {
+          console.log('Updating canvas via callback ref');
+          badgeRenderCallback(ctx, posterState.posterDimensions);
+        }
+      }
+    };
+  }, [badgeRenderCallback, posterState.posterDimensions, posterState.loading]);
   
   // Function to save badge as PNG
   const handleSaveBadgeAsPng = (type: string) => {
@@ -123,7 +155,7 @@ export default function Preview() {
             togglePoster={posterState.togglePoster}
             toggleDebugMode={posterState.toggleDebugMode}
             activePoster={posterState.activePoster}
-            renderBadges={badgeRenderCallbackRef.current}
+            renderBadges={badgeRenderCallback}
             onBadgePositionChange={badgeState.handleBadgePositionChange}
             onPosterLoad={posterState.handlePosterLoad}
           />
