@@ -8,6 +8,7 @@ export interface ReviewSource {
 }
 
 export interface ReviewBadgeSettings {
+  type: 'review';
   size: number;
   backgroundColor: string;
   backgroundOpacity: number;

@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { FileSliders } from "lucide-react";
 import BadgeToggles from "../BadgeToggles";
 import BadgeControls from "@/components/badges/BadgeControls";
-import ExportButtons from "../ExportButtons";
+import SaveBadgeSettingsButton from "../SaveBadgeSettingsButton";
 import { AudioBadgeSettings } from "@/components/badges/types/AudioBadge";
 import { ResolutionBadgeSettings } from "@/components/badges/types/ResolutionBadge";
 import { ReviewBadgeSettings } from "@/components/badges/types/ReviewBadge";
@@ -23,7 +23,9 @@ interface BadgeSettingsAreaProps {
     resolution: (settings: ResolutionBadgeSettings) => void;
     review: (settings: ReviewBadgeSettings) => void;
   };
-  saveBadgeAsPng: (type: string) => void;
+  audioBadgeSettings: AudioBadgeSettings;
+  resolutionBadgeSettings: ResolutionBadgeSettings;
+  reviewBadgeSettings: ReviewBadgeSettings;
 }
 
 const BadgeSettingsArea: React.FC<BadgeSettingsAreaProps> = ({
@@ -33,7 +35,9 @@ const BadgeSettingsArea: React.FC<BadgeSettingsAreaProps> = ({
   badgeSettingsLoading,
   onBadgeTypeChange,
   saveHandlers,
-  saveBadgeAsPng
+  audioBadgeSettings,
+  resolutionBadgeSettings,
+  reviewBadgeSettings
 }) => {
   return (
     <Card className="h-full">
@@ -69,12 +73,15 @@ const BadgeSettingsArea: React.FC<BadgeSettingsAreaProps> = ({
             />
           </div>
 
-          {/* Export Buttons */}
+          {/* Save Badge Settings Button */}
           <div className="space-y-3 pt-4">
-            <h3 className="text-lg font-medium">Export Badges</h3>
-            <ExportButtons 
-              saveBadgeAsPng={saveBadgeAsPng}
+            <h3 className="text-lg font-medium">Save Badge Settings</h3>
+            <SaveBadgeSettingsButton 
               displaySettings={displaySettings}
+              audioBadgeSettings={audioBadgeSettings}
+              resolutionBadgeSettings={resolutionBadgeSettings}
+              reviewBadgeSettings={reviewBadgeSettings}
+              userId="123"
             />
           </div>
         </div>

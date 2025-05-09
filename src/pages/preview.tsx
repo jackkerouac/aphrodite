@@ -180,7 +180,9 @@ export default function Preview() {
               resolution: badgeState.saveResolutionBadgeSettings,
               review: badgeState.saveReviewBadgeSettings
             }}
-            saveBadgeAsPng={handleSaveBadgeAsPng}
+            audioBadgeSettings={badgeState.audioBadgeSettings}
+            resolutionBadgeSettings={badgeState.resolutionBadgeSettings}
+            reviewBadgeSettings={badgeState.reviewBadgeSettings}
           />
         </div>
 

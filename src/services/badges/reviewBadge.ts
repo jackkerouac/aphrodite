@@ -1,53 +1,12 @@
-import { ReviewBadgeSettings } from '@/components/badges/types/ReviewBadge';
-import { createTempCanvas, drawRoundedRect } from './utils';
-
-// Import logos directly to ensure Vite bundles them correctly
-import IMDbLogo from '@/assets/rating/IMDb.png';
-import RTLogo from '@/assets/rating/RT-Crit-Fresh.png';
-import MALLogo from '@/assets/rating/MAL.png';
-import TMDbLogo from '@/assets/rating/TMDb.png';
-import MetacriticLogo from '@/assets/rating/metacritic_logo.png';
-import LetterboxdLogo from '@/assets/rating/Letterboxd.png';
-import TraktLogo from '@/assets/rating/Trakt.png';
-import AniDBLogo from '@/assets/rating/AniDB.png';
-
-// Map of rating source names to logo paths
-const RATING_LOGO_MAP: Record<string, string> = {
-  'IMDB': IMDbLogo,
-  'RT': RTLogo,
-  'MAL': MALLogo,
-  'TMDB': TMDbLogo,
-  'Metacritic': MetacriticLogo,
-  'Letterboxd': LetterboxdLogo,
-  'Trakt': TraktLogo,
-  'AniDB': AniDBLogo
-};
-
-// Map of rating source names to their standard background colors
-const RATING_BG_COLOR_MAP: Record<string, string> = {
-  'IMDB': '#F5C518',      // IMDb yellow
-  'RT': '#FA320A',       // Rotten Tomatoes red
-  'MAL': '#2E51A2',      // MyAnimeList blue
-  'TMDB': '#0D253F',     // TMDb dark blue
-  'Metacritic': '#000000', // Metacritic black
-  'Letterboxd': '#00E054', // Letterboxd green
-  'Trakt': '#ED2224',    // Trakt red
-  'AniDB': '#3A3744'     // AniDB purple
-};
-
-/**
- * Load an image from a URL
- * @param url The URL of the image to load
- * @returns Promise resolving to an HTMLImageElement
- */
-async function loadImage(url: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
-    img.src = url;
-  });
-}
+import { ReviewBadgeSettings, ReviewSource } from '@/components/badges/types/ReviewBadge';
+import { 
+  createTempCanvas, 
+  drawRoundedRect, 
+  formatRating, 
+  RATING_LOGO_MAP, 
+  RATING_BG_COLOR_MAP, 
+  loadImage 
+} from './utils/index';
 
 /**
  * Renders a review badge to a canvas
@@ -59,6 +18,9 @@ export const renderReviewBadge = async (
   options: ReviewBadgeSettings, 
   sourceImageUrl?: string
 ): Promise<HTMLCanvasElement> => {
+  // Log opacity setting for debugging
+  console.log(`Rendering review badge with opacity: ${options.backgroundOpacity}`);
+  
   const isHorizontal = options.displayFormat !== 'vertical';
   const sources = options.sources || [
     { name: 'IMDB', rating: 8.5, outOf: 10 },
@@ -72,22 +34,22 @@ export const renderReviewBadge = async (
   
   // Constants for layout
   const padding = 10; // Padding around each badge
-  const logoHeight = baseSize * 0.6; // 60% of badge size for logo
+  const logoHeight = baseSize * 0.55; // 55% of badge size for logo (reduced slightly)
   const textHeight = baseSize * 0.3; // 30% of badge size for text
-  const verticalSpacing = baseSize * 0.1; // 10% spacing between logo and text
+  const verticalSpacing = baseSize * 0.15; // 15% spacing between logo and text (increased)
   
   // Pre-load logo images for sizing calculations
   const logoPromises = sourcesToShow.map(async (source) => {
-    // Try to get the logo from our map first
-    const logoPath = RATING_LOGO_MAP[source.name.toUpperCase()] || 
-                     RATING_LOGO_MAP[source.name] || 
-                     null;
-    if (!logoPath) {
-      console.warn(`No logo found for rating source: ${source.name}`);
-      return null;
-    }
-    
     try {
+      // Try to get the logo from our map first
+      const logoPath = RATING_LOGO_MAP[source.name.toUpperCase()] || 
+                       RATING_LOGO_MAP[source.name] || 
+                       null;
+      if (!logoPath) {
+        console.warn(`No logo found for rating source: ${source.name}`);
+        return null;
+      }
+      
       return await loadImage(logoPath);
     } catch (error) {
       console.error(`Failed to load logo for ${source.name}:`, error);
@@ -95,7 +57,14 @@ export const renderReviewBadge = async (
     }
   });
   
-  const logos = await Promise.all(logoPromises);
+  let logos: (HTMLImageElement | null)[] = [];
+  try {
+    logos = await Promise.all(logoPromises);
+    console.log(`Loaded ${logos.filter(Boolean).length} logos out of ${logoPromises.length} requested`);
+  } catch (error) {
+    console.error('Error loading logos:', error);
+    // Continue with empty logos array - we'll use fallback text display
+  }
   
   // Calculate dimensions based on loaded logos
   let badgeWidths: number[] = [];
@@ -147,21 +116,25 @@ export const renderReviewBadge = async (
     return canvas;
   }
   
-  // Apply background
-  ctx.fillStyle = options.backgroundColor;
-  ctx.globalAlpha = options.backgroundOpacity;
+  // Clear the canvas with transparent background
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   
-  if (options.borderRadius && options.borderRadius > 0) {
-    // Draw rounded rectangle background
-    console.log(`Drawing review badge with border radius: ${options.borderRadius}`);
-    drawRoundedRect(ctx, 0, 0, canvas.width, canvas.height, options.borderRadius);
-    ctx.fill();
-  } else {
-    // Draw rectangle background
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Draw the main background if we're not using brand colors
+  if (!options.useBrandColors) {
+    ctx.fillStyle = options.backgroundColor;
+    ctx.globalAlpha = options.backgroundOpacity;
+    
+    if (options.borderRadius && options.borderRadius > 0) {
+      // Draw rounded rectangle background
+      drawRoundedRect(ctx, 0, 0, canvas.width, canvas.height, options.borderRadius);
+      ctx.fill();
+    } else {
+      // Draw rectangle background
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
   }
   
-  // Apply border if specified
+  // Draw border if specified
   if (options.borderWidth && options.borderWidth > 0) {
     ctx.strokeStyle = options.borderColor || '#000000';
     ctx.globalAlpha = options.borderOpacity || 1;
@@ -190,6 +163,9 @@ export const renderReviewBadge = async (
     }
   }
   
+  // Reset global alpha for subsequent drawing operations
+  ctx.globalAlpha = 1;
+  
   // Apply shadow if enabled
   if (options.shadowEnabled) {
     ctx.shadowColor = options.shadowColor || 'rgba(0, 0, 0, 0.5)';
@@ -201,9 +177,30 @@ export const renderReviewBadge = async (
   // Text style setup
   ctx.globalAlpha = 1; // Reset alpha for text
   ctx.fillStyle = options.textColor || '#FFFFFF';
-  ctx.font = `bold ${options.fontSize || Math.floor(textHeight * 0.7)}px ${options.fontFamily || 'Arial'}`;
+  
+  // Increase the font weight and size slightly for better visibility
+  ctx.font = `bold ${options.fontSize || Math.floor(textHeight * 0.8)}px ${options.fontFamily || 'Arial, sans-serif'}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
+  
+  // Add slight stroke to text for better contrast
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 0.5;
+  
+  // Apply a subtle text shadow for better readability regardless of background
+  // This helps with text contrast on any background
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+  ctx.shadowBlur = 2;
+  ctx.shadowOffsetX = 1;
+  ctx.shadowOffsetY = 1;
+  
+  // Override with user shadow settings if shadow is enabled
+  if (options.shadowEnabled) {
+    ctx.shadowColor = options.shadowColor || 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = options.shadowBlur || 5;
+    ctx.shadowOffsetX = options.shadowOffsetX || 2;
+    ctx.shadowOffsetY = options.shadowOffsetY || 2;
+  }
   
   // Draw badges with logos and text
   if (isHorizontal) {
@@ -214,19 +211,49 @@ export const renderReviewBadge = async (
       const badgeWidth = badgeWidths[index];
       const logo = logos[index];
       
-      // Skip if no logo was loaded
+      // Define position for this source (with unique variable names)
+      const horLogoX = currentX + (badgeWidth / 2);
+      const horLogoY = padding + (logoHeight / 2);
+      
+      // If no logo was loaded, draw a text fallback instead
       if (!logo) {
+        // Reset alpha for text
+        ctx.globalAlpha = 1;
+        // Draw the source name as fallback
+        ctx.fillStyle = options.textColor || '#FFFFFF';
+        ctx.font = `bold ${Math.floor(logoHeight * 0.5)}px ${options.fontFamily || 'Arial, sans-serif'}`;
+        ctx.fillText(source.name, horLogoX, horLogoY);
+        
+        // Format the rating
+        let ratingText = formatRating(source);
+        
+        // Draw rating text below
+        const textY = padding + logoHeight + verticalSpacing + (textHeight / 2);
+        ctx.fillText(ratingText, horLogoX, textY);
+        
+        // Move to next position
         currentX += badgeWidth;
+        // Skip to next iteration
         return;
       }
       
       // Apply source-specific background color if available
       const sourceName = source.name.toUpperCase();
-      if (RATING_BG_COLOR_MAP[sourceName] && options.useBrandColors) {
+      
+      // Set the opacity for individual badge backgrounds
+      ctx.globalAlpha = options.backgroundOpacity;
+      
+      if (options.useBrandColors && RATING_BG_COLOR_MAP[sourceName]) {
+        // If using brand colors, use the color from the map
         ctx.fillStyle = RATING_BG_COLOR_MAP[sourceName];
-        // Keep the global alpha the same as set for the general background
-      } else {
+      } else if (options.useBrandColors) {
+        // If using brand colors but no matching color in the map
         ctx.fillStyle = options.backgroundColor || '#000000';
+      } else {
+        // If we already drew the main background and not using brand colors,
+        // we don't need to draw individual backgrounds again
+        ctx.fillStyle = 'transparent';
+        ctx.globalAlpha = 0;
       }
       
       // Draw individual badge background
@@ -237,78 +264,38 @@ export const renderReviewBadge = async (
         ctx.fillRect(currentX, 0, badgeWidth, canvasHeight);
       }
       
-      // Logo positioning
-      const logoX = currentX + (badgeWidth / 2);
-      const logoY = padding + (logoHeight / 2);
-      
       // Calculate logo dimensions preserving aspect ratio
       const logoAspect = logo.width / logo.height;
       const logoDrawWidth = Math.min(logoHeight * logoAspect, badgeWidth - (padding * 2));
       const logoDrawHeight = logoDrawWidth / logoAspect;
       
+      // Reset global alpha for logo rendering
+      ctx.globalAlpha = 1;
+      
       // Draw logo centered
       ctx.drawImage(
         logo,
-        logoX - (logoDrawWidth / 2),
-        logoY - (logoDrawHeight / 2),
+        horLogoX - (logoDrawWidth / 2),
+        horLogoY - (logoDrawHeight / 2),
         logoDrawWidth,
         logoDrawHeight
       );
       
       // Format the rating score
-      const outOf = source.outOf || 10;
-      let ratingText = '';
-      
-      // Format based on the rating source
-      switch(source.name.toUpperCase()) {
-        case 'IMDB':
-          // IMDb uses 10-point scale with 1 decimal place
-          ratingText = source.rating.toFixed(1);
-          break;
-        case 'RT':
-          // Rotten Tomatoes uses percentage
-          ratingText = Math.round(source.rating) + '%';
-          break;
-        case 'METACRITIC':
-          // Metacritic uses 0-100 scale
-          ratingText = Math.round(source.rating).toString();
-          break;
-        case 'TMDB':
-          // TMDb uses 10-point scale with 1 decimal place
-          ratingText = source.rating.toFixed(1);
-          break;
-        case 'MAL':
-          // MyAnimeList uses 10-point scale with 2 decimal places
-          ratingText = source.rating.toFixed(2);
-          break;
-        case 'LETTERBOXD':
-          // Letterboxd uses 5-star scale with half stars
-          const stars = Math.round(source.rating * 2) / 2; // Round to nearest 0.5
-          ratingText = stars.toFixed(1);
-          break;
-        case 'TRAKT':
-          // Trakt uses 10-point scale with 1 decimal
-          ratingText = source.rating.toFixed(1);
-          break;
-        case 'ANIDB':
-          // AniDB uses 10-point scale with 2 decimals
-          ratingText = source.rating.toFixed(2);
-          break;
-        default:
-          // Generic formatting based on outOf value
-          if (outOf === 10) {
-            ratingText = source.rating.toFixed(1);
-          } else if (outOf === 100) {
-            ratingText = Math.round(source.rating) + '%';
-          } else {
-            ratingText = `${source.rating}/${outOf}`;
-          }
-          break;
-      }
+      let ratingText = formatRating(source);
       
       // Draw rating text below the logo
       const textY = padding + logoHeight + verticalSpacing + (textHeight / 2);
-      ctx.fillText(ratingText, logoX, textY);
+      
+      // Reset global alpha for text rendering to ensure full opacity
+      ctx.globalAlpha = 1;
+      // Ensure text color is set
+      ctx.fillStyle = options.textColor || '#FFFFFF';
+      
+      // Draw text with outline for better visibility
+      ctx.lineWidth = 2;
+      ctx.strokeText(ratingText, horLogoX, textY);
+      ctx.fillText(ratingText, horLogoX, textY);
       
       // Draw divider if needed
       if (options.showDividers && index < sourcesToShow.length - 1) {
@@ -333,19 +320,49 @@ export const renderReviewBadge = async (
       const badgeHeight = logoHeight + textHeight + verticalSpacing + (padding * 2);
       const logo = logos[index];
       
-      // Skip if no logo was loaded
+      // Define position for this source (with unique variable names)
+      const vertLogoX = canvasWidth / 2;
+      const vertLogoY = currentY + padding + (logoHeight / 2);
+      
+      // If no logo was loaded, draw a text fallback instead
       if (!logo) {
+        // Reset alpha for text
+        ctx.globalAlpha = 1;
+        // Draw the source name as fallback
+        ctx.fillStyle = options.textColor || '#FFFFFF';
+        ctx.font = `bold ${Math.floor(logoHeight * 0.5)}px ${options.fontFamily || 'Arial, sans-serif'}`;
+        ctx.fillText(source.name, vertLogoX, vertLogoY);
+        
+        // Format the rating
+        let ratingText = formatRating(source);
+        
+        // Draw rating text below
+        const textY = currentY + padding + logoHeight + verticalSpacing + (textHeight / 2);
+        ctx.fillText(ratingText, vertLogoX, textY);
+        
+        // Move to next position
         currentY += badgeHeight;
+        // Skip to next iteration
         return;
       }
       
       // Apply source-specific background color if available
       const sourceName = source.name.toUpperCase();
-      if (RATING_BG_COLOR_MAP[sourceName] && options.useBrandColors) {
+      
+      // Set the opacity for individual badge backgrounds
+      ctx.globalAlpha = options.backgroundOpacity;
+      
+      if (options.useBrandColors && RATING_BG_COLOR_MAP[sourceName]) {
+        // If using brand colors, use the color from the map
         ctx.fillStyle = RATING_BG_COLOR_MAP[sourceName];
-        // Keep the global alpha the same as set for the general background
-      } else {
+      } else if (options.useBrandColors) {
+        // If using brand colors but no matching color in the map
         ctx.fillStyle = options.backgroundColor || '#000000';
+      } else {
+        // If we already drew the main background and not using brand colors,
+        // we don't need to draw individual backgrounds again
+        ctx.fillStyle = 'transparent';
+        ctx.globalAlpha = 0;
       }
       
       // Draw individual badge background
@@ -356,78 +373,38 @@ export const renderReviewBadge = async (
         ctx.fillRect(0, currentY, canvasWidth, badgeHeight);
       }
       
-      // Logo positioning
-      const logoX = canvasWidth / 2;
-      const logoY = currentY + padding + (logoHeight / 2);
-      
       // Calculate logo dimensions preserving aspect ratio
       const logoAspect = logo.width / logo.height;
       const logoDrawWidth = Math.min(logoHeight * logoAspect, canvasWidth - (padding * 2));
       const logoDrawHeight = logoDrawWidth / logoAspect;
       
+      // Reset global alpha for logo rendering
+      ctx.globalAlpha = 1;
+      
       // Draw logo centered
       ctx.drawImage(
         logo,
-        logoX - (logoDrawWidth / 2),
-        logoY - (logoDrawHeight / 2),
+        vertLogoX - (logoDrawWidth / 2),
+        vertLogoY - (logoDrawHeight / 2),
         logoDrawWidth,
         logoDrawHeight
       );
       
       // Format the rating score
-      const outOf = source.outOf || 10;
-      let ratingText = '';
-      
-      // Format based on the rating source
-      switch(source.name.toUpperCase()) {
-        case 'IMDB':
-          // IMDb uses 10-point scale with 1 decimal place
-          ratingText = source.rating.toFixed(1);
-          break;
-        case 'RT':
-          // Rotten Tomatoes uses percentage
-          ratingText = Math.round(source.rating) + '%';
-          break;
-        case 'METACRITIC':
-          // Metacritic uses 0-100 scale
-          ratingText = Math.round(source.rating).toString();
-          break;
-        case 'TMDB':
-          // TMDb uses 10-point scale with 1 decimal place
-          ratingText = source.rating.toFixed(1);
-          break;
-        case 'MAL':
-          // MyAnimeList uses 10-point scale with 2 decimal places
-          ratingText = source.rating.toFixed(2);
-          break;
-        case 'LETTERBOXD':
-          // Letterboxd uses 5-star scale with half stars
-          const stars = Math.round(source.rating * 2) / 2; // Round to nearest 0.5
-          ratingText = stars.toFixed(1);
-          break;
-        case 'TRAKT':
-          // Trakt uses 10-point scale with 1 decimal
-          ratingText = source.rating.toFixed(1);
-          break;
-        case 'ANIDB':
-          // AniDB uses 10-point scale with 2 decimals
-          ratingText = source.rating.toFixed(2);
-          break;
-        default:
-          // Generic formatting based on outOf value
-          if (outOf === 10) {
-            ratingText = source.rating.toFixed(1);
-          } else if (outOf === 100) {
-            ratingText = Math.round(source.rating) + '%';
-          } else {
-            ratingText = `${source.rating}/${outOf}`;
-          }
-          break;
-      }
+      let ratingText = formatRating(source);
       
       // Draw rating text below the logo
       const textY = currentY + padding + logoHeight + verticalSpacing + (textHeight / 2);
-      ctx.fillText(ratingText, logoX, textY);
+      
+      // Reset global alpha for text rendering to ensure full opacity
+      ctx.globalAlpha = 1;
+      // Ensure text color is set
+      ctx.fillStyle = options.textColor || '#FFFFFF';
+      
+      // Draw text with outline for better visibility
+      ctx.lineWidth = 2;
+      ctx.strokeText(ratingText, vertLogoX, textY);
+      ctx.fillText(ratingText, vertLogoX, textY);
       
       // Draw divider if needed
       if (options.showDividers && index < sourcesToShow.length - 1) {

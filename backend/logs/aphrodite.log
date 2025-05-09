@@ -6,3 +6,9 @@
 [2025-05-09T15:01:47.640Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 30ms
 [2025-05-09T15:01:47.644Z] INFO: Found resolution badge settings for user ID: 1
 [2025-05-09T15:01:47.646Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 30ms
+[2025-05-09T20:07:28.327Z] INFO: Server running on port 5000
+[2025-05-09T20:12:20.203Z] INFO: [GET] /api/jellyfin-libraries 200 — 849ms
+[2025-05-09T20:12:20.205Z] INFO: [GET] /api/jellyfin-libraries 200 — 854ms
+[2025-05-09T20:17:03.699Z] INFO: Server running on port 5000
+[2025-05-09T20:17:15.107Z] INFO: Created badges directory at: E:\programming\aphrodite\backend\storage\badges
+[2025-05-09T20:17:15.126Z] INFO: Server running on port 5000
