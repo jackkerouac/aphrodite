@@ -262,91 +262,95 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
               <Label htmlFor="shadowEnabled">Enable Shadow</Label>
             </div>
 
-            {localSettings.shadowEnabled && (
-              <>
-                {/* Shadow Color */}
-                <div className="space-y-2 mb-4">
-                  <Label htmlFor="shadowColor">Shadow Color</Label>
-                  <div className="flex gap-2">
-                    <Input 
-                      type="color" 
-                      id="shadowColor"
-                      value={localSettings.shadowColor || '#000000'}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('shadowColor', e.target.value)}
-                      className="w-12 h-8 p-1"
-                    />
-                    <Input
-                      type="text"
-                      value={localSettings.shadowColor || '#000000'}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('shadowColor', e.target.value)}
-                      className="flex-1"
-                    />
-                  </div>
+            {/* Shadow Settings - Use a fixed height container with conditional rendering */}
+            <div className={`shadow-settings-container ${!localSettings.shadowEnabled ? 'hidden' : 'block'} space-y-4`}>
+              {/* Shadow Color */}
+              <div className="space-y-2 mb-4">
+                <Label htmlFor="shadowColor">Shadow Color</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    type="color" 
+                    id="shadowColor"
+                    value={localSettings.shadowColor || '#000000'}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('shadowColor', e.target.value)}
+                    className="w-12 h-8 p-1"
+                  />
+                  <Input
+                    type="text"
+                    value={localSettings.shadowColor || '#000000'}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('shadowColor', e.target.value)}
+                    className="flex-1"
+                  />
                 </div>
+              </div>
 
-                {/* Shadow Blur */}
-                <div className="space-y-2 mb-4">
-                  <Label htmlFor="shadowBlur">Shadow Blur</Label>
-                  <div className="flex items-center gap-4">
-                    <Slider 
-                      id="shadowBlur"
-                      value={[localSettings.shadowBlur || 5]} 
-                      min={0} 
-                      max={20} 
-                      step={1}
-                      onValueChange={(values: number[]) => handleChange('shadowBlur', values[0])}
-                    />
-                    <Input 
-                      type="number" 
-                      value={localSettings.shadowBlur || 5}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('shadowBlur', parseFloat(e.target.value))}
-                      className="w-20"
-                    />
-                  </div>
+              {/* Shadow Blur */}
+              <div className="space-y-2 mb-4">
+                <Label htmlFor="shadowBlur">Shadow Blur</Label>
+                <div className="flex items-center gap-4">
+                  <Slider 
+                    id="shadowBlur"
+                    value={[localSettings.shadowBlur || 5]} 
+                    min={0} 
+                    max={20} 
+                    step={1}
+                    onValueChange={(values: number[]) => handleChange('shadowBlur', values[0])}
+                  />
+                  <Input 
+                    type="number" 
+                    value={localSettings.shadowBlur || 5}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('shadowBlur', parseFloat(e.target.value))}
+                    className="w-20"
+                  />
                 </div>
+              </div>
 
-                {/* Shadow Offset X */}
-                <div className="space-y-2 mb-4">
-                  <Label htmlFor="shadowOffsetX">Shadow Offset X</Label>
-                  <div className="flex items-center gap-4">
-                    <Slider 
-                      id="shadowOffsetX"
-                      value={[localSettings.shadowOffsetX || 2]} 
-                      min={-20} 
-                      max={20} 
-                      step={1}
-                      onValueChange={(values: number[]) => handleChange('shadowOffsetX', values[0])}
-                    />
-                    <Input 
-                      type="number" 
-                      value={localSettings.shadowOffsetX || 2}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('shadowOffsetX', parseFloat(e.target.value))}
-                      className="w-20"
-                    />
-                  </div>
+              {/* Shadow Offset X */}
+              <div className="space-y-2 mb-4">
+                <Label htmlFor="shadowOffsetX">Shadow Offset X</Label>
+                <div className="flex items-center gap-4">
+                  <Slider 
+                    id="shadowOffsetX"
+                    value={[localSettings.shadowOffsetX || 2]} 
+                    min={-20} 
+                    max={20} 
+                    step={1}
+                    onValueChange={(values: number[]) => handleChange('shadowOffsetX', values[0])}
+                  />
+                  <Input 
+                    type="number" 
+                    value={localSettings.shadowOffsetX || 2}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('shadowOffsetX', parseFloat(e.target.value))}
+                    className="w-20"
+                  />
                 </div>
+              </div>
 
-                {/* Shadow Offset Y */}
-                <div className="space-y-2 mb-4">
-                  <Label htmlFor="shadowOffsetY">Shadow Offset Y</Label>
-                  <div className="flex items-center gap-4">
-                    <Slider 
-                      id="shadowOffsetY"
-                      value={[localSettings.shadowOffsetY || 2]} 
-                      min={-20} 
-                      max={20} 
-                      step={1}
-                      onValueChange={(values: number[]) => handleChange('shadowOffsetY', values[0])}
-                    />
-                    <Input 
-                      type="number" 
-                      value={localSettings.shadowOffsetY || 2}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('shadowOffsetY', parseFloat(e.target.value))}
-                      className="w-20"
-                    />
-                  </div>
+              {/* Shadow Offset Y */}
+              <div className="space-y-2 mb-4">
+                <Label htmlFor="shadowOffsetY">Shadow Offset Y</Label>
+                <div className="flex items-center gap-4">
+                  <Slider 
+                    id="shadowOffsetY"
+                    value={[localSettings.shadowOffsetY || 2]} 
+                    min={-20} 
+                    max={20} 
+                    step={1}
+                    onValueChange={(values: number[]) => handleChange('shadowOffsetY', values[0])}
+                  />
+                  <Input 
+                    type="number" 
+                    value={localSettings.shadowOffsetY || 2}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('shadowOffsetY', parseFloat(e.target.value))}
+                    className="w-20"
+                  />
                 </div>
-              </>
+              </div>
+            </div>
+
+            {/* Add a placeholder div with specific height when shadow settings are hidden */}
+            {!localSettings.shadowEnabled && (
+              <div className="shadow-placeholder h-0 overflow-hidden opacity-0"></div>
             )}
           </AccordionContent>
         </AccordionItem>

@@ -35,7 +35,7 @@ const BadgePreviewArea: React.FC<BadgePreviewAreaProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="h-full flex flex-col fixed-preview-container">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ScanEye className="w-5 h-5" />
