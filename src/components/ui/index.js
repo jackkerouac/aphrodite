@@ -14,6 +14,9 @@ export * from './loader';
 export * from './accordion';
 export * from './tabs';
 export * from './progress';
+export * from './alert';
+export * from './checkbox';
+export * from './skeleton';
 // export * from './toast'; // Deprecated - use Sonner instead
 
 // Advanced UI Components
