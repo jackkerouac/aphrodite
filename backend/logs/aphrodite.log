@@ -190,3 +190,5 @@
 [2025-05-09T23:59:10.466Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\resolution-badge.png
 [2025-05-09T23:59:10.468Z] INFO: Successfully saved resolution badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\resolution-badge.png
 [2025-05-09T23:59:10.468Z] INFO: [POST] /api/badge-files/123/resolution 200 — 3ms
+[2025-05-10T00:08:33.692Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-10T00:08:33.705Z] INFO: Server running on port 5000
