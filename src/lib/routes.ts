@@ -49,11 +49,6 @@ export const routes = {
         icon: KeyIcon
       },
       {
-        path: "/settings/resolution-badge",
-        name: "Resolution Badge Settings",
-        icon: MonitorIcon
-      },
-      {
         path: "/settings/review-badge",
         name: "Review Badge Settings",
         icon: CheckCircleIcon

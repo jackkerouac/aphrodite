@@ -14,7 +14,6 @@ import JobHistory from "@/pages/job-history"
 import Logs from "@/pages/logs"
 import Scheduler from "@/pages/scheduler"
 import ApiSettingsPage from "@/pages/settings/api"
-import DesignResolutionBadgeSettings from "@/pages/settings/design-resolutionbadge.tsx";
 import AudioBadgeSettings from "@/pages/settings/design-audiobadge.tsx";
 import ReviewBadgeSettings from "@/pages/preview";
 
@@ -48,7 +47,6 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/settings/user" element={<UserSettings />} />
               <Route path="/settings/api" element={<ApiSettingsPage />} />
-              <Route path="/settings/resolution-badge" element={<DesignResolutionBadgeSettings />} />
               <Route path="/settings/review-badge" element={<ReviewBadgeSettings />} />
             </Routes>
           </main>
