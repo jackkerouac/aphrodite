@@ -2735,3 +2735,13 @@
 [2025-05-10T22:24:20.196Z] INFO: [GET] /api/omdb-settings/1 304 — 23ms
 [2025-05-10T22:24:20.197Z] INFO: [GET] /api/tmdb-settings/1 304 — 23ms
 [2025-05-10T22:24:20.198Z] INFO: [GET] /api/anidb-settings/1 304 — 24ms
+[2025-05-10T22:28:08.043Z] INFO: [GET] /api/jellyfin-settings/1 304 — 21ms
+[2025-05-10T22:28:08.044Z] INFO: [GET] /api/tmdb-settings/1 304 — 21ms
+[2025-05-10T22:28:08.049Z] INFO: [GET] /api/omdb-settings/1 304 — 25ms
+[2025-05-10T22:28:08.054Z] INFO: [GET] /api/anidb-settings/1 304 — 29ms
+[2025-05-10T22:28:08.056Z] INFO: [GET] /api/jellyfin-settings/1 304 — 6ms
+[2025-05-10T22:28:08.057Z] INFO: [GET] /api/tmdb-settings/1 304 — 3ms
+[2025-05-10T22:28:08.059Z] INFO: [GET] /api/omdb-settings/1 304 — 3ms
+[2025-05-10T22:28:08.071Z] INFO: [GET] /api/anidb-settings/1 304 — 3ms
+[2025-05-10T22:28:08.074Z] INFO: [GET] /api/jellyfin-settings/1 304 — 5ms
+[2025-05-10T22:28:08.084Z] INFO: [GET] /api/jellyfin-settings/1 304 — 5ms
