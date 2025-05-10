@@ -22,7 +22,7 @@ export const PosterSelector: React.FC<PosterSelectorProps> = ({
   const [search, setSearch] = useState("");
   const [isValid, setIsValid] = useState(false);
 
-  // Fetch items for the selected libraries
+  // Fetch items for the selected libraries with search
   const { data, isLoading, error } = useLibraryItems({
     libraryIds,
     page,
@@ -93,13 +93,17 @@ export const PosterSelector: React.FC<PosterSelectorProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Pass search handling to PosterGrid */}
+      {/* Pass search handler and library IDs to PosterGrid */}
       <PosterGrid
         items={data?.items || []}
         selectedItems={selectedItems}
         onItemsChange={setSelectedItems}
         isLoading={isLoading}
         onValidationChange={setIsValid}
+        totalItems={data?.total}
+        searchQuery={search}
+        onSearchChange={setSearch}
+        libraryIds={libraryIds}
       />
 
       {/* Pagination controls */}

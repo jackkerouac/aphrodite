@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, Checkbox, Button, Input, Skeleton } from "@/components/ui";
-import { Search, CheckCircle2, Circle, Image } from "lucide-react";
+import { Search, CheckCircle2, Circle, Image, Loader2 } from "lucide-react";
+import { fetchApi } from "@/lib/api-client";
+import { useUser } from "@/contexts/UserContext";
 
 export interface PosterItem {
   id: string;
@@ -20,6 +22,10 @@ interface PosterGridProps {
   onItemsChange: (items: string[]) => void;
   isLoading?: boolean;
   onValidationChange?: (isValid: boolean) => void;
+  totalItems?: number;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  libraryIds: string[];
 }
 
 export const PosterGrid: React.FC<PosterGridProps> = ({
@@ -27,15 +33,15 @@ export const PosterGrid: React.FC<PosterGridProps> = ({
   selectedItems,
   onItemsChange,
   isLoading = false,
-  onValidationChange
+  onValidationChange,
+  totalItems,
+  searchQuery,
+  onSearchChange,
+  libraryIds
 }) => {
-  const [searchQuery, setSearchQuery] = useState("");
+  const { user } = useUser();
   const [selectAll, setSelectAll] = useState(false);
-
-  // Filter items based on search query
-  const filteredItems = items.filter(item =>
-    item.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const [isSelectingAllItems, setIsSelectingAllItems] = useState(false);
 
   // Update validation status when selection changes
   useEffect(() => {
@@ -45,13 +51,13 @@ export const PosterGrid: React.FC<PosterGridProps> = ({
 
   // Update select all checkbox state
   useEffect(() => {
-    if (filteredItems.length > 0) {
-      const allFilteredSelected = filteredItems.every(item => 
+    if (items.length > 0) {
+      const allPageItemsSelected = items.every(item => 
         selectedItems.includes(item.id)
       );
-      setSelectAll(allFilteredSelected);
+      setSelectAll(allPageItemsSelected);
     }
-  }, [selectedItems, filteredItems]);
+  }, [selectedItems, items]);
 
   const handleItemToggle = (itemId: string) => {
     if (selectedItems.includes(itemId)) {
@@ -61,16 +67,56 @@ export const PosterGrid: React.FC<PosterGridProps> = ({
     }
   };
 
-  const handleSelectAll = () => {
+  const handleSelectAllPage = () => {
     if (selectAll) {
-      // Deselect all filtered items
-      const filteredIds = filteredItems.map(item => item.id);
-      onItemsChange(selectedItems.filter(id => !filteredIds.includes(id)));
+      // Deselect all items on current page
+      const pageIds = items.map(item => item.id);
+      onItemsChange(selectedItems.filter(id => !pageIds.includes(id)));
     } else {
-      // Select all filtered items
-      const filteredIds = filteredItems.map(item => item.id);
-      const newSelection = [...new Set([...selectedItems, ...filteredIds])];
+      // Select all items on current page
+      const pageIds = items.map(item => item.id);
+      const newSelection = [...new Set([...selectedItems, ...pageIds])];
       onItemsChange(newSelection);
+    }
+  };
+
+  const handleSelectAllInLibrary = async () => {
+    if (!user?.id) return;
+    
+    if (!libraryIds.length) {
+      alert('No libraries selected');
+      return;
+    }
+
+    try {
+      setIsSelectingAllItems(true);
+      
+      // Build query params for fetching all items
+      const params = new URLSearchParams({
+        libraryIds: libraryIds.join(','),
+        all: 'true',
+        ...(searchQuery && { search: searchQuery })
+      });
+      
+      const response = await fetchApi<{ success: boolean; items: PosterItem[] }>(
+        `/library-items/${user.id}?${params}`
+      );
+      
+      if (response.success && response.items) {
+        const allItemIds = response.items.map(item => item.id);
+        onItemsChange(allItemIds);
+        
+        // Show confirmation
+        const message = searchQuery 
+          ? `Selected ${allItemIds.length} items matching "${searchQuery}" from all pages`
+          : `Selected all ${allItemIds.length} items in the library`;
+        alert(message);
+      }
+    } catch (error) {
+      console.error('Failed to select all items:', error);
+      alert('Failed to select all items. Please try again.');
+    } finally {
+      setIsSelectingAllItems(false);
     }
   };
 
@@ -79,9 +125,12 @@ export const PosterGrid: React.FC<PosterGridProps> = ({
   };
 
   const handleInvertSelection = () => {
-    const allIds = items.map(item => item.id);
-    const newSelection = allIds.filter(id => !selectedItems.includes(id));
-    onItemsChange(newSelection);
+    const currentPageIds = items.map(item => item.id);
+    const currentPageSelected = selectedItems.filter(id => currentPageIds.includes(id));
+    const currentPageNotSelected = currentPageIds.filter(id => !selectedItems.includes(id));
+    const otherPagesSelected = selectedItems.filter(id => !currentPageIds.includes(id));
+    
+    onItemsChange([...otherPagesSelected, ...currentPageNotSelected]);
   };
 
   // Loading state
@@ -110,24 +159,41 @@ export const PosterGrid: React.FC<PosterGridProps> = ({
   return (
     <div className="space-y-4">
       {/* Search and selection tools */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Search items..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+      <div className="flex flex-col gap-4">
+        <div className="flex gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search all items..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="pl-10"
+            />
+          </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             variant="secondary"
             size="sm"
-            onClick={handleSelectAll}
+            onClick={handleSelectAllPage}
           >
-            {selectAll ? "Deselect All" : "Select All"}
+            {selectAll ? "Deselect All" : "Select All on Page"}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleSelectAllInLibrary}
+            disabled={isSelectingAllItems}
+          >
+            {isSelectingAllItems ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Selecting...
+              </>
+            ) : (
+              `Select All Items in Library${searchQuery ? ' (filtered)' : ''}`
+            )}
           </Button>
           <Button
             variant="secondary"
@@ -149,13 +215,15 @@ export const PosterGrid: React.FC<PosterGridProps> = ({
 
       {/* Selection summary */}
       <div className="text-sm text-muted-foreground">
-        {selectedItems.length} of {items.length} items selected
-        {searchQuery && ` (${filteredItems.length} matching search)`}
+        {selectedItems.length} items selected
+        {totalItems && totalItems > items.length && (
+          <span> (out of {totalItems} total in library{searchQuery ? ` matching "${searchQuery}"` : ''})</span>
+        )}
       </div>
 
-      {/* Grid of items - Ready for virtualization */}
+      {/* Grid of items */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 pb-4">
-        {filteredItems.map((item) => {
+        {items.map((item) => {
           const isSelected = selectedItems.includes(item.id);
           
           return (
@@ -205,14 +273,14 @@ export const PosterGrid: React.FC<PosterGridProps> = ({
         })}
       </div>
 
-      {/* Empty state */}
-      {filteredItems.length === 0 && searchQuery && (
+      {/* Empty states */}
+      {items.length === 0 && searchQuery && (
         <div className="text-center py-8 text-muted-foreground">
           No items match your search criteria.
         </div>
       )}
 
-      {items.length === 0 && !searchQuery && (
+      {items.length === 0 && !searchQuery && !isLoading && (
         <div className="text-center py-8 text-muted-foreground">
           No items available in the selected libraries.
         </div>
