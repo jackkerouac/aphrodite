@@ -1882,3 +1882,10 @@
 [2025-05-10T19:26:38.334Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 396ms
 [2025-05-10T19:26:38.346Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 412ms
 [2025-05-10T19:26:38.598Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 260ms
+[2025-05-10T19:28:20.751Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 23ms
+[2025-05-10T19:28:20.753Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 24ms
+[2025-05-10T19:28:20.759Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 28ms
+[2025-05-10T19:28:21.231Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 504ms
+[2025-05-10T19:28:21.540Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 306ms
+[2025-05-10T19:28:21.857Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 314ms
+[2025-05-10T19:29:06.383Z] INFO: [GET] /api/library-items/1?page=1&limit=50&libraryIds=0c41907140d802bb58430fed7e2cd79e 304 — 261ms
