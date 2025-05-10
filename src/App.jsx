@@ -48,7 +48,6 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/settings/user" element={<UserSettings />} />
               <Route path="/settings/api" element={<ApiSettingsPage />} />
-              <Route path="/settings/audio-badge" element={<AudioBadgeSettings />} />
               <Route path="/settings/resolution-badge" element={<DesignResolutionBadgeSettings />} />
               <Route path="/settings/review-badge" element={<ReviewBadgeSettings />} />
             </Routes>

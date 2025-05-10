@@ -49,11 +49,6 @@ export const routes = {
         icon: KeyIcon
       },
       {
-        path: "/settings/audio-badge",
-        name: "Audio Badge Settings",
-        icon: VolumeIcon
-      },
-      {
         path: "/settings/resolution-badge",
         name: "Resolution Badge Settings",
         icon: MonitorIcon
