@@ -16,9 +16,11 @@ import {
   Tv, 
   Book, 
   Music,
-  AlertCircle
+  AlertCircle,
+  Badge
 } from "lucide-react";
 import useJellyfinLibraries from "@/hooks/useJellyfinLibraries";
+import useEnabledBadges from "@/hooks/useEnabledBadges";
 
 // Props interface for the component
 interface LibrarySelectorProps {
@@ -43,6 +45,7 @@ export const LibrarySelector: React.FC<LibrarySelectorProps> = ({
   preselectedLibraries = []
 }) => {
   const { libraries, isLoading, error } = useJellyfinLibraries();
+  const { enabledBadges, isLoading: badgesLoading, error: badgesError } = useEnabledBadges();
   const [selectedLibraries, setSelectedLibraries] = useState<string[]>(preselectedLibraries);
 
   // Initialize preselected libraries when they change
@@ -70,14 +73,18 @@ export const LibrarySelector: React.FC<LibrarySelectorProps> = ({
 
   const handleContinue = () => {
     if (selectedLibraries.length > 0) {
-      // TODO: Fetch enabled badges from database
-      // For now, pass empty array. Will be implemented in next step
-      onContinue(selectedLibraries, []);
+      // Collect enabled badges
+      const enabledBadgeTypes: string[] = [];
+      if (enabledBadges.audio) enabledBadgeTypes.push('audio');
+      if (enabledBadges.resolution) enabledBadgeTypes.push('resolution');
+      if (enabledBadges.review) enabledBadgeTypes.push('review');
+      
+      onContinue(selectedLibraries, enabledBadgeTypes);
     }
   };
 
   // Loading state
-  if (isLoading) {
+  if (isLoading || badgesLoading) {
     return (
       <div className="space-y-6">
         <div>
@@ -125,6 +132,15 @@ export const LibrarySelector: React.FC<LibrarySelectorProps> = ({
             Please check your Jellyfin connection in settings.
           </AlertDescription>
         </Alert>
+
+        {badgesError && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Failed to load badge settings: {badgesError}
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
     );
   }
@@ -218,6 +234,45 @@ export const LibrarySelector: React.FC<LibrarySelectorProps> = ({
             </Card>
           );
         })}
+      </div>
+
+      {/* Badge Selection Display */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Enabled Badges</h3>
+        <div className="p-4 bg-muted rounded-lg">
+          {!badgesLoading && !badgesError ? (
+            <div className="space-y-2">
+              {enabledBadges.audio && (
+                <div className="flex items-center space-x-2">
+                  <Badge className="h-4 w-4" />
+                  <span>Audio Badge</span>
+                </div>
+              )}
+              {enabledBadges.resolution && (
+                <div className="flex items-center space-x-2">
+                  <Badge className="h-4 w-4" />
+                  <span>Resolution Badge</span>
+                </div>
+              )}
+              {enabledBadges.review && (
+                <div className="flex items-center space-x-2">
+                  <Badge className="h-4 w-4" />
+                  <span>Review Badge</span>
+                </div>
+              )}
+              {!enabledBadges.audio && !enabledBadges.resolution && !enabledBadges.review && (
+                <p className="text-muted-foreground">No badges are currently enabled.</p>
+              )}
+            </div>
+          ) : badgesError ? (
+            <p className="text-destructive">Failed to load badge settings.</p>
+          ) : (
+            <Skeleton className="h-4 w-32" />
+          )}
+        </div>
+        <p className="text-sm text-muted-foreground">
+          These badges will be applied to the selected libraries.
+        </p>
       </div>
 
       {/* Validation message */}
