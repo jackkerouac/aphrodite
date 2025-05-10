@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import logger from './lib/logger.js';
 import { errorLogger } from './middleware/errorLogger.js';
-import { requestLogger } from './requestLogger.js';
+import { requestLogger } from './middleware/requestLogger.js';
 
 // Import route modules
 import healthRoutes from './routes/health.js';
@@ -18,6 +18,7 @@ import connectionTestsRoutes from './routes/connectionTestsRoutes.js';
 import jellyfinLibrariesRoutes from './routes/jellyfinLibrariesRoutes.js';
 import logsRoutes from './logsRoutes.js';
 import badgeFilesRoutes from './routes/badgeFilesRoutes.js';
+import jobsRoutes from './routes/jobsRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -44,7 +45,8 @@ app.use('/api/review-badge-settings', reviewBadgeSettingsRoutes);
 app.use('/api/jellyfin-libraries', jellyfinLibrariesRoutes);
 app.use('/api/logs', logsRoutes);
 app.use('/api/badge-files', badgeFilesRoutes);
-app.use('/api', connectionTestsRoutes);
+app.use('/api/jobs', jobsRoutes);
+app.use('/api/connection-tests', connectionTestsRoutes);
 
 // Error logger middleware - should be used after all routes
 app.use(errorLogger);

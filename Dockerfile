@@ -42,13 +42,16 @@ COPY --from=frontend-builder /app/dist ./dist
 COPY scripts ./scripts
 COPY current_schema.sql ./
 
-# Create logs directory
-RUN mkdir -p logs
+# Create necessary directories
+RUN mkdir -p logs data temp
 
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=5000
 ENV DOCKER_CONTAINER=true
+ENV IS_DOCKER=true
+ENV DATA_DIR=/app/data
+ENV TEMP_DIR=/app/temp
 
 # Expose ports
 EXPOSE 5000

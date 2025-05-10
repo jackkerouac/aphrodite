@@ -828,3 +828,222 @@
 [2025-05-10T01:39:16.525Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\resolution-badge.png
 [2025-05-10T01:39:16.528Z] INFO: Successfully saved resolution badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\resolution-badge.png
 [2025-05-10T01:39:16.529Z] INFO: [POST] /api/badge-files/123/resolution 200 — 5ms
+[2025-05-10T11:21:28.066Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-10T11:21:28.079Z] INFO: Server running on port 5000
+[2025-05-10T11:22:40.575Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-10T11:22:40.587Z] INFO: Server running on port 5000
+[2025-05-10T11:23:02.259Z] INFO: [GET] /api/jellyfin-libraries 304 — 683ms
+[2025-05-10T11:23:02.595Z] INFO: [GET] /api/jellyfin-libraries 304 — 308ms
+[2025-05-10T11:23:07.884Z] INFO: Getting audio badge settings for user ID: 123
+[2025-05-10T11:23:07.887Z] INFO: Getting resolution badge settings for user ID: 123
+[2025-05-10T11:23:07.890Z] INFO: Getting review badge settings for user ID: 123
+[2025-05-10T11:23:07.895Z] INFO: Found audio badge settings for user ID: 123
+[2025-05-10T11:23:07.901Z] INFO: [GET] /api/audio-badge-settings/123 200 — 19ms
+[2025-05-10T11:23:07.912Z] INFO: Getting audio badge settings for user ID: 123
+[2025-05-10T11:23:07.917Z] INFO: Found audio badge settings for user ID: 123
+[2025-05-10T11:23:07.920Z] INFO: [GET] /api/audio-badge-settings/123 304 — 9ms
+[2025-05-10T11:23:07.922Z] INFO: Found review badge settings for user ID: 123
+[2025-05-10T11:23:07.923Z] INFO: [GET] /api/review-badge-settings/123 200 — 34ms
+[2025-05-10T11:23:07.925Z] INFO: Found resolution badge settings for user ID: 123
+[2025-05-10T11:23:07.927Z] INFO: [GET] /api/resolution-badge-settings/123 200 — 40ms
+[2025-05-10T11:23:07.938Z] INFO: Getting review badge settings for user ID: 123
+[2025-05-10T11:23:07.941Z] INFO: Found review badge settings for user ID: 123
+[2025-05-10T11:23:07.943Z] INFO: [GET] /api/review-badge-settings/123 304 — 5ms
+[2025-05-10T11:23:07.949Z] INFO: Getting resolution badge settings for user ID: 123
+[2025-05-10T11:23:07.953Z] INFO: Found resolution badge settings for user ID: 123
+[2025-05-10T11:23:07.955Z] INFO: [GET] /api/resolution-badge-settings/123 304 — 8ms
+[2025-05-10T11:23:08.250Z] INFO: Getting audio badge settings for user ID: 123
+[2025-05-10T11:23:08.253Z] INFO: Getting audio badge settings for user ID: 123
+[2025-05-10T11:23:08.254Z] INFO: Found audio badge settings for user ID: 123
+[2025-05-10T11:23:08.255Z] INFO: Found audio badge settings for user ID: 123
+[2025-05-10T11:23:08.260Z] INFO: [POST] /api/audio-badge-settings/123/enabled 200 — 11ms
+[2025-05-10T11:23:08.261Z] INFO: [POST] /api/audio-badge-settings/123/enabled 200 — 9ms
+[2025-05-10T11:23:08.276Z] INFO: Getting resolution badge settings for user ID: 123
+[2025-05-10T11:23:08.277Z] INFO: Getting resolution badge settings for user ID: 123
+[2025-05-10T11:23:08.278Z] INFO: Found resolution badge settings for user ID: 123
+[2025-05-10T11:23:08.279Z] INFO: Found resolution badge settings for user ID: 123
+[2025-05-10T11:23:08.300Z] INFO: [POST] /api/resolution-badge-settings/123/enabled 200 — 25ms
+[2025-05-10T11:23:08.303Z] INFO: [POST] /api/resolution-badge-settings/123/enabled 200 — 26ms
+[2025-05-10T11:23:08.317Z] INFO: Getting review badge settings for user ID: 123
+[2025-05-10T11:23:08.319Z] INFO: Found review badge settings for user ID: 123
+[2025-05-10T11:23:08.321Z] INFO: Getting review badge settings for user ID: 123
+[2025-05-10T11:23:08.324Z] INFO: [POST] /api/review-badge-settings/123/enabled 200 — 8ms
+[2025-05-10T11:23:08.324Z] INFO: Found review badge settings for user ID: 123
+[2025-05-10T11:23:08.329Z] INFO: [POST] /api/review-badge-settings/123/enabled 200 — 8ms
+[2025-05-10T11:23:09.742Z] INFO: Getting audio badge settings for user ID: 123
+[2025-05-10T11:23:09.744Z] INFO: Found audio badge settings for user ID: 123
+[2025-05-10T11:23:09.750Z] INFO: [POST] /api/audio-badge-settings/123/enabled 200 — 9ms
+[2025-05-10T11:23:09.761Z] INFO: Getting resolution badge settings for user ID: 123
+[2025-05-10T11:23:09.763Z] INFO: Found resolution badge settings for user ID: 123
+[2025-05-10T11:23:09.768Z] INFO: [POST] /api/resolution-badge-settings/123/enabled 200 — 8ms
+[2025-05-10T11:23:09.781Z] INFO: Getting review badge settings for user ID: 123
+[2025-05-10T11:23:09.784Z] INFO: Found review badge settings for user ID: 123
+[2025-05-10T11:23:09.788Z] INFO: [POST] /api/review-badge-settings/123/enabled 200 — 8ms
+[2025-05-10T11:23:10.235Z] INFO: Getting audio badge settings for user ID: 123
+[2025-05-10T11:23:10.237Z] INFO: Found audio badge settings for user ID: 123
+[2025-05-10T11:23:10.242Z] INFO: [POST] /api/audio-badge-settings/123/enabled 200 — 8ms
+[2025-05-10T11:23:10.257Z] INFO: Getting resolution badge settings for user ID: 123
+[2025-05-10T11:23:10.258Z] INFO: Found resolution badge settings for user ID: 123
+[2025-05-10T11:23:10.263Z] INFO: [POST] /api/resolution-badge-settings/123/enabled 200 — 7ms
+[2025-05-10T11:23:10.276Z] INFO: Getting review badge settings for user ID: 123
+[2025-05-10T11:23:10.277Z] INFO: Found review badge settings for user ID: 123
+[2025-05-10T11:23:10.283Z] INFO: [POST] /api/review-badge-settings/123/enabled 200 — 8ms
+[2025-05-10T11:23:11.506Z] INFO: Getting audio badge settings for user ID: 123
+[2025-05-10T11:23:11.508Z] INFO: Found audio badge settings for user ID: 123
+[2025-05-10T11:23:11.512Z] INFO: [POST] /api/audio-badge-settings/123/enabled 200 — 7ms
+[2025-05-10T11:23:11.528Z] INFO: Getting resolution badge settings for user ID: 123
+[2025-05-10T11:23:11.531Z] INFO: Found resolution badge settings for user ID: 123
+[2025-05-10T11:23:11.536Z] INFO: [POST] /api/resolution-badge-settings/123/enabled 200 — 8ms
+[2025-05-10T11:23:11.548Z] INFO: Getting review badge settings for user ID: 123
+[2025-05-10T11:23:11.551Z] INFO: Found review badge settings for user ID: 123
+[2025-05-10T11:23:11.555Z] INFO: [POST] /api/review-badge-settings/123/enabled 200 — 7ms
+[2025-05-10T11:23:11.975Z] INFO: Getting audio badge settings for user ID: 123
+[2025-05-10T11:23:11.977Z] INFO: Found audio badge settings for user ID: 123
+[2025-05-10T11:23:11.982Z] INFO: [POST] /api/audio-badge-settings/123/enabled 200 — 7ms
+[2025-05-10T11:23:12.222Z] INFO: Getting resolution badge settings for user ID: 123
+[2025-05-10T11:23:12.224Z] INFO: Found resolution badge settings for user ID: 123
+[2025-05-10T11:23:12.228Z] INFO: [POST] /api/resolution-badge-settings/123/enabled 200 — 7ms
+[2025-05-10T11:23:12.242Z] INFO: Getting review badge settings for user ID: 123
+[2025-05-10T11:23:12.244Z] INFO: Found review badge settings for user ID: 123
+[2025-05-10T11:23:12.249Z] INFO: [POST] /api/review-badge-settings/123/enabled 200 — 7ms
+[2025-05-10T11:23:12.956Z] INFO: Getting audio badge settings for user ID: 123
+[2025-05-10T11:23:12.957Z] INFO: Found audio badge settings for user ID: 123
+[2025-05-10T11:23:12.962Z] INFO: [POST] /api/audio-badge-settings/123/enabled 200 — 7ms
+[2025-05-10T11:23:12.974Z] INFO: Getting resolution badge settings for user ID: 123
+[2025-05-10T11:23:12.976Z] INFO: Found resolution badge settings for user ID: 123
+[2025-05-10T11:23:12.981Z] INFO: [POST] /api/resolution-badge-settings/123/enabled 200 — 7ms
+[2025-05-10T11:23:12.992Z] INFO: Getting review badge settings for user ID: 123
+[2025-05-10T11:23:12.994Z] INFO: Found review badge settings for user ID: 123
+[2025-05-10T11:23:12.999Z] INFO: [POST] /api/review-badge-settings/123/enabled 200 — 7ms
+[2025-05-10T11:23:13.531Z] INFO: Getting audio badge settings for user ID: 123
+[2025-05-10T11:23:13.535Z] INFO: Found audio badge settings for user ID: 123
+[2025-05-10T11:23:13.540Z] INFO: [POST] /api/audio-badge-settings/123/enabled 200 — 9ms
+[2025-05-10T11:23:13.554Z] INFO: Getting resolution badge settings for user ID: 123
+[2025-05-10T11:23:13.556Z] INFO: Found resolution badge settings for user ID: 123
+[2025-05-10T11:23:13.561Z] INFO: [POST] /api/resolution-badge-settings/123/enabled 200 — 8ms
+[2025-05-10T11:23:13.574Z] INFO: Getting review badge settings for user ID: 123
+[2025-05-10T11:23:13.576Z] INFO: Found review badge settings for user ID: 123
+[2025-05-10T11:23:13.581Z] INFO: [POST] /api/review-badge-settings/123/enabled 200 — 7ms
+[2025-05-10T11:23:14.835Z] INFO: Received request to save badge file: audio for user 123
+[2025-05-10T11:23:14.836Z] INFO: Image data received, length: 4066 characters
+[2025-05-10T11:23:14.836Z] INFO: User directory path: E:\programming\aphrodite\backend\storage\badges\123
+[2025-05-10T11:23:14.837Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\audio-badge.png
+[2025-05-10T11:23:14.839Z] INFO: Successfully saved audio badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\audio-badge.png
+[2025-05-10T11:23:14.840Z] INFO: [POST] /api/badge-files/123/audio 200 — 5ms
+[2025-05-10T11:23:14.849Z] INFO: Received request to save badge file: review for user 123
+[2025-05-10T11:23:14.849Z] INFO: Image data received, length: 21990 characters
+[2025-05-10T11:23:14.850Z] INFO: User directory path: E:\programming\aphrodite\backend\storage\badges\123
+[2025-05-10T11:23:14.851Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\review-badge.png
+[2025-05-10T11:23:14.854Z] INFO: Successfully saved review badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\review-badge.png
+[2025-05-10T11:23:14.855Z] INFO: [POST] /api/badge-files/123/review 200 — 6ms
+[2025-05-10T11:23:14.857Z] INFO: Received request to save badge file: resolution for user 123
+[2025-05-10T11:23:14.857Z] INFO: Image data received, length: 7646 characters
+[2025-05-10T11:23:14.857Z] INFO: User directory path: E:\programming\aphrodite\backend\storage\badges\123
+[2025-05-10T11:23:14.858Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\resolution-badge.png
+[2025-05-10T11:23:14.860Z] INFO: Successfully saved resolution badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\resolution-badge.png
+[2025-05-10T11:23:14.861Z] INFO: [POST] /api/badge-files/123/resolution 200 — 4ms
+[2025-05-10T11:25:18.407Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-10T11:25:18.418Z] INFO: Server running on port 5000
+[2025-05-10T11:25:25.836Z] INFO: Getting audio badge settings for user ID: 123
+[2025-05-10T11:25:25.840Z] INFO: Getting resolution badge settings for user ID: 123
+[2025-05-10T11:25:25.843Z] INFO: Getting review badge settings for user ID: 123
+[2025-05-10T11:25:25.844Z] INFO: Getting audio badge settings for user ID: 123
+[2025-05-10T11:25:25.846Z] INFO: Getting resolution badge settings for user ID: 123
+[2025-05-10T11:25:25.851Z] INFO: Getting review badge settings for user ID: 123
+[2025-05-10T11:25:25.854Z] INFO: Found audio badge settings for user ID: 123
+[2025-05-10T11:25:25.862Z] INFO: [GET] /api/audio-badge-settings/123 200 — 28ms
+[2025-05-10T11:25:25.895Z] INFO: Found audio badge settings for user ID: 123
+[2025-05-10T11:25:25.900Z] INFO: [GET] /api/audio-badge-settings/123 200 — 56ms
+[2025-05-10T11:25:25.905Z] INFO: Found resolution badge settings for user ID: 123
+[2025-05-10T11:25:25.907Z] INFO: [GET] /api/resolution-badge-settings/123 200 — 68ms
+[2025-05-10T11:25:25.909Z] INFO: Found resolution badge settings for user ID: 123
+[2025-05-10T11:25:25.911Z] INFO: [GET] /api/resolution-badge-settings/123 200 — 66ms
+[2025-05-10T11:25:25.912Z] INFO: Found review badge settings for user ID: 123
+[2025-05-10T11:25:25.914Z] INFO: [GET] /api/review-badge-settings/123 200 — 72ms
+[2025-05-10T11:25:25.915Z] INFO: Found review badge settings for user ID: 123
+[2025-05-10T11:25:25.918Z] INFO: [GET] /api/review-badge-settings/123 200 — 68ms
+[2025-05-10T11:25:25.995Z] INFO: Getting audio badge settings for user ID: 123
+[2025-05-10T11:25:26.000Z] INFO: Found audio badge settings for user ID: 123
+[2025-05-10T11:25:26.008Z] INFO: [POST] /api/audio-badge-settings/123/enabled 200 — 14ms
+[2025-05-10T11:25:26.051Z] INFO: Getting audio badge settings for user ID: 123
+[2025-05-10T11:25:26.055Z] INFO: Found audio badge settings for user ID: 123
+[2025-05-10T11:25:26.061Z] INFO: [POST] /api/audio-badge-settings/123/enabled 200 — 11ms
+[2025-05-10T11:25:26.132Z] INFO: Getting resolution badge settings for user ID: 123
+[2025-05-10T11:25:26.136Z] INFO: Found resolution badge settings for user ID: 123
+[2025-05-10T11:25:26.143Z] INFO: Getting resolution badge settings for user ID: 123
+[2025-05-10T11:25:26.146Z] INFO: Found resolution badge settings for user ID: 123
+[2025-05-10T11:25:26.151Z] INFO: [POST] /api/resolution-badge-settings/123/enabled 200 — 21ms
+[2025-05-10T11:25:26.159Z] INFO: [POST] /api/resolution-badge-settings/123/enabled 200 — 17ms
+[2025-05-10T11:25:26.276Z] INFO: Getting review badge settings for user ID: 123
+[2025-05-10T11:25:26.278Z] INFO: Getting review badge settings for user ID: 123
+[2025-05-10T11:25:26.279Z] INFO: Found review badge settings for user ID: 123
+[2025-05-10T11:25:26.280Z] INFO: Found review badge settings for user ID: 123
+[2025-05-10T11:25:26.286Z] INFO: [POST] /api/review-badge-settings/123/enabled 200 — 11ms
+[2025-05-10T11:25:26.289Z] INFO: [POST] /api/review-badge-settings/123/enabled 200 — 12ms
+[2025-05-10T11:30:43.558Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-10T11:30:43.573Z] INFO: Server running on port 5000
+[2025-05-10T11:30:44.412Z] INFO: Getting audio badge settings for user ID: 123
+[2025-05-10T11:30:44.418Z] INFO: Getting resolution badge settings for user ID: 123
+[2025-05-10T11:30:44.420Z] INFO: Getting review badge settings for user ID: 123
+[2025-05-10T11:30:44.425Z] INFO: Found audio badge settings for user ID: 123
+[2025-05-10T11:30:44.433Z] INFO: [GET] /api/audio-badge-settings/123 200 — 22ms
+[2025-05-10T11:30:44.435Z] INFO: Getting audio badge settings for user ID: 123
+[2025-05-10T11:30:44.437Z] INFO: Getting resolution badge settings for user ID: 123
+[2025-05-10T11:30:44.439Z] INFO: Getting review badge settings for user ID: 123
+[2025-05-10T11:30:44.443Z] INFO: Found audio badge settings for user ID: 123
+[2025-05-10T11:30:44.447Z] INFO: [GET] /api/audio-badge-settings/123 200 — 12ms
+[2025-05-10T11:30:44.466Z] INFO: Found resolution badge settings for user ID: 123
+[2025-05-10T11:30:44.469Z] INFO: [GET] /api/resolution-badge-settings/123 200 — 53ms
+[2025-05-10T11:30:44.472Z] INFO: Found review badge settings for user ID: 123
+[2025-05-10T11:30:44.474Z] INFO: [GET] /api/review-badge-settings/123 200 — 55ms
+[2025-05-10T11:30:44.475Z] INFO: Found resolution badge settings for user ID: 123
+[2025-05-10T11:30:44.476Z] INFO: [GET] /api/resolution-badge-settings/123 200 — 39ms
+[2025-05-10T11:30:44.478Z] INFO: Found review badge settings for user ID: 123
+[2025-05-10T11:30:44.480Z] INFO: [GET] /api/review-badge-settings/123 200 — 42ms
+[2025-05-10T11:30:44.625Z] INFO: Getting audio badge settings for user ID: 123
+[2025-05-10T11:30:44.628Z] INFO: Found audio badge settings for user ID: 123
+[2025-05-10T11:30:44.636Z] INFO: [POST] /api/audio-badge-settings/123/enabled 200 — 11ms
+[2025-05-10T11:30:44.707Z] INFO: Getting resolution badge settings for user ID: 123
+[2025-05-10T11:30:44.710Z] INFO: Found resolution badge settings for user ID: 123
+[2025-05-10T11:30:44.719Z] INFO: [POST] /api/resolution-badge-settings/123/enabled 200 — 13ms
+[2025-05-10T11:30:44.741Z] INFO: Getting review badge settings for user ID: 123
+[2025-05-10T11:30:44.743Z] INFO: Found review badge settings for user ID: 123
+[2025-05-10T11:30:44.750Z] INFO: [POST] /api/review-badge-settings/123/enabled 200 — 10ms
+[2025-05-10T11:30:51.161Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-10T11:30:51.177Z] INFO: Server running on port 5000
+[2025-05-10T11:30:51.741Z] INFO: Getting audio badge settings for user ID: 123
+[2025-05-10T11:30:51.747Z] INFO: Getting resolution badge settings for user ID: 123
+[2025-05-10T11:30:51.750Z] INFO: Getting review badge settings for user ID: 123
+[2025-05-10T11:30:51.755Z] INFO: Found audio badge settings for user ID: 123
+[2025-05-10T11:30:51.763Z] INFO: [GET] /api/audio-badge-settings/123 200 — 23ms
+[2025-05-10T11:30:51.774Z] INFO: Getting audio badge settings for user ID: 123
+[2025-05-10T11:30:51.778Z] INFO: Found audio badge settings for user ID: 123
+[2025-05-10T11:30:51.782Z] INFO: [GET] /api/audio-badge-settings/123 304 — 8ms
+[2025-05-10T11:30:51.794Z] INFO: Found resolution badge settings for user ID: 123
+[2025-05-10T11:30:51.797Z] INFO: [GET] /api/resolution-badge-settings/123 200 — 52ms
+[2025-05-10T11:30:51.800Z] INFO: Found review badge settings for user ID: 123
+[2025-05-10T11:30:51.805Z] INFO: [GET] /api/review-badge-settings/123 200 — 56ms
+[2025-05-10T11:30:51.810Z] INFO: Getting resolution badge settings for user ID: 123
+[2025-05-10T11:30:51.815Z] INFO: Found resolution badge settings for user ID: 123
+[2025-05-10T11:30:51.819Z] INFO: [GET] /api/resolution-badge-settings/123 304 — 9ms
+[2025-05-10T11:30:51.821Z] INFO: Getting review badge settings for user ID: 123
+[2025-05-10T11:30:51.824Z] INFO: Found review badge settings for user ID: 123
+[2025-05-10T11:30:51.826Z] INFO: [GET] /api/review-badge-settings/123 200 — 5ms
+[2025-05-10T11:30:51.886Z] INFO: Getting audio badge settings for user ID: 123
+[2025-05-10T11:30:51.889Z] INFO: Found audio badge settings for user ID: 123
+[2025-05-10T11:30:51.895Z] INFO: [POST] /api/audio-badge-settings/123/enabled 200 — 10ms
+[2025-05-10T11:30:51.970Z] INFO: Getting resolution badge settings for user ID: 123
+[2025-05-10T11:30:51.973Z] INFO: Found resolution badge settings for user ID: 123
+[2025-05-10T11:30:51.979Z] INFO: [POST] /api/resolution-badge-settings/123/enabled 200 — 9ms
+[2025-05-10T11:30:51.983Z] INFO: Getting audio badge settings for user ID: 123
+[2025-05-10T11:30:51.986Z] INFO: Found audio badge settings for user ID: 123
+[2025-05-10T11:30:51.992Z] INFO: [POST] /api/audio-badge-settings/123/enabled 200 — 9ms
+[2025-05-10T11:30:52.060Z] INFO: Getting review badge settings for user ID: 123
+[2025-05-10T11:30:52.062Z] INFO: Getting resolution badge settings for user ID: 123
+[2025-05-10T11:30:52.064Z] INFO: Found review badge settings for user ID: 123
+[2025-05-10T11:30:52.066Z] INFO: Found resolution badge settings for user ID: 123
+[2025-05-10T11:30:52.071Z] INFO: [POST] /api/review-badge-settings/123/enabled 200 — 11ms
+[2025-05-10T11:30:52.074Z] INFO: [POST] /api/resolution-badge-settings/123/enabled 200 — 12ms
+[2025-05-10T11:30:52.104Z] INFO: Getting review badge settings for user ID: 123
+[2025-05-10T11:30:52.106Z] INFO: Found review badge settings for user ID: 123
+[2025-05-10T11:30:52.111Z] INFO: [POST] /api/review-badge-settings/123/enabled 200 — 7ms

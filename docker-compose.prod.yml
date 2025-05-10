@@ -16,9 +16,13 @@ services:
       - PG_PASSWORD=${PG_PASSWORD}
       - PG_PORT=5432
       - FRONTEND_URL=${FRONTEND_URL}
+      - IS_DOCKER=true
+      - DATA_DIR=/app/data
+      - TEMP_DIR=/app/temp
     volumes:
       - ./logs:/app/logs
       - aphrodite_data:/app/data
+      - aphrodite_temp:/app/temp
     depends_on:
       - db
     networks:
@@ -47,3 +51,4 @@ networks:
 volumes:
   aphrodite_postgres_data:
   aphrodite_data:
+  aphrodite_temp:
