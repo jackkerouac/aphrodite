@@ -1978,3 +1978,17 @@
 [2025-05-10T20:12:24.412Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 482ms
 [2025-05-10T20:12:24.771Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 353ms
 [2025-05-10T20:12:27.070Z] INFO: [GET] /api/library-items/1?page=1&limit=50&libraryIds=ee75511ae395034b1e7e657707b15125%2C0c41907140d802bb58430fed7e2cd79e 200 — 265ms
+[2025-05-10T20:17:51.311Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-10T20:17:51.324Z] INFO: Server running on port 5000
+[2025-05-10T20:22:22.591Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-10T20:22:22.606Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-10T20:22:44.765Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-10T20:22:44.779Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-10T20:22:54.680Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-10T20:22:54.694Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-10T20:23:03.634Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-10T20:23:03.648Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-10T20:23:09.296Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-10T20:23:09.310Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-10T20:23:36.094Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-10T20:23:36.108Z] INFO: Server running on port 5000 with WebSocket support

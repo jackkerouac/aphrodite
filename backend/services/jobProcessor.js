@@ -6,6 +6,7 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { emitToUser } from '../lib/websocket.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -35,6 +36,14 @@ export async function processJob(jobId) {
 
     logger.info(`Starting job ${jobId} processing`);
     await updateJobStatus(jobId, 'running');
+    
+    // Emit job started event
+    emitToUser(job.user_id, 'job-status', {
+      jobId,
+      status: 'running',
+      progress: 0,
+      totalItems: items.length
+    });
 
     // Get job items
     const itemsResult = await pool.query(
@@ -58,6 +67,27 @@ export async function processJob(jobId) {
           items_processed: processedCount,
           items_failed: failedCount
         });
+        
+        // Emit progress update  
+        emitToUser(job.user_id, 'job-progress', {
+          jobId,
+          itemId: item.id, 
+          status: 'failed',
+          error: error.message,
+          processedCount,
+          failedCount,
+          progress: Math.round((processedCount + failedCount) / items.length * 100)
+        });
+        
+        // Emit progress update
+        emitToUser(job.user_id, 'job-progress', {
+          jobId,
+          itemId: item.id,
+          status: 'completed',
+          processedCount,
+          failedCount,
+          progress: Math.round((processedCount + failedCount) / items.length * 100)
+        });
       } catch (error) {
         logger.error(`Error processing item ${item.id}:`, error);
         failedCount++;
@@ -77,11 +107,29 @@ export async function processJob(jobId) {
       items_processed: processedCount,
       items_failed: failedCount
     });
+    
+    // Emit job completed event
+    emitToUser(job.user_id, 'job-status', {
+      jobId,
+      status: finalStatus,
+      processedCount,
+      failedCount,
+      progress: 100
+    });
 
     logger.info(`Job ${jobId} completed. Processed: ${processedCount}, Failed: ${failedCount}`);
   } catch (error) {
     logger.error(`Fatal error processing job ${jobId}:`, error);
     await updateJobStatus(jobId, 'failed');
+    
+    // Emit job error event
+    const job = await getJobById(jobId);
+    if (job) {
+      emitToUser(job.user_id, 'job-error', {
+        jobId,
+        error: error.message
+      });
+    }
   }
 }
 

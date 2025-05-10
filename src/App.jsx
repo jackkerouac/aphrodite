@@ -20,6 +20,7 @@ import AudioBadgeSettings from "@/pages/settings/design-audiobadge.tsx";
 import TestLibraryItems from "@/pages/test-library-items.tsx";
 import TestIntegration from "@/pages/test-integration.tsx";
 import TestJobs from "@/pages/test-jobs.tsx";
+import { TestWebSocket } from "@/pages/test-websocket.tsx";
 import { UserSelector } from "@/components/user-selector"
 
 // Placeholder components for each settings page
@@ -72,6 +73,7 @@ function App() {
                 <Route path="/test-library-items" element={<TestLibraryItems />} />
                 <Route path="/test-integration" element={<TestIntegration />} />
                 <Route path="/test-jobs" element={<TestJobs />} />
+                <Route path="/test-websocket" element={<TestWebSocket />} />
                 </Routes>
               </main>
             </div>
