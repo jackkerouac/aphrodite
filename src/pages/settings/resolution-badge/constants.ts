@@ -4,7 +4,7 @@ export const resolutionOptions = [
   '480pdvhdr', '480pdvhdrplus', '480phdr', '480pplus', '576p', '576pdv', '576pdvhdr',
   '576pdvhdrplus', '576phdr', '576pplus', '720', '720p', '720pdv', '720pdvhdr',
   '720pdvhdrplus', '720phdr', '720pplus', '1080', '1080p', '1080pdv', '1080pdvhdr',
-  '1080pdvhdrplus', '1080phdr', '1080pplus', '2160', 'dv', 'dvhdr', 'dvhdrplus', 'hdr'
+  '1080pdvhdrplus', '1080phdr', '1080pplus', '2160', 'dv', 'dvhdr', 'dvhdrplus', 'hdr', 'plus'
 ];
 
 // Define a mapping between resolution types and their corresponding image paths
@@ -47,4 +47,5 @@ export const resolutionImages: Record<string, string> = {
   'dvhdr': '/src/assets/resolution/dvhdr.png',
   'dvhdrplus': '/src/assets/resolution/dvhdrplus.png',
   'hdr': '/src/assets/resolution/hdr.png',
+  'plus': '/src/assets/resolution/plus.png',
 };

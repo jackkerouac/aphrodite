@@ -181,3 +181,29 @@ code, .code {
   margin: 0 auto;
   padding: 0 var(--space-page);
 }
+
+/* Fix for badge controls Shadow Settings layout shift */
+.shadow-settings-container {
+  position: relative;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.shadow-settings-container.hidden {
+  position: absolute;
+  visibility: hidden;
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* This ensures the accordion content has a minimum height to prevent layout shift */
+[data-radix-accordion-content] {
+  transition: height 0.3s ease-in-out;
+  position: relative;
+}
+
+/* Fix for preview positioning on shadow toggle */
+.fixed-preview-container {
+  position: sticky;
+  top: 1rem;
+}

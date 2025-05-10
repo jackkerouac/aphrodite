@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, forwardRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AudioBadgeSettings } from '../hooks/useAudioBadgeSettings';
@@ -9,6 +9,7 @@ interface PreviewPanelProps {
   selectedAudioCodec: string;
   settings: AudioBadgeSettings;
   audioCodecImages: Record<string, string>;
+  badgeRef?: React.Ref<HTMLDivElement>;  // New prop for forwarding ref
 }
 
 const PreviewPanel: React.FC<PreviewPanelProps> = ({
@@ -16,7 +17,8 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
   togglePreviewImage,
   selectedAudioCodec,
   settings,
-  audioCodecImages
+  audioCodecImages,
+  badgeRef
 }) => {
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
 
@@ -79,11 +81,30 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
     let shadow = '';
     if (settings.shadow_toggle) {
       const shadowColor = settings.shadow_color || '#000000';
-      // Convert hex to rgba to include transparency
-      const r = parseInt(shadowColor.slice(1, 3), 16);
-      const g = parseInt(shadowColor.slice(3, 5), 16);
-      const b = parseInt(shadowColor.slice(5, 7), 16);
-      shadow = `${settings.shadow_offset_x}px ${settings.shadow_offset_y}px ${settings.shadow_blur_radius}px rgba(${r}, ${g}, ${b}, 1)`;
+      let r, g, b, a = 1;
+
+      // Convert hex to rgba
+      if (shadowColor.startsWith('#')) {
+        r = parseInt(shadowColor.slice(1, 3), 16);
+        g = parseInt(shadowColor.slice(3, 5), 16);
+        b = parseInt(shadowColor.slice(5, 7), 16);
+      } else if (shadowColor.startsWith('rgba')) {
+          // Extract rgba values
+          const rgbaValues = shadowColor.substring(shadowColor.indexOf('(') + 1, shadowColor.lastIndexOf(')')).split(',').map(Number);
+          r = rgbaValues[0];
+          g = rgbaValues[1];
+          b = rgbaValues[2];
+          a = rgbaValues[3] === undefined ? 1 : rgbaValues[3];
+      } else if (shadowColor.startsWith('rgb')) {
+          const rgbValues = shadowColor.substring(shadowColor.indexOf('(') + 1, shadowColor.lastIndexOf(')')).split(',').map(Number);
+          r = rgbValues[0];
+          g = rgbValues[1];
+          b = rgbValues[2];
+      }
+      
+      if (r !== undefined && g !== undefined && b !== undefined) {
+          shadow = `${settings.shadow_offset_x}px ${settings.shadow_offset_y}px ${settings.shadow_blur_radius}px rgba(${r}, ${g}, ${b}, ${a})`;
+      }
     }
 
     // Convert hex to rgba for background and border
@@ -135,12 +156,21 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
             />
             
             {/* Audio Badge */}
-            <div style={getBadgeContainerStyle()}>
-              <img
-                src={audioCodecImages[selectedAudioCodec] || audioCodecImages['dolby_atmos']}
-                alt={`${selectedAudioCodec} badge`}
-                style={getBadgeImageStyle()}
-              />
+            <div style={getBadgeContainerStyle()} ref={badgeRef}>
+              {/* Use the saved badge image if available, otherwise use the selected codec image */}
+              {settings.badge_image ? (
+                <img 
+                  src={settings.badge_image}
+                  alt={`${selectedAudioCodec} badge`}
+                  style={getBadgeImageStyle()}
+                />
+              ) : (
+                <img
+                  src={audioCodecImages[selectedAudioCodec] || audioCodecImages['dolby_atmos']}
+                  alt={`${selectedAudioCodec} badge`}
+                  style={getBadgeImageStyle()}
+                />
+              )}
             </div>
           </div>
           
@@ -154,6 +184,9 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
             <p>Selected Badge: <span className="font-medium">{selectedAudioCodec}</span></p>
             <p>Badge Size: {imageDimensions.width} x {imageDimensions.height}px</p>
             <p>Display Size: {Math.round(imageDimensions.width * (settings.size / 100))} x {Math.round(imageDimensions.height * (settings.size / 100))}px</p>
+            {settings.badge_image && (
+              <p>Using saved badge image: <span className="text-green-600">✓</span></p>
+            )}
           </div>
         </div>
       </CardContent>

@@ -43,18 +43,19 @@ export const upsertResolutionBadgeSettings = async (settings) => {
           position = $3,
           resolution_type = $4,
           background_color = $5,
-          background_transparency = $6,
+          background_opacity = $6,
           border_radius = $7,
           border_width = $8,
           border_color = $9,
-          border_transparency = $10,
-          shadow_toggle = $11,
+          border_opacity = $10,
+          shadow_enabled = $11,
           shadow_color = $12,
-          shadow_blur_radius = $13,
+          shadow_blur = $13,
           shadow_offset_x = $14,
           shadow_offset_y = $15,
-          z_index = $16
-        WHERE user_id = $17
+          z_index = $16,
+          enabled = $17
+        WHERE user_id = $18
         RETURNING *`,
         [
           settings.size,
@@ -62,17 +63,18 @@ export const upsertResolutionBadgeSettings = async (settings) => {
           settings.position,
           settings.resolution_type,
           settings.background_color,
-          settings.background_transparency,
+          settings.background_opacity || settings.background_transparency,
           settings.border_radius,
           settings.border_width, 
           settings.border_color,
-          settings.border_transparency,
-          settings.shadow_toggle,
+          settings.border_opacity || settings.border_transparency,
+          settings.shadow_enabled || settings.shadow_toggle,
           settings.shadow_color,
-          settings.shadow_blur_radius,
+          settings.shadow_blur || settings.shadow_blur_radius,
           settings.shadow_offset_x,
           settings.shadow_offset_y,
           settings.z_index,
+          settings.enabled !== undefined ? settings.enabled : true,
           settings.user_id
         ]
       );
@@ -91,18 +93,19 @@ export const upsertResolutionBadgeSettings = async (settings) => {
           position,
           resolution_type,
           background_color,
-          background_transparency,
+          background_opacity,
           border_radius,
           border_width,
           border_color,
-          border_transparency,
-          shadow_toggle,
+          border_opacity,
+          shadow_enabled,
           shadow_color,
-          shadow_blur_radius,
+          shadow_blur,
           shadow_offset_x,
           shadow_offset_y,
-          z_index
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+          z_index,
+          enabled
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
         RETURNING *`,
         [
           settings.user_id,
@@ -111,17 +114,18 @@ export const upsertResolutionBadgeSettings = async (settings) => {
           settings.position,
           settings.resolution_type,
           settings.background_color,
-          settings.background_transparency,
+          settings.background_opacity || settings.background_transparency,
           settings.border_radius,
           settings.border_width,
           settings.border_color,
-          settings.border_transparency,
-          settings.shadow_toggle,
+          settings.border_opacity || settings.border_transparency,
+          settings.shadow_enabled || settings.shadow_toggle,
           settings.shadow_color,
-          settings.shadow_blur_radius,
+          settings.shadow_blur || settings.shadow_blur_radius,
           settings.shadow_offset_x,
           settings.shadow_offset_y,
-          settings.z_index
+          settings.z_index,
+          settings.enabled !== undefined ? settings.enabled : true
         ]
       );
       

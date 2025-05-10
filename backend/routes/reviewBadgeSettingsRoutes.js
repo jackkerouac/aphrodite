@@ -1,4 +1,5 @@
 import express from 'express';
+import { pool } from '../db.js';
 import {
   getReviewBadgeSettingsByUserId,
   upsertReviewBadgeSettings
@@ -41,14 +42,14 @@ router.post('/:userId', async (req, res) => {
     size, 
     margin,
     background_color, 
-    background_transparency,
+    background_opacity,
     border_radius,
     border_width,
     border_color,
-    border_transparency,
-    shadow_toggle,
+    border_opacity,
+    shadow_enabled,
     shadow_color,
-    shadow_blur_radius,
+    shadow_blur,
     shadow_offset_x,
     shadow_offset_y,
     z_index,
@@ -66,7 +67,8 @@ router.post('/:userId', async (req, res) => {
     font_size,
     font_weight,
     text_color,
-    text_transparency
+    text_opacity,
+    enabled
   } = req.body;
   
   // Validate required fields
@@ -75,11 +77,11 @@ router.post('/:userId', async (req, res) => {
   if (size === undefined) missingFields.push('size');
   if (margin === undefined) missingFields.push('margin');
   if (!background_color) missingFields.push('background_color');
-  if (background_transparency === undefined) missingFields.push('background_transparency');
+  if (background_opacity === undefined) missingFields.push('background_opacity');
   if (border_radius === undefined) missingFields.push('border_radius');
   if (border_width === undefined) missingFields.push('border_width');
   if (!border_color) missingFields.push('border_color');
-  if (border_transparency === undefined) missingFields.push('border_transparency');
+  if (border_opacity === undefined) missingFields.push('border_opacity');
   if (z_index === undefined) missingFields.push('z_index');
   
   if (missingFields.length > 0) {
@@ -95,14 +97,14 @@ router.post('/:userId', async (req, res) => {
       size,
       margin,
       background_color,
-      background_transparency,
+      background_opacity,
       border_radius,
       border_width,
       border_color,
-      border_transparency,
-      shadow_toggle,
+      border_opacity,
+      shadow_enabled,
       shadow_color,
-      shadow_blur_radius,
+      shadow_blur,
       shadow_offset_x,
       shadow_offset_y,
       z_index,
@@ -120,12 +122,86 @@ router.post('/:userId', async (req, res) => {
       font_size,
       font_weight,
       text_color,
-      text_transparency
+      text_opacity,
+      enabled
     });
     console.log('✅ Review Badge settings saved successfully:', saved);
     res.json(saved);
   } catch (err) {
     console.error('❌ Error saving Review Badge settings:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
+ * @route POST /api/review-badge-settings/:userId/enabled
+ * @description Updates only the enabled status for review badge settings
+ */
+router.post('/:userId/enabled', async (req, res) => {
+  console.log(`📬 API Request: POST /api/review-badge-settings/${req.params.userId}/enabled`, req.body);
+  const userId = Number(req.params.userId);
+  const { enabled } = req.body;
+  
+  if (enabled === undefined) {
+    return res.status(400).json({ message: 'Missing enabled status in request body' });
+  }
+  
+  try {
+    // Check if settings exist for this user
+    const existingSettings = await getReviewBadgeSettingsByUserId(userId);
+    
+    if (existingSettings) {
+      // Update only the enabled flag if settings exist
+      const result = await pool.query(
+        `UPDATE review_badge_settings SET 
+          enabled = $1,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = $2
+        RETURNING *`,
+        [enabled, userId]
+      );
+      
+      console.log(`✅ Review Badge enabled status updated to ${enabled}`);
+      return res.json(result.rows[0]);
+    } else {
+      // Create default settings with the enabled flag if none exist
+      const result = await pool.query(
+        `INSERT INTO review_badge_settings (
+          user_id, 
+          enabled,
+          size,
+          margin,
+          position,
+          background_color,
+          background_opacity,
+          border_radius,
+          border_width,
+          border_color,
+          border_opacity,
+          shadow_enabled,
+          shadow_color,
+          shadow_blur,
+          shadow_offset_x,
+          shadow_offset_y,
+          z_index,
+          badge_layout,
+          font_family,
+          font_size,
+          font_weight,
+          text_color,
+          text_opacity,
+          created_at,
+          updated_at
+        ) VALUES ($1, $2, 66, 10, 'bottom-left', '#000000', 0.6, 10, 1, '#000000', 0.5, false, '#000000', 5, 2, 2, 3, 'vertical', 'Arial', 24, 400, '#ffffff', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        RETURNING *`,
+        [userId, enabled]
+      );
+      
+      console.log(`✅ Created new Review Badge settings with enabled=${enabled}`);
+      return res.json(result.rows[0]);
+    }
+  } catch (err) {
+    console.error('❌ Error updating Review Badge enabled status:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
