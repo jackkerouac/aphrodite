@@ -316,3 +316,4 @@
 [2025-05-07T20:22:25.103Z] INFO: Getting audio badge settings for user ID: 1
 [2025-05-07T20:22:25.105Z] INFO: Found audio badge settings for user ID: 1
 [2025-05-07T20:22:25.106Z] INFO: [GET] /api/audio-badge-settings/1 304 — 3ms
+[2025-05-10T01:14:54.065Z] INFO: Server running on port 5000
