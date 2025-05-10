@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
 import { Moon, Sun } from 'lucide-react';
-import { useTheme } from '../../hooks/use-theme';
+import { useTheme } from '../theme-provider';
 
 /**
  * DarkModeToggle Component

@@ -13,7 +13,8 @@ export * from './tooltip';
 export * from './loader';
 export * from './accordion';
 export * from './tabs';
-export * from './toast';
+export * from './progress';
+// export * from './toast'; // Deprecated - use Sonner instead
 
 // Advanced UI Components
 export * from './range-slider';
@@ -24,5 +25,6 @@ export * from './form-field';
 export * from './dark-mode-toggle';
 
 // Other Exports
-export * from './toast/toaster';
-export * from './toast/use-toast';
+// export * from './toast/toaster'; // Deprecated - use Sonner instead
+// export * from './toast/use-toast'; // Deprecated - use Sonner instead
+export * from './sonner';
