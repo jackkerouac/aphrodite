@@ -120,6 +120,33 @@ router.post('/:userId', async (req, res) => {
 });
 
 /**
+ * @route GET /api/audio-badge-settings/:userId/enabled
+ * @description Get only the enabled status for audio badge settings
+ */
+router.get('/:userId/enabled', async (req, res) => {
+  const userId = Number(req.params.userId);
+  console.log(`🔍 API Request: GET /api/audio-badge-settings/${userId}/enabled`);
+  
+  try {
+    const result = await pool.query(
+      'SELECT enabled FROM audio_badge_settings WHERE user_id = $1',
+      [userId]
+    );
+    
+    if (result.rows.length === 0) {
+      console.log('⚠️ No settings found for this user, returning false');
+      return res.json({ enabled: false });
+    }
+    
+    console.log('✅ Returning enabled status:', result.rows[0].enabled);
+    res.json({ enabled: result.rows[0].enabled });
+  } catch (err) {
+    console.error('❌ Server error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
  * @route POST /api/audio-badge-settings/:userId/enabled
  * @description Updates only the enabled status for audio badge settings
  */

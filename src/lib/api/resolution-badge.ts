@@ -1,12 +1,10 @@
 import { fetchApi, ApiError } from '../api-client';
 
-const DEFAULT_USER_ID = '1'; // Assuming this is still relevant here
-
 export const resolutionBadge = {
-  getSettings: async (): Promise<any> => {
+  getSettings: async (userId: string = '1'): Promise<any> => {
     try {
       console.log('🔧 [apiClient] Fetching Resolution Badge settings...');
-      const data = await fetchApi<any>(`/resolution-badge-settings/${DEFAULT_USER_ID}`);
+      const data = await fetchApi<any>(`/resolution-badge-settings/${userId}`);
       console.log('🔧 [apiClient] Received Resolution Badge settings:', data);
       return data;
     } catch (error) {
@@ -36,7 +34,7 @@ export const resolutionBadge = {
     }
   },
 
-  saveSettings: async (settings: any): Promise<void> => {
+  saveSettings: async (settings: any, userId: string = '1'): Promise<void> => {
     console.log('📤 [apiClient] Saving Resolution Badge settings:', settings);
 
     const requiredFields = [
@@ -88,9 +86,21 @@ export const resolutionBadge = {
 
     console.log('📤 [apiClient] Processed settings to send:', settingsToSend);
 
-    return fetchApi<void>(`/resolution-badge-settings/${DEFAULT_USER_ID}`, {
+    return fetchApi<void>(`/resolution-badge-settings/${userId}`, {
       method: 'POST',
       body: JSON.stringify(settingsToSend),
     });
+  },
+
+  isEnabled: async (userId: string = '1'): Promise<boolean> => {
+    try {
+      console.log('📋 [apiClient] Checking Resolution Badge enabled status...');
+      const response = await fetchApi<{ enabled: boolean }>(`/resolution-badge-settings/${userId}/enabled`);
+      console.log('📋 [apiClient] Resolution Badge enabled:', response.enabled);
+      return response.enabled;
+    } catch (error) {
+      console.error('❌ [apiClient] Resolution Badge enabled status error:', error);
+      return false;
+    }
   }
 };

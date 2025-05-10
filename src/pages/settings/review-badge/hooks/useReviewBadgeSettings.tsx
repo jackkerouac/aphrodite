@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import apiClient, { ApiError } from '@/lib/api-client';
 import { reviewSources } from '../constants';
+import { useUser } from '@/contexts/UserContext';
 
 // Configuration
 const USE_SIMULATION = false; // Set to false when backend API is implemented
@@ -131,6 +132,7 @@ const validateSettings = (settings: ReviewBadgeSettings): { isValid: boolean; mi
 };
 
 export const useReviewBadgeSettings = (): UseReviewBadgeSettingsReturn => {
+  const { user } = useUser();
   const [settings, setSettings] = useState<ReviewBadgeSettings>(defaultSettings);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -141,6 +143,7 @@ export const useReviewBadgeSettings = (): UseReviewBadgeSettingsReturn => {
   // Load settings from the API when component mounts
   useEffect(() => {
     const fetchSettings = async () => {
+      if (!user) return;
       try {
         setLoading(true);
         setError(null);
@@ -171,7 +174,7 @@ export const useReviewBadgeSettings = (): UseReviewBadgeSettingsReturn => {
         
         try {
           // Use the API client to fetch settings
-          const data = await apiClient.reviewBadge.getSettings();
+          const data = await apiClient.reviewBadge.getSettings(user.id);
           console.log('✅ [useReviewBadgeSettings] Settings loaded:', data);
           
           // Make sure we have all required fields, filling in with defaults if needed
@@ -214,7 +217,7 @@ export const useReviewBadgeSettings = (): UseReviewBadgeSettingsReturn => {
     };
     
     fetchSettings();
-  }, []);
+  }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
@@ -312,7 +315,7 @@ export const useReviewBadgeSettings = (): UseReviewBadgeSettingsReturn => {
       
       try {
         // Use the API client to save settings
-        await apiClient.reviewBadge.saveSettings(settingsToSave);
+        await apiClient.reviewBadge.saveSettings(settingsToSave, user?.id || '1');
         console.log('✅ [useReviewBadgeSettings] Settings saved successfully');
         
         // Update the settings state to reflect the saved values

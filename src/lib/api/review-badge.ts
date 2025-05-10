@@ -2,13 +2,11 @@ import { fetchApi, ApiError } from '../api-client';
 import { ReviewBadgeSettings } from '@/pages/settings/review-badge/hooks/useReviewBadgeSettings';
 import { reviewSources } from '@/pages/settings/review-badge/constants';
 
-const DEFAULT_USER_ID = '1'; // Assuming this is still relevant here
-
 export const reviewBadge = {
-  getSettings: async (): Promise<ReviewBadgeSettings> => {
+  getSettings: async (userId: string = '1'): Promise<ReviewBadgeSettings> => {
     try {
       console.log('🔧 [apiClient] Fetching Review Badge settings...');
-      const data = await fetchApi<ReviewBadgeSettings>(`/review-badge-settings/${DEFAULT_USER_ID}`);
+      const data = await fetchApi<ReviewBadgeSettings>(`/review-badge-settings/${userId}`);
       console.log('🔧 [apiClient] Received Review Badge settings:', data);
       return data;
     } catch (error) {
@@ -52,7 +50,7 @@ export const reviewBadge = {
     }
   },
 
-  saveSettings: async (settings: ReviewBadgeSettings): Promise<void> => {
+  saveSettings: async (settings: ReviewBadgeSettings, userId: string = '1'): Promise<void> => {
     console.log('📤 [apiClient] Saving Review Badge settings:', settings);
 
     const requiredFields = [
@@ -117,9 +115,21 @@ export const reviewBadge = {
 
     console.log('📤 [apiClient] Processed settings to send:', settingsToSend);
 
-    return fetchApi<void>(`/review-badge-settings/${DEFAULT_USER_ID}`, {
+    return fetchApi<void>(`/review-badge-settings/${userId}`, {
       method: 'POST',
       body: JSON.stringify(settingsToSend),
     });
+  },
+
+  isEnabled: async (userId: string = '1'): Promise<boolean> => {
+    try {
+      console.log('📋 [apiClient] Checking Review Badge enabled status...');
+      const response = await fetchApi<{ enabled: boolean }>(`/review-badge-settings/${userId}/enabled`);
+      console.log('📋 [apiClient] Review Badge enabled:', response.enabled);
+      return response.enabled;
+    } catch (error) {
+      console.error('❌ [apiClient] Review Badge enabled status error:', error);
+      return false;
+    }
   }
 };

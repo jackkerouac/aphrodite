@@ -8,7 +8,7 @@ const WORKFLOW_STEPS = [
   { 
     id: "libraries", 
     title: "Select Libraries", 
-    description: "Choose which libraries to process",
+    description: "Choose which libraries to process with Aphrodite",
     icon: Library 
   },
   { 

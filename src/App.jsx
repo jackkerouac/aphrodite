@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Button } from "@/components/ui/button"
 import Sidebar from "@/components/sidebar"
 import { Toaster } from "@/components/ui/sonner.jsx"
+import { UserProvider } from "@/contexts/UserContext"
 
 // Import pages
 import Dashboard from "@/pages/dashboard"
@@ -15,9 +16,15 @@ import Logs from "@/pages/logs"
 import Scheduler from "@/pages/scheduler"
 import ApiSettingsPage from "@/pages/settings/api"
 import AudioBadgeSettings from "@/pages/settings/design-audiobadge.tsx";
+import { UserSelector } from "@/components/user-selector"
 
 // Placeholder components for each settings page
-const UserSettings = () => <div>User Settings Page</div>;
+const UserSettings = () => (
+  <div className="max-w-2xl mx-auto">
+    <h1 className="text-2xl font-bold mb-6">User Settings</h1>
+    <UserSelector />
+  </div>
+);
 
 // Main settings page component
 const Settings = () => (
@@ -29,29 +36,31 @@ const Settings = () => (
 
 function App() {
   return (
-    <Router>
-      <div className="flex min-h-screen">
-        <Toaster position="top-right" closeButton richColors />
-        <Sidebar />
-        <div className="flex-1 flex flex-col ml-64">
-          <main className="flex-1 p-6">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/run" element={<RunAphrodite />} />
-              <Route path="/preview" element={<Preview />} />
-              <Route path="/history" element={<JobHistory />} />
-              <Route path="/logs" element={<Logs />} />
-              <Route path="/scheduler" element={<Scheduler />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/settings/user" element={<UserSettings />} />
-              <Route path="/settings/api" element={<ApiSettingsPage />} />
-            </Routes>
-          </main>
+    <UserProvider>
+      <Router>
+        <div className="flex min-h-screen">
+          <Toaster position="top-right" closeButton richColors />
+          <Sidebar />
+          <div className="flex-1 flex flex-col ml-64">
+            <main className="flex-1 p-6">
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/run" element={<RunAphrodite />} />
+                <Route path="/preview" element={<Preview />} />
+                <Route path="/history" element={<JobHistory />} />
+                <Route path="/logs" element={<Logs />} />
+                <Route path="/scheduler" element={<Scheduler />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/settings/user" element={<UserSettings />} />
+                <Route path="/settings/api" element={<ApiSettingsPage />} />
+              </Routes>
+            </main>
+          </div>
         </div>
-      </div>
-      {/* The Toaster component will display notifications */}
-    </Router>
+        {/* The Toaster component will display notifications */}
+      </Router>
+    </UserProvider>
   )
 }
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/api-client';
+import { useUser } from '@/contexts/UserContext';
 
 interface EnabledBadges {
   audio: boolean;
@@ -8,6 +9,7 @@ interface EnabledBadges {
 }
 
 export function useEnabledBadges() {
+  const { user } = useUser();
   const [enabledBadges, setEnabledBadges] = useState<EnabledBadges>({
     audio: false,
     resolution: false,
@@ -18,22 +20,24 @@ export function useEnabledBadges() {
 
   useEffect(() => {
     const fetchEnabledBadges = async () => {
+      if (!user) return;
+      
       try {
         setIsLoading(true);
         setError(null);
 
-        // Fetch all badge settings
-        const [audioSettings, resolutionSettings, reviewSettings] = await Promise.all([
-          apiClient.badges.getAudioBadgeSettings(),
-          apiClient.badges.getResolutionBadgeSettings(),
-          apiClient.badges.getReviewBadgeSettings()
+        // Use API client methods with user ID from context
+        const [audioEnabled, resolutionEnabled, reviewEnabled] = await Promise.all([
+          apiClient.audioBadge.isEnabled(user.id),
+          apiClient.resolutionBadge.isEnabled(user.id),
+          apiClient.reviewBadge.isEnabled(user.id)
         ]);
 
-        // Check if each badge type is enabled
+        // Set the enabled state for each badge type
         setEnabledBadges({
-          audio: audioSettings?.display || false,
-          resolution: resolutionSettings?.display || false,
-          review: reviewSettings?.display || false
+          audio: audioEnabled,
+          resolution: resolutionEnabled,
+          review: reviewEnabled
         });
       } catch (err) {
         console.error('❌ [useEnabledBadges] Error:', err);
@@ -44,7 +48,7 @@ export function useEnabledBadges() {
     };
 
     fetchEnabledBadges();
-  }, []);
+  }, [user]);
 
   return { enabledBadges, isLoading, error };
 }

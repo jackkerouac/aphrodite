@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useEffect, useRef, useCallback } from "react";
+import { useUser } from '@/contexts/UserContext';
 import { useBadgePreviewSettings } from "./preview/hooks/useBadgePreviewSettings";
 import { usePosterState } from "./preview/hooks/usePosterState";
 import { useBadgeState } from "./preview/hooks/useBadgeState";
@@ -8,6 +9,7 @@ import BadgeSettingsArea from "./preview/components/BadgeSettingsArea";
 import BadgePreviewArea from "./preview/components/BadgePreviewArea";
 
 export default function Preview() {
+  const { user } = useUser();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
   // Use the badge preview settings hook to manage badge visibility
@@ -33,7 +35,7 @@ export default function Preview() {
   const updateCanvasCallbackRef = useRef(() => {});
   
   // Use badge state hook to manage badge settings
-  const badgeState = useBadgeState("123", () => updateCanvasCallbackRef.current());
+  const badgeState = useBadgeState(user?.id || "1", () => updateCanvasCallbackRef.current());
   
   // Convert any legacy positions to the new BadgePosition format
   useEffect(() => {

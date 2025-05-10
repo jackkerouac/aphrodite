@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import apiClient, { ApiError } from '@/lib/api-client';
 import { captureBadgeAsBase64 } from '@/lib/utils/capture-badge';
+import { useUser } from '@/contexts/UserContext';
 
 // Configuration
 const USE_SIMULATION = false;
@@ -101,6 +102,7 @@ const validateSettings = (settings: AudioBadgeSettings): { isValid: boolean; mis
 };
 
 export const useAudioBadgeSettings = (): UseAudioBadgeSettingsReturn => {
+  const { user } = useUser();
   const [settings, setSettings] = useState<AudioBadgeSettings>(defaultSettings);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -113,6 +115,7 @@ export const useAudioBadgeSettings = (): UseAudioBadgeSettingsReturn => {
   // Load settings from the API when component mounts
   useEffect(() => {
     const fetchSettings = async () => {
+      if (!user) return;
       try {
         setLoading(true);
         setError(null);
@@ -148,7 +151,7 @@ export const useAudioBadgeSettings = (): UseAudioBadgeSettingsReturn => {
         
         try {
           // Using the audioBadge endpoint from the apiClient
-          const data = await apiClient.audioBadge.getSettings();
+          const data = await apiClient.audioBadge.getSettings(user.id);
           console.log('✅ [useAudioBadgeSettings] Settings loaded:', data);
           
           // Make sure we have all required fields, filling in with defaults if needed
@@ -193,7 +196,7 @@ export const useAudioBadgeSettings = (): UseAudioBadgeSettingsReturn => {
     };
     
     fetchSettings();
-  }, []);
+  }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -292,7 +295,7 @@ export const useAudioBadgeSettings = (): UseAudioBadgeSettingsReturn => {
       console.log('🔍 [useAudioBadgeSettings] settingsToSave object:', JSON.stringify(settingsToSave, null, 2));
       try {
         // Using the audioBadge endpoint from the apiClient
-        await apiClient.audioBadge.saveSettings(settingsToSave);
+        await apiClient.audioBadge.saveSettings(settingsToSave, user?.id || '1');
         console.log('✅ [useAudioBadgeSettings] Settings saved successfully');
 
         // Update the settings state to reflect the saved values

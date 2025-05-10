@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import apiClient, { ApiError } from '@/lib/api-client';
+import { useUser } from '@/contexts/UserContext';
 
 interface ResolutionBadgeSettings {
   size: number | null;
@@ -49,7 +50,9 @@ const defaultSettings: ResolutionBadgeSettings = {
   z_index: 10
 };
 
-export const useResolutionBadgeSettings = (userId: number = 1): UseResolutionBadgeSettingsReturn => {
+export const useResolutionBadgeSettings = (): UseResolutionBadgeSettingsReturn => {
+  const { user } = useUser();
+  const userId = user?.id || '1';
   console.log('[useResolutionBadgeSettings] Initializing hook for user:', userId);
   
   const [settings, setSettings] = useState<ResolutionBadgeSettings>(defaultSettings);
@@ -64,7 +67,7 @@ export const useResolutionBadgeSettings = (userId: number = 1): UseResolutionBad
       setLoading(true);
       setError(null);
       
-      const data = await apiClient.resolutionBadge.getSettings();
+      const data = await apiClient.resolutionBadge.getSettings(userId);
       console.log('[useResolutionBadgeSettings] Received settings:', data);
       
       // Convert string values to appropriate types for form fields
@@ -151,7 +154,7 @@ export const useResolutionBadgeSettings = (userId: number = 1): UseResolutionBad
       console.log('[useResolutionBadgeSettings] Saving settings:', settings);
       setSaving(true);
       
-      await apiClient.resolutionBadge.saveSettings(settings);
+      await apiClient.resolutionBadge.saveSettings(settings, userId);
       console.log('[useResolutionBadgeSettings] Settings saved successfully');
       
       // Refresh settings to ensure UI is in sync with database

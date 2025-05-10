@@ -1,12 +1,10 @@
 import { fetchApi, ApiError } from '../api-client';
 
-const DEFAULT_USER_ID = '1'; // Assuming this is still relevant here
-
 export const audioBadge = {
-  getSettings: async (): Promise<any> => {
+  getSettings: async (userId: string = '1'): Promise<any> => {
     try {
       console.log('🔧 [apiClient] Fetching Audio Badge settings...');
-      const data = await fetchApi<any>(`/audio-badge-settings/${DEFAULT_USER_ID}`);
+      const data = await fetchApi<any>(`/audio-badge-settings/${userId}`);
       console.log('🔧 [apiClient] Received Audio Badge settings:', data);
       return data;
     } catch (error) {
@@ -36,7 +34,7 @@ export const audioBadge = {
     }
   },
 
-  saveSettings: async (settings: any): Promise<void> => {
+  saveSettings: async (settings: any, userId: string = '1'): Promise<void> => {
     console.log('📤 [apiClient] Saving Audio Badge settings:', settings);
 
     const requiredFields = [
@@ -91,9 +89,21 @@ export const audioBadge = {
     console.log('  - Has badge_image:', !!settingsToSend.badge_image);
     console.log('  - Badge image length:', settingsToSend.badge_image ? settingsToSend.badge_image.length : 0);
 
-    return fetchApi<void>(`/audio-badge-settings/${DEFAULT_USER_ID}`, {
+    return fetchApi<void>(`/audio-badge-settings/${userId}`, {
       method: 'POST',
       body: JSON.stringify(settingsToSend),
     });
+  },
+
+  isEnabled: async (userId: string = '1'): Promise<boolean> => {
+    try {
+      console.log('📋 [apiClient] Checking Audio Badge enabled status...');
+      const response = await fetchApi<{ enabled: boolean }>(`/audio-badge-settings/${userId}/enabled`);
+      console.log('📋 [apiClient] Audio Badge enabled:', response.enabled);
+      return response.enabled;
+    } catch (error) {
+      console.error('❌ [apiClient] Audio Badge enabled status error:', error);
+      return false;
+    }
   }
 };

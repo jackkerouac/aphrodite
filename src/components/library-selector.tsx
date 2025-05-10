@@ -87,12 +87,6 @@ export const LibrarySelector: React.FC<LibrarySelectorProps> = ({
   if (isLoading || badgesLoading) {
     return (
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight mb-2">Select Libraries</h2>
-          <p className="text-muted-foreground">
-            Choose which libraries to process with Aphrodite
-          </p>
-        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
@@ -117,12 +111,6 @@ export const LibrarySelector: React.FC<LibrarySelectorProps> = ({
   if (error) {
     return (
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight mb-2">Select Libraries</h2>
-          <p className="text-muted-foreground">
-            Choose which libraries to process with Aphrodite
-          </p>
-        </div>
         
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -149,12 +137,6 @@ export const LibrarySelector: React.FC<LibrarySelectorProps> = ({
   if (libraries.length === 0) {
     return (
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight mb-2">Select Libraries</h2>
-          <p className="text-muted-foreground">
-            Choose which libraries to process with Aphrodite
-          </p>
-        </div>
         
         <Alert>
           <AlertDescription>
@@ -167,13 +149,6 @@ export const LibrarySelector: React.FC<LibrarySelectorProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight mb-2">Select Libraries</h2>
-        <p className="text-muted-foreground">
-          Choose which libraries to process with Aphrodite
-        </p>
-      </div>
 
       {/* Selection controls */}
       <div className="flex justify-between items-center">

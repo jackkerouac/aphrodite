@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import apiClient, { ApiError } from '@/lib/api-client';
+import { useUser } from '@/contexts/UserContext';
 
 // Configuration
 const USE_SIMULATION = false; // Set to false when backend API is implemented
@@ -98,6 +99,7 @@ const validateSettings = (settings: ResolutionBadgeSettings): { isValid: boolean
 };
 
 export const useResolutionBadgeSettings = (): UseResolutionBadgeSettingsReturn => {
+  const { user } = useUser();
   const [settings, setSettings] = useState<ResolutionBadgeSettings>(defaultSettings);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -109,6 +111,7 @@ export const useResolutionBadgeSettings = (): UseResolutionBadgeSettingsReturn =
   // Load settings from the API when component mounts
   useEffect(() => {
     const fetchSettings = async () => {
+      if (!user) return;
       try {
         setLoading(true);
         setError(null);
@@ -143,7 +146,7 @@ export const useResolutionBadgeSettings = (): UseResolutionBadgeSettingsReturn =
         
         try {
           // Using the resolutionBadge endpoint from the apiClient
-          const data = await apiClient.resolutionBadge.getSettings();
+          const data = await apiClient.resolutionBadge.getSettings(user.id);
           console.log('✅ [useResolutionBadgeSettings] Settings loaded:', data);
           
           // Make sure we have all required fields, filling in with defaults if needed
@@ -188,7 +191,7 @@ export const useResolutionBadgeSettings = (): UseResolutionBadgeSettingsReturn =
     };
     
     fetchSettings();
-  }, []);
+  }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -269,7 +272,7 @@ export const useResolutionBadgeSettings = (): UseResolutionBadgeSettingsReturn =
       
       try {
         // Using the resolutionBadge endpoint from the apiClient
-        await apiClient.resolutionBadge.saveSettings(settingsToSave);
+        await apiClient.resolutionBadge.saveSettings(settingsToSave, user?.id || '1');
         console.log('✅ [useResolutionBadgeSettings] Settings saved successfully');
         
         // Update the settings state to reflect the saved values

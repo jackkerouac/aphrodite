@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useUser } from '@/contexts/UserContext';
 
 // Default badge state key for localStorage
 const STORAGE_KEY = 'badgePreviewSettings';
@@ -26,12 +27,14 @@ const defaultDisplaySettings: BadgeDisplaySettings = {
 
 // Hook for managing badge display settings in preview
 export const useBadgePreviewSettings = (): UseBadgePreviewSettingsReturn => {
+  const { user } = useUser();
   const [displaySettings, setDisplaySettings] = useState<BadgeDisplaySettings>(defaultDisplaySettings);
   const [loading, setLoading] = useState(true);
 
   // On initial load, get settings from the database and fallback to localStorage if needed
   useEffect(() => {
     const loadSettings = async () => {
+      if (!user) return;
       try {
         setLoading(true);
         
@@ -56,14 +59,13 @@ export const useBadgePreviewSettings = (): UseBadgePreviewSettingsReturn => {
         
         // Then try to load from the database (which should be the source of truth)
         try {
-          const userId = '123'; // Hardcoded user ID
           const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '/api';
           
           // Fetch all badge settings in parallel
           const [audioResponse, resolutionResponse, reviewResponse] = await Promise.all([
-            fetch(`${apiBaseUrl}/audio-badge-settings/${userId}`),
-            fetch(`${apiBaseUrl}/resolution-badge-settings/${userId}`),
-            fetch(`${apiBaseUrl}/review-badge-settings/${userId}`)
+            fetch(`${apiBaseUrl}/audio-badge-settings/${user.id}`),
+            fetch(`${apiBaseUrl}/resolution-badge-settings/${user.id}`),
+            fetch(`${apiBaseUrl}/review-badge-settings/${user.id}`)
           ]);
           
           // Process audio badge settings
@@ -110,7 +112,7 @@ export const useBadgePreviewSettings = (): UseBadgePreviewSettingsReturn => {
     };
     
     loadSettings();
-  }, []);
+  }, [user]);
 
   // Save settings to localStorage when they change
   useEffect(() => {
@@ -122,14 +124,14 @@ export const useBadgePreviewSettings = (): UseBadgePreviewSettingsReturn => {
         
         // Also save to database if possible (simple direct API calls)
         const saveToDatabase = async () => {
-          const userId = '123'; // Hardcoded user ID
+          if (!user) return;
           const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '/api';
           
           // Simple direct calls to update the database with the enabled state
           // These will fail silently if the settings don't exist yet
           try {
             // Audio badge enabled state
-            const audioResponse = await fetch(`${apiBaseUrl}/audio-badge-settings/${userId}/enabled`, {
+            const audioResponse = await fetch(`${apiBaseUrl}/audio-badge-settings/${user.id}/enabled`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
@@ -144,7 +146,7 @@ export const useBadgePreviewSettings = (): UseBadgePreviewSettingsReturn => {
             }
             
             // Resolution badge enabled state
-            const resolutionResponse = await fetch(`${apiBaseUrl}/resolution-badge-settings/${userId}/enabled`, {
+            const resolutionResponse = await fetch(`${apiBaseUrl}/resolution-badge-settings/${user.id}/enabled`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
@@ -159,7 +161,7 @@ export const useBadgePreviewSettings = (): UseBadgePreviewSettingsReturn => {
             }
             
             // Review badge enabled state
-            const reviewResponse = await fetch(`${apiBaseUrl}/review-badge-settings/${userId}/enabled`, {
+            const reviewResponse = await fetch(`${apiBaseUrl}/review-badge-settings/${user.id}/enabled`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
