@@ -1960,3 +1960,21 @@
 [2025-05-10T19:57:47.625Z] INFO: [GET] /api/library-items/1?page=3&limit=50&libraryIds=0c41907140d802bb58430fed7e2cd79e%2Cdba3068c2cd7abdbee3dbaf18d7e1831 200 — 473ms
 [2025-05-10T19:57:53.053Z] INFO: [GET] /api/library-items/1?page=4&limit=50&libraryIds=0c41907140d802bb58430fed7e2cd79e%2Cdba3068c2cd7abdbee3dbaf18d7e1831 200 — 380ms
 [2025-05-10T20:04:10.908Z] INFO: [GET] /api/library-items/1?page=1&limit=50&libraryIds=0c41907140d802bb58430fed7e2cd79e%2Cdba3068c2cd7abdbee3dbaf18d7e1831 304 — 441ms
+[2025-05-10T20:06:31.145Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-10T20:06:31.158Z] INFO: Server running on port 5000
+[2025-05-10T20:06:31.801Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 501ms
+[2025-05-10T20:06:32.059Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 254ms
+[2025-05-10T20:07:23.115Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 34ms
+[2025-05-10T20:07:23.120Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 36ms
+[2025-05-10T20:07:23.122Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 36ms
+[2025-05-10T20:07:23.532Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 455ms
+[2025-05-10T20:12:20.760Z] INFO: [GET] /api/library-items/1?page=1&limit=50&libraryIds=ee75511ae395034b1e7e657707b15125 200 — 240ms
+[2025-05-10T20:12:23.957Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 24ms
+[2025-05-10T20:12:23.960Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 26ms
+[2025-05-10T20:12:23.962Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 27ms
+[2025-05-10T20:12:23.964Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 4ms
+[2025-05-10T20:12:23.970Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 3ms
+[2025-05-10T20:12:23.974Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 3ms
+[2025-05-10T20:12:24.412Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 482ms
+[2025-05-10T20:12:24.771Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 353ms
+[2025-05-10T20:12:27.070Z] INFO: [GET] /api/library-items/1?page=1&limit=50&libraryIds=ee75511ae395034b1e7e657707b15125%2C0c41907140d802bb58430fed7e2cd79e 200 — 265ms
