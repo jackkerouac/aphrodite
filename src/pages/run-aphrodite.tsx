@@ -4,6 +4,9 @@ import { ChevronLeft, ChevronRight, Library, Grid3X3, Zap, CheckCircle } from "l
 import { LibrarySelector } from "@/components/library-selector";
 import { PosterSelector } from "@/components/poster-selector";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { useCreateJob } from "@/hooks/useCreateJob";
+import { useUser } from "@/contexts/UserContext";
+import apiClient from "@/lib/api-client";
 
 // Workflow steps
 const WORKFLOW_STEPS = [
@@ -44,6 +47,8 @@ export default function RunAphrodite() {
   const [currentStep, setCurrentStep] = useState(0);
   const [stepData, setStepData] = useState<StepData>({});
   const [isProcessing, setIsProcessing] = useState(false);
+  const { user } = useUser();
+  const createJob = useCreateJob();
 
   const currentStepInfo = WORKFLOW_STEPS[currentStep];
   const Icon = currentStepInfo.icon;
@@ -63,10 +68,55 @@ export default function RunAphrodite() {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < WORKFLOW_STEPS.length - 1 && canProceed()) {
-      setCurrentStep(currentStep + 1);
+      // Special handling for moving from selection to processing
+      if (currentStepInfo.id === "selection" && stepData.selectedItems) {
+        try {
+          setIsProcessing(true);
+          
+          // Create a job with the selected items
+          const selectedItems = await fetchSelectedItemsDetails(stepData.selectedItems);
+          const job = await createJob.mutateAsync({
+            user_id: parseInt(user?.id || '1'),
+            name: `Badge Application - ${new Date().toLocaleString()}`,
+            items: selectedItems.map(item => ({
+              jellyfin_item_id: item.id,
+              title: item.name
+            }))
+          });
+          
+          // Start processing the job
+          await apiClient.jobs.startProcessing(job.id);
+          
+          // Store job ID and move to processing step
+          setStepData(prev => ({ ...prev, jobId: job.id }));
+          setCurrentStep(currentStep + 1);
+        } catch (error) {
+          console.error('Failed to create job:', error);
+        } finally {
+          setIsProcessing(false);
+        }
+      } else {
+        setCurrentStep(currentStep + 1);
+      }
     }
+  };
+
+  // Helper function to fetch details of selected items
+  const fetchSelectedItemsDetails = async (itemIds: string[]) => {
+    // This is a simple implementation - you might want to batch these requests
+    const items = [];
+    for (const id of itemIds) {
+      try {
+        // TODO: Fetch actual item details from Jellyfin
+        // For now, we'll create a basic item object
+        items.push({ id, name: `Item ${id}` });
+      } catch (error) {
+        console.error(`Failed to fetch details for item ${id}:`, error);
+      }
+    }
+    return items;
   };
 
   const handleLibrarySelection = (selectedLibraries: string[], enabledBadges: string[]) => {
@@ -107,9 +157,9 @@ export default function RunAphrodite() {
             <ErrorBoundary>
               <PosterSelector
                 libraryIds={stepData.libraries || []}
-                onContinue={(selectedItems) => {
+                onContinue={async (selectedItems) => {
                   setStepData(prev => ({ ...prev, selectedItems }));
-                  handleNext();
+                  await handleNext();
                 }}
                 preselectedItems={stepData.selectedItems}
               />
@@ -121,10 +171,16 @@ export default function RunAphrodite() {
         return (
           <div className="space-y-4">
             <p className="text-muted-foreground">Processing selected items and applying badges.</p>
-            {/* JobStatus component will go here */}
-            <div className="border rounded-lg p-4 text-center text-muted-foreground">
-              JobStatus component will be implemented here
-            </div>
+            {stepData.jobId ? (
+              <div className="border rounded-lg p-4">
+                <p>Job ID: {stepData.jobId}</p>
+                <p className="text-sm text-muted-foreground">Job processing has started. You can monitor progress in the Job History page.</p>
+              </div>
+            ) : (
+              <div className="border rounded-lg p-4 text-center text-muted-foreground">
+                Preparing job...
+              </div>
+            )}
           </div>
         );
 

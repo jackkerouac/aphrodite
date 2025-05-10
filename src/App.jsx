@@ -18,6 +18,8 @@ import Scheduler from "@/pages/scheduler"
 import ApiSettingsPage from "@/pages/settings/api"
 import AudioBadgeSettings from "@/pages/settings/design-audiobadge.tsx";
 import TestLibraryItems from "@/pages/test-library-items.tsx";
+import TestIntegration from "@/pages/test-integration.tsx";
+import TestJobs from "@/pages/test-jobs.tsx";
 import { UserSelector } from "@/components/user-selector"
 
 // Placeholder components for each settings page
@@ -68,6 +70,8 @@ function App() {
                   <Route path="/settings/user" element={<UserSettings />} />
                   <Route path="/settings/api" element={<ApiSettingsPage />} />
                 <Route path="/test-library-items" element={<TestLibraryItems />} />
+                <Route path="/test-integration" element={<TestIntegration />} />
+                <Route path="/test-jobs" element={<TestJobs />} />
                 </Routes>
               </main>
             </div>

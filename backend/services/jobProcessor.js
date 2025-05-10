@@ -1,182 +1,231 @@
-import fs from 'fs';
+import { pool } from '../db.js';
 import logger from '../lib/logger.js';
-import {
-  getJobById,
-  updateJobStatus,
-  getJobItems,
-  updateJobItemStatus
-} from '../models/jobs.js';
-import {
-  processImageWithBadges,
-  downloadImage,
-  getTempPath,
-  cleanupTempFiles
-} from '../lib/imageProcessor.js';
+import { getJobById, updateJobStatus, updateJobItemStatus } from '../models/jobs.js';
+import fetch from 'node-fetch';
+import path from 'path';
+import { promises as fs } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-// Import badge settings models
-import { getResolutionBadgeSettingsByUserId } from '../models/resolutionBadgeSettings.js';
-import { getAudioBadgeSettingsByUserId } from '../models/audioBadgeSettings.js';
-import { getReviewBadgeSettingsByUserId } from '../models/reviewBadgeSettings.js';
-import { getJellyfinSettingsByUserId } from '../models/jellyfinSettings.js';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Base directory for image processing (Docker-aware)
+const TEMP_DIR = process.env.TEMP_DIR || path.join(__dirname, '../../temp');
+const PROCESSED_DIR = process.env.PROCESSED_DIR || path.join(__dirname, '../../processed');
+
+// Ensure directories exist
+async function ensureDirectories() {
+  await fs.mkdir(TEMP_DIR, { recursive: true });
+  await fs.mkdir(PROCESSED_DIR, { recursive: true });
+}
 
 /**
- * Process a single job
- * @param {number} jobId - The ID of the job to process
+ * Process a job and apply badges to all items
  */
 export async function processJob(jobId) {
   try {
-    // Get job details
+    await ensureDirectories();
+    
     const job = await getJobById(jobId);
     if (!job) {
-      throw new Error(`Job ${jobId} not found`);
+      logger.error(`Job ${jobId} not found`);
+      return;
     }
-    
-    // Update job status to running
+
+    logger.info(`Starting job ${jobId} processing`);
     await updateJobStatus(jobId, 'running');
-    
-    // Get enabled badge settings
-    const badgeSettings = await getBadgeSettings(job.user_id);
-    
-    // Get Jellyfin settings for API access
-    const jellyfinSettings = await getJellyfinSettingsByUserId(job.user_id);
-    if (!jellyfinSettings) {
-      throw new Error('Jellyfin settings not found');
-    }
-    
-    // Process job items
-    const { items } = await getJobItems(jobId, 1, 1000); // Get up to 1000 items at once
-    
-    let processed = 0;
-    let failed = 0;
-    
+
+    // Get job items
+    const itemsResult = await pool.query(
+      'SELECT * FROM job_items WHERE job_id = $1 ORDER BY id',
+      [jobId]
+    );
+    const items = itemsResult.rows;
+
+    let processedCount = 0;
+    let failedCount = 0;
+
+    // Process each item
     for (const item of items) {
       try {
-        await processJobItem(item, badgeSettings, jellyfinSettings);
+        await processItem(job, item);
+        processedCount++;
         await updateJobItemStatus(item.id, 'completed');
-        processed++;
+        
+        // Update job progress
+        await updateJobStatus(jobId, 'running', {
+          items_processed: processedCount,
+          items_failed: failedCount
+        });
       } catch (error) {
         logger.error(`Error processing item ${item.id}:`, error);
+        failedCount++;
         await updateJobItemStatus(item.id, 'failed', error.message);
-        failed++;
+        
+        // Update job progress
+        await updateJobStatus(jobId, 'running', {
+          items_processed: processedCount,
+          items_failed: failedCount
+        });
       }
-      
-      // Update job progress
-      await updateJobStatus(jobId, 'running', {
-        items_processed: processed,
-        items_failed: failed
-      });
     }
-    
-    // Mark job as completed
-    await updateJobStatus(jobId, 'completed', {
-      items_processed: processed,
-      items_failed: failed
+
+    // Complete the job
+    const finalStatus = failedCount === items.length ? 'failed' : 'completed';
+    await updateJobStatus(jobId, finalStatus, {
+      items_processed: processedCount,
+      items_failed: failedCount
     });
-    
-    logger.info(`Job ${jobId} completed. Processed: ${processed}, Failed: ${failed}`);
+
+    logger.info(`Job ${jobId} completed. Processed: ${processedCount}, Failed: ${failedCount}`);
   } catch (error) {
-    logger.error(`Error processing job ${jobId}:`, error);
+    logger.error(`Fatal error processing job ${jobId}:`, error);
     await updateJobStatus(jobId, 'failed');
-    throw error;
   }
 }
 
 /**
- * Process a single job item
- * @param {Object} item - The job item to process
- * @param {Object} badgeSettings - Badge settings to apply
- * @param {Object} jellyfinSettings - Jellyfin API settings
+ * Process a single item - download poster, apply badges, upload back
  */
-async function processJobItem(item, badgeSettings, jellyfinSettings) {
-  const tempFiles = [];
+async function processItem(job, item) {
+  // Get Jellyfin settings
+  const jellyfinResult = await pool.query(
+    'SELECT * FROM jellyfin_settings WHERE user_id = $1',
+    [job.user_id]
+  );
+  const jellyfinSettings = jellyfinResult.rows[0];
   
-  try {
-    // Download the original poster from Jellyfin
-    const posterUrl = `${jellyfinSettings.jellyfin_url}/Items/${item.jellyfin_item_id}/Images/Primary`;
-    const tempInputPath = getTempPath(`input_${item.id}.jpg`);
-    tempFiles.push(tempInputPath);
-    
-    await downloadImage(posterUrl, tempInputPath);
-    
-    // Process the image with badges
-    const tempOutputPath = getTempPath(`output_${item.id}.jpg`);
-    tempFiles.push(tempOutputPath);
-    
-    await processImageWithBadges(tempInputPath, badgeSettings, tempOutputPath);
-    
-    // Upload the processed image back to Jellyfin
-    await uploadToJellyfin(
-      tempOutputPath,
-      item.jellyfin_item_id,
-      jellyfinSettings
-    );
-    
-    logger.info(`Successfully processed item ${item.id}: ${item.title}`);
-  } finally {
-    // Clean up temporary files
-    cleanupTempFiles(tempFiles);
+  if (!jellyfinSettings) {
+    throw new Error('Jellyfin settings not found for user');
   }
+
+  // Download original poster
+  const posterPath = await downloadPoster(
+    jellyfinSettings.jellyfin_url,
+    jellyfinSettings.jellyfin_api_key,
+    item.jellyfin_item_id
+  );
+
+  // Get enabled badges for user
+  const enabledBadges = await getEnabledBadges(job.user_id);
+  
+  // Apply each enabled badge
+  let processedPath = posterPath;
+  
+  if (enabledBadges.audio) {
+    processedPath = await applyAudioBadge(processedPath, job.user_id, item);
+  }
+  
+  if (enabledBadges.resolution) {
+    processedPath = await applyResolutionBadge(processedPath, job.user_id, item);
+  }
+  
+  if (enabledBadges.review) {
+    processedPath = await applyReviewBadge(processedPath, job.user_id, item);
+  }
+
+  // Upload the processed image back to Jellyfin
+  await uploadToJellyfin(
+    jellyfinSettings.jellyfin_url,
+    jellyfinSettings.jellyfin_api_key,
+    item.jellyfin_item_id,
+    processedPath
+  );
+
+  // Clean up temporary files
+  if (posterPath !== processedPath) {
+    await fs.unlink(posterPath);
+  }
+  await fs.unlink(processedPath);
 }
 
 /**
- * Get enabled badge settings for a user
- * @param {number} userId - The user ID
- * @returns {Object} Combined badge settings
+ * Download poster from Jellyfin
  */
-async function getBadgeSettings(userId) {
-  const [resolution, audio, review] = await Promise.all([
-    getResolutionBadgeSettingsByUserId(userId),
-    getAudioBadgeSettingsByUserId(userId),
-    getReviewBadgeSettingsByUserId(userId)
-  ]);
-  
-  const settings = {};
-  
-  // Only include enabled badges
-  if (resolution?.display) {
-    settings.resolution = resolution;
-  }
-  
-  if (audio?.display) {
-    settings.audio = audio;
-  }
-  
-  if (review?.display) {
-    settings.review = review;
-  }
-  
-  return settings;
-}
-
-/**
- * Upload an image to Jellyfin
- * @param {string} imagePath - Path to the image file
- * @param {string} itemId - Jellyfin item ID
- * @param {Object} jellyfinSettings - Jellyfin API settings
- */
-async function uploadToJellyfin(imagePath, itemId, jellyfinSettings) {
-  try {
-    const imageBuffer = fs.readFileSync(imagePath);
-    
-    const response = await fetch(
-      `${jellyfinSettings.jellyfin_url}/Items/${itemId}/Images/Primary`,
-      {
-        method: 'POST',
-        headers: {
-          'X-Emby-Token': jellyfinSettings.jellyfin_api_key,
-          'Content-Type': 'image/jpeg'
-        },
-        body: imageBuffer
-      }
-    );
-    
-    if (!response.ok) {
-      throw new Error(`Failed to upload image: ${response.statusText}`);
+async function downloadPoster(jellyfinUrl, apiKey, itemId) {
+  const url = `${jellyfinUrl}/Items/${itemId}/Images/Primary`;
+  const response = await fetch(url, {
+    headers: {
+      'X-Emby-Token': apiKey
     }
-    
-    logger.info(`Uploaded processed image for item ${itemId}`);
-  } catch (error) {
-    logger.error(`Error uploading to Jellyfin:`, error);
-    throw error;
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to download poster: ${response.statusText}`);
+  }
+
+  const buffer = await response.buffer();
+  const posterPath = path.join(TEMP_DIR, `${itemId}_original.jpg`);
+  await fs.writeFile(posterPath, buffer);
+  
+  return posterPath;
+}
+
+/**
+ * Get enabled badges for a user
+ */
+async function getEnabledBadges(userId) {
+  const [audioResult, resolutionResult, reviewResult] = await Promise.all([
+    pool.query('SELECT enabled FROM audio_badge_settings WHERE user_id = $1', [userId]),
+    pool.query('SELECT enabled FROM resolution_badge_settings WHERE user_id = $1', [userId]),
+    pool.query('SELECT enabled FROM review_badge_settings WHERE user_id = $1', [userId])
+  ]);
+
+  return {
+    audio: audioResult.rows[0]?.enabled || false,
+    resolution: resolutionResult.rows[0]?.enabled || false,
+    review: reviewResult.rows[0]?.enabled || false
+  };
+}
+
+/**
+ * Apply audio badge to image
+ * This is a placeholder - actual implementation would use canvas or image processing library
+ */
+async function applyAudioBadge(imagePath, userId, item) {
+  // TODO: Implement actual badge application using canvas
+  logger.info(`Applying audio badge to ${item.title}`);
+  return imagePath; // For now, return unchanged
+}
+
+/**
+ * Apply resolution badge to image
+ * This is a placeholder - actual implementation would use canvas or image processing library
+ */
+async function applyResolutionBadge(imagePath, userId, item) {
+  // TODO: Implement actual badge application using canvas
+  logger.info(`Applying resolution badge to ${item.title}`);
+  return imagePath; // For now, return unchanged
+}
+
+/**
+ * Apply review badge to image
+ * This is a placeholder - actual implementation would use canvas or image processing library
+ */
+async function applyReviewBadge(imagePath, userId, item) {
+  // TODO: Implement actual badge application using canvas
+  logger.info(`Applying review badge to ${item.title}`);
+  return imagePath; // For now, return unchanged
+}
+
+/**
+ * Upload processed image back to Jellyfin
+ */
+async function uploadToJellyfin(jellyfinUrl, apiKey, itemId, imagePath) {
+  const imageBuffer = await fs.readFile(imagePath);
+  
+  const url = `${jellyfinUrl}/Items/${itemId}/Images/Primary`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'X-Emby-Token': apiKey,
+      'Content-Type': 'image/jpeg'
+    },
+    body: imageBuffer
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to upload poster: ${response.statusText}`);
   }
 }

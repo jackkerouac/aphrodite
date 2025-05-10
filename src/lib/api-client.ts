@@ -114,6 +114,8 @@ import { jellyfin } from './api/jellyfin';
 import { omdb } from './api/omdb';
 import { tmdb } from './api/tmdb';
 import { anidb } from './api/anidb';
+import libraryItems from './api/library-items';
+import jobsApi from './api/jobs';
 
 const apiClient = {
   audioBadge,
@@ -124,6 +126,8 @@ const apiClient = {
   omdb,
   tmdb,
   anidb,
+  libraryItems,
+  jobs: jobsApi,
 };
 
 export default apiClient;

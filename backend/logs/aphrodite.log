@@ -1954,3 +1954,9 @@
 [2025-05-10T19:55:01.492Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 2ms
 [2025-05-10T19:55:01.925Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 469ms
 [2025-05-10T19:55:02.224Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 291ms
+[2025-05-10T19:56:51.939Z] INFO: [GET] /api/library-items/1?page=1&limit=50&libraryIds=0c41907140d802bb58430fed7e2cd79e%2Cdba3068c2cd7abdbee3dbaf18d7e1831 200 — 378ms
+[2025-05-10T19:57:00.829Z] INFO: [GET] /api/library-items/1?page=2&limit=50&libraryIds=0c41907140d802bb58430fed7e2cd79e%2Cdba3068c2cd7abdbee3dbaf18d7e1831 200 — 367ms
+[2025-05-10T19:57:04.723Z] INFO: [GET] /api/library-items/1?libraryIds=0c41907140d802bb58430fed7e2cd79e%2Cdba3068c2cd7abdbee3dbaf18d7e1831&all=true 200 — 429ms
+[2025-05-10T19:57:47.625Z] INFO: [GET] /api/library-items/1?page=3&limit=50&libraryIds=0c41907140d802bb58430fed7e2cd79e%2Cdba3068c2cd7abdbee3dbaf18d7e1831 200 — 473ms
+[2025-05-10T19:57:53.053Z] INFO: [GET] /api/library-items/1?page=4&limit=50&libraryIds=0c41907140d802bb58430fed7e2cd79e%2Cdba3068c2cd7abdbee3dbaf18d7e1831 200 — 380ms
+[2025-05-10T20:04:10.908Z] INFO: [GET] /api/library-items/1?page=1&limit=50&libraryIds=0c41907140d802bb58430fed7e2cd79e%2Cdba3068c2cd7abdbee3dbaf18d7e1831 304 — 441ms
