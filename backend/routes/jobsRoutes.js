@@ -61,6 +61,10 @@ router.post('/', async (req, res) => {
       await createJobItems(job.id, items);
     }
     
+    // Start processing the job automatically
+    const { startJobProcessing } = await import('../services/jobProcessor.js');
+    startJobProcessing(job.id);
+    
     res.status(201).json(job);
   } catch (error) {
     logger.error('Error creating job:', error);

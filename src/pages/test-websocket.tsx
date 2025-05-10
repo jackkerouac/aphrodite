@@ -3,13 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useJobWebSocket } from '@/hooks/useJobWebSocket';
 import { useCreateJob } from '@/hooks/useCreateJob';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 export function TestWebSocket() {
   const [jobId, setJobId] = useState<string>('');
   const { connected, jobStatus, jobProgress, jobError } = useJobWebSocket(jobId);
   const createJob = useCreateJob();
-  const { toast } = useToast();
 
   const handleCreateTestJob = async () => {
     try {
@@ -20,16 +19,9 @@ export function TestWebSocket() {
       });
       
       setJobId(result.jobId);
-      toast({
-        title: 'Test job created',
-        description: `Job ID: ${result.jobId}`,
-      });
+      toast.success(`Test job created with ID: ${result.jobId}`);
     } catch (error) {
-      toast({
-        title: 'Error creating test job',
-        description: error instanceof Error ? error.message : 'Unknown error',
-        variant: 'destructive',
-      });
+      toast.error(error instanceof Error ? error.message : 'Failed to create test job');
     }
   };
 
