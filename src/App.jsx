@@ -15,7 +15,6 @@ import Logs from "@/pages/logs"
 import Scheduler from "@/pages/scheduler"
 import ApiSettingsPage from "@/pages/settings/api"
 import AudioBadgeSettings from "@/pages/settings/design-audiobadge.tsx";
-import ReviewBadgeSettings from "@/pages/preview";
 
 // Placeholder components for each settings page
 const UserSettings = () => <div>User Settings Page</div>;
@@ -47,7 +46,6 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/settings/user" element={<UserSettings />} />
               <Route path="/settings/api" element={<ApiSettingsPage />} />
-              <Route path="/settings/review-badge" element={<ReviewBadgeSettings />} />
             </Routes>
           </main>
         </div>

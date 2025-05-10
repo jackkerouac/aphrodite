@@ -48,11 +48,6 @@ export const routes = {
         name: "API Settings",
         icon: KeyIcon
       },
-      {
-        path: "/settings/review-badge",
-        name: "Review Badge Settings",
-        icon: CheckCircleIcon
-      }
     ]
   }
 };
