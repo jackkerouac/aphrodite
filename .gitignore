@@ -20,6 +20,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 aphrodite.log*
+aphrodite.log
 backend/logs/*
 backend/logs/aphrodite.log
 
@@ -75,3 +76,21 @@ IMPLEMENTATION.md
 DATABASE_SETUP.md
 UPDATES.md
 ENDPOINT.md
+
+# Google Drive
+*.tmp.driveupload
+backend/logs/aphrodite.log
+backend/logs/aphrodite.log
+backend/logs/aphrodite.log
+activeContext.md
+.gitignore
+progress.md
+.gitignore
+productContext.md
+projectbrief.md
+systemPatterns.md
+techContext.md
+.clinerules
+codebase_documentation.md
+documentation_plan.md
+backend/logs/aphrodite.log

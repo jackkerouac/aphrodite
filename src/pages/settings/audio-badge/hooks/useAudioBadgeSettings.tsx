@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import apiClient, { ApiError } from '@/lib/api-client';
+import { captureBadgeAsBase64 } from '@/lib/utils/capture-badge';
 
 // Configuration
 const USE_SIMULATION = false;
@@ -25,6 +26,7 @@ export interface AudioBadgeSettings {
   shadow_offset_x: number;
   shadow_offset_y: number;
   z_index: number;
+  badge_image?: string; // Base64 encoded image data
 }
 
 export interface UseAudioBadgeSettingsReturn {
@@ -35,6 +37,7 @@ export interface UseAudioBadgeSettingsReturn {
   isSaveDisabled: boolean;
   showSuccessNotification: boolean;
   selectedAudioCodec: string;
+  badgeRef: React.RefObject<HTMLDivElement>;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleColorChange: (key: string, value: string) => void;
   handleToggleChange: (key: string, value: boolean) => void;
@@ -105,6 +108,7 @@ export const useAudioBadgeSettings = (): UseAudioBadgeSettingsReturn => {
   const [isSaveDisabled, setIsSaveDisabled] = useState(false);
   const [showSuccessNotification, setShowSuccessNotification] = useState(false);
   const [selectedAudioCodec, setSelectedAudioCodec] = useState(settings.audio_codec_type || 'dolby_atmos');
+  const badgeRef = useRef<HTMLDivElement>(null);
 
   // Load settings from the API when component mounts
   useEffect(() => {
@@ -140,6 +144,7 @@ export const useAudioBadgeSettings = (): UseAudioBadgeSettingsReturn => {
         
         // Use the API client to fetch settings
         console.log('🔄 [useAudioBadgeSettings] Fetching audio badge settings...');
+        
         
         try {
           // Using the audioBadge endpoint from the apiClient
@@ -194,7 +199,7 @@ export const useAudioBadgeSettings = (): UseAudioBadgeSettingsReturn => {
     const { name, value } = e.target;
     setSettings(prevSettings => ({
       ...prevSettings,
-      [name]: name.includes('transparency') || name.includes('size') ? parseFloat(value) : value,
+      [name]: name.includes('transparency') || name.includes('size') || name.includes('radius') ? parseFloat(value) : value,
     }));
   };
   
@@ -213,71 +218,87 @@ export const useAudioBadgeSettings = (): UseAudioBadgeSettingsReturn => {
   };
 
   const handleSave = async () => {
+    console.log('🔥 handleSave function called');
     try {
       setSaving(true);
       setIsSaveDisabled(true);
       setError(null);
-      
+
       // Check if using simulation mode
       if (USE_SIMULATION) {
         // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, SIMULATION_DELAY));
-        
         // Store settings in the simulation variable
         savedSimulationSettings = { ...settings };
         console.log('Saved settings in simulation mode:', savedSimulationSettings);
-        
+
         // Set success state
         setShowSuccessNotification(true);
-        
         // Hide success notification after a delay
         setTimeout(() => {
           setShowSuccessNotification(false);
         }, 3000);
-        
         setSaving(false);
         setIsSaveDisabled(false);
         return;
       }
-      
+
+      // Capture the badge image if badgeRef is available
+      let badgeImage: string | undefined = undefined;
+      if (badgeRef.current) {
+        console.log('📸 [useAudioBadgeSettings] Capturing badge image...');
+        try {
+          badgeImage = await captureBadgeAsBase64(badgeRef);
+          console.log('✅ [useAudioBadgeSettings] Badge image captured successfully');
+          console.log('📏 [useAudioBadgeSettings] Badge image length:', badgeImage ? badgeImage.length : 0);
+          // Log the first 100 characters of the image data to verify format
+          console.log('🔍 [useAudioBadgeSettings] Badge image preview:', badgeImage ? badgeImage.substring(0, 100) + '...' : 'null');
+        } catch (captureError) {
+          console.error('❌ [useAudioBadgeSettings] Error capturing badge image:', captureError);
+          // Continue even if image capture fails - we'll just save settings without the image
+        }
+      } else {
+        console.warn('⚠️ [useAudioBadgeSettings] Badge reference not available, cannot capture image');
+      }
+
       // Make sure audio_codec_type is set correctly by using the selectedAudioCodec value
       const updatedSettings = {
         ...settings,
-        audio_codec_type: selectedAudioCodec
+        audio_codec_type: selectedAudioCodec,
+        badge_image: badgeImage // Include the captured image in the settings
       };
-      
+
       // Make sure all required fields are populated
       const settingsToSave = {
         ...defaultSettings, // Start with defaults
         ...updatedSettings, // Override with current settings
       };
-      
+
       console.log('🔍 [useAudioBadgeSettings] Values before validation:');
       console.log('  - settings.audio_codec_type:', settings.audio_codec_type);
       console.log('  - selectedAudioCodec:', selectedAudioCodec);
       console.log('  - updatedSettings.audio_codec_type:', updatedSettings.audio_codec_type);
       console.log('  - settingsToSave.audio_codec_type:', settingsToSave.audio_codec_type);
-      
+      console.log('  - Has badge image:', !!badgeImage);
+
       // Validate settings before saving
       const validation = validateSettings(settingsToSave);
       if (!validation.isValid) {
         console.error('❌ [useAudioBadgeSettings] Missing required fields:', validation.missingFields);
         throw new Error(`Missing required fields: ${validation.missingFields.join(', ')}`);
       }
-      
+
       console.log('📤 [useAudioBadgeSettings] Saving audio badge settings:', settingsToSave);
-      
+      console.log('🔍 [useAudioBadgeSettings] settingsToSave object:', JSON.stringify(settingsToSave, null, 2));
       try {
         // Using the audioBadge endpoint from the apiClient
         await apiClient.audioBadge.saveSettings(settingsToSave);
         console.log('✅ [useAudioBadgeSettings] Settings saved successfully');
-        
+
         // Update the settings state to reflect the saved values
         setSettings(settingsToSave);
-        
         // Set success state
         setShowSuccessNotification(true);
-        
         // Hide success notification after a delay
         setTimeout(() => {
           setShowSuccessNotification(false);
@@ -326,6 +347,7 @@ export const useAudioBadgeSettings = (): UseAudioBadgeSettingsReturn => {
     setError,
     showSuccessNotification,
     setShowSuccessNotification,
-    selectedAudioCodec
+    selectedAudioCodec,
+    badgeRef
   };
 };

@@ -48,21 +48,6 @@ export const routes = {
         name: "API Settings",
         icon: KeyIcon
       },
-      {
-        path: "/settings/audio-badge",
-        name: "Audio Badge Settings",
-        icon: VolumeIcon
-      },
-      {
-        path: "/settings/resolution-badge",
-        name: "Resolution Badge Settings",
-        icon: MonitorIcon
-      },
-      {
-        path: "/settings/review-badge",
-        name: "Review Badge Settings",
-        icon: CheckCircleIcon
-      }
     ]
   }
 };
