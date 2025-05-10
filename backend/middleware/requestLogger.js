@@ -1,4 +1,4 @@
-import logger from './lib/logger.js';
+import logger from '../lib/logger.js';
 
 export function requestLogger(req, res, next) {
   // Skip logging for log-related endpoints to prevent infinite loops
