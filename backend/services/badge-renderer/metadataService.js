@@ -181,8 +181,7 @@ class MetadataService {
     const apiKeysQuery = `
       SELECT 
         (SELECT api_key FROM tmdb_settings WHERE user_id = $1) as tmdb_key,
-        (SELECT api_key FROM omdb_settings WHERE user_id = $1) as omdb_key,
-        (SELECT api_key FROM metacritic_settings WHERE user_id = $1) as metacritic_key
+        (SELECT api_key FROM omdb_settings WHERE user_id = $1) as omdb_key
     `;
     
     const apiKeysResult = await db.query(apiKeysQuery, [userId]);
