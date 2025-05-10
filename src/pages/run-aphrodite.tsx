@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Button, Card, CardContent, Progress } from "@/components/ui";
 import { ChevronLeft, ChevronRight, Library, Grid3X3, Zap, CheckCircle } from "lucide-react";
+import { LibrarySelector } from "@/components/library-selector";
 
 // Workflow steps
 const WORKFLOW_STEPS = [
@@ -32,6 +33,7 @@ const WORKFLOW_STEPS = [
 
 interface StepData {
   libraries?: string[];
+  enabledBadges?: string[];
   selectedItems?: string[];
   jobId?: string;
 }
@@ -47,7 +49,7 @@ export default function RunAphrodite() {
   const canProceed = () => {
     switch (currentStepInfo.id) {
       case "libraries":
-        return stepData.libraries && stepData.libraries.length > 0;
+        return stepData.libraries && stepData.libraries.length > 0 && stepData.enabledBadges && stepData.enabledBadges.length > 0;
       case "selection":
         return stepData.selectedItems && stepData.selectedItems.length > 0;
       case "processing":
@@ -65,6 +67,15 @@ export default function RunAphrodite() {
     }
   };
 
+  const handleLibrarySelection = (selectedLibraries: string[], enabledBadges: string[]) => {
+    setStepData(prev => ({
+      ...prev,
+      libraries: selectedLibraries,
+      enabledBadges: enabledBadges
+    }));
+    handleNext();
+  };
+
   const handlePrevious = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
@@ -78,19 +89,19 @@ export default function RunAphrodite() {
     switch (currentStepInfo.id) {
       case "libraries":
         return (
-          <div className="space-y-4">
-            <p className="text-muted-foreground">Select which libraries you want to process for badge application.</p>
-            {/* LibrarySelector component will go here */}
-            <div className="border rounded-lg p-4 text-center text-muted-foreground">
-              LibrarySelector component will be implemented here
-            </div>
-          </div>
+          <LibrarySelector
+            onContinue={handleLibrarySelection}
+            preselectedLibraries={stepData.libraries}
+          />
         );
 
       case "selection":
         return (
           <div className="space-y-4">
             <p className="text-muted-foreground">Select the media items you want to apply badges to.</p>
+            <div className="text-sm text-muted-foreground mb-4">
+              Selected libraries: {stepData.libraries?.length} | Enabled badges: {stepData.enabledBadges?.join(', ')}
+            </div>
             {/* PosterGrid component will go here */}
             <div className="border rounded-lg p-4 text-center text-muted-foreground">
               PosterGrid component will be implemented here
