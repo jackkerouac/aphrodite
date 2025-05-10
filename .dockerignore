@@ -1,0 +1,47 @@
+# Node modules
+node_modules/
+**/node_modules/
+
+# Logs
+logs/
+*.log
+
+# Environment files
+.env
+.env.local
+
+# Build output
+dist/
+build/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Test files
+tests/
+coverage/
+
+# Documentation
+*.md
+docs/
+
+# Temporary files
+.tmp/
+.cache/
+temp/
+tmp/
+
+# Database data
+db/data/
+
+# Backup files
+.backup/
+*.bak
+*~

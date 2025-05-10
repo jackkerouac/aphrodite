@@ -6,6 +6,7 @@ import { errorLogger } from './middleware/errorLogger.js';
 import { requestLogger } from './requestLogger.js';
 
 // Import route modules
+import healthRoutes from './routes/health.js';
 import jellyfinSettingsRoutes from './routes/jellyfinSettingsRoutes.js';
 import omdbSettingsRoutes from './routes/omdbSettingsRoutes.js';
 import tmdbSettingsRoutes from './routes/tmdbSettingsRoutes.js';
@@ -32,6 +33,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(requestLogger);
 
 // Mount route modules
+app.use('/api/health', healthRoutes);
 app.use('/api/jellyfin-settings', jellyfinSettingsRoutes);
 app.use('/api/omdb-settings', omdbSettingsRoutes);
 app.use('/api/tmdb-settings', tmdbSettingsRoutes);

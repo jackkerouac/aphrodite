@@ -1,0 +1,49 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aphrodite-app
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - PG_USER=${PG_USER}
+      - PG_HOST=db
+      - PG_DATABASE=${PG_DATABASE}
+      - PG_PASSWORD=${PG_PASSWORD}
+      - PG_PORT=5432
+      - FRONTEND_URL=${FRONTEND_URL}
+    volumes:
+      - ./logs:/app/logs
+      - aphrodite_data:/app/data
+    depends_on:
+      - db
+    networks:
+      - aphrodite_network
+
+  db:
+    image: postgres:14
+    container_name: aphrodite-db
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: ${PG_DATABASE}
+    volumes:
+      - aphrodite_postgres_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d
+    networks:
+      - aphrodite_network
+
+networks:
+  aphrodite_network:
+    driver: bridge
+
+volumes:
+  aphrodite_postgres_data:
+  aphrodite_data:

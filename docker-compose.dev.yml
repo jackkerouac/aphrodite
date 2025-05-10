@@ -1,0 +1,67 @@
+services:
+  # Frontend development server
+  frontend:
+    image: node:20-alpine
+    container_name: aphrodite-frontend-dev
+    working_dir: /app
+    command: npm run dev
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - aphrodite_network
+
+  # Backend development server
+  backend:
+    image: node:20-alpine
+    container_name: aphrodite-backend-dev
+    working_dir: /app/backend
+    command: npm run dev
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - PORT=5000
+      - PG_USER=${PG_USER}
+      - PG_HOST=db
+      - PG_DATABASE=${PG_DATABASE}
+      - PG_PASSWORD=${PG_PASSWORD}
+      - PG_PORT=5432
+      - FRONTEND_URL=http://frontend:5173
+    volumes:
+      - ./backend:/app/backend
+      - ./scripts:/app/scripts
+      - ./current_schema.sql:/app/current_schema.sql
+      - ./logs:/app/logs
+      - /app/backend/node_modules
+    depends_on:
+      - db
+    networks:
+      - aphrodite_network
+
+  db:
+    image: postgres:14
+    container_name: aphrodite-db-dev
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: ${PG_DATABASE}
+    volumes:
+      - aphrodite_postgres_dev_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d
+    networks:
+      - aphrodite_network
+
+networks:
+  aphrodite_network:
+    driver: bridge
+
+volumes:
+  aphrodite_postgres_dev_data:
