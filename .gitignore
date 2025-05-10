@@ -21,8 +21,6 @@ yarn-error.log*
 pnpm-debug.log*
 aphrodite.log*
 aphrodite.log
-backend/logs/*
-backend/logs/aphrodite.log
 
 # OS-specific
 *.swp

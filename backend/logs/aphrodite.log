@@ -318,7 +318,6 @@
 [2025-05-07T20:22:25.105Z] INFO: Found audio badge settings for user ID: 1
 [2025-05-07T20:22:25.106Z] INFO: [GET] /api/audio-badge-settings/1 304 — 3ms
 [2025-05-10T01:14:54.065Z] INFO: Server running on port 5000
-=======
 [2025-05-09T23:25:46.474Z] INFO: [GET] /api/jellyfin-libraries 304 — 702ms
 [2025-05-09T23:25:46.808Z] INFO: [GET] /api/jellyfin-libraries 304 — 327ms
 [2025-05-09T23:46:59.387Z] INFO: Getting audio badge settings for user ID: 123
