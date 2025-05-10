@@ -634,3 +634,5 @@
 [2025-05-10T01:21:06.536Z] INFO: Getting review badge settings for user ID: 123
 [2025-05-10T01:21:06.538Z] INFO: Found review badge settings for user ID: 123
 [2025-05-10T01:21:06.543Z] INFO: [POST] /api/review-badge-settings/123/enabled 200 — 7ms
+[2025-05-10T01:37:20.327Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-10T01:37:20.337Z] INFO: Server running on port 5000
