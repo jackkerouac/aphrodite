@@ -17,7 +17,7 @@ import {
   Book, 
   Music,
   AlertCircle,
-  Badge
+  CheckCircle2
 } from "lucide-react";
 import useJellyfinLibraries from "@/hooks/useJellyfinLibraries";
 import useEnabledBadges from "@/hooks/useEnabledBadges";
@@ -219,19 +219,19 @@ export const LibrarySelector: React.FC<LibrarySelectorProps> = ({
             <div className="space-y-2">
               {enabledBadges.audio && (
                 <div className="flex items-center space-x-2">
-                  <Badge className="h-4 w-4" />
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
                   <span>Audio Badge</span>
                 </div>
               )}
               {enabledBadges.resolution && (
                 <div className="flex items-center space-x-2">
-                  <Badge className="h-4 w-4" />
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
                   <span>Resolution Badge</span>
                 </div>
               )}
               {enabledBadges.review && (
                 <div className="flex items-center space-x-2">
-                  <Badge className="h-4 w-4" />
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
                   <span>Review Badge</span>
                 </div>
               )}

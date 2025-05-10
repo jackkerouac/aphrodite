@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import Sidebar from "@/components/sidebar"
 import { Toaster } from "@/components/ui/sonner.jsx"
 import { UserProvider } from "@/contexts/UserContext"
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 // Import pages
 import Dashboard from "@/pages/dashboard"
@@ -16,6 +17,7 @@ import Logs from "@/pages/logs"
 import Scheduler from "@/pages/scheduler"
 import ApiSettingsPage from "@/pages/settings/api"
 import AudioBadgeSettings from "@/pages/settings/design-audiobadge.tsx";
+import TestLibraryItems from "@/pages/test-library-items.tsx";
 import { UserSelector } from "@/components/user-selector"
 
 // Placeholder components for each settings page
@@ -34,33 +36,46 @@ const Settings = () => (
   </div>
 );
 
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000, // 1 minute
+      refetchOnWindowFocus: false,
+    },
+  },
+})
+
 function App() {
   return (
-    <UserProvider>
-      <Router>
-        <div className="flex min-h-screen">
-          <Toaster position="top-right" closeButton richColors />
-          <Sidebar />
-          <div className="flex-1 flex flex-col ml-64">
-            <main className="flex-1 p-6">
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/run" element={<RunAphrodite />} />
-                <Route path="/preview" element={<Preview />} />
-                <Route path="/history" element={<JobHistory />} />
-                <Route path="/logs" element={<Logs />} />
-                <Route path="/scheduler" element={<Scheduler />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/settings/user" element={<UserSettings />} />
-                <Route path="/settings/api" element={<ApiSettingsPage />} />
-              </Routes>
-            </main>
+    <QueryClientProvider client={queryClient}>
+      <UserProvider>
+        <Router>
+          <div className="flex min-h-screen">
+            <Toaster position="top-right" closeButton richColors />
+            <Sidebar />
+            <div className="flex-1 flex flex-col ml-64">
+              <main className="flex-1 p-6">
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/run" element={<RunAphrodite />} />
+                  <Route path="/preview" element={<Preview />} />
+                  <Route path="/history" element={<JobHistory />} />
+                  <Route path="/logs" element={<Logs />} />
+                  <Route path="/scheduler" element={<Scheduler />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/settings/user" element={<UserSettings />} />
+                  <Route path="/settings/api" element={<ApiSettingsPage />} />
+                <Route path="/test-library-items" element={<TestLibraryItems />} />
+                </Routes>
+              </main>
+            </div>
           </div>
-        </div>
-        {/* The Toaster component will display notifications */}
-      </Router>
-    </UserProvider>
+          {/* The Toaster component will display notifications */}
+        </Router>
+      </UserProvider>
+    </QueryClientProvider>
   )
 }
 

@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Button, Card, CardContent, Progress } from "@/components/ui";
 import { ChevronLeft, ChevronRight, Library, Grid3X3, Zap, CheckCircle } from "lucide-react";
 import { LibrarySelector } from "@/components/library-selector";
+import { PosterSelector } from "@/components/poster-selector";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 // Workflow steps
 const WORKFLOW_STEPS = [
@@ -102,10 +104,16 @@ export default function RunAphrodite() {
             <div className="text-sm text-muted-foreground mb-4">
               Selected libraries: {stepData.libraries?.length} | Enabled badges: {stepData.enabledBadges?.join(', ')}
             </div>
-            {/* PosterGrid component will go here */}
-            <div className="border rounded-lg p-4 text-center text-muted-foreground">
-              PosterGrid component will be implemented here
-            </div>
+            <ErrorBoundary>
+              <PosterSelector
+                libraryIds={stepData.libraries || []}
+                onContinue={(selectedItems) => {
+                  setStepData(prev => ({ ...prev, selectedItems }));
+                  handleNext();
+                }}
+                preselectedItems={stepData.selectedItems}
+              />
+            </ErrorBoundary>
           </div>
         );
 

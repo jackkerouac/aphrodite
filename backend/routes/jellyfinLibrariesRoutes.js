@@ -8,11 +8,11 @@ const router = express.Router();
  * @route GET /api/jellyfin-libraries
  * @description Retrieves all libraries from the configured Jellyfin server
  */
-router.get('/', async (req, res) => {
+router.get('/:userId?', async (req, res) => {
   console.log('📬 API Request: GET /api/jellyfin-libraries');
   try {
     // Get the current user's Jellyfin settings
-    const userId = 1; // Using default user ID
+    const userId = req.params.userId || '1'; // Using user ID from params or default
     const settings = await getJellyfinSettingsByUserId(userId);
     
     if (!settings) {

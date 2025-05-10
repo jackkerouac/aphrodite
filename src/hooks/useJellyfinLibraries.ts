@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/api-client';
+import { useUser } from '@/contexts/UserContext';
 
 interface Library {
   id: string;
@@ -9,6 +10,7 @@ interface Library {
 }
 
 export function useJellyfinLibraries() {
+  const { user } = useUser();
   const [libraries, setLibraries] = useState<Library[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,7 +20,7 @@ export function useJellyfinLibraries() {
       try {
         setIsLoading(true);
         setError(null);
-        const librariesData = await apiClient.jellyfin.getLibraries();
+        const librariesData = await apiClient.jellyfin.getLibraries(user?.id || '1');
         console.log('📚 [useJellyfinLibraries] Fetched libraries:', librariesData);
         setLibraries(librariesData);
       } catch (err) {
@@ -30,7 +32,7 @@ export function useJellyfinLibraries() {
     };
 
     fetchLibraries();
-  }, []);
+  }, [user]);
 
   return { libraries, isLoading, error };
 }

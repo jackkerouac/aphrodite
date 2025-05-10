@@ -1,12 +1,10 @@
 import { fetchApi, ApiError } from '../api-client';
 
-const DEFAULT_USER_ID = '1'; // Assuming this is still relevant here
-
 export const jellyfin = {
-  getLibraries: async (): Promise<any> => {
+  getLibraries: async (userId: string): Promise<any> => {
     try {
       console.log('🔧 [apiClient] Fetching Jellyfin libraries...');
-      const data = await fetchApi<any>('/jellyfin-libraries');
+      const data = await fetchApi<any>(`/jellyfin-libraries/${userId}`);
       console.log('🔧 [apiClient] Received libraries data:', data);
       return data.libraries || [];
     } catch (error) {
@@ -15,11 +13,11 @@ export const jellyfin = {
     }
   },
 
-  getSettings: async (): Promise<Record<string, string>> => {
+  getSettings: async (userId: string): Promise<Record<string, string>> => {
     try {
       console.log('🔧 [apiClient] Fetching Jellyfin settings...');
-      console.log(`🔧 Full URL: ${API_BASE_URL}/jellyfin-settings/${DEFAULT_USER_ID}`);
-      const data = await fetchApi<any>(`/jellyfin-settings/${DEFAULT_USER_ID}`);
+      console.log(`🔧 Full URL: ${API_BASE_URL}/jellyfin-settings/${userId}`);
+      const data = await fetchApi<any>(`/jellyfin-settings/${userId}`);
       console.log('🔧 [apiClient] Received Jellyfin data:', JSON.stringify(data, null, 2));
       const mappedData = {
         url: data.jellyfin_url || '',
@@ -38,7 +36,7 @@ export const jellyfin = {
     }
   },
 
-  saveSettings: async (settings: Record<string, string>): Promise<void> => {
+  saveSettings: async (settings: Record<string, string>, userId: string): Promise<void> => {
     console.log('🔴 [apiClient] saveSettings received settings:', settings);
     const payload = {
       jellyfin_url: settings.jellyfin_url || settings.url,
@@ -50,7 +48,7 @@ export const jellyfin = {
       throw new Error('Missing required fields for Jellyfin settings');
     }
     console.log('📤 [apiClient] Saving Jellyfin settings with payload:', payload);
-    return fetchApi<void>(`/jellyfin-settings/${DEFAULT_USER_ID}`, {
+    return fetchApi<void>(`/jellyfin-settings/${userId}`, {
       method: 'POST',
       body: JSON.stringify(payload),
     });

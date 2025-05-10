@@ -2,13 +2,16 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, Checkbox, Button, Input, Skeleton } from "@/components/ui";
 import { Search, CheckCircle2, Circle, Image } from "lucide-react";
 
-interface PosterItem {
+export interface PosterItem {
   id: string;
   title: string;
   year?: string;
-  type: "Movie" | "Series" | "Season" | "Episode";
+  type: "Movie" | "Series";
   posterUrl?: string;
   overview?: string;
+  mediaType?: string;
+  path?: string;
+  serverId?: string;
 }
 
 interface PosterGridProps {
