@@ -11,6 +11,18 @@ import {
 // Import the API client
 import apiClient from './api-client';
 
+// Helper function to get user ID
+function getUserId(): string {
+  // Try to get from localStorage first
+  const storedUserId = localStorage.getItem('currentUserId');
+  if (storedUserId) {
+    return storedUserId;
+  }
+  
+  // Fallback to default
+  return '1';
+}
+
 // Service icon identifiers (not actual JSX)
 export const serviceIconNames = {
   jellyfin: 'server',
@@ -132,8 +144,11 @@ export const apiServices: Record<string, ApiService> = {
         // Fetch settings directly through the API client
         console.log('🔧 [apiServices] Jellyfin fetchSettings() called');
         
+        const userId = getUserId();
+        console.log('🔧 [apiServices] Using user ID:', userId);
+        
         // The client already handles the mapping
-        const settings = await apiClient.jellyfin.getSettings();
+        const settings = await apiClient.jellyfin.getSettings(userId);
         console.log('🔧 [apiServices] Jellyfin settings received:', settings);
         
         // Ensure we have proper field values
@@ -175,8 +190,10 @@ export const apiServices: Record<string, ApiService> = {
         jellyfin_user_id: values.userId
       };
       
+      const userId = getUserId();
+      console.log('🔴 [apiServices] Jellyfin saveSettings using user ID:', userId);
       console.log('🔴 [apiServices] Jellyfin saveSettings sending payload:', payload);
-      return apiClient.jellyfin.saveSettings(payload);
+      return apiClient.jellyfin.saveSettings(payload, userId);
     },
     testConnection: async (values) => {
       // Log the values received by the testConnection function
@@ -211,7 +228,8 @@ export const apiServices: Record<string, ApiService> = {
     name: 'OMDB',
     fetchSettings: async () => {
       try {
-        return await apiClient.omdb.getSettings();
+        const userId = getUserId();
+        return await apiClient.omdb.getSettings(userId);
       } catch (error) {
         console.error('Error fetching OMDB settings:', error);
         
@@ -228,7 +246,8 @@ export const apiServices: Record<string, ApiService> = {
         throw new Error(Object.values(validation.errors)[0]);
       }
       
-      return apiClient.omdb.saveSettings(values);
+      const userId = getUserId();
+      return apiClient.omdb.saveSettings(values, userId);
     },
     testConnection: async (values) => {
       const validation = validateOmdbConfig(values);
@@ -246,7 +265,8 @@ export const apiServices: Record<string, ApiService> = {
     name: 'TMDB',
     fetchSettings: async () => {
       try {
-        return await apiClient.tmdb.getSettings();
+        const userId = getUserId();
+        return await apiClient.tmdb.getSettings(userId);
       } catch (error) {
         console.error('Error fetching TMDB settings:', error);
         
@@ -263,7 +283,8 @@ export const apiServices: Record<string, ApiService> = {
         throw new Error(Object.values(validation.errors)[0]);
       }
       
-      return apiClient.tmdb.saveSettings(values);
+      const userId = getUserId();
+      return apiClient.tmdb.saveSettings(values, userId);
     },
     testConnection: async (values) => {
       const validation = validateTmdbConfig(values);
@@ -282,7 +303,8 @@ export const apiServices: Record<string, ApiService> = {
     fetchSettings: async () => {
       try {
         console.log('🔍 [apiServices] AniDB fetchSettings() called');
-        const settings = await apiClient.anidb.getSettings();
+        const userId = getUserId();
+        const settings = await apiClient.anidb.getSettings(userId);
         console.log('🔍 [apiServices] AniDB settings received:', { ...settings, password: '******' });
         return settings;
       } catch (error) {
@@ -313,7 +335,8 @@ export const apiServices: Record<string, ApiService> = {
       }
       
       console.log('🔄 [apiServices] AniDB validation passed, saving settings');
-      return apiClient.anidb.saveSettings(values);
+      const userId = getUserId();
+      return apiClient.anidb.saveSettings(values, userId);
     },
     testConnection: async (values) => {
       console.log('🔍 [apiServices] AniDB testConnection received values:', { ...values, password: '******' });

@@ -16,7 +16,6 @@ import JobHistory from "@/pages/job-history"
 import Logs from "@/pages/logs"
 import Scheduler from "@/pages/scheduler"
 import ApiSettingsPage from "@/pages/settings/api"
-import AudioBadgeSettings from "@/pages/settings/design-audiobadge.tsx";
 import TestLibraryItems from "@/pages/test-library-items.tsx";
 import TestIntegration from "@/pages/test-integration.tsx";
 import TestJobs from "@/pages/test-jobs.tsx";

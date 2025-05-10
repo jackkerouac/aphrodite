@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import db from '../../db.js';
+import { pool as db } from '../../db.js';
 
 class MetadataService {
   constructor() {
@@ -8,6 +8,7 @@ class MetadataService {
   }
 
   async fetchItemMetadata(item, userId) {
+    console.log('fetchItemMetadata called with item:', item);
     const cacheKey = `${item.jellyfin_id}-${item.media_type}`;
     
     // Check cache first
@@ -47,7 +48,7 @@ class MetadataService {
 
   async fetchJellyfinData(jellyfinId, userId) {
     const settingsQuery = `
-      SELECT url, token 
+      SELECT jellyfin_url as url, jellyfin_api_key as token, jellyfin_user_id 
       FROM jellyfin_settings 
       WHERE user_id = $1
     `;
@@ -59,17 +60,67 @@ class MetadataService {
       throw new Error('Jellyfin settings not found');
     }
 
-    const response = await fetch(`${settings.url}/Items/${jellyfinId}`, {
-      headers: {
-        'X-MediaBrowser-Token': settings.token
-      }
+    // Clean up the URL - remove trailing slash if present
+    const baseUrl = settings.url.replace(/\/$/, '');
+    
+    // Try the direct Items endpoint first (doesn't require user context)
+    const itemUrl = `${baseUrl}/Items/${jellyfinId}`;
+    // Fallback URL with user context
+    const userItemUrl = `${baseUrl}/Users/${settings.jellyfin_user_id}/Items/${jellyfinId}`;
+
+    console.log('Fetching Jellyfin data:', {
+      url: itemUrl,
+      token: settings.token ? '***' + settings.token.slice(-4) : 'none'
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch Jellyfin data: ${response.statusText}`);
+    const headers = {
+      'Accept': 'application/json'
+    };
+
+    // Add authorization header if token exists
+    if (settings.token) {
+      headers['X-Emby-Token'] = settings.token;
     }
 
-    return response.json();
+    try {
+      // Try the direct Items endpoint first
+      let response = await fetch(itemUrl, {
+        method: 'GET',
+        headers: headers
+      });
+
+      // If that fails, try with user context
+      if (!response.ok && response.status === 400) {
+        console.log('Direct Items endpoint failed, trying with user context...');
+        response = await fetch(userItemUrl, {
+          method: 'GET',
+          headers: headers
+        });
+      }
+
+      if (!response.ok) {
+        let errorBody = null;
+        try {
+          errorBody = await response.text();
+        } catch (e) {
+          // Ignore error reading body
+        }
+        
+        console.error('Jellyfin API Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          url: itemUrl,
+          headers: headers,
+          errorBody: errorBody
+        });
+        throw new Error(`Failed to fetch Jellyfin data: ${response.status} ${response.statusText}` + (errorBody ? ` - ${errorBody}` : ''));
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('Error fetching from Jellyfin:', error);
+      throw error;
+    }
   }
 
   extractResolution(jellyfinData) {

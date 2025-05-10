@@ -43,10 +43,14 @@ router.get('/', async (req, res) => {
  */
 router.post('/', async (req, res) => {
   try {
+    console.log('Received job creation request with body:', JSON.stringify(req.body, null, 2));
     const { user_id, name, items } = req.body;
     
     if (!user_id || !name || !items || !Array.isArray(items)) {
-      return res.status(400).json({ message: 'Missing required fields' });
+      return res.status(400).json({ 
+        message: 'Missing required fields',
+        received: { user_id, name, items: Array.isArray(items) ? items.length : items }
+      });
     }
     
     // Create the job
@@ -62,8 +66,10 @@ router.post('/', async (req, res) => {
     }
     
     // Start processing the job automatically
+    console.log('Starting job processing for job:', job.id);
     const { startJobProcessing } = await import('../services/jobProcessor.js');
     startJobProcessing(job.id);
+    console.log('Job processing started');
     
     res.status(201).json(job);
   } catch (error) {

@@ -9,11 +9,16 @@ import PosterProcessor from './badge-renderer/posterProcessor.js';
  */
 export async function processJob(jobId) {
   try {
-    const job = await getJobById(jobId);
-    if (!job) {
+    // First get the job without user_id constraint to find the user
+    const { pool } = await import('../db.js');
+    const jobResult = await pool.query('SELECT * FROM jobs WHERE id = $1', [jobId]);
+    
+    if (!jobResult.rows[0]) {
       logger.error(`Job ${jobId} not found`);
       return;
     }
+    
+    const job = jobResult.rows[0];
 
     logger.info(`Starting job ${jobId} processing`);
     await updateJobStatus(jobId, 'running');
@@ -24,11 +29,7 @@ export async function processJob(jobId) {
 
     // Get job items
     const itemsResult = await pool.query(
-      'SELECT ji.*, li.title, li.jellyfin_id, li.media_type 
-       FROM job_items ji
-       JOIN library_items li ON ji.library_item_id = li.id
-       WHERE ji.job_id = $1 
-       ORDER BY ji.id',
+      'SELECT ji.* FROM job_items ji WHERE ji.job_id = $1 ORDER BY ji.id',
       [jobId]
     );
     const items = itemsResult.rows;
@@ -97,8 +98,11 @@ export async function processJob(jobId) {
     logger.error(`Fatal error processing job ${jobId}:`, error);
     await updateJobStatus(jobId, 'failed');
 
-    // Emit job error event
-    const job = await getJobById(jobId);
+    // Emit job error event - get job again to find user_id
+    const { pool } = await import('../db.js');
+    const jobResult = await pool.query('SELECT * FROM jobs WHERE id = $1', [jobId]);
+    const job = jobResult.rows[0];
+    
     if (job) {
       emitToUser(job.user_id, 'job-error', {
         jobId,
@@ -112,8 +116,10 @@ export async function processJob(jobId) {
  * Start processing a job in the background
  */
 export function startJobProcessing(jobId) {
+  console.log('Starting job processing for job ID:', jobId);
   // Process job asynchronously
   processJob(jobId).catch(error => {
     logger.error(`Error in job processing for job ${jobId}:`, error);
+    console.error('Job processing error:', error);
   });
 }

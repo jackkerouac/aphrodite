@@ -41,14 +41,22 @@ export async function getJobById(jobId, userId) {
 export async function createJob(jobData) {
   const { user_id, name, items_total } = jobData;
   
-  const result = await pool.query(
-    `INSERT INTO jobs (user_id, name, items_total, status)
-     VALUES ($1, $2, $3, 'pending')
-     RETURNING *`,
-    [user_id, name, items_total]
-  );
-  
-  return result.rows[0];
+  try {
+    console.log('Creating job with data:', { user_id, name, items_total });
+    
+    const result = await pool.query(
+      `INSERT INTO jobs (user_id, name, items_total, status)
+       VALUES ($1, $2, $3, 'pending')
+       RETURNING *`,
+      [user_id, name, items_total]
+    );
+    
+    console.log('Job created successfully:', result.rows[0]);
+    return result.rows[0];
+  } catch (error) {
+    console.error('Database error in createJob:', error);
+    throw error;
+  }
 }
 
 // Update job status
@@ -109,20 +117,34 @@ export async function getJobItems(jobId, page = 1, limit = 50) {
 
 // Create job items
 export async function createJobItems(jobId, items) {
-  const values = items.map((item, index) => {
-    const offset = index * 3;
-    return `($${offset + 1}, $${offset + 2}, $${offset + 3})`;
-  }).join(', ');
+  if (!items.length) return [];
   
-  const params = items.flatMap(item => [jobId, item.jellyfin_item_id, item.title]);
-  
-  const query = `
-    INSERT INTO job_items (job_id, jellyfin_item_id, title)
-    VALUES ${values}
-    RETURNING *`;
-  
-  const result = await pool.query(query, params);
-  return result.rows;
+  try {
+    console.log('Creating job items for job:', jobId);
+    console.log('Items to create:', items);
+    
+    const values = items.map((item, index) => {
+      const offset = index * 3;
+      return `($${offset + 1}, $${offset + 2}, $${offset + 3})`;
+    }).join(', ');
+    
+    const params = items.flatMap(item => [jobId, item.jellyfin_item_id, item.title]);
+    
+    const query = `
+      INSERT INTO job_items (job_id, jellyfin_item_id, title)
+      VALUES ${values}
+      RETURNING *`;
+    
+    console.log('Query:', query);
+    console.log('Params:', params);
+    
+    const result = await pool.query(query, params);
+    console.log('Job items created successfully:', result.rows.length);
+    return result.rows;
+  } catch (error) {
+    console.error('Database error in createJobItems:', error);
+    throw error;
+  }
 }
 
 // Update job item status

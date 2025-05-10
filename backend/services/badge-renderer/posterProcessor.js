@@ -2,7 +2,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import fetch from 'node-fetch';
 import BadgeRenderer from './badgeRenderer.js';
-import db from '../../db.js';
+import { pool as db } from '../../db.js';
 import MetadataService from './metadataService.js';
 
 class PosterProcessor {
@@ -20,7 +20,7 @@ class PosterProcessor {
   }
 
   async processItem(item, jobId, userId) {
-    const tempPosterPath = path.join(this.tempDir, `poster-${item.jellyfin_id}.png`);
+    const tempPosterPath = path.join(this.tempDir, `poster-${item.jellyfin_item_id}.png`);
     
     try {
       // Update item status to processing
@@ -30,7 +30,7 @@ class PosterProcessor {
       const badgeSettings = await this.getBadgeSettings(userId, item);
 
       // Download poster from Jellyfin
-      await this.downloadPoster(item.jellyfin_id, tempPosterPath, userId);
+      await this.downloadPoster(item.jellyfin_item_id, tempPosterPath, userId);
 
       // Apply badges
       const modifiedPosterBuffer = await this.badgeRenderer.applyMultipleBadges(
@@ -39,7 +39,7 @@ class PosterProcessor {
       );
 
       // Upload modified poster back to Jellyfin
-      await this.uploadPoster(item.jellyfin_id, modifiedPosterBuffer, userId);
+      await this.uploadPoster(item.jellyfin_item_id, modifiedPosterBuffer, userId);
 
       // Update item status to completed
       await this.updateItemStatus(item.id, 'completed');
@@ -65,15 +65,15 @@ class PosterProcessor {
         'resolution' as type,
         enabled,
         position,
-        font,
+        font_family,
         font_size,
-        font_color,
-        logo_path,
-        theme,
-        padding,
-        transparency,
-        stacking_order,
-        stacking_direction
+        text_color,
+        NULL as logo_path,
+        NULL as theme,
+        margin as padding,
+        background_opacity as transparency,
+        z_index as stacking_order,
+        NULL as stacking_direction
       FROM resolution_badge_settings
       WHERE user_id = $1 AND enabled = true
       
@@ -83,15 +83,15 @@ class PosterProcessor {
         'audio' as type,
         enabled,
         position,
-        font,
+        font_family,
         font_size,
-        font_color,
-        logo_path,
-        theme,
-        padding,
-        transparency,
-        stacking_order,
-        stacking_direction
+        text_color,
+        badge_image as logo_path,
+        NULL as theme,
+        margin as padding,
+        background_opacity as transparency,
+        z_index as stacking_order,
+        NULL as stacking_direction
       FROM audio_badge_settings
       WHERE user_id = $1 AND enabled = true
       
@@ -101,15 +101,15 @@ class PosterProcessor {
         'review' as type,
         enabled,
         position,
-        font,
+        font_family,
         font_size,
-        font_color,
-        logo_path,
-        theme,
-        padding,
-        transparency,
-        stacking_order,
-        stacking_direction
+        text_color,
+        NULL as logo_path,
+        NULL as theme,
+        margin as padding,
+        background_opacity as transparency,
+        z_index as stacking_order,
+        NULL as stacking_direction
       FROM review_badge_settings
       WHERE user_id = $1 AND enabled = true
     `;
@@ -125,17 +125,22 @@ class PosterProcessor {
       settings: {
         type: setting.type,
         position: setting.position || 'top-right',
-        theme: setting.theme || 'dark',
+        theme: 'dark', // Default to dark theme
         fontSize: setting.font_size,
-        padding: setting.padding,
-        transparency: setting.transparency
+        padding: setting.padding || 8,
+        transparency: setting.transparency || 1
       },
       value: this.getBadgeValue(setting.type, metadata)
     }));
   }
 
   async fetchItemMetadata(item, userId) {
-    return await this.metadataService.fetchItemMetadata(item, userId);
+    // Create an item object that the metadata service expects
+    const metadataItem = {
+      jellyfin_id: item.jellyfin_item_id,
+      media_type: 'Movie' // Default to Movie for now, could be determined from title or other metadata
+    };
+    return await this.metadataService.fetchItemMetadata(metadataItem, userId);
   }
 
   getBadgeValue(type, metadata) {
@@ -154,7 +159,7 @@ class PosterProcessor {
   async downloadPoster(jellyfinId, outputPath, userId) {
     // Get Jellyfin settings from database
     const settingsQuery = `
-      SELECT url, token 
+      SELECT jellyfin_url as url, jellyfin_api_key as token, jellyfin_user_id 
       FROM jellyfin_settings 
       WHERE user_id = $1
     `;
@@ -166,15 +171,32 @@ class PosterProcessor {
       throw new Error('Jellyfin settings not found');
     }
 
-    const posterUrl = `${settings.url}/Items/${jellyfinId}/Images/Primary`;
+    // Clean up the URL and build the poster URL
+    const baseUrl = settings.url.replace(/\/$/, '');
+    // Use the Items endpoint directly for downloading images
+    const posterUrl = `${baseUrl}/Items/${jellyfinId}/Images/Primary`;
+    
+    const headers = {};
+    if (settings.token) {
+      headers['X-Emby-Token'] = settings.token;
+    }
+
+    console.log('Downloading poster:', {
+      url: posterUrl,
+      token: settings.token ? '***' + settings.token.slice(-4) : 'none'
+    });
+
     const response = await fetch(posterUrl, {
-      headers: {
-        'X-MediaBrowser-Token': settings.token
-      }
+      headers: headers
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to download poster: ${response.statusText}`);
+      console.error('Failed to download poster:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: posterUrl
+      });
+      throw new Error(`Failed to download poster: ${response.status} ${response.statusText}`);
     }
 
     const buffer = await response.buffer();
@@ -184,7 +206,7 @@ class PosterProcessor {
   async uploadPoster(jellyfinId, posterBuffer, userId) {
     // Get Jellyfin settings from database
     const settingsQuery = `
-      SELECT url, token 
+      SELECT jellyfin_url as url, jellyfin_api_key as token, jellyfin_user_id 
       FROM jellyfin_settings 
       WHERE user_id = $1
     `;
@@ -196,18 +218,37 @@ class PosterProcessor {
       throw new Error('Jellyfin settings not found');
     }
 
-    const uploadUrl = `${settings.url}/Items/${jellyfinId}/Images/Primary`;
+    // Clean up the URL and build the upload URL
+    const baseUrl = settings.url.replace(/\/$/, '');
+    // Use the Items endpoint directly for uploading images
+    const uploadUrl = `${baseUrl}/Items/${jellyfinId}/Images/Primary`;
+    
+    const headers = {
+      'Content-Type': 'image/png'
+    };
+    
+    if (settings.token) {
+      headers['X-Emby-Token'] = settings.token;
+    }
+
+    console.log('Uploading poster:', {
+      url: uploadUrl,
+      token: settings.token ? '***' + settings.token.slice(-4) : 'none'
+    });
+
     const response = await fetch(uploadUrl, {
       method: 'POST',
-      headers: {
-        'X-MediaBrowser-Token': settings.token,
-        'Content-Type': 'image/png'
-      },
+      headers: headers,
       body: posterBuffer
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to upload poster: ${response.statusText}`);
+      console.error('Failed to upload poster:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: uploadUrl
+      });
+      throw new Error(`Failed to upload poster: ${response.status} ${response.statusText}`);
     }
   }
 

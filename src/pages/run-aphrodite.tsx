@@ -79,14 +79,20 @@ export default function RunAphrodite() {
           
           // Create a job with the selected items
           const selectedItems = await fetchSelectedItemsDetails(stepData.selectedItems);
-          const job = await createJob.mutateAsync({
+          const jobName = `Badge Application - ${new Date().toISOString().replace(/[:.]/g, '-')}`;
+          
+          const jobPayload = {
             user_id: parseInt(user?.id || '1'),
-            name: `Badge Application - ${new Date().toLocaleString()}`,
+            name: jobName,
             items: selectedItems.map(item => ({
               jellyfin_item_id: item.id,
               title: item.name
             }))
-          });
+          };
+          
+          console.log('Creating job with payload:', jobPayload);
+          
+          const job = await createJob.mutateAsync(jobPayload);
           
           // Start processing the job
           await apiClient.jobs.startProcessing(job.id);
@@ -107,18 +113,15 @@ export default function RunAphrodite() {
 
   // Helper function to fetch details of selected items
   const fetchSelectedItemsDetails = async (itemIds: string[]) => {
-    // This is a simple implementation - you might want to batch these requests
-    const items = [];
-    for (const id of itemIds) {
-      try {
-        // TODO: Fetch actual item details from Jellyfin
-        // For now, we'll create a basic item object
-        items.push({ id, name: `Item ${id}` });
-      } catch (error) {
-        console.error(`Failed to fetch details for item ${id}:`, error);
-      }
-    }
-    return items;
+    // Get the library items data from the previous step
+    const libraryIds = stepData.libraries || [];
+    
+    // For now, we'll use the item IDs directly
+    // In a real implementation, you might want to fetch full details
+    return itemIds.map(id => ({
+      id: id,
+      name: `Media Item`  // Safe placeholder name
+    }));
   };
 
   const handleLibrarySelection = (selectedLibraries: string[], enabledBadges: string[]) => {
@@ -159,9 +162,9 @@ export default function RunAphrodite() {
             <ErrorBoundary>
               <PosterSelector
                 libraryIds={stepData.libraries || []}
-                onContinue={async (selectedItems) => {
+                onContinue={(selectedItems) => {
                   setStepData(prev => ({ ...prev, selectedItems }));
-                  await handleNext();
+                  handleNext();
                 }}
                 preselectedItems={stepData.selectedItems}
               />

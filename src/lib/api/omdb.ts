@@ -3,9 +3,9 @@ import { fetchApi, ApiError } from '../api-client';
 const DEFAULT_USER_ID = '1'; // Assuming this is still relevant here
 
 export const omdb = {
-  getSettings: async (): Promise<Record<string, string>> => {
+  getSettings: async (userId: string): Promise<Record<string, string>> => {
     try {
-      const data = await fetchApi<any>(`/omdb-settings/${DEFAULT_USER_ID}`);
+      const data = await fetchApi<any>(`/omdb-settings/${userId}`);
       return {
         apiKey: data.api_key || '',
       };
@@ -18,11 +18,11 @@ export const omdb = {
     }
   },
 
-  saveSettings: async (settings: Record<string, string>): Promise<void> => {
+  saveSettings: async (settings: Record<string, string>, userId: string): Promise<void> => {
     const payload = {
       api_key: settings.apiKey
     };
-    return fetchApi<void>(`/omdb-settings/${DEFAULT_USER_ID}`, {
+    return fetchApi<void>(`/omdb-settings/${userId}`, {
       method: 'POST',
       body: JSON.stringify(payload),
     });

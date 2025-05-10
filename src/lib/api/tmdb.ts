@@ -3,9 +3,9 @@ import { fetchApi, ApiError } from '../api-client';
 const DEFAULT_USER_ID = '1'; // Assuming this is still relevant here
 
 export const tmdb = {
-  getSettings: async (): Promise<Record<string, string>> => {
+  getSettings: async (userId: string): Promise<Record<string, string>> => {
     try {
-      const data = await fetchApi<any>(`/tmdb-settings/${DEFAULT_USER_ID}`);
+      const data = await fetchApi<any>(`/tmdb-settings/${userId}`);
       return {
         apiKey: data.api_key || '',
       };
@@ -18,11 +18,11 @@ export const tmdb = {
     }
   },
 
-  saveSettings: async (settings: Record<string, string>): Promise<void> => {
+  saveSettings: async (settings: Record<string, string>, userId: string): Promise<void> => {
     const payload = {
       api_key: settings.apiKey
     };
-    return fetchApi<void>(`/tmdb-settings/${DEFAULT_USER_ID}`, {
+    return fetchApi<void>(`/tmdb-settings/${userId}`, {
       method: 'POST',
       body: JSON.stringify(payload),
     });

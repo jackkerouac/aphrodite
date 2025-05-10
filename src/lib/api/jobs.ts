@@ -71,20 +71,35 @@ const jobsApi = {
   },
 
   async createJob(params: CreateJobParams): Promise<Job> {
-    const response = await fetch('/api/jobs', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify(params)
-    });
+    try {
+      console.log('Sending job creation request:', params);
+      
+      const response = await fetch('/api/jobs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(params)
+      });
 
-    if (!response.ok) {
-      throw new Error(`Failed to create job: ${response.statusText}`);
+      const responseText = await response.text();
+      console.log('Server response:', responseText);
+
+      if (!response.ok) {
+        throw new Error(`Failed to create job: ${response.statusText} - ${responseText}`);
+      }
+
+      try {
+        return JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse response:', parseError);
+        throw new Error(`Failed to parse server response: ${parseError}`);
+      }
+    } catch (error) {
+      console.error('Error creating job:', error);
+      throw error;
     }
-
-    return response.json();
   },
 
   async getJob(jobId: number, userId: string): Promise<Job> {

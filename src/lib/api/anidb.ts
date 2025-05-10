@@ -3,11 +3,11 @@ import { fetchApi, ApiError } from '../api-client';
 const DEFAULT_USER_ID = '1'; // Assuming this is still relevant here
 
 export const anidb = {
-  getSettings: async (): Promise<Record<string, string>> => {
+  getSettings: async (userId: string): Promise<Record<string, string>> => {
     try {
       console.log('🔧 [apiClient] Fetching AniDB settings...');
-      console.log(`🔧 Full URL: ${API_BASE_URL}/anidb-settings/${DEFAULT_USER_ID}`);
-      const data = await fetchApi<any>(`/anidb-settings/${DEFAULT_USER_ID}`);
+      console.log(`🔧 Full URL: ${API_BASE_URL}/anidb-settings/${userId}`);
+      const data = await fetchApi<any>(`/anidb-settings/${userId}`);
       console.log('🔧 [apiClient] Received AniDB data:', JSON.stringify({ ...data, anidb_password: '******' }, null, 2));
       const mappedData = {
         username: data.anidb_username || '',
@@ -36,7 +36,7 @@ export const anidb = {
     }
   },
 
-  saveSettings: async (settings: Record<string, string>): Promise<void> => {
+  saveSettings: async (settings: Record<string, string>, userId: string): Promise<void> => {
     console.log('🔴 [apiClient] saveSettings received settings:', { ...settings, password: '******' });
     const payload = {
       anidb_username: settings.anidb_username || settings.username,
@@ -51,7 +51,7 @@ export const anidb = {
       throw new Error('Missing required fields for AniDB settings');
     }
     console.log('📤 [apiClient] Saving AniDB settings with payload:', { ...payload, anidb_password: '******' });
-    return fetchApi<void>(`/anidb-settings/${DEFAULT_USER_ID}`, {
+    return fetchApi<void>(`/anidb-settings/${userId}`, {
       method: 'POST',
       body: JSON.stringify(payload),
     });
