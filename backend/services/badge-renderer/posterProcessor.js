@@ -2,21 +2,28 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import fetch from 'node-fetch';
 import BadgeRenderer from './badgeRenderer.js';
+import CanvasBadgeRenderer from './canvasBadgeRenderer.js';
 import { pool as db } from '../../db.js';
 import MetadataService from './metadataService.js';
+import sharp from 'sharp';
 
 class PosterProcessor {
   constructor() {
     this.badgeRenderer = new BadgeRenderer();
+    this.canvasBadgeRenderer = new CanvasBadgeRenderer();
     this.metadataService = new MetadataService();
     this.tempDir = process.env.TEMP_DIR || path.join(process.cwd(), 'temp');
     this.concurrency = parseInt(process.env.BATCH_CONCURRENCY || '4');
+    this.useCanvasRenderer = process.env.USE_CANVAS_RENDERER !== 'false'; // Default to true
   }
 
   async init() {
     // Ensure temp directory exists
     await fs.mkdir(this.tempDir, { recursive: true });
     await this.badgeRenderer.init();
+    if (this.useCanvasRenderer) {
+      await this.canvasBadgeRenderer.init();
+    }
   }
 
   async processItem(item, jobId, userId) {
@@ -25,6 +32,9 @@ class PosterProcessor {
     try {
       // Update item status to processing
       await this.updateItemStatus(item.id, 'processing');
+      
+      // Log the item to see what data we have
+      console.log('Processing item:', item);
 
       // Fetch badge settings for this user
       const badgeSettings = await this.getBadgeSettings(userId, item);
@@ -32,11 +42,21 @@ class PosterProcessor {
       // Download poster from Jellyfin
       await this.downloadPoster(item.jellyfin_item_id, tempPosterPath, userId);
 
-      // Apply badges
-      const modifiedPosterBuffer = await this.badgeRenderer.applyMultipleBadges(
-        tempPosterPath,
-        badgeSettings
-      );
+      // Apply badges using canvas renderer if enabled
+      let modifiedPosterBuffer;
+      if (this.useCanvasRenderer) {
+        modifiedPosterBuffer = await this.applyBadgesWithCanvas(tempPosterPath, badgeSettings);
+      } else {
+        modifiedPosterBuffer = await this.badgeRenderer.applyMultipleBadges(
+          tempPosterPath,
+          badgeSettings
+        );
+      }
+      
+      // Save the modified poster for inspection
+      const modifiedPosterPath = path.join(this.tempDir, `poster-modified-${item.jellyfin_item_id}.png`);
+      await fs.writeFile(modifiedPosterPath, modifiedPosterBuffer);
+      console.log(`Modified poster saved at: ${modifiedPosterPath}`);
 
       // Upload modified poster back to Jellyfin
       await this.uploadPoster(item.jellyfin_item_id, modifiedPosterBuffer, userId);
@@ -45,7 +65,8 @@ class PosterProcessor {
       await this.updateItemStatus(item.id, 'completed');
 
       // Clean up temp file
-      await fs.unlink(tempPosterPath).catch(() => {});
+      // await fs.unlink(tempPosterPath).catch(() => {});
+      console.log(`Temp poster saved at: ${tempPosterPath}`);
 
       return { success: true, itemId: item.id };
     } catch (error) {
@@ -53,27 +74,37 @@ class PosterProcessor {
       await this.updateItemStatus(item.id, 'failed', error.message);
       
       // Clean up temp file
-      await fs.unlink(tempPosterPath).catch(() => {});
+      // await fs.unlink(tempPosterPath).catch(() => {});
+      console.log(`Temp poster saved at: ${tempPosterPath} (in error state)`);
 
       return { success: false, itemId: item.id, error: error.message };
     }
   }
 
   async getBadgeSettings(userId, item) {
+    console.log('Fetching badge settings for user:', userId);
     const query = `
       SELECT 
         'resolution' as type,
         enabled,
         position,
+        size,
         font_family,
         font_size,
         text_color,
-        NULL as logo_path,
-        NULL as theme,
-        margin as padding,
+        background_color,
         background_opacity as transparency,
-        z_index as stacking_order,
-        NULL as stacking_direction
+        border_radius,
+        border_width,
+        border_color,
+        border_opacity,
+        shadow_enabled,
+        shadow_color,
+        shadow_blur,
+        shadow_offset_x,
+        shadow_offset_y,
+        margin as padding,
+        z_index as stacking_order
       FROM resolution_badge_settings
       WHERE user_id = $1 AND enabled = true
       
@@ -83,15 +114,23 @@ class PosterProcessor {
         'audio' as type,
         enabled,
         position,
+        size,
         font_family,
         font_size,
         text_color,
-        badge_image as logo_path,
-        NULL as theme,
-        margin as padding,
+        background_color,
         background_opacity as transparency,
-        z_index as stacking_order,
-        NULL as stacking_direction
+        border_radius,
+        border_width,
+        border_color,
+        border_opacity,
+        shadow_enabled,
+        shadow_color,
+        shadow_blur,
+        shadow_offset_x,
+        shadow_offset_y,
+        margin as padding,
+        z_index as stacking_order
       FROM audio_badge_settings
       WHERE user_id = $1 AND enabled = true
       
@@ -101,59 +140,148 @@ class PosterProcessor {
         'review' as type,
         enabled,
         position,
+        size,
         font_family,
         font_size,
         text_color,
-        NULL as logo_path,
-        NULL as theme,
-        margin as padding,
+        background_color,
         background_opacity as transparency,
-        z_index as stacking_order,
-        NULL as stacking_direction
+        border_radius,
+        border_width,
+        border_color,
+        border_opacity,
+        shadow_enabled,
+        shadow_color,
+        shadow_blur,
+        shadow_offset_x,
+        shadow_offset_y,
+        margin as padding,
+        z_index as stacking_order
       FROM review_badge_settings
       WHERE user_id = $1 AND enabled = true
     `;
 
     const settingsResult = await db.query(query, [userId]);
     const settings = settingsResult.rows;
+    console.log('Badge settings from database:', settings);
+    
+    // Fetch review badge specific settings
+    const reviewSettingsQuery = `
+      SELECT 
+        badge_layout as display_format,
+        source_order,
+        show_logo,
+        size,
+        score_format,
+        max_sources_to_show
+      FROM review_badge_settings
+      WHERE user_id = $1 AND enabled = true
+    `;
+    
+    const reviewSettingsResult = await db.query(reviewSettingsQuery, [userId]);
+    const reviewSettings = reviewSettingsResult.rows[0];
+    console.log('Review badge specific settings:', reviewSettings);
 
     // Fetch metadata for the item to determine badge values
     const metadata = await this.fetchItemMetadata(item, userId);
 
-    return settings.map(setting => ({
-      enabled: setting.enabled,
-      settings: {
-        type: setting.type,
-        position: setting.position || 'top-right',
-        theme: 'dark', // Default to dark theme
-        fontSize: setting.font_size,
-        padding: setting.padding || 8,
-        transparency: setting.transparency || 1
-      },
-      value: this.getBadgeValue(setting.type, metadata)
-    }));
+    // Map all styling fields from the database
+    return settings.map(setting => {
+      let extraSettings = {};
+      let value = null;
+      
+      // Add type-specific settings and values
+      if (setting.type === 'review') {
+        extraSettings = {
+          displayFormat: reviewSettings?.display_format || 'vertical',
+          sourceOrder: reviewSettings?.source_order || [],
+          showLogo: reviewSettings?.show_logo !== false,
+          size: parseInt(reviewSettings?.size || '100'),
+          scoreFormat: reviewSettings?.score_format || 'rating/outOf',
+          maxSourcesToShow: reviewSettings?.max_sources_to_show || 3
+        };
+        value = metadata.scores || [];
+      } else {
+        value = this.getBadgeValue(setting.type, metadata);
+      }
+      
+      return {
+        enabled: setting.enabled,
+        settings: {
+          type: setting.type,
+          position: setting.position || 'top-right',
+          size: setting.size ? parseInt(setting.size) : undefined,
+          fontSize: setting.font_size ? parseInt(setting.font_size) : undefined,
+          fontFamily: setting.font_family,
+          textColor: setting.text_color,
+          backgroundColor: setting.background_color,
+          borderRadius: setting.border_radius ? parseInt(setting.border_radius) : undefined,
+          borderWidth: setting.border_width ? parseInt(setting.border_width) : undefined,
+          borderColor: setting.border_color,
+          borderOpacity: setting.border_opacity ? parseFloat(setting.border_opacity) : undefined,
+          shadowEnabled: setting.shadow_enabled,
+          shadowColor: setting.shadow_color,
+          shadowBlur: setting.shadow_blur ? parseInt(setting.shadow_blur) : undefined,
+          shadowOffsetX: setting.shadow_offset_x ? parseInt(setting.shadow_offset_x) : undefined,
+          shadowOffsetY: setting.shadow_offset_y ? parseInt(setting.shadow_offset_y) : undefined,
+          padding: setting.padding ? parseInt(setting.padding) : 8,
+          margin: setting.padding ? parseInt(setting.padding) : 8,
+          transparency: setting.transparency ? parseFloat(setting.transparency) : 1,
+          stackingOrder: setting.stacking_order ? parseInt(setting.stacking_order) : 0,
+          ...extraSettings
+        },
+        value
+      };
+    });
   }
 
   async fetchItemMetadata(item, userId) {
     // Create an item object that the metadata service expects
+    // First fetch basic data from Jellyfin to get the actual media type
+    const jellyfinId = item.jellyfin_item_id;
+    
     const metadataItem = {
-      jellyfin_id: item.jellyfin_item_id,
-      media_type: 'Movie' // Default to Movie for now, could be determined from title or other metadata
+      jellyfin_id: jellyfinId,
+      media_type: 'Movie' // This will be overridden by actual type from Jellyfin
     };
-    return await this.metadataService.fetchItemMetadata(metadataItem, userId);
+    const metadata = await this.metadataService.fetchItemMetadata(metadataItem, userId);
+    console.log('Fetched metadata:', metadata);
+    return metadata;
   }
 
   getBadgeValue(type, metadata) {
+    let value = null;
+    console.log(`Getting badge value for ${type} with metadata:`, metadata);
+    
     switch (type) {
       case 'resolution':
-        return metadata.resolution;
+        value = metadata.resolution;
+        // If no resolution data, try to get it from different fields
+        if (!value && metadata.width && metadata.height) {
+          // Determine resolution from width/height if available
+          const width = metadata.width;
+          if (width >= 7680) value = '8K';
+          else if (width >= 3840) value = '4K';
+          else if (width >= 2560) value = '1440p';
+          else if (width >= 1920) value = '1080p';
+          else if (width >= 1280) value = '720p';
+          else if (width >= 854) value = '480p';
+          else value = 'SD';
+        }
+        break;
       case 'audio':
-        return metadata.audioFormat;
+        value = metadata.audioFormat;
+        break;
       case 'review':
-        return metadata.imdbRating || metadata.tmdbRating;
+        // Review badge value is handled differently - it uses an array of scores
+        value = metadata.scores || [];
+        break;
       default:
-        return null;
+        value = null;
     }
+    
+    console.log(`Badge value for ${type}: ${JSON.stringify(value)}`);
+    return value;
   }
 
   async downloadPoster(jellyfinId, outputPath, userId) {
@@ -262,6 +390,169 @@ class PosterProcessor {
     `;
     
     await db.query(query, [status, errorMessage, itemId]);
+  }
+
+  async applyBadgesWithCanvas(posterPath, badgeConfigs) {
+    try {
+      // Load the poster
+      let posterBuffer = await fs.readFile(posterPath);
+      
+      // Ensure the poster is in a format we can work with
+      posterBuffer = await sharp(posterBuffer)
+        .png()
+        .toBuffer();
+      
+      const posterMetadata = await sharp(posterBuffer).metadata();
+      console.log(`Poster dimensions: ${posterMetadata.width}x${posterMetadata.height}`);
+      
+      // Calculate scaling factor based on poster dimensions compared to preview dimensions (1000x1500)
+      const previewWidth = 1000;
+      const minPosterWidth = 500; // Minimum poster width to ensure badges remain visible
+      
+      // Use a different scaling calculation if poster is below minimum width
+      let scaleFactor;
+      if (posterMetadata.width < minPosterWidth) {
+        // For small posters, scale less aggressively to maintain badge visibility
+        scaleFactor = (posterMetadata.width / previewWidth) * 1.5;
+        console.log(`Small poster detected (${posterMetadata.width}px), using adjusted scaling factor: ${scaleFactor}`);
+      } else {
+        scaleFactor = posterMetadata.width / previewWidth;
+      }
+      
+      // Ensure minimum scale factor to prevent badges from becoming too small
+      scaleFactor = Math.max(scaleFactor, 0.3);
+      console.log(`Final poster scaling factor: ${scaleFactor}`);
+      
+      // Sort badges by stacking order and filter enabled ones
+      const enabledBadges = badgeConfigs.filter(config => {
+        const hasValue = config.enabled && config.value !== null && config.value !== undefined;
+        console.log(`Badge ${config.settings.type}: enabled=${config.enabled}, value=${config.value}, filtered=${hasValue}`);
+        return hasValue;
+      });
+      
+      const sortedBadges = enabledBadges
+        .sort((a, b) => (a.settings.stackingOrder || 0) - (b.settings.stackingOrder || 0));
+      
+      console.log(`Processing ${sortedBadges.length} badges with canvas renderer...`); 
+      
+      // Apply each badge sequentially
+      for (let i = 0; i < sortedBadges.length; i++) {
+        const config = sortedBadges[i];
+        console.log(`Applying badge ${i + 1}/${sortedBadges.length}: ${config.settings.type} at position ${config.settings.position}`);
+        
+        const poster = sharp(posterBuffer);
+        const metadata = posterMetadata;
+        
+        // Determine the source image path based on badge type
+        let sourceImagePath = null;
+        if (config.settings.type === 'resolution' && config.value) {
+          sourceImagePath = await this.canvasBadgeRenderer.getResolutionImagePath(config.value);
+        } else if (config.settings.type === 'audio' && config.value) {
+          sourceImagePath = await this.canvasBadgeRenderer.getAudioImagePath(config.value);
+        }
+        
+        // Scale badge settings based on poster dimensions
+        const scaledSettings = {
+          ...config.settings,
+          size: config.settings.size ? Math.round(config.settings.size * scaleFactor) : undefined,
+          fontSize: config.settings.fontSize ? Math.round(config.settings.fontSize * scaleFactor) : undefined,
+          borderRadius: config.settings.borderRadius ? Math.round(config.settings.borderRadius * scaleFactor) : undefined,
+          borderWidth: config.settings.borderWidth ? Math.round(config.settings.borderWidth * scaleFactor) : undefined,
+          padding: config.settings.padding ? Math.round(config.settings.padding * scaleFactor) : 8,
+          shadowBlur: config.settings.shadowBlur ? Math.round(config.settings.shadowBlur * scaleFactor) : undefined,
+          shadowOffsetX: config.settings.shadowOffsetX ? Math.round(config.settings.shadowOffsetX * scaleFactor) : undefined,
+          shadowOffsetY: config.settings.shadowOffsetY ? Math.round(config.settings.shadowOffsetY * scaleFactor) : undefined
+        };
+        
+        console.log(`Scaling badge ${config.settings.type} with factor ${scaleFactor}:`, {
+          originalSize: config.settings.size,
+          scaledSize: scaledSettings.size
+        });
+        
+        // Generate badge using canvas renderer with scaled settings
+        const badgeBuffer = await this.canvasBadgeRenderer.renderBadge(
+          config.settings.type,
+          scaledSettings,
+          { 
+            resolution: config.settings.type === 'resolution' ? config.value : undefined,
+            audioFormat: config.settings.type === 'audio' ? config.value : undefined,
+            rating: config.settings.type === 'review' ? config.value : undefined,
+            ratingSource: config.settings.type === 'review' ? 'imdb' : undefined
+          },
+          sourceImagePath
+        );
+        
+        // Create a Sharp instance from the badge buffer
+        const badge = sharp(badgeBuffer);
+        const badgeMetadata = await badge.metadata();
+        
+        // Verify badge size doesn't exceed poster size
+        if (badgeMetadata.width > metadata.width || badgeMetadata.height > metadata.height) {
+          console.warn(`Badge size (${badgeMetadata.width}x${badgeMetadata.height}) exceeds poster size (${metadata.width}x${metadata.height}). Skipping.`);
+          continue;
+        }
+
+        // Calculate position based on settings
+        const position = this.calculateSafePosition(
+          config.settings.position, 
+          metadata.width, 
+          metadata.height, 
+          badgeMetadata.width, 
+          badgeMetadata.height,
+          config.settings.padding || 8
+        );
+        
+        // Composite the badge onto the poster
+        posterBuffer = await poster
+          .composite([{
+            input: badgeBuffer,
+            ...position
+          }])
+          .png()
+          .toBuffer();
+          
+        console.log(`Badge ${config.settings.type} applied successfully with canvas renderer`);
+      }
+      
+      return posterBuffer;
+    } catch (error) {
+      console.error('Error applying badges with canvas:', error);
+      throw new Error(`Failed to apply badges: ${error.message}`);
+    }
+  }
+
+  calculateSafePosition(position, posterWidth, posterHeight, badgeWidth, badgeHeight, padding) {
+    let left = 0;
+    let top = 0;
+    
+    switch (position) {
+      case 'top-left':
+        left = padding;
+        top = padding;
+        break;
+      case 'top-right':
+        left = posterWidth - badgeWidth - padding;
+        top = padding;
+        break;
+      case 'bottom-left':
+        left = padding;
+        top = posterHeight - badgeHeight - padding;
+        break;
+      case 'bottom-right':
+        left = posterWidth - badgeWidth - padding;
+        top = posterHeight - badgeHeight - padding;
+        break;
+      default:
+        // Default to bottom-right
+        left = posterWidth - badgeWidth - padding;
+        top = posterHeight - badgeHeight - padding;
+    }
+    
+    // Ensure position is within bounds
+    left = Math.max(0, Math.min(left, posterWidth - badgeWidth));
+    top = Math.max(0, Math.min(top, posterHeight - badgeHeight));
+    
+    return { left, top };
   }
 
   async processInBatches(items, jobId, userId, onProgress) {

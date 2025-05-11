@@ -21,6 +21,8 @@ class MetadataService {
 
     // Fetch from Jellyfin first to get basic media info
     const jellyfinData = await this.fetchJellyfinData(item.jellyfin_id, userId);
+    console.log('Jellyfin data received, Type:', jellyfinData.Type);
+    console.log('MediaStreams available:', Boolean(jellyfinData.MediaStreams));
     
     // Then fetch from external sources based on media type
     let metadata = {
@@ -31,12 +33,14 @@ class MetadataService {
       metascore: null
     };
 
-    // Fetch review scores
-    if (item.media_type === 'Movie' || item.media_type === 'Series') {
+    // Fetch review scores for both Movies and Series
+    if (jellyfinData.Type === 'Movie' || jellyfinData.Type === 'Series' || jellyfinData.Type === 'Episode') {
       const reviewData = await this.fetchReviewScores(item, jellyfinData, userId);
       metadata = { ...metadata, ...reviewData };
     }
 
+    console.log('Final metadata:', metadata);
+    
     // Cache the result
     this.cache.set(cacheKey, {
       data: metadata,
@@ -124,13 +128,21 @@ class MetadataService {
   }
 
   extractResolution(jellyfinData) {
-    if (!jellyfinData.MediaStreams) return null;
+    console.log('Extracting resolution from Jellyfin data');
+    if (!jellyfinData.MediaStreams) {
+      console.log('No MediaStreams found in Jellyfin data');
+      return null;
+    }
 
     const videoStream = jellyfinData.MediaStreams.find(s => s.Type === 'Video');
-    if (!videoStream) return null;
+    if (!videoStream) {
+      console.log('No video stream found');
+      return null;
+    }
 
     const width = videoStream.Width;
     const height = videoStream.Height;
+    console.log(`Video dimensions: ${width}x${height}`);
 
     if (!width || !height) return null;
 
@@ -153,35 +165,40 @@ class MetadataService {
     const codec = audioStream.Codec?.toLowerCase() || '';
     const channels = audioStream.Channels || 0;
     const profile = audioStream.Profile?.toLowerCase() || '';
+    const format = audioStream.Format?.toLowerCase() || '';
 
-    // Determine audio format
-    if (codec.includes('truehd') && profile.includes('atmos')) return 'Dolby Atmos';
-    if (codec.includes('dts') && profile.includes('x')) return 'DTS:X';
-    if (codec.includes('truehd')) return 'Dolby TrueHD';
-    if (codec.includes('dts') && profile.includes('hd')) return 'DTS-HD';
-    if (codec.includes('ac3') || codec.includes('eac3')) {
-      if (channels >= 6) return 'Dolby Digital 5.1';
-      return 'Dolby Digital';
-    }
-    if (codec.includes('dts')) return 'DTS';
-    if (codec.includes('aac')) return 'AAC';
-    if (codec.includes('mp3')) return 'MP3';
+    console.log('Audio stream info:', { codec, channels, profile, format });
+
+    // Determine audio format with more specific mappings
+    if (codec.includes('truehd') && profile.includes('atmos')) return 'truehd_atmos';
+    if (codec.includes('eac3') && profile.includes('atmos')) return 'plus_atmos';
+    if (codec.includes('dts') && profile.includes('x')) return 'dtsx';
+    if (codec.includes('truehd')) return 'truehd';
+    if (codec.includes('dts') && profile.includes('hd')) return 'dtses';
+    if (codec.includes('dts')) return 'dts';
+    if (codec.includes('eac3')) return 'plus';
+    if (codec.includes('ac3')) return 'digital';
+    if (codec.includes('aac')) return 'aac';
+    if (codec.includes('mp3')) return 'mp3';
+    if (codec.includes('flac')) return 'flac';
+    if (codec.includes('opus')) return 'opus';
+    if (codec.includes('vorbis')) return 'vorbis';
+    if (codec.includes('pcm')) return 'pcm';
     
+    // Default fallback based on channels
     return channels >= 6 ? `${channels} Channel` : 'Stereo';
   }
 
   async fetchReviewScores(item, jellyfinData, userId) {
-    const scores = {
-      imdbRating: null,
-      tmdbRating: null,
-      metascore: null
-    };
+    const scores = [];
 
-    // Get API keys from database
+    // Get API keys and enabled sources from database
     const apiKeysQuery = `
       SELECT 
         (SELECT api_key FROM tmdb_settings WHERE user_id = $1) as tmdb_key,
-        (SELECT api_key FROM omdb_settings WHERE user_id = $1) as omdb_key
+        (SELECT api_key FROM omdb_settings WHERE user_id = $1) as omdb_key,
+        (SELECT username FROM anidb_settings WHERE user_id = $1) as anidb_username,
+        (SELECT password FROM anidb_settings WHERE user_id = $1) as anidb_password
     `;
     
     const apiKeysResult = await db.query(apiKeysQuery, [userId]);
@@ -190,25 +207,32 @@ class MetadataService {
     // Get IDs from Jellyfin data
     const imdbId = jellyfinData.ProviderIds?.Imdb;
     const tmdbId = jellyfinData.ProviderIds?.Tmdb;
+    const anidbId = jellyfinData.ProviderIds?.Anidb;
 
     // Fetch from TMDB
     if (tmdbId && apiKeys.tmdb_key) {
       try {
-        const tmdbType = item.media_type === 'Movie' ? 'movie' : 'tv';
+        const tmdbType = jellyfinData.Type === 'Movie' ? 'movie' : 'tv';
         const tmdbResponse = await fetch(
           `https://api.themoviedb.org/3/${tmdbType}/${tmdbId}?api_key=${apiKeys.tmdb_key}`
         );
         
         if (tmdbResponse.ok) {
           const tmdbData = await tmdbResponse.json();
-          scores.tmdbRating = tmdbData.vote_average?.toFixed(1);
+          if (tmdbData.vote_average) {
+            scores.push({
+              name: 'TMDB',
+              rating: tmdbData.vote_average.toFixed(1),
+              outOf: 10
+            });
+          }
         }
       } catch (error) {
         console.error('Error fetching TMDB data:', error);
       }
     }
 
-    // Fetch from OMDB
+    // Fetch from OMDB (includes IMDb and Metacritic)
     if (imdbId && apiKeys.omdb_key) {
       try {
         const omdbResponse = await fetch(
@@ -217,15 +241,57 @@ class MetadataService {
         
         if (omdbResponse.ok) {
           const omdbData = await omdbResponse.json();
-          scores.imdbRating = omdbData.imdbRating;
-          scores.metascore = omdbData.Metascore;
+          
+          // IMDb rating
+          if (omdbData.imdbRating && omdbData.imdbRating !== 'N/A') {
+            scores.push({
+              name: 'IMDB',
+              rating: parseFloat(omdbData.imdbRating).toFixed(1),
+              outOf: 10
+            });
+          }
+          
+          // Metacritic score
+          if (omdbData.Metascore && omdbData.Metascore !== 'N/A') {
+            scores.push({
+              name: 'Metacritic',
+              rating: parseInt(omdbData.Metascore),
+              outOf: 100
+            });
+          }
+          
+          // Rotten Tomatoes score
+          if (omdbData.Ratings) {
+            const rtRating = omdbData.Ratings.find(r => r.Source === 'Rotten Tomatoes');
+            if (rtRating) {
+              const rtScore = parseInt(rtRating.Value.replace('%', ''));
+              scores.push({
+                name: 'RT',
+                rating: rtScore,
+                outOf: 100
+              });
+            }
+          }
         }
       } catch (error) {
         console.error('Error fetching OMDB data:', error);
       }
     }
+    
+    // Note: AniDB API integration would go here if implemented
+    // Currently skipping AniDB as it requires XML parsing and authentication
 
-    return scores;
+    // For backwards compatibility, also set the first score as the legacy fields
+    const result = {
+      scores,
+      // Legacy fields
+      imdbRating: scores.find(s => s.name === 'IMDB')?.rating,
+      tmdbRating: scores.find(s => s.name === 'TMDB')?.rating,
+      metascore: scores.find(s => s.name === 'Metacritic')?.rating
+    };
+
+    console.log('Fetched review scores:', result);
+    return result;
   }
 }
 

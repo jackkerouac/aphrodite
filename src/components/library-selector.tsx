@@ -248,6 +248,9 @@ export const LibrarySelector: React.FC<LibrarySelectorProps> = ({
         <p className="text-sm text-muted-foreground">
           These badges will be applied to the selected libraries.
         </p>
+        <p className="text-sm text-muted-foreground">
+          Note: Some badges may not apply to certain media types (e.g., resolution badges won't apply to TV series, only to individual episodes).
+        </p>
       </div>
 
       {/* Validation message */}
