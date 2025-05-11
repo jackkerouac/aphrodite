@@ -7,12 +7,15 @@ import CanvasBadgeRenderer from './canvasBadgeRenderer.js';
 import { pool as db } from '../../db.js';
 import MetadataService from './metadataService.js';
 import sharp from 'sharp';
+import PosterStandardizer from './posterStandardizer.js';
 
 class PosterProcessor {
   constructor() {
+    console.log('PosterProcessor initializing with standardization version 1.0');
     this.badgeRenderer = new BadgeRenderer();
     this.canvasBadgeRenderer = new CanvasBadgeRenderer();
     this.metadataService = new MetadataService();
+    this.posterStandardizer = new PosterStandardizer();
     this.tempDir = process.env.TEMP_DIR || path.join(process.cwd(), 'temp');
     this.concurrency = parseInt(process.env.BATCH_CONCURRENCY || '4');
     this.useCanvasRenderer = process.env.USE_CANVAS_RENDERER !== 'false'; // Default to true
@@ -29,6 +32,7 @@ class PosterProcessor {
 
   async processItem(item, jobId, userId) {
     const tempPosterPath = path.join(this.tempDir, `poster-${item.jellyfin_item_id}.png`);
+    const standardizedPosterPath = path.join(this.tempDir, `poster-standardized-${item.jellyfin_item_id}.png`);
     
     try {
       // Update item status to processing
@@ -42,14 +46,21 @@ class PosterProcessor {
 
       // Download poster from Jellyfin
       await this.downloadPoster(item.jellyfin_item_id, tempPosterPath, userId);
+      
+      // Standardize the poster to 1000px width
+      const standardizationResult = await this.posterStandardizer.standardizePoster(
+        tempPosterPath,
+        standardizedPosterPath
+      );
+      console.log('Poster standardization result:', standardizationResult);
 
       // Apply badges using canvas renderer if enabled
       let modifiedPosterBuffer;
       if (this.useCanvasRenderer) {
-        modifiedPosterBuffer = await this.applyBadgesWithCanvas(tempPosterPath, badgeSettings);
+        modifiedPosterBuffer = await this.applyBadgesWithCanvas(standardizedPosterPath, badgeSettings);
       } else {
         modifiedPosterBuffer = await this.badgeRenderer.applyMultipleBadges(
-          tempPosterPath,
+          standardizedPosterPath,
           badgeSettings
         );
       }
@@ -65,18 +76,22 @@ class PosterProcessor {
       // Update item status to completed
       await this.updateItemStatus(item.id, 'completed');
 
-      // Clean up temp file
+      // Clean up temp files
       // await fs.unlink(tempPosterPath).catch(() => {});
+      // await fs.unlink(standardizedPosterPath).catch(() => {});
       console.log(`Temp poster saved at: ${tempPosterPath}`);
+      console.log(`Standardized poster saved at: ${standardizedPosterPath}`);
 
       return { success: true, itemId: item.id };
     } catch (error) {
       console.error(`Error processing item ${item.id}:`, error);
       await this.updateItemStatus(item.id, 'failed', error.message);
       
-      // Clean up temp file
+      // Clean up temp files
       // await fs.unlink(tempPosterPath).catch(() => {});
+      // await fs.unlink(standardizedPosterPath).catch(() => {});
       console.log(`Temp poster saved at: ${tempPosterPath} (in error state)`);
+      console.log(`Standardized poster saved at: ${standardizedPosterPath} (in error state)`);
 
       return { success: false, itemId: item.id, error: error.message };
     }
@@ -428,6 +443,7 @@ class PosterProcessor {
   }
 
   async applyBadgesWithCanvas(posterPath, badgeConfigs) {
+    console.log('MARGIN_FIX_V2: Starting applyBadgesWithCanvas');
     try {
       // Load the poster
       let posterBuffer = await fs.readFile(posterPath);
@@ -440,20 +456,8 @@ class PosterProcessor {
       const posterMetadata = await sharp(posterBuffer).metadata();
       console.log(`Poster dimensions: ${posterMetadata.width}x${posterMetadata.height}`);
       
-      // Calculate scaling factor based on poster dimensions compared to preview dimensions (1000x1500)
-      const previewWidth = 1000;
-      const previewHeight = 1500;
-      
-      // Calculate both width and height scaling factors
-      const widthScale = posterMetadata.width / previewWidth;
-      const heightScale = posterMetadata.height / previewHeight;
-      
-      // Use the smaller of width and height scaling to be more conservative
-      let scaleFactor = Math.min(widthScale, heightScale);
-      
-      // Ensure minimum scale factor to prevent badges from becoming too small
-      scaleFactor = Math.max(scaleFactor, 0.3);
-      console.log(`Poster scaling factor: ${scaleFactor} (width scale: ${widthScale}, height scale: ${heightScale})`);
+      // No scaling needed - poster is already standardized to 1000px width
+      console.log('Using standardized poster - no scaling required');
       
       // Sort badges by stacking order and filter enabled ones
       const enabledBadges = badgeConfigs.filter(config => {
@@ -471,7 +475,7 @@ class PosterProcessor {
       for (let i = 0; i < sortedBadges.length; i++) {
         const config = sortedBadges[i];
         console.log(`Applying badge ${i + 1}/${sortedBadges.length}: ${config.settings.type} at position ${config.settings.position}`);
-        console.log(`Original margin: ${config.settings.margin}, Original size: ${config.settings.size}`);
+        console.log(`Margin: ${config.settings.margin}, Size: ${config.settings.size}`);
         
         const poster = sharp(posterBuffer);
         const metadata = posterMetadata;
@@ -484,56 +488,22 @@ class PosterProcessor {
           sourceImagePath = await this.canvasBadgeRenderer.getAudioImagePath(config.value);
         }
         
-        // Scale badge settings based on poster dimensions
-        // For margins, we want to preserve the visual appearance from the preview
-        // At preview size (1000x1500), margins should remain unchanged
-        
-        // Calculate the ratio of current poster to preview size
-        const sizeRatio = scaleFactor;
-        
-        // For margins, use a different scaling approach:
-        // - At preview size (scaleFactor = 1), keep margins unchanged
-        // - For larger posters, scale up more conservatively
-        // - For smaller posters, scale down more conservatively
-        let marginScaleFactor;
-        if (sizeRatio >= 1) {
-          // For larger posters, scale margins up more conservatively
-          marginScaleFactor = 1 + (sizeRatio - 1) * 0.5; // Only scale up by 50% of the size increase
-        } else {
-          // For smaller posters, scale margins down more conservatively
-          marginScaleFactor = Math.max(sizeRatio * 1.2, 0.8); // Scale down less aggressively, minimum 80%
-        }
-        
-        // Cap the margin scaling to avoid excessive spacing
-        const cappedMarginScaleFactor = Math.min(marginScaleFactor, 2.0);
-        
-        const scaledSettings = {
-          ...config.settings,
-          size: config.settings.size ? Math.round(config.settings.size * scaleFactor) : undefined,
-          fontSize: config.settings.fontSize ? Math.round(config.settings.fontSize * scaleFactor) : undefined,
-          borderRadius: config.settings.borderRadius ? Math.round(config.settings.borderRadius * scaleFactor) : undefined,
-          borderWidth: config.settings.borderWidth ? Math.round(config.settings.borderWidth * scaleFactor) : undefined,
-          padding: config.settings.padding ? Math.round(config.settings.padding * scaleFactor) : Math.round(8 * scaleFactor),
-          margin: config.settings.margin ? Math.round(config.settings.margin * cappedMarginScaleFactor) : Math.round(8 * cappedMarginScaleFactor),
-          shadowBlur: config.settings.shadowBlur ? Math.round(config.settings.shadowBlur * scaleFactor) : undefined,
-          shadowOffsetX: config.settings.shadowOffsetX ? Math.round(config.settings.shadowOffsetX * scaleFactor) : undefined,
-          shadowOffsetY: config.settings.shadowOffsetY ? Math.round(config.settings.shadowOffsetY * scaleFactor) : undefined
+        // Use badge settings directly - no scaling needed
+        const badgeSettings = {
+          ...config.settings
         };
         
-        console.log(`Scaling badge ${config.settings.type}:`, {
-          posterSize: `${posterMetadata.width}x${posterMetadata.height}`,
-          scaleFactor: scaleFactor.toFixed(2),
-          marginScaleFactor: cappedMarginScaleFactor.toFixed(2),
-          originalMargin: config.settings.margin,
-          scaledMargin: scaledSettings.margin,
-          originalSize: config.settings.size,
-          scaledSize: scaledSettings.size
+        console.log(`Using badge settings:`, {
+          type: config.settings.type,
+          margin: badgeSettings.margin,
+          size: badgeSettings.size,
+          position: badgeSettings.position
         });
         
-        // Generate badge using canvas renderer with scaled settings
+        // Generate badge using canvas renderer
         const badgeBuffer = await this.canvasBadgeRenderer.renderBadge(
           config.settings.type,
-          scaledSettings,
+          badgeSettings,
           { 
             resolution: config.settings.type === 'resolution' ? config.value : undefined,
             audioFormat: config.settings.type === 'audio' ? config.value : undefined,
@@ -553,14 +523,14 @@ class PosterProcessor {
           continue;
         }
 
-        // Calculate position based on settings, using the scaled margin for edge distance
+        // Calculate position based on settings, using the margin directly
         const position = this.calculateSafePosition(
           config.settings.position, 
           metadata.width, 
           metadata.height, 
           badgeMetadata.width, 
           badgeMetadata.height,
-          scaledSettings.margin
+          config.settings.margin || 21
         );
         
         // Composite the badge onto the poster
@@ -586,6 +556,17 @@ class PosterProcessor {
     let left = 0;
     let top = 0;
     
+    // Enhanced debug logging
+    console.log('calculateSafePosition called with:', {
+      position,
+      posterWidth,
+      posterHeight,
+      badgeWidth,
+      badgeHeight,
+      margin,
+      marginType: typeof margin
+    });
+    
     switch (position) {
       case 'top-left':
         left = margin;
@@ -610,10 +591,31 @@ class PosterProcessor {
     }
     
     // Ensure position is within bounds
+    const originalLeft = left;
+    const originalTop = top;
     left = Math.max(0, Math.min(left, posterWidth - badgeWidth));
     top = Math.max(0, Math.min(top, posterHeight - badgeHeight));
     
-    console.log(`Badge position for ${position}: left=${left}, top=${top}, margin=${margin}`);
+    if (originalLeft !== left || originalTop !== top) {
+      console.log('Position was clamped:', {
+        originalLeft,
+        originalTop,
+        clampedLeft: left,
+        clampedTop: top
+      });
+    }
+    
+    console.log(`Badge position for ${position}:`, {
+      left,
+      top,
+      margin,
+      centerX: left + badgeWidth/2,
+      centerY: top + badgeHeight/2,
+      distanceFromLeftEdge: left,
+      distanceFromTopEdge: top,
+      distanceFromRightEdge: posterWidth - (left + badgeWidth),
+      distanceFromBottomEdge: posterHeight - (top + badgeHeight)
+    });
     
     return { left, top };
   }

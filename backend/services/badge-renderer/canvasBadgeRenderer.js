@@ -12,6 +12,7 @@ const projectRoot = path.resolve(__dirname, '../../..');
 
 class CanvasBadgeRenderer {
   constructor() {
+    console.log('CanvasBadgeRenderer initializing');
     this.loaded = false;
     this.fonts = new Map();
   }
