@@ -1873,3 +1873,597 @@
 [2025-05-11T12:18:45.597Z] INFO: Starting job 51 processing
 [2025-05-11T12:18:46.532Z] INFO: Job 51 completed. Processed: 0, Failed: 1
 [2025-05-11T12:18:46.611Z] INFO: Job 51 completed. Processed: 0, Failed: 1
+[2025-05-11T12:25:46.146Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:25:46.161Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:25:49.206Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 8ms
+[2025-05-11T12:25:49.229Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 29ms
+[2025-05-11T12:25:49.232Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 29ms
+[2025-05-11T12:25:49.724Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 620ms
+[2025-05-11T12:25:49.983Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 253ms
+[2025-05-11T12:25:50.221Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 224ms
+[2025-05-11T12:25:52.203Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:25:52.220Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:25:52.684Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 14ms
+[2025-05-11T12:25:52.704Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 32ms
+[2025-05-11T12:25:52.705Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 31ms
+[2025-05-11T12:25:53.277Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 684ms
+[2025-05-11T12:25:53.632Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 348ms
+[2025-05-11T12:25:53.969Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 333ms
+[2025-05-11T12:26:10.199Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:26:10.215Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:26:12.914Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 14ms
+[2025-05-11T12:26:12.938Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 36ms
+[2025-05-11T12:26:12.939Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 34ms
+[2025-05-11T12:26:13.459Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 650ms
+[2025-05-11T12:26:13.798Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 334ms
+[2025-05-11T12:26:14.106Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 305ms
+[2025-05-11T12:26:31.931Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:26:31.948Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:26:34.630Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 6ms
+[2025-05-11T12:26:34.636Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 5ms
+[2025-05-11T12:26:34.654Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 21ms
+[2025-05-11T12:26:35.170Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 607ms
+[2025-05-11T12:26:35.524Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 349ms
+[2025-05-11T12:26:35.794Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 265ms
+[2025-05-11T12:26:46.813Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:26:46.828Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:26:49.599Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 6ms
+[2025-05-11T12:26:49.617Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 98ms
+[2025-05-11T12:26:49.618Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 95ms
+[2025-05-11T12:26:50.159Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 645ms
+[2025-05-11T12:26:50.481Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 319ms
+[2025-05-11T12:26:50.837Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 318ms
+[2025-05-11T12:27:07.348Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:27:07.363Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:28:33.164Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:28:33.178Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:29:56.789Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:29:56.803Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:30:13.280Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:30:13.294Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:30:26.449Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:30:26.464Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:30:50.844Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:30:50.858Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:34:21.394Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:34:21.409Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:34:50.609Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:34:50.622Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:35:07.948Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:35:07.961Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:40:59.389Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:40:59.404Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:41:42.046Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:41:42.059Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:41:57.839Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:41:57.854Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:43:22.027Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 87ms
+[2025-05-11T12:43:22.029Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 86ms
+[2025-05-11T12:43:22.030Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 86ms
+[2025-05-11T12:43:22.600Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 676ms
+[2025-05-11T12:43:22.890Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 284ms
+[2025-05-11T12:43:23.220Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 326ms
+[2025-05-11T12:43:26.492Z] INFO: [GET] /api/library-items/1?page=1&limit=50&libraryIds=f137a2dd21bbc1b99aa5c0f6bf02a805 304 — 461ms
+[2025-05-11T12:43:34.806Z] INFO: [POST] /api/jobs 201 — 817ms
+[2025-05-11T12:43:34.808Z] INFO: Starting job 52 processing
+[2025-05-11T12:43:34.831Z] INFO: [POST] /api/jobs/52/process 200 — 1ms
+[2025-05-11T12:43:34.846Z] INFO: Starting job 52 processing
+[2025-05-11T12:43:36.926Z] INFO: Job 52 completed. Processed: 0, Failed: 1
+[2025-05-11T12:43:36.950Z] INFO: Job 52 completed. Processed: 0, Failed: 1
+[2025-05-11T12:45:11.102Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:45:11.117Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:45:18.678Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 8ms
+[2025-05-11T12:45:18.687Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 5ms
+[2025-05-11T12:45:18.701Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 28ms
+[2025-05-11T12:45:19.170Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 564ms
+[2025-05-11T12:45:19.454Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 281ms
+[2025-05-11T12:45:19.723Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 266ms
+[2025-05-11T12:45:25.506Z] INFO: [GET] /api/library-items/1?page=1&limit=50&libraryIds=f137a2dd21bbc1b99aa5c0f6bf02a805 200 — 549ms
+[2025-05-11T12:45:30.764Z] INFO: [POST] /api/jobs 201 — 127ms
+[2025-05-11T12:45:30.767Z] INFO: Starting job 53 processing
+[2025-05-11T12:45:32.916Z] INFO: [POST] /api/jobs/53/process 200 — 1ms
+[2025-05-11T12:45:32.919Z] INFO: Starting job 53 processing
+[2025-05-11T12:45:33.231Z] INFO: Job 53 completed. Processed: 0, Failed: 1
+[2025-05-11T12:45:33.718Z] INFO: Job 53 completed. Processed: 0, Failed: 1
+[2025-05-11T12:55:53.229Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:55:53.243Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:56:07.344Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:56:07.359Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:56:21.417Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:56:21.432Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:56:36.498Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:56:36.513Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T12:56:45.731Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T12:56:45.745Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T13:07:33.808Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T13:07:33.821Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T13:07:43.452Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T13:07:43.468Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T13:08:02.992Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T13:08:03.006Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T13:08:55.556Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T13:08:55.570Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T13:11:59.197Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T13:11:59.212Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T13:12:15.489Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T13:12:15.504Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T13:12:31.829Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T13:12:31.843Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T13:14:06.329Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 83ms
+[2025-05-11T13:14:06.330Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 83ms
+[2025-05-11T13:14:06.332Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 88ms
+[2025-05-11T13:14:06.335Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 87ms
+[2025-05-11T13:14:06.336Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 3ms
+[2025-05-11T13:14:06.346Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 3ms
+[2025-05-11T13:14:06.909Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 674ms
+[2025-05-11T13:14:07.229Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 317ms
+[2025-05-11T13:14:07.570Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:14:07.573Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:14:07.575Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:14:07.576Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:14:07.577Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:14:07.580Z] INFO: [GET] /api/review-badge-settings/1 200 — 10ms
+[2025-05-11T13:14:07.581Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:14:07.582Z] INFO: [GET] /api/audio-badge-settings/1 200 — 10ms
+[2025-05-11T13:14:07.583Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:14:07.585Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 11ms
+[2025-05-11T13:14:07.585Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:14:07.587Z] INFO: [GET] /api/audio-badge-settings/1 200 — 12ms
+[2025-05-11T13:14:07.645Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:14:07.647Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:14:07.648Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:14:07.650Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 5ms
+[2025-05-11T13:14:07.651Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:14:07.653Z] INFO: [GET] /api/review-badge-settings/1 200 — 7ms
+[2025-05-11T13:14:08.954Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:14:08.957Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:14:08.959Z] INFO: [GET] /api/audio-badge-settings/1 304 — 6ms
+[2025-05-11T13:14:08.961Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:14:08.962Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:14:08.963Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:14:08.964Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:14:08.965Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:14:08.966Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:14:08.967Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 6ms
+[2025-05-11T13:14:08.968Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:14:08.970Z] INFO: [GET] /api/review-badge-settings/1 304 — 8ms
+[2025-05-11T13:14:08.970Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:14:08.972Z] INFO: [GET] /api/audio-badge-settings/1 200 — 9ms
+[2025-05-11T13:14:08.973Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:14:08.975Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 11ms
+[2025-05-11T13:14:08.976Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:14:08.978Z] INFO: [GET] /api/review-badge-settings/1 200 — 13ms
+[2025-05-11T13:14:09.030Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:14:09.032Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:14:09.039Z] INFO: [POST] /api/audio-badge-settings/1/enabled 200 — 10ms
+[2025-05-11T13:14:09.094Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:14:09.097Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:14:09.115Z] INFO: [POST] /api/resolution-badge-settings/1/enabled 200 — 21ms
+[2025-05-11T13:14:09.132Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:14:09.134Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:14:09.139Z] INFO: [POST] /api/review-badge-settings/1/enabled 200 — 8ms
+[2025-05-11T13:14:49.612Z] INFO: Received request to save badge file: audio for user 123
+[2025-05-11T13:14:49.612Z] INFO: Image data received, length: 4066 characters
+[2025-05-11T13:14:49.612Z] INFO: User directory path: E:\programming\aphrodite\backend\storage\badges\123
+[2025-05-11T13:14:49.613Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\audio-badge.png
+[2025-05-11T13:14:50.163Z] INFO: Successfully saved audio badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\audio-badge.png
+[2025-05-11T13:14:50.164Z] INFO: [POST] /api/badge-files/123/audio 200 — 553ms
+[2025-05-11T13:14:50.171Z] INFO: Received request to save badge file: resolution for user 123
+[2025-05-11T13:14:50.172Z] INFO: Image data received, length: 7646 characters
+[2025-05-11T13:14:50.172Z] INFO: User directory path: E:\programming\aphrodite\backend\storage\badges\123
+[2025-05-11T13:14:50.173Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\resolution-badge.png
+[2025-05-11T13:14:50.175Z] INFO: Successfully saved resolution badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\resolution-badge.png
+[2025-05-11T13:14:50.177Z] INFO: [POST] /api/badge-files/123/resolution 200 — 6ms
+[2025-05-11T13:14:50.178Z] INFO: Received request to save badge file: review for user 123
+[2025-05-11T13:14:50.179Z] INFO: Image data received, length: 21990 characters
+[2025-05-11T13:14:50.179Z] INFO: User directory path: E:\programming\aphrodite\backend\storage\badges\123
+[2025-05-11T13:14:50.179Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\review-badge.png
+[2025-05-11T13:14:50.181Z] INFO: Successfully saved review badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\review-badge.png
+[2025-05-11T13:14:50.182Z] INFO: [POST] /api/badge-files/123/review 200 — 4ms
+[2025-05-11T13:14:57.360Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 20ms
+[2025-05-11T13:14:57.364Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 23ms
+[2025-05-11T13:14:57.365Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 23ms
+[2025-05-11T13:14:57.369Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 3ms
+[2025-05-11T13:14:57.372Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 5ms
+[2025-05-11T13:14:57.373Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 3ms
+[2025-05-11T13:14:57.848Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 510ms
+[2025-05-11T13:14:58.191Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 337ms
+[2025-05-11T13:15:24.984Z] INFO: [GET] /api/library-items/1?page=1&limit=50&libraryIds=f137a2dd21bbc1b99aa5c0f6bf02a805 200 — 523ms
+[2025-05-11T13:15:30.853Z] INFO: [POST] /api/jobs 201 — 128ms
+[2025-05-11T13:15:30.855Z] INFO: Starting job 54 processing
+[2025-05-11T13:15:30.902Z] INFO: [POST] /api/jobs/54/process 200 — 1ms
+[2025-05-11T13:15:30.904Z] INFO: Starting job 54 processing
+[2025-05-11T13:15:32.220Z] INFO: Job 54 completed. Processed: 0, Failed: 1
+[2025-05-11T13:15:32.823Z] INFO: Job 54 completed. Processed: 0, Failed: 1
+[2025-05-11T13:15:46.470Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 435ms
+[2025-05-11T13:15:46.753Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 280ms
+[2025-05-11T13:15:47.120Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 4ms
+[2025-05-11T13:15:47.128Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 3ms
+[2025-05-11T13:15:47.136Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 19ms
+[2025-05-11T13:15:47.138Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 20ms
+[2025-05-11T13:15:47.152Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 3ms
+[2025-05-11T13:15:47.153Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 3ms
+[2025-05-11T13:15:47.383Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 295ms
+[2025-05-11T13:15:47.653Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 267ms
+[2025-05-11T13:15:55.504Z] INFO: [POST] /api/jobs 201 — 11ms
+[2025-05-11T13:15:55.506Z] INFO: Starting job 55 processing
+[2025-05-11T13:15:55.521Z] INFO: [POST] /api/jobs/55/process 200 — 1ms
+[2025-05-11T13:15:55.523Z] INFO: Starting job 55 processing
+[2025-05-11T13:15:56.028Z] INFO: Job 55 completed. Processed: 0, Failed: 1
+[2025-05-11T13:15:56.052Z] INFO: Job 55 completed. Processed: 0, Failed: 1
+[2025-05-11T13:17:05.364Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:17:05.367Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:17:05.368Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:17:05.386Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:17:05.388Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 22ms
+[2025-05-11T13:17:05.389Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:17:05.390Z] INFO: [GET] /api/audio-badge-settings/1 200 — 27ms
+[2025-05-11T13:17:05.391Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:17:05.393Z] INFO: [GET] /api/review-badge-settings/1 200 — 25ms
+[2025-05-11T13:17:05.399Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:17:05.402Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:17:05.403Z] INFO: [GET] /api/resolution-badge-settings/1 304 — 5ms
+[2025-05-11T13:17:05.406Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:17:05.409Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:17:05.410Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:17:05.412Z] INFO: [GET] /api/audio-badge-settings/1 304 — 6ms
+[2025-05-11T13:17:05.414Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:17:05.416Z] INFO: [GET] /api/review-badge-settings/1 304 — 7ms
+[2025-05-11T13:17:05.440Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:17:05.441Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:17:05.447Z] INFO: [POST] /api/audio-badge-settings/1/enabled 200 — 8ms
+[2025-05-11T13:17:05.474Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:17:05.477Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:17:05.484Z] INFO: [POST] /api/resolution-badge-settings/1/enabled 200 — 10ms
+[2025-05-11T13:17:05.536Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:17:05.539Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:17:05.539Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:17:05.541Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:17:05.545Z] INFO: [POST] /api/audio-badge-settings/1/enabled 200 — 9ms
+[2025-05-11T13:17:05.548Z] INFO: [POST] /api/review-badge-settings/1/enabled 200 — 9ms
+[2025-05-11T13:17:05.560Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:17:05.563Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:17:05.569Z] INFO: [POST] /api/resolution-badge-settings/1/enabled 200 — 9ms
+[2025-05-11T13:17:05.585Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:17:05.586Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:17:05.591Z] INFO: [POST] /api/review-badge-settings/1/enabled 200 — 7ms
+[2025-05-11T13:17:06.166Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 8ms
+[2025-05-11T13:17:06.168Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 9ms
+[2025-05-11T13:17:06.172Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 2ms
+[2025-05-11T13:17:06.175Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 2ms
+[2025-05-11T13:17:06.183Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 23ms
+[2025-05-11T13:17:06.189Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 2ms
+[2025-05-11T13:17:06.556Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 399ms
+[2025-05-11T13:17:06.785Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 225ms
+[2025-05-11T13:17:16.376Z] INFO: [POST] /api/jobs 201 — 11ms
+[2025-05-11T13:17:16.379Z] INFO: Starting job 56 processing
+[2025-05-11T13:17:16.389Z] INFO: [POST] /api/jobs/56/process 200 — 1ms
+[2025-05-11T13:17:16.392Z] INFO: Starting job 56 processing
+[2025-05-11T13:17:16.815Z] INFO: Job 56 completed. Processed: 0, Failed: 1
+[2025-05-11T13:17:17.504Z] INFO: Job 56 completed. Processed: 0, Failed: 1
+[2025-05-11T13:18:25.335Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T13:18:25.349Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T13:19:38.607Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:19:38.609Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:19:38.625Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:19:38.627Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:19:38.628Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:19:38.632Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:19:38.644Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:19:38.650Z] INFO: [GET] /api/review-badge-settings/1 200 — 45ms
+[2025-05-11T13:19:38.651Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:19:38.654Z] INFO: [GET] /api/audio-badge-settings/1 200 — 46ms
+[2025-05-11T13:19:38.665Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:19:38.667Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 40ms
+[2025-05-11T13:19:38.668Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:19:38.670Z] INFO: [GET] /api/audio-badge-settings/1 200 — 43ms
+[2025-05-11T13:19:38.671Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:19:38.674Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 50ms
+[2025-05-11T13:19:38.676Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:19:38.679Z] INFO: [GET] /api/review-badge-settings/1 200 — 48ms
+[2025-05-11T13:19:38.785Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:19:38.790Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:19:38.796Z] INFO: [POST] /api/audio-badge-settings/1/enabled 200 — 11ms
+[2025-05-11T13:19:38.809Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:19:38.812Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:19:38.818Z] INFO: [POST] /api/resolution-badge-settings/1/enabled 200 — 10ms
+[2025-05-11T13:19:38.831Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:19:38.834Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:19:38.840Z] INFO: [POST] /api/review-badge-settings/1/enabled 200 — 9ms
+[2025-05-11T13:19:38.878Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:19:38.881Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:19:38.886Z] INFO: [POST] /api/audio-badge-settings/1/enabled 200 — 8ms
+[2025-05-11T13:19:38.911Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:19:38.913Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:19:38.918Z] INFO: [POST] /api/resolution-badge-settings/1/enabled 200 — 8ms
+[2025-05-11T13:19:38.931Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:19:38.933Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:19:38.938Z] INFO: [POST] /api/review-badge-settings/1/enabled 200 — 8ms
+[2025-05-11T13:19:41.085Z] INFO: Received request to save badge file: audio for user 123
+[2025-05-11T13:19:41.086Z] INFO: Image data received, length: 4066 characters
+[2025-05-11T13:19:41.086Z] INFO: User directory path: E:\programming\aphrodite\backend\storage\badges\123
+[2025-05-11T13:19:41.087Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\audio-badge.png
+[2025-05-11T13:19:41.612Z] INFO: Successfully saved audio badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\audio-badge.png
+[2025-05-11T13:19:41.613Z] INFO: [POST] /api/badge-files/123/audio 200 — 528ms
+[2025-05-11T13:19:41.618Z] INFO: Received request to save badge file: review for user 123
+[2025-05-11T13:19:41.619Z] INFO: Image data received, length: 21990 characters
+[2025-05-11T13:19:41.619Z] INFO: User directory path: E:\programming\aphrodite\backend\storage\badges\123
+[2025-05-11T13:19:41.619Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\review-badge.png
+[2025-05-11T13:19:41.623Z] INFO: Successfully saved review badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\review-badge.png
+[2025-05-11T13:19:41.624Z] INFO: [POST] /api/badge-files/123/review 200 — 6ms
+[2025-05-11T13:19:41.626Z] INFO: Received request to save badge file: resolution for user 123
+[2025-05-11T13:19:41.626Z] INFO: Image data received, length: 7646 characters
+[2025-05-11T13:19:41.626Z] INFO: User directory path: E:\programming\aphrodite\backend\storage\badges\123
+[2025-05-11T13:19:41.626Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\resolution-badge.png
+[2025-05-11T13:19:41.628Z] INFO: Successfully saved resolution badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\resolution-badge.png
+[2025-05-11T13:19:41.629Z] INFO: [POST] /api/badge-files/123/resolution 200 — 3ms
+[2025-05-11T13:19:46.203Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 56ms
+[2025-05-11T13:19:46.205Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 57ms
+[2025-05-11T13:19:46.206Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 57ms
+[2025-05-11T13:19:46.214Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 3ms
+[2025-05-11T13:19:46.215Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 4ms
+[2025-05-11T13:19:46.216Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 4ms
+[2025-05-11T13:19:46.758Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 613ms
+[2025-05-11T13:19:47.009Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 246ms
+[2025-05-11T13:20:15.017Z] INFO: [POST] /api/jobs 201 — 140ms
+[2025-05-11T13:20:15.022Z] INFO: Starting job 57 processing
+[2025-05-11T13:20:15.043Z] INFO: [POST] /api/jobs/57/process 200 — 2ms
+[2025-05-11T13:20:15.048Z] INFO: Starting job 57 processing
+[2025-05-11T13:20:21.472Z] INFO: Job 57 completed. Processed: 0, Failed: 1
+[2025-05-11T13:20:22.450Z] INFO: Job 57 completed. Processed: 0, Failed: 1
+[2025-05-11T13:21:36.617Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T13:21:36.632Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T13:21:53.004Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T13:21:53.020Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T13:21:55.980Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 7ms
+[2025-05-11T13:21:55.987Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 4ms
+[2025-05-11T13:21:56.003Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 29ms
+[2025-05-11T13:21:56.565Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 660ms
+[2025-05-11T13:21:56.899Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 329ms
+[2025-05-11T13:21:57.214Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 311ms
+[2025-05-11T13:24:18.433Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:24:18.435Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:24:18.437Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:24:18.441Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:24:18.448Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:24:18.449Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:24:18.465Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:24:18.468Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 36ms
+[2025-05-11T13:24:18.469Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:24:18.471Z] INFO: [GET] /api/audio-badge-settings/1 200 — 37ms
+[2025-05-11T13:24:18.472Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:24:18.476Z] INFO: [GET] /api/audio-badge-settings/1 200 — 36ms
+[2025-05-11T13:24:18.478Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:24:18.480Z] INFO: [GET] /api/review-badge-settings/1 200 — 44ms
+[2025-05-11T13:24:18.483Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:24:18.485Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 38ms
+[2025-05-11T13:24:18.493Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:24:18.495Z] INFO: [GET] /api/review-badge-settings/1 200 — 46ms
+[2025-05-11T13:24:18.712Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:24:18.715Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:24:18.716Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:24:18.717Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:24:18.722Z] INFO: [POST] /api/audio-badge-settings/1/enabled 200 — 10ms
+[2025-05-11T13:24:18.724Z] INFO: [POST] /api/audio-badge-settings/1/enabled 200 — 9ms
+[2025-05-11T13:24:18.776Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:24:18.780Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:24:18.781Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:24:18.782Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:24:18.789Z] INFO: [POST] /api/resolution-badge-settings/1/enabled 200 — 14ms
+[2025-05-11T13:24:18.794Z] INFO: [POST] /api/resolution-badge-settings/1/enabled 200 — 15ms
+[2025-05-11T13:24:18.806Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:24:18.809Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:24:18.811Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:24:18.812Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:24:18.815Z] INFO: [POST] /api/review-badge-settings/1/enabled 200 — 10ms
+[2025-05-11T13:24:18.817Z] INFO: [POST] /api/review-badge-settings/1/enabled 200 — 8ms
+[2025-05-11T13:24:21.214Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:24:21.216Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:24:21.221Z] INFO: [POST] /api/audio-badge-settings/1/enabled 200 — 7ms
+[2025-05-11T13:24:21.232Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:24:21.234Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:24:21.240Z] INFO: [POST] /api/resolution-badge-settings/1/enabled 200 — 8ms
+[2025-05-11T13:24:21.253Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:24:21.255Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:24:21.260Z] INFO: [POST] /api/review-badge-settings/1/enabled 200 — 8ms
+[2025-05-11T13:24:26.511Z] INFO: Received request to save badge file: audio for user 123
+[2025-05-11T13:24:26.511Z] INFO: Image data received, length: 4066 characters
+[2025-05-11T13:24:26.511Z] INFO: User directory path: E:\programming\aphrodite\backend\storage\badges\123
+[2025-05-11T13:24:26.512Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\audio-badge.png
+[2025-05-11T13:24:26.513Z] INFO: Successfully saved audio badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\audio-badge.png
+[2025-05-11T13:24:26.514Z] INFO: [POST] /api/badge-files/123/audio 200 — 4ms
+[2025-05-11T13:24:26.526Z] INFO: Received request to save badge file: review for user 123
+[2025-05-11T13:24:26.526Z] INFO: Image data received, length: 21990 characters
+[2025-05-11T13:24:26.526Z] INFO: User directory path: E:\programming\aphrodite\backend\storage\badges\123
+[2025-05-11T13:24:26.527Z] INFO: Writing file to: E:\programming\aphrodite\backend\storage\badges\123\review-badge.png
+[2025-05-11T13:24:26.529Z] INFO: Successfully saved review badge for user 123 at: E:\programming\aphrodite\backend\storage\badges\123\review-badge.png
+[2025-05-11T13:24:26.529Z] INFO: [POST] /api/badge-files/123/review 200 — 4ms
+[2025-05-11T13:24:48.121Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 24ms
+[2025-05-11T13:24:48.128Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 200 — 30ms
+[2025-05-11T13:24:48.132Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 33ms
+[2025-05-11T13:24:48.133Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 4ms
+[2025-05-11T13:24:48.136Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 2ms
+[2025-05-11T13:24:48.143Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 3ms
+[2025-05-11T13:24:48.633Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 538ms
+[2025-05-11T13:24:48.933Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 296ms
+[2025-05-11T13:24:54.628Z] INFO: [GET] /api/library-items/1?page=1&limit=50&libraryIds=f137a2dd21bbc1b99aa5c0f6bf02a805 200 — 505ms
+[2025-05-11T13:25:01.226Z] INFO: [POST] /api/jobs 201 — 128ms
+[2025-05-11T13:25:01.228Z] INFO: Starting job 58 processing
+[2025-05-11T13:25:01.241Z] INFO: [POST] /api/jobs/58/process 200 — 1ms
+[2025-05-11T13:25:01.246Z] INFO: Starting job 58 processing
+[2025-05-11T13:25:01.968Z] INFO: Job 58 completed. Processed: 0, Failed: 1
+[2025-05-11T13:25:11.596Z] INFO: Job 58 completed. Processed: 1, Failed: 0
+[2025-05-11T13:28:11.124Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T13:28:11.139Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T13:28:15.331Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 13ms
+[2025-05-11T13:28:15.358Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 38ms
+[2025-05-11T13:28:15.360Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 37ms
+[2025-05-11T13:28:15.898Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 750ms
+[2025-05-11T13:28:16.224Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 323ms
+[2025-05-11T13:28:16.567Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 310ms
+[2025-05-11T13:28:19.935Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 284ms
+[2025-05-11T13:28:20.239Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 300ms
+[2025-05-11T13:28:23.597Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:28:23.601Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:28:23.603Z] INFO: [GET] /api/audio-badge-settings/1 200 — 7ms
+[2025-05-11T13:28:23.610Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:28:23.614Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:28:23.616Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 7ms
+[2025-05-11T13:28:23.619Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:28:23.620Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:28:23.622Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:28:23.625Z] INFO: [GET] /api/review-badge-settings/1 200 — 7ms
+[2025-05-11T13:28:23.627Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:28:23.629Z] INFO: [GET] /api/audio-badge-settings/1 200 — 9ms
+[2025-05-11T13:28:23.747Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:28:23.763Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:28:23.763Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:28:23.765Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 18ms
+[2025-05-11T13:28:23.766Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:28:23.771Z] INFO: [POST] /api/audio-badge-settings/1/enabled 200 — 9ms
+[2025-05-11T13:28:23.880Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:28:23.883Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:28:23.884Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:28:23.885Z] INFO: [GET] /api/review-badge-settings/1 200 — 5ms
+[2025-05-11T13:28:23.886Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:28:23.893Z] INFO: [POST] /api/resolution-badge-settings/1/enabled 200 — 11ms
+[2025-05-11T13:28:23.917Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:28:23.919Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:28:23.922Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:28:23.923Z] INFO: [POST] /api/audio-badge-settings/1/enabled 200 — 6ms
+[2025-05-11T13:28:23.925Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:28:23.931Z] INFO: [POST] /api/review-badge-settings/1/enabled 200 — 10ms
+[2025-05-11T13:28:23.936Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:28:23.938Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:28:23.944Z] INFO: [POST] /api/resolution-badge-settings/1/enabled 200 — 8ms
+[2025-05-11T13:28:23.955Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:28:23.957Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:28:23.963Z] INFO: [POST] /api/review-badge-settings/1/enabled 200 — 8ms
+[2025-05-11T13:28:41.860Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 25ms
+[2025-05-11T13:28:41.861Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 26ms
+[2025-05-11T13:28:41.862Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 26ms
+[2025-05-11T13:28:41.869Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 3ms
+[2025-05-11T13:28:41.870Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 4ms
+[2025-05-11T13:28:41.871Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 4ms
+[2025-05-11T13:28:42.370Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 537ms
+[2025-05-11T13:28:42.658Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 286ms
+[2025-05-11T13:28:45.466Z] INFO: [GET] /api/library-items/1?page=1&limit=50&libraryIds=f137a2dd21bbc1b99aa5c0f6bf02a805 200 — 464ms
+[2025-05-11T13:28:51.638Z] INFO: [POST] /api/jobs 201 — 124ms
+[2025-05-11T13:28:51.641Z] INFO: Starting job 59 processing
+[2025-05-11T13:28:51.693Z] INFO: [POST] /api/jobs/59/process 200 — 1ms
+[2025-05-11T13:28:51.695Z] INFO: Starting job 59 processing
+[2025-05-11T13:29:02.280Z] INFO: Job 59 completed. Processed: 1, Failed: 0
+[2025-05-11T13:29:02.871Z] INFO: Job 59 completed. Processed: 1, Failed: 0
+[2025-05-11T13:29:24.490Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 5ms
+[2025-05-11T13:29:24.509Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 23ms
+[2025-05-11T13:29:24.511Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 24ms
+[2025-05-11T13:29:24.930Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 472ms
+[2025-05-11T13:29:25.236Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 303ms
+[2025-05-11T13:29:25.562Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 321ms
+[2025-05-11T13:29:31.414Z] INFO: [GET] /api/library-items/1?page=1&limit=50&libraryIds=f137a2dd21bbc1b99aa5c0f6bf02a805 200 — 483ms
+[2025-05-11T13:29:37.925Z] INFO: [POST] /api/jobs 201 — 12ms
+[2025-05-11T13:29:37.927Z] INFO: Starting job 60 processing
+[2025-05-11T13:29:37.944Z] INFO: [POST] /api/jobs/60/process 200 — 3ms
+[2025-05-11T13:29:37.965Z] INFO: Starting job 60 processing
+[2025-05-11T13:29:45.955Z] INFO: Job 60 completed. Processed: 1, Failed: 0
+[2025-05-11T13:29:50.156Z] INFO: Job 60 completed. Processed: 1, Failed: 0
+[2025-05-11T13:29:59.204Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 6ms
+[2025-05-11T13:29:59.214Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 3ms
+[2025-05-11T13:29:59.225Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 26ms
+[2025-05-11T13:29:59.226Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 26ms
+[2025-05-11T13:29:59.234Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 3ms
+[2025-05-11T13:29:59.235Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 3ms
+[2025-05-11T13:29:59.660Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 463ms
+[2025-05-11T13:29:59.935Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 271ms
+[2025-05-11T13:30:00.494Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:30:00.495Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-11T13:30:00.497Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:30:00.499Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:30:00.500Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-11T13:30:00.501Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:30:00.502Z] INFO: [GET] /api/audio-badge-settings/1 200 — 9ms
+[2025-05-11T13:30:00.503Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-11T13:30:00.505Z] INFO: [GET] /api/audio-badge-settings/1 200 — 10ms
+[2025-05-11T13:30:00.508Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:30:00.510Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 14ms
+[2025-05-11T13:30:00.511Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:30:00.512Z] INFO: [GET] /api/review-badge-settings/1 200 — 14ms
+[2025-05-11T13:30:00.513Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-11T13:30:00.516Z] INFO: Found review badge settings for user ID: 1
+[2025-05-11T13:30:00.518Z] INFO: [GET] /api/review-badge-settings/1 200 — 5ms
+[2025-05-11T13:30:00.531Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-11T13:30:00.533Z] INFO: [GET] /api/resolution-badge-settings/1 200 — 34ms
+[2025-05-11T13:30:41.674Z] INFO: [GET] /api/audio-badge-settings/1/enabled 200 — 9ms
+[2025-05-11T13:30:41.692Z] INFO: [GET] /api/review-badge-settings/1/enabled 200 — 26ms
+[2025-05-11T13:30:41.693Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 200 — 26ms
+[2025-05-11T13:30:42.273Z] INFO: [GET] /api/jellyfin-libraries/1 200 — 639ms
+[2025-05-11T13:30:42.274Z] INFO: [GET] /api/jellyfin-libraries/1 200 — 641ms
+[2025-05-11T13:30:42.278Z] INFO: [GET] /api/jellyfin-libraries/1 200 — 614ms
+[2025-05-11T13:30:45.480Z] INFO: [GET] /api/library-items/1?page=1&limit=50&libraryIds=f137a2dd21bbc1b99aa5c0f6bf02a805 200 — 413ms
+[2025-05-11T13:30:53.352Z] INFO: [POST] /api/jobs 201 — 13ms
+[2025-05-11T13:30:53.354Z] INFO: Starting job 61 processing
+[2025-05-11T13:30:53.367Z] INFO: [POST] /api/jobs/61/process 200 — 0ms
+[2025-05-11T13:30:53.371Z] INFO: Starting job 61 processing
+[2025-05-11T13:31:02.434Z] INFO: Job 61 completed. Processed: 1, Failed: 0
+[2025-05-11T13:31:04.114Z] INFO: Job 61 completed. Processed: 1, Failed: 0
+[2025-05-11T13:32:18.635Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T13:32:18.649Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T13:32:36.764Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T13:32:36.779Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T13:32:40.458Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 10ms
+[2025-05-11T13:32:40.465Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 5ms
+[2025-05-11T13:32:40.508Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 57ms
+[2025-05-11T13:32:41.048Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 678ms
+[2025-05-11T13:32:41.403Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 351ms
+[2025-05-11T13:32:41.752Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 338ms
+[2025-05-11T13:33:36.639Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T13:33:36.653Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T13:33:57.454Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T13:33:57.470Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T13:34:00.736Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 14ms
+[2025-05-11T13:34:00.771Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 42ms
+[2025-05-11T13:34:00.774Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 49ms
+[2025-05-11T13:34:01.236Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 648ms
+[2025-05-11T13:34:01.579Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 340ms
+[2025-05-11T13:34:01.829Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 246ms
+[2025-05-11T13:34:03.930Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T13:34:03.949Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T13:34:05.589Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 10ms
+[2025-05-11T13:34:05.612Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 29ms
+[2025-05-11T13:34:05.614Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 30ms
+[2025-05-11T13:34:05.920Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 496ms
+[2025-05-11T13:34:06.204Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 267ms
+[2025-05-11T13:34:06.498Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 290ms
+[2025-05-11T13:34:36.396Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 5ms
+[2025-05-11T13:34:36.414Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 20ms
+[2025-05-11T13:34:36.416Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 23ms
+[2025-05-11T13:34:36.844Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 495ms
+[2025-05-11T13:34:37.112Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 265ms
+[2025-05-11T13:34:37.382Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 267ms
+[2025-05-11T13:34:41.311Z] INFO: [GET] /api/library-items/1?page=1&limit=50&libraryIds=f137a2dd21bbc1b99aa5c0f6bf02a805 200 — 489ms
+[2025-05-11T13:34:47.432Z] INFO: [POST] /api/jobs 201 — 127ms
+[2025-05-11T13:34:47.434Z] INFO: Starting job 62 processing
+[2025-05-11T13:34:47.566Z] INFO: [POST] /api/jobs/62/process 200 — 1ms
+[2025-05-11T13:34:47.568Z] INFO: Starting job 62 processing
+[2025-05-11T13:34:48.162Z] INFO: Job 62 completed. Processed: 0, Failed: 1
+[2025-05-11T13:34:57.973Z] INFO: Job 62 completed. Processed: 1, Failed: 0
+[2025-05-11T13:36:11.119Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T13:36:11.134Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T13:36:14.105Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 10ms
+[2025-05-11T13:36:14.127Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 29ms
+[2025-05-11T13:36:14.129Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 29ms
+[2025-05-11T13:36:14.535Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 510ms
+[2025-05-11T13:36:14.758Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 219ms
+[2025-05-11T13:36:15.007Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 238ms
+[2025-05-11T13:36:23.877Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T13:36:23.891Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T13:37:08.955Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T13:37:08.970Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-11T13:37:11.506Z] INFO: [GET] /api/audio-badge-settings/1/enabled 304 — 12ms
+[2025-05-11T13:37:11.527Z] INFO: [GET] /api/resolution-badge-settings/1/enabled 304 — 30ms
+[2025-05-11T13:37:11.529Z] INFO: [GET] /api/review-badge-settings/1/enabled 304 — 29ms
+[2025-05-11T13:37:11.987Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 566ms
+[2025-05-11T13:37:12.352Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 334ms
+[2025-05-11T13:37:12.656Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 301ms
+[2025-05-11T13:37:23.768Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-11T13:37:23.784Z] INFO: Server running on port 5000 with WebSocket support

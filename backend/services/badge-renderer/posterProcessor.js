@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import fetch from 'node-fetch';
+import FormData from 'form-data';
 import BadgeRenderer from './badgeRenderer.js';
 import CanvasBadgeRenderer from './canvasBadgeRenderer.js';
 import { pool as db } from '../../db.js';
@@ -301,22 +302,15 @@ class PosterProcessor {
 
     // Clean up the URL and build the poster URL
     const baseUrl = settings.url.replace(/\/$/, '');
-    // Use the Items endpoint directly for downloading images
-    const posterUrl = `${baseUrl}/Items/${jellyfinId}/Images/Primary`;
+    // Use the Items endpoint with api_key parameter
+    const posterUrl = `${baseUrl}/Items/${jellyfinId}/Images/Primary?api_key=${settings.token}`;
     
-    const headers = {};
-    if (settings.token) {
-      headers['X-Emby-Token'] = settings.token;
-    }
-
     console.log('Downloading poster:', {
       url: posterUrl,
-      token: settings.token ? '***' + settings.token.slice(-4) : 'none'
+      itemId: jellyfinId
     });
 
-    const response = await fetch(posterUrl, {
-      headers: headers
-    });
+    const response = await fetch(posterUrl);
 
     if (!response.ok) {
       console.error('Failed to download poster:', {
@@ -348,35 +342,76 @@ class PosterProcessor {
 
     // Clean up the URL and build the upload URL
     const baseUrl = settings.url.replace(/\/$/, '');
-    // Use the Items endpoint directly for uploading images
-    const uploadUrl = `${baseUrl}/Items/${jellyfinId}/Images/Primary`;
     
-    const headers = {
-      'Content-Type': 'image/png'
-    };
+    // Based on the verify-api-key.js results, the token works as a query parameter
+    const uploadUrl = `${baseUrl}/Items/${jellyfinId}/Images/Primary?api_key=${settings.token}`;
     
-    if (settings.token) {
-      headers['X-Emby-Token'] = settings.token;
-    }
-
     console.log('Uploading poster:', {
       url: uploadUrl,
-      token: settings.token ? '***' + settings.token.slice(-4) : 'none'
+      contentLength: posterBuffer.length,
+      itemId: jellyfinId
     });
 
-    const response = await fetch(uploadUrl, {
-      method: 'POST',
-      headers: headers,
-      body: posterBuffer
-    });
+    try {
+      // First, try to delete existing image (optional)
+      const deleteUrl = `${baseUrl}/Items/${jellyfinId}/Images/Primary?api_key=${settings.token}`;
+      
+      console.log('Attempting to delete existing image...');
+      const deleteResponse = await fetch(deleteUrl, {
+        method: 'DELETE'
+      });
+      console.log('Delete response:', deleteResponse.status);
+      
+      // Now upload the new image - convert to base64 as per Jellyfin 10.10.7 requirements
+      console.log('Uploading new poster...');
+      const base64Data = posterBuffer.toString('base64');
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'image/png',
+          'Content-Encoding': 'base64'
+        },
+        body: base64Data
+      });
 
-    if (!response.ok) {
-      console.error('Failed to upload poster:', {
+      const responseText = await response.text();
+      console.log('Upload response:', {
         status: response.status,
         statusText: response.statusText,
-        url: uploadUrl
+        body: responseText.substring(0, 200)
       });
-      throw new Error(`Failed to upload poster: ${response.status} ${response.statusText}`);
+
+      if (!response.ok) {
+        // Try alternate approach with X-Emby-Token header and base64 encoding
+        console.log('First attempt failed, trying with header authentication...');
+        const headerUploadUrl = `${baseUrl}/Items/${jellyfinId}/Images/Primary`;
+        
+        const headerResponse = await fetch(headerUploadUrl, {
+          method: 'POST',
+          headers: {
+            'X-Emby-Token': settings.token,
+            'Content-Type': 'image/png',
+            'Content-Encoding': 'base64'
+          },
+          body: base64Data
+        });
+
+        const headerResponseText = await headerResponse.text();
+        console.log('Header upload response:', {
+          status: headerResponse.status,
+          statusText: headerResponse.statusText,
+          body: headerResponseText.substring(0, 200)
+        });
+
+        if (!headerResponse.ok) {
+          throw new Error(`Failed to upload poster: Both methods failed. Last error: ${headerResponse.status} ${headerResponse.statusText}`);
+        }
+      }
+
+      console.log('Poster uploaded successfully!');
+    } catch (error) {
+      console.error('Error during poster upload:', error);
+      throw error;
     }
   }
 
@@ -407,21 +442,18 @@ class PosterProcessor {
       
       // Calculate scaling factor based on poster dimensions compared to preview dimensions (1000x1500)
       const previewWidth = 1000;
-      const minPosterWidth = 500; // Minimum poster width to ensure badges remain visible
+      const previewHeight = 1500;
       
-      // Use a different scaling calculation if poster is below minimum width
-      let scaleFactor;
-      if (posterMetadata.width < minPosterWidth) {
-        // For small posters, scale less aggressively to maintain badge visibility
-        scaleFactor = (posterMetadata.width / previewWidth) * 1.5;
-        console.log(`Small poster detected (${posterMetadata.width}px), using adjusted scaling factor: ${scaleFactor}`);
-      } else {
-        scaleFactor = posterMetadata.width / previewWidth;
-      }
+      // Calculate both width and height scaling factors
+      const widthScale = posterMetadata.width / previewWidth;
+      const heightScale = posterMetadata.height / previewHeight;
+      
+      // Use the smaller of width and height scaling to be more conservative
+      let scaleFactor = Math.min(widthScale, heightScale);
       
       // Ensure minimum scale factor to prevent badges from becoming too small
       scaleFactor = Math.max(scaleFactor, 0.3);
-      console.log(`Final poster scaling factor: ${scaleFactor}`);
+      console.log(`Poster scaling factor: ${scaleFactor} (width scale: ${widthScale}, height scale: ${heightScale})`);
       
       // Sort badges by stacking order and filter enabled ones
       const enabledBadges = badgeConfigs.filter(config => {
@@ -439,6 +471,7 @@ class PosterProcessor {
       for (let i = 0; i < sortedBadges.length; i++) {
         const config = sortedBadges[i];
         console.log(`Applying badge ${i + 1}/${sortedBadges.length}: ${config.settings.type} at position ${config.settings.position}`);
+        console.log(`Original margin: ${config.settings.margin}, Original size: ${config.settings.size}`);
         
         const poster = sharp(posterBuffer);
         const metadata = posterMetadata;
@@ -452,19 +485,47 @@ class PosterProcessor {
         }
         
         // Scale badge settings based on poster dimensions
+        // For margins, we want to preserve the visual appearance from the preview
+        // At preview size (1000x1500), margins should remain unchanged
+        
+        // Calculate the ratio of current poster to preview size
+        const sizeRatio = scaleFactor;
+        
+        // For margins, use a different scaling approach:
+        // - At preview size (scaleFactor = 1), keep margins unchanged
+        // - For larger posters, scale up more conservatively
+        // - For smaller posters, scale down more conservatively
+        let marginScaleFactor;
+        if (sizeRatio >= 1) {
+          // For larger posters, scale margins up more conservatively
+          marginScaleFactor = 1 + (sizeRatio - 1) * 0.5; // Only scale up by 50% of the size increase
+        } else {
+          // For smaller posters, scale margins down more conservatively
+          marginScaleFactor = Math.max(sizeRatio * 1.2, 0.8); // Scale down less aggressively, minimum 80%
+        }
+        
+        // Cap the margin scaling to avoid excessive spacing
+        const cappedMarginScaleFactor = Math.min(marginScaleFactor, 2.0);
+        
         const scaledSettings = {
           ...config.settings,
           size: config.settings.size ? Math.round(config.settings.size * scaleFactor) : undefined,
           fontSize: config.settings.fontSize ? Math.round(config.settings.fontSize * scaleFactor) : undefined,
           borderRadius: config.settings.borderRadius ? Math.round(config.settings.borderRadius * scaleFactor) : undefined,
           borderWidth: config.settings.borderWidth ? Math.round(config.settings.borderWidth * scaleFactor) : undefined,
-          padding: config.settings.padding ? Math.round(config.settings.padding * scaleFactor) : 8,
+          padding: config.settings.padding ? Math.round(config.settings.padding * scaleFactor) : Math.round(8 * scaleFactor),
+          margin: config.settings.margin ? Math.round(config.settings.margin * cappedMarginScaleFactor) : Math.round(8 * cappedMarginScaleFactor),
           shadowBlur: config.settings.shadowBlur ? Math.round(config.settings.shadowBlur * scaleFactor) : undefined,
           shadowOffsetX: config.settings.shadowOffsetX ? Math.round(config.settings.shadowOffsetX * scaleFactor) : undefined,
           shadowOffsetY: config.settings.shadowOffsetY ? Math.round(config.settings.shadowOffsetY * scaleFactor) : undefined
         };
         
-        console.log(`Scaling badge ${config.settings.type} with factor ${scaleFactor}:`, {
+        console.log(`Scaling badge ${config.settings.type}:`, {
+          posterSize: `${posterMetadata.width}x${posterMetadata.height}`,
+          scaleFactor: scaleFactor.toFixed(2),
+          marginScaleFactor: cappedMarginScaleFactor.toFixed(2),
+          originalMargin: config.settings.margin,
+          scaledMargin: scaledSettings.margin,
           originalSize: config.settings.size,
           scaledSize: scaledSettings.size
         });
@@ -492,14 +553,14 @@ class PosterProcessor {
           continue;
         }
 
-        // Calculate position based on settings
+        // Calculate position based on settings, using the scaled margin for edge distance
         const position = this.calculateSafePosition(
           config.settings.position, 
           metadata.width, 
           metadata.height, 
           badgeMetadata.width, 
           badgeMetadata.height,
-          config.settings.padding || 8
+          scaledSettings.margin
         );
         
         // Composite the badge onto the poster
@@ -521,36 +582,38 @@ class PosterProcessor {
     }
   }
 
-  calculateSafePosition(position, posterWidth, posterHeight, badgeWidth, badgeHeight, padding) {
+  calculateSafePosition(position, posterWidth, posterHeight, badgeWidth, badgeHeight, margin) {
     let left = 0;
     let top = 0;
     
     switch (position) {
       case 'top-left':
-        left = padding;
-        top = padding;
+        left = margin;
+        top = margin;
         break;
       case 'top-right':
-        left = posterWidth - badgeWidth - padding;
-        top = padding;
+        left = posterWidth - badgeWidth - margin;
+        top = margin;
         break;
       case 'bottom-left':
-        left = padding;
-        top = posterHeight - badgeHeight - padding;
+        left = margin;
+        top = posterHeight - badgeHeight - margin;
         break;
       case 'bottom-right':
-        left = posterWidth - badgeWidth - padding;
-        top = posterHeight - badgeHeight - padding;
+        left = posterWidth - badgeWidth - margin;
+        top = posterHeight - badgeHeight - margin;
         break;
       default:
         // Default to bottom-right
-        left = posterWidth - badgeWidth - padding;
-        top = posterHeight - badgeHeight - padding;
+        left = posterWidth - badgeWidth - margin;
+        top = posterHeight - badgeHeight - margin;
     }
     
     // Ensure position is within bounds
     left = Math.max(0, Math.min(left, posterWidth - badgeWidth));
     top = Math.max(0, Math.min(top, posterHeight - badgeHeight));
+    
+    console.log(`Badge position for ${position}: left=${left}, top=${top}, margin=${margin}`);
     
     return { left, top };
   }
