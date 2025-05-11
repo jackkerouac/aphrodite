@@ -85,7 +85,7 @@ const DesignReviewBadgeSettings: React.FC<SettingsFormProps> = ({
                       type="range"
                       name="size"
                       min="50"
-                      max="200"
+                      max="500"
                       step="5"
                       value={settings.size || 100}
                       onChange={handleChange}
@@ -94,7 +94,7 @@ const DesignReviewBadgeSettings: React.FC<SettingsFormProps> = ({
                     <div className="flex justify-between text-xs">
                       <span>50%</span>
                       <span>{settings.size}%</span>
-                      <span>200%</span>
+                      <span>500%</span>
                     </div>
                   </div>
                   <div className="space-y-2">

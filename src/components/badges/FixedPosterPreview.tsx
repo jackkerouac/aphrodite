@@ -27,17 +27,18 @@ const FixedPosterPreview: React.FC<FixedPosterPreviewProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const posterContainerRef = useRef<HTMLDivElement>(null);
   const [posterDimensions, setPosterDimensions] = useState<PosterDimensions>({
-    width: 400,
-    height: 600,
+    width: 1000,
+    height: 1500,
     aspectRatio: 2/3,
   });
   const [loaded, setLoaded] = useState(false);
   // Handle image load
   const handleImageLoad = () => {
-    // Hard-coded dimensions since we know the image
+    // Report standard dimensions for badge calculations
+    // but the poster will be displayed at 400x600 for UI fit
     const dimensions = {
-      width: 400,
-      height: 600,
+      width: 1000,
+      height: 1500,
       aspectRatio: 2/3
     };
     
@@ -79,8 +80,11 @@ const FixedPosterPreview: React.FC<FixedPosterPreviewProps> = ({
     <div ref={containerRef} className="w-full flex justify-center p-0 m-0">
       <div 
         ref={posterContainerRef} 
-        className="relative m-0" 
-        style={{ width: '400px', height: '600px' }}
+        className="relative m-0"
+        style={{
+          width: '400px',
+          height: '600px',
+        }}
       >
         <img 
           ref={posterRef}
@@ -90,6 +94,7 @@ const FixedPosterPreview: React.FC<FixedPosterPreviewProps> = ({
           height={600}
           onLoad={handleImageLoad}
           className="block m-0 p-0"
+          style={{ imageRendering: 'auto' }}
         />
         
         {loaded && (
@@ -97,8 +102,12 @@ const FixedPosterPreview: React.FC<FixedPosterPreviewProps> = ({
             <canvas
               ref={canvasRef}
               className="absolute top-0 left-0 pointer-events-none z-10"
-              width={400}
-              height={600}
+              width={1000}
+              height={1500}
+              style={{
+                transformOrigin: 'top left',
+                transform: 'scale(0.4)', // Scale down from 1000x1500 to 400x600
+              }}
             />
             
             {/* Debug Grid */}

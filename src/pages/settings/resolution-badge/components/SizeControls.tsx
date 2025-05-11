@@ -31,7 +31,7 @@ const SizeControls: React.FC<SizeControlsProps> = ({ settings, handleChange }) =
           id="size"
           name="size"
           min={10}
-          max={200}
+          max={500}
           step={1}
           value={[settings.size]}
           onValueChange={handleSliderChange('size')}
