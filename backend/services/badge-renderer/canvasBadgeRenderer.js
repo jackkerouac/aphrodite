@@ -8,10 +8,12 @@ import { renderAudioBadge } from './renderers/audioBadgeRenderer.js';
 import { renderResolutionBadge } from './renderers/resolutionBadgeRenderer.js';
 import { renderReviewBadge } from './renderers/reviewBadgeRenderer.js';
 
+// Import utility functions
+import { getAudioImagePath, getResolutionImagePath, projectRoot } from './utils/canvasUtils.js';
+
 // Get project root path
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const projectRoot = path.resolve(__dirname, '../../..');
 
 /**
  * Canvas Badge Renderer
@@ -86,6 +88,24 @@ class CanvasBadgeRenderer {
       default:
         throw new Error(`Unsupported badge type: ${type}`);
     }
+  }
+  
+  /**
+   * Map resolution values to asset paths - maintained for backward compatibility
+   * @param {string} resolution - The resolution value
+   * @returns {Promise<string|null>} The path to the resolution image, or null if not found
+   */
+  async getResolutionImagePath(resolution) {
+    return await getResolutionImagePath(resolution);
+  }
+  
+  /**
+   * Map audio formats to asset paths - maintained for backward compatibility
+   * @param {string} audioFormat - The audio format
+   * @returns {Promise<string|null>} The path to the audio format image, or null if not found
+   */
+  async getAudioImagePath(audioFormat) {
+    return await getAudioImagePath(audioFormat);
   }
 }
 

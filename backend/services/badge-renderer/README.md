@@ -13,7 +13,7 @@ The specific problems fixed:
 - Made sure the background color property is checked consistently across all badge types
 - Added appropriate debugging logs to track color source and application
 
-### 2. Code Refactoring
+### 2. Code Refactoring and API Compatibility
 The original `canvasBadgeRenderer.js` file was getting too large, so it was refactored into a more modular structure:
 
 ```
@@ -34,6 +34,7 @@ Benefits of this refactoring:
 - Better maintainability: Common functionality extracted to utilities
 - Easier debugging: Clearer separation of concerns
 - Reduced duplication: Shared functions are defined once and reused
+- Backward compatibility: Core utility methods are still accessible through the main CanvasBadgeRenderer class for other modules that depend on them
 
 ## Testing
 
@@ -59,3 +60,9 @@ Potential future improvements:
 - Create TypeScript interfaces for the settings objects
 - Add validation for settings to ensure required properties are present
 - Consider caching commonly used logos and images for better performance
+
+## API Compatibility Notes
+
+When refactoring, we moved utility functions like `getAudioImagePath` and `getResolutionImagePath` from the main class to the utility files. However, we discovered that the `posterProcessor.js` file directly called these methods. Rather than modifying that file, we maintained backward compatibility by re-exposing these methods in the main `CanvasBadgeRenderer` class, which now delegates to the utility functions.
+
+In the future, when updating external code, it would be good to have them use the utility functions directly rather than through the main renderer class.

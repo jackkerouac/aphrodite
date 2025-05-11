@@ -56,25 +56,56 @@ class PosterProcessor {
 
       // Apply badges using canvas renderer if enabled
       let modifiedPosterBuffer;
+      let badgeApplied = false;
+      
+      // Try canvas renderer first if enabled
       if (this.useCanvasRenderer) {
-        modifiedPosterBuffer = await this.applyBadgesWithCanvas(standardizedPosterPath, badgeSettings);
+        try {
+          modifiedPosterBuffer = await this.applyBadgesWithCanvas(standardizedPosterPath, badgeSettings);
+          badgeApplied = true;
+          console.log('Successfully applied badges with canvas renderer');
+        } catch (canvasError) {
+          console.error(`Canvas renderer failed: ${canvasError.message}. Trying fallback renderer...`);
+          // Fall back to the SVG renderer
+          try {
+            modifiedPosterBuffer = await this.badgeRenderer.applyMultipleBadges(
+              standardizedPosterPath,
+              badgeSettings
+            );
+            badgeApplied = true;
+            console.log('Successfully applied badges with fallback SVG renderer');
+          } catch (svgError) {
+            console.error(`SVG renderer also failed: ${svgError.message}. Continuing with original poster...`);
+            // If both renderers fail, use the standardized poster without badges
+            modifiedPosterBuffer = await fs.readFile(standardizedPosterPath);
+          }
+        }
       } else {
-        modifiedPosterBuffer = await this.badgeRenderer.applyMultipleBadges(
-          standardizedPosterPath,
-          badgeSettings
-        );
+        // If canvas renderer is disabled, use SVG renderer directly
+        try {
+          modifiedPosterBuffer = await this.badgeRenderer.applyMultipleBadges(
+            standardizedPosterPath,
+            badgeSettings
+          );
+          badgeApplied = true;
+          console.log('Successfully applied badges with SVG renderer');
+        } catch (svgError) {
+          console.error(`SVG renderer failed: ${svgError.message}. Continuing with original poster...`);
+          // If SVG renderer fails, use the standardized poster without badges
+          modifiedPosterBuffer = await fs.readFile(standardizedPosterPath);
+        }
       }
       
       // Save the modified poster for inspection
       const modifiedPosterPath = path.join(this.tempDir, `poster-modified-${item.jellyfin_item_id}.png`);
       await fs.writeFile(modifiedPosterPath, modifiedPosterBuffer);
-      console.log(`Modified poster saved at: ${modifiedPosterPath}`);
+      console.log(`Modified poster saved at: ${modifiedPosterPath}${badgeApplied ? '' : ' (without badges due to renderer errors)'}`);
 
       // Upload modified poster back to Jellyfin
       await this.uploadPoster(item.jellyfin_item_id, modifiedPosterBuffer, userId);
 
       // Update item status to completed
-      await this.updateItemStatus(item.id, 'completed');
+      await this.updateItemStatus(item.id, 'completed', badgeApplied ? null : 'Badges could not be applied due to renderer errors');
 
       // Clean up temp files
       // await fs.unlink(tempPosterPath).catch(() => {});
@@ -82,7 +113,7 @@ class PosterProcessor {
       console.log(`Temp poster saved at: ${tempPosterPath}`);
       console.log(`Standardized poster saved at: ${standardizedPosterPath}`);
 
-      return { success: true, itemId: item.id };
+      return { success: true, itemId: item.id, badgeApplied };
     } catch (error) {
       console.error(`Error processing item ${item.id}:`, error);
       await this.updateItemStatus(item.id, 'failed', error.message);
@@ -435,6 +466,7 @@ class PosterProcessor {
   }
 
   async updateItemStatus(itemId, status, errorMessage = null) {
+    // Added a comment to clarify that errorMessage can now also be a warning message for completed items
     const query = `
       UPDATE job_items 
       SET status = $1, 
@@ -501,10 +533,15 @@ class PosterProcessor {
         
         // Determine the source image path based on badge type
         let sourceImagePath = null;
-        if (config.settings.type === 'resolution' && config.value) {
-          sourceImagePath = await this.canvasBadgeRenderer.getResolutionImagePath(config.value);
-        } else if (config.settings.type === 'audio' && config.value) {
-          sourceImagePath = await this.canvasBadgeRenderer.getAudioImagePath(config.value);
+        try {
+          if (config.settings.type === 'resolution' && config.value) {
+            sourceImagePath = await this.canvasBadgeRenderer.getResolutionImagePath(config.value);
+          } else if (config.settings.type === 'audio' && config.value) {
+            sourceImagePath = await this.canvasBadgeRenderer.getAudioImagePath(config.value);
+          }
+        } catch (error) {
+          console.error(`Error getting source image path: ${error.message}. Continuing without source image.`);
+          sourceImagePath = null;
         }
         
         // Map visual settings with consistent naming between frontend/backend
@@ -531,17 +568,23 @@ class PosterProcessor {
         });
         
         // Generate badge using canvas renderer
-        const badgeBuffer = await this.canvasBadgeRenderer.renderBadge(
-          config.settings.type,
-          badgeSettings,
-          { 
-            resolution: config.settings.type === 'resolution' ? config.value : undefined,
-            audioFormat: config.settings.type === 'audio' ? config.value : undefined,
-            rating: config.settings.type === 'review' ? config.value : undefined,
-            ratingSource: config.settings.type === 'review' ? 'imdb' : undefined
-          },
-          sourceImagePath
-        );
+        let badgeBuffer;
+        try {
+          badgeBuffer = await this.canvasBadgeRenderer.renderBadge(
+            config.settings.type,
+            badgeSettings,
+            { 
+              resolution: config.settings.type === 'resolution' ? config.value : undefined,
+              audioFormat: config.settings.type === 'audio' ? config.value : undefined,
+              rating: config.settings.type === 'review' ? config.value : undefined,
+              ratingSource: config.settings.type === 'review' ? 'imdb' : undefined
+            },
+            sourceImagePath
+          );
+        } catch (renderError) {
+          console.error(`Error rendering badge: ${renderError.message}. Skipping this badge.`);
+          continue; // Skip this badge and move to the next one
+        }
         
         // Create a Sharp instance from the badge buffer
         const badge = sharp(badgeBuffer);
@@ -564,13 +607,19 @@ class PosterProcessor {
         );
         
         // Composite the badge onto the poster
-        posterBuffer = await poster
-          .composite([{
-            input: badgeBuffer,
-            ...position
-          }])
-          .png()
-          .toBuffer();
+        try {
+          posterBuffer = await poster
+            .composite([{
+              input: badgeBuffer,
+              ...position
+            }])
+            .png()
+            .toBuffer();
+        } catch (compositeError) {
+          console.error(`Error compositing badge onto poster: ${compositeError.message}. Using previous poster state.`);
+          // Continue with the current posterBuffer without this badge
+          continue;
+        }
           
         console.log(`Badge ${config.settings.type} applied successfully with canvas renderer`);
       }

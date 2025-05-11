@@ -1,0 +1,17 @@
+fix: Badge background color & improved resilience
+
+- Fixed badge background color inconsistency between preview and rendered output
+- Made custom colors take priority over brand colors when both are present
+- Refactored badge renderer into modular files for improved maintainability
+- Added property mapping between camelCase and snake_case color fields
+- Maintained backward compatibility with existing API for posterProcessor.js
+- Added comprehensive error handling and fallback mechanisms throughout
+- Added resilience to handle failures of individual badges without failing the entire process
+- Created test scripts to verify color application and resilience
+- Added extensive documentation in README.md
+
+These changes ensure that:
+1. Badge colors are consistently applied 
+2. The system gracefully handles errors
+3. Processing continues even if some badges fail
+4. The overall structure is more maintainable
