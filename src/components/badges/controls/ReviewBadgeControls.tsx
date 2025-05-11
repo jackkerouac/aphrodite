@@ -87,7 +87,7 @@ const ReviewBadgeControls: React.FC<ReviewBadgeControlsProps> = ({ settings, onC
                   id="size"
                   value={[localSettings.size]} 
                   min={20} 
-                  max={200} 
+                  max={500} 
                   step={1}
                   onValueChange={(values) => handleChange('size', values[0])}
                 />
@@ -96,11 +96,11 @@ const ReviewBadgeControls: React.FC<ReviewBadgeControlsProps> = ({ settings, onC
                   value={localSettings.size} 
                   onChange={(e) => {
                     // Constrain the size to the slider range
-                    const newSize = Math.max(20, Math.min(200, parseFloat(e.target.value) || 20));
+                    const newSize = Math.max(20, Math.min(500, parseFloat(e.target.value) || 20));
                     handleChange('size', newSize);
                   }}
                   min={20}
-                  max={200}
+                  max={500}
                   className="w-20"
                 />
               </div>
@@ -176,7 +176,12 @@ const ReviewBadgeControls: React.FC<ReviewBadgeControlsProps> = ({ settings, onC
                 <Input 
                   type="number" 
                   value={localSettings.maxSourcesToShow || 2} 
-                  onChange={(e) => handleChange('maxSourcesToShow', parseInt(e.target.value))}
+                  onChange={(e) => {
+                    // Parse as integer and ensure it's within valid range
+                    const newValue = parseInt(e.target.value);
+                    const validValue = isNaN(newValue) ? 2 : Math.max(1, Math.min(5, newValue));
+                    handleChange('maxSourcesToShow', validValue);
+                  }}
                   className="w-20"
                 />
               </div>
@@ -265,7 +270,10 @@ const ReviewBadgeControls: React.FC<ReviewBadgeControlsProps> = ({ settings, onC
                   type="color" 
                   id="backgroundColor"
                   value={localSettings.backgroundColor} 
-                  onChange={(e) => handleChange('backgroundColor', e.target.value)}
+                  onChange={(e) => {
+                    console.log(`Color change: ${e.target.value}`);
+                    handleChange('backgroundColor', e.target.value);
+                  }}
                   className="w-12 h-8 p-1"
                 />
                 <Input 

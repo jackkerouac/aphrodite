@@ -36,7 +36,7 @@ const BadgePreviewArea: React.FC<BadgePreviewAreaProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   return (
-    <Card className="h-full flex flex-col fixed-preview-container">
+    <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ScanEye className="w-5 h-5" />
@@ -63,34 +63,32 @@ const BadgePreviewArea: React.FC<BadgePreviewAreaProps> = ({
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="flex flex-col justify-center flex-grow items-center p-0 relative">
-        <div ref={containerRef} className="relative w-full flex justify-center">
-          {loading ? (
-            <div className="flex flex-col items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-              <p className="mt-4 text-sm text-muted-foreground">Loading badge settings...</p>
-            </div>
-          ) : (
-            <>
-              <FixedPosterPreview 
-                onPosterLoad={onPosterLoad}
-                onBadgePositionChange={onBadgePositionChange}
-                activeBadgeType={activeBadgeType}
-                renderBadges={renderBadges}
-                debugMode={debugMode}
-              />
-              <canvas 
-                ref={canvasRef} 
-                className="hidden" // Hidden canvas for debugging
-                width={posterDimensions.width || 300} 
-                height={posterDimensions.height || 300} 
-              />
-            </>
-          )}
-        </div>
-        <p className="text-sm text-muted-foreground mt-2 absolute bottom-0">
-          {activeBadgeType ? `Use the position grid buttons to place the ${activeBadgeType} badge` : "Select a badge type to edit its position"}
-        </p>
+      <CardContent className="flex-1 flex flex-col items-center p-6">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <p className="mt-4 text-sm text-muted-foreground">Loading badge settings...</p>
+          </div>
+        ) : (
+          <>
+            <FixedPosterPreview 
+              onPosterLoad={onPosterLoad}
+              onBadgePositionChange={onBadgePositionChange}
+              activeBadgeType={activeBadgeType}
+              renderBadges={renderBadges}
+              debugMode={debugMode}
+            />
+            <p className="text-sm text-muted-foreground mt-4">
+              {activeBadgeType ? `Use the position grid buttons to place the ${activeBadgeType} badge` : "Select a badge type to edit its position"}
+            </p>
+          </>
+        )}
+        <canvas 
+          ref={canvasRef} 
+          className="hidden" // Hidden canvas for debugging
+          width={posterDimensions.width || 300} 
+          height={posterDimensions.height || 300} 
+        />
       </CardContent>
     </Card>
   );

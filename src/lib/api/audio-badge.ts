@@ -26,7 +26,8 @@ export const audioBadge = {
           shadow_blur_radius: 5,
           shadow_offset_x: 2,
           shadow_offset_y: 2,
-          z_index: 1
+          z_index: 1,
+          use_brand_colors: true
         };
       }
       console.error('❌ [apiClient] Audio Badge settings error:', error);
@@ -82,12 +83,14 @@ export const audioBadge = {
       shadow_offset_x: Number(settings.shadow_offset_x || 0),
       shadow_offset_y: Number(settings.shadow_offset_y || 0),
       z_index: Number(settings.z_index),
-      badge_image: settings.badge_image || null
+      badge_image: settings.badge_image || null,
+      use_brand_colors: settings.use_brand_colors !== undefined ? Boolean(settings.use_brand_colors) : true
     };
 
     console.log('📤 [apiClient] Processed settings to send:');
     console.log('  - Has badge_image:', !!settingsToSend.badge_image);
     console.log('  - Badge image length:', settingsToSend.badge_image ? settingsToSend.badge_image.length : 0);
+    console.log('  - Use brand colors:', settingsToSend.use_brand_colors);
 
     return fetchApi<void>(`/audio-badge-settings/${userId}`, {
       method: 'POST',

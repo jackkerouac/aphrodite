@@ -74,19 +74,37 @@ class CanvasBadgeRenderer {
   }
 
   async renderResolutionBadge(settings, metadata, sourceImagePath) {
+    console.log('Rendering resolution badge with settings:', settings);
+    
     // If we have a source image, render it with styling
     if (sourceImagePath) {
       return await this.renderImageBadge(settings, sourceImagePath);
     }
     
     // Otherwise render text-based badge
+    // Apply brand colors if enabled
+    if (settings.use_brand_colors) {
+      console.log('Using brand colors for resolution badge');
+      // Resolution badges typically use red color
+      settings.backgroundColor = '#FA320A'; // Red color for resolution badges
+    }
+    
     return await this.renderTextBadge(settings, metadata.resolution || 'HD');
   }
 
   async renderAudioBadge(settings, metadata, sourceImagePath) {
+    console.log('Rendering audio badge with settings:', settings);
+    
     // If we have a source image, render it with styling
     if (sourceImagePath) {
       return await this.renderImageBadge(settings, sourceImagePath);
+    }
+    
+    // Apply brand colors if enabled
+    if (settings.use_brand_colors) {
+      console.log('Using brand colors for audio badge');
+      // Audio badges typically use green color
+      settings.backgroundColor = '#2E51A2'; // Blue color for audio badges
     }
     
     // Otherwise render text-based badge
@@ -94,30 +112,20 @@ class CanvasBadgeRenderer {
   }
 
   async renderReviewBadge(settings, metadata) {
-    const sources = metadata.rating || [];
+    console.log('renderReviewBadge called with settings:', settings);
+    console.log('and metadata:', metadata);
+    
+    // Either use the sources from settings directly (preferred) or from metadata
+    const sources = settings.sources || metadata.rating || [];
     const isHorizontal = settings.displayFormat !== 'vertical';
     const maxSources = settings.maxSourcesToShow || sources.length;
     
-    // Sort sources according to sourceOrder from settings
-    let sortedSources = sources;
-    if (settings.sourceOrder && settings.sourceOrder.length > 0) {
-      sortedSources = sources.sort((a, b) => {
-        const aIndex = settings.sourceOrder.indexOf(a.name);
-        const bIndex = settings.sourceOrder.indexOf(b.name);
-        
-        // If both are in the order array, sort by their position
-        if (aIndex !== -1 && bIndex !== -1) {
-          return aIndex - bIndex;
-        }
-        // If only one is in the order array, it comes first
-        if (aIndex !== -1) return -1;
-        if (bIndex !== -1) return 1;
-        // If neither is in the order array, maintain original order
-        return 0;
-      });
-    }
+    console.log(`Review badge renderer using maxSources=${maxSources}, displayFormat=${settings.displayFormat}`);
+    console.log('sources before slicing:', sources);
     
-    const sourcesToShow = sortedSources.slice(0, maxSources);
+    // Ensure we're getting a proper array and sort it if needed
+    const sourcesToShow = Array.isArray(sources) ? sources.slice(0, maxSources) : [];
+    console.log('sources after slicing to maxSources:', sourcesToShow);
     
     if (sourcesToShow.length === 0) {
       // No review data available - return empty badge
@@ -140,7 +148,7 @@ class CanvasBadgeRenderer {
       };
     });
     
-    // Use the size from settings, or a reasonable default
+    // Use the full size from settings, without any constraint
     const baseSize = settings.size || 80;
     
     // Use padding from settings instead of hardcoded value
@@ -212,25 +220,6 @@ class CanvasBadgeRenderer {
     // Clear the canvas with transparent background
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Draw the main background
-    ctx.fillStyle = settings.backgroundColor;
-    ctx.globalAlpha = settings.transparency || 1;
-    
-    if (settings.borderRadius && settings.borderRadius > 0) {
-      this.drawRoundedRect(ctx, 0, 0, canvas.width, canvas.height, settings.borderRadius);
-      ctx.fill();
-    } else {
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-    
-    // Apply shadow if enabled
-    if (settings.shadowEnabled) {
-      ctx.shadowColor = settings.shadowColor || 'rgba(0, 0, 0, 0.5)';
-      ctx.shadowBlur = settings.shadowBlur || 5;
-      ctx.shadowOffsetX = settings.shadowOffsetX || 2;
-      ctx.shadowOffsetY = settings.shadowOffsetY || 2;
-    }
-    
     // Draw badges with logos and text
     if (isHorizontal) {
       // Draw sources horizontally
@@ -248,9 +237,53 @@ class CanvasBadgeRenderer {
         // Apply source-specific background color if available
         const sourceName = source.name.toUpperCase();
         
-        // Skip brand colors since this feature isn't in the database
+        // Draw badge background with source-specific color if using brand colors
+        if (settings.use_brand_colors && RATING_BG_COLOR_MAP[sourceName]) {
+          console.log(`Using brand color for ${sourceName}: ${RATING_BG_COLOR_MAP[sourceName]}`);
+          ctx.fillStyle = RATING_BG_COLOR_MAP[sourceName];
+        } else {
+          ctx.fillStyle = settings.backgroundColor || '#000000';
+        }
         
-        // Draw logo or text fallback
+        ctx.globalAlpha = settings.transparency || settings.background_opacity || 1;
+        
+        // Draw badge background
+        if (settings.borderRadius && settings.borderRadius > 0) {
+          this.drawRoundedRect(ctx, currentX, 0, badgeWidth, canvasHeight, settings.borderRadius);
+          ctx.fill();
+        } else {
+          ctx.fillRect(currentX, 0, badgeWidth, canvasHeight);
+        }
+        
+        // Add borders if needed
+        if (settings.borderWidth && settings.borderWidth > 0) {
+          ctx.strokeStyle = settings.borderColor || '#FFFFFF';
+          ctx.lineWidth = settings.borderWidth;
+          ctx.globalAlpha = settings.borderOpacity || 1;
+          
+          if (settings.borderRadius && settings.borderRadius > 0) {
+            // Account for border width in rounded rect
+            const offset = settings.borderWidth / 2;
+            this.drawRoundedRect(
+              ctx, 
+              currentX + offset, 
+              offset, 
+              badgeWidth - settings.borderWidth, 
+              canvasHeight - settings.borderWidth, 
+              settings.borderRadius - offset
+            );
+            ctx.stroke();
+          } else {
+            // Draw simple rect border
+            ctx.strokeRect(
+              currentX + settings.borderWidth / 2,
+              settings.borderWidth / 2,
+              badgeWidth - settings.borderWidth,
+              canvasHeight - settings.borderWidth
+            );
+          }
+        }
+        
         if (logo) {
           const logoAspect = logo.width / logo.height;
           const logoDrawWidth = Math.min(logoHeight * logoAspect, badgeWidth - (padding * 2));
@@ -313,10 +346,54 @@ class CanvasBadgeRenderer {
         const vertLogoX = canvasWidth / 2;
         const vertLogoY = currentY + padding + (logoHeight / 2);
         
-        // Apply source-specific background color if available
+        // Apply source-specific background color if using brand colors
         const sourceName = source.name.toUpperCase();
         
-        // Skip brand colors since this feature isn't in the database
+        if (settings.use_brand_colors && RATING_BG_COLOR_MAP[sourceName]) {
+          console.log(`Using brand color for ${sourceName}: ${RATING_BG_COLOR_MAP[sourceName]}`);
+          ctx.fillStyle = RATING_BG_COLOR_MAP[sourceName];
+        } else {
+          ctx.fillStyle = settings.backgroundColor || '#000000';
+        }
+        
+        ctx.globalAlpha = settings.transparency || settings.background_opacity || 1;
+        
+        // Draw badge background
+        if (settings.borderRadius && settings.borderRadius > 0) {
+          this.drawRoundedRect(ctx, 0, currentY, canvasWidth, badgeHeight, settings.borderRadius);
+          ctx.fill();
+        } else {
+          ctx.fillRect(0, currentY, canvasWidth, badgeHeight);
+        }
+        
+        // Add borders if needed
+        if (settings.borderWidth && settings.borderWidth > 0) {
+          ctx.strokeStyle = settings.borderColor || '#FFFFFF';
+          ctx.lineWidth = settings.borderWidth;
+          ctx.globalAlpha = settings.borderOpacity || 1;
+          
+          if (settings.borderRadius && settings.borderRadius > 0) {
+            // Account for border width in rounded rect
+            const offset = settings.borderWidth / 2;
+            this.drawRoundedRect(
+              ctx, 
+              offset, 
+              currentY + offset, 
+              canvasWidth - settings.borderWidth, 
+              badgeHeight - settings.borderWidth, 
+              settings.borderRadius - offset
+            );
+            ctx.stroke();
+          } else {
+            // Draw simple rect border
+            ctx.strokeRect(
+              settings.borderWidth / 2,
+              currentY + settings.borderWidth / 2,
+              canvasWidth - settings.borderWidth,
+              badgeHeight - settings.borderWidth
+            );
+          }
+        }
         
         // Draw logo or text fallback
         if (logo) {
@@ -348,6 +425,7 @@ class CanvasBadgeRenderer {
         ctx.fillStyle = settings.textColor || '#FFFFFF';
         const fontFamily = this.getFontFamily(settings.fontFamily);
         const calculatedFontSize = settings.fontSize || Math.floor(textHeight * 0.8);
+        // Ensure we're always using bold font weight
         ctx.font = `bold ${calculatedFontSize}px ${fontFamily}`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -436,6 +514,7 @@ class CanvasBadgeRenderer {
     
     // Use a font that's available, fallback to system fonts
     const fontFamily = this.getFontFamily(settings.fontFamily);
+    // Always use bold font weight for consistency with preview
     ctx.font = `bold ${fontSize}px ${fontFamily}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -454,7 +533,7 @@ class CanvasBadgeRenderer {
     }
     
     ctx.fillStyle = settings.backgroundColor || '#000000';
-    ctx.globalAlpha = settings.transparency || 1;
+    ctx.globalAlpha = settings.transparency || settings.background_opacity || 1;
     
     if (settings.borderRadius > 0) {
       this.drawRoundedRect(ctx, 0, 0, width, height, settings.borderRadius);
@@ -620,6 +699,14 @@ class CanvasBadgeRenderer {
     // Check if the requested font is registered
     if (requestedFont && this.fonts.has(requestedFont)) {
       return requestedFont;
+    }
+    
+    // Try to find bold versions first for better consistency with preview
+    const boldFallbacks = ['Roboto Bold', 'Inter Bold'];
+    for (const font of boldFallbacks) {
+      if (this.fonts.has(font)) {
+        return font;
+      }
     }
     
     // Fallback to available fonts

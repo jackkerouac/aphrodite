@@ -69,7 +69,7 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                   id="size-slider"
                   value={[localSettings.size]} 
                   min={20} 
-                  max={200} 
+                  max={500} 
                   step={1}
                   onValueChange={(values: number[]) => {
                     const newSize = values[0];
@@ -81,11 +81,11 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                   value={localSettings.size} 
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     // Constrain the size to the slider range
-                    const newSize = Math.max(20, Math.min(200, parseFloat(e.target.value) || 20));
+                    const newSize = Math.max(20, Math.min(500, parseFloat(e.target.value) || 20));
                     handleChange('size', newSize);
                   }}
                   min={20}
-                  max={200}
+                  max={500}
                   className="w-20"
                 />
               </div>
@@ -162,13 +162,13 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
                 <Input 
                   type="color" 
                   id="backgroundColor"
-                  value={settings.backgroundColor}
+                  value={localSettings.backgroundColor}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('backgroundColor', e.target.value)}
                   className="w-12 h-8 p-1"
                 />
                 <Input
                   type="text"
-                  value={settings.backgroundColor}
+                  value={localSettings.backgroundColor}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('backgroundColor', e.target.value)}
                   className="flex-1"
                 />

@@ -30,17 +30,20 @@ const BadgeControls: React.FC<BadgeControlsProps> = ({
   // Get badge settings for each type
   const { 
     badgeSettings: audioBadgeSettings, 
-    saveBadgeSettings: saveAudioBadgeSettings 
+    saveBadgeSettings: saveAudioBadgeSettings,
+    isLoading: audioLoading
   } = useBadgeSettings<AudioBadgeSettings>(userId, "audio");
   
   const { 
     badgeSettings: resolutionBadgeSettings, 
-    saveBadgeSettings: saveResolutionBadgeSettings 
+    saveBadgeSettings: saveResolutionBadgeSettings,
+    isLoading: resolutionLoading
   } = useBadgeSettings<ResolutionBadgeSettings>(userId, "resolution");
   
   const { 
     badgeSettings: reviewBadgeSettings, 
-    saveBadgeSettings: saveReviewBadgeSettings 
+    saveBadgeSettings: saveReviewBadgeSettings,
+    isLoading: reviewLoading
   } = useBadgeSettings<ReviewBadgeSettings>(userId, "review");
 
   // Handle tab change
@@ -57,6 +60,11 @@ const BadgeControls: React.FC<BadgeControlsProps> = ({
       onBadgeTypeChange(activeTab);
     }
   }, [activeTab, onBadgeTypeChange]);
+
+  // Show loading state after hooks are called
+  if (audioLoading || resolutionLoading || reviewLoading) {
+    return <div>Loading badge settings...</div>;
+  }
 
   return (
     <Tabs

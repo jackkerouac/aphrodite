@@ -8,6 +8,9 @@ import {
   loadImage 
 } from './utils/index';
 
+// Import debug utilities
+import { logFrontendBadgeSettings, evaluateSourceColors } from '@/debug-badge-rendering';
+
 /**
  * Renders a review badge to a canvas
  * @param options The options for rendering the review badge
@@ -18,8 +21,12 @@ export const renderReviewBadge = async (
   options: ReviewBadgeSettings, 
   sourceImageUrl?: string
 ): Promise<HTMLCanvasElement> => {
+  // Debug logging for frontend review badge settings
+  logFrontendBadgeSettings('review', options);
+  
   // Log opacity setting for debugging
   console.log(`Rendering review badge with opacity: ${options.backgroundOpacity}`);
+  console.log(`Using brand colors? ${options.useBrandColors !== false}`);
   
   const isHorizontal = options.displayFormat !== 'vertical';
   const sources = options.sources || [
@@ -29,8 +36,8 @@ export const renderReviewBadge = async (
   const maxSources = options.maxSourcesToShow || 2;
   const sourcesToShow = sources.slice(0, maxSources);
   
-  // Use the base size for calculations
-  const baseSize = Math.min(options.size, 200);
+  // Use the base size for calculations - allow full range up to 500
+  const baseSize = options.size || 100;
   
   // Constants for layout
   const padding = 10; // Padding around each badge
@@ -239,6 +246,9 @@ export const renderReviewBadge = async (
       
       // Apply source-specific background color if available
       const sourceName = source.name.toUpperCase();
+      
+      // Debug color resolution for this source
+      evaluateSourceColors(sourceName, options);
       
       // Set the opacity for individual badge backgrounds
       ctx.globalAlpha = options.backgroundOpacity;

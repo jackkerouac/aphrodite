@@ -54,8 +54,9 @@ export const upsertResolutionBadgeSettings = async (settings) => {
           shadow_offset_x = $14,
           shadow_offset_y = $15,
           z_index = $16,
-          enabled = $17
-        WHERE user_id = $18
+          enabled = $17,
+          use_brand_colors = $18
+        WHERE user_id = $19
         RETURNING *`,
         [
           settings.size,
@@ -75,6 +76,7 @@ export const upsertResolutionBadgeSettings = async (settings) => {
           settings.shadow_offset_y,
           settings.z_index,
           settings.enabled !== undefined ? settings.enabled : true,
+          settings.use_brand_colors !== undefined ? settings.use_brand_colors : true,
           settings.user_id
         ]
       );
@@ -104,8 +106,9 @@ export const upsertResolutionBadgeSettings = async (settings) => {
           shadow_offset_x,
           shadow_offset_y,
           z_index,
-          enabled
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+          enabled,
+          use_brand_colors
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
         RETURNING *`,
         [
           settings.user_id,
@@ -125,7 +128,8 @@ export const upsertResolutionBadgeSettings = async (settings) => {
           settings.shadow_offset_x,
           settings.shadow_offset_y,
           settings.z_index,
-          settings.enabled !== undefined ? settings.enabled : true
+          settings.enabled !== undefined ? settings.enabled : true,
+          settings.use_brand_colors !== undefined ? settings.use_brand_colors : true
         ]
       );
       

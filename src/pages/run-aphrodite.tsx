@@ -55,12 +55,13 @@ export default function RunAphrodite() {
   const currentStepInfo = WORKFLOW_STEPS[currentStep];
   const Icon = currentStepInfo.icon;
 
-  const canProceed = () => {
+  const canProceed = (data?: StepData) => {
+    const checkData = data || stepData;
     switch (currentStepInfo.id) {
       case "libraries":
-        return stepData.libraries && stepData.libraries.length > 0 && stepData.enabledBadges && stepData.enabledBadges.length > 0;
+        return checkData.libraries && checkData.libraries.length > 0 && checkData.enabledBadges && checkData.enabledBadges.length > 0;
       case "selection":
-        return stepData.selectedItems && stepData.selectedItems.length > 0;
+        return checkData.selectedItems && checkData.selectedItems.length > 0;
       case "processing":
         return true; // Can always view summary after processing
       case "summary":
@@ -70,15 +71,16 @@ export default function RunAphrodite() {
     }
   };
 
-  const handleNext = async () => {
-    if (currentStep < WORKFLOW_STEPS.length - 1 && canProceed()) {
+  const handleNext = async (updatedData?: StepData) => {
+    const dataToCheck = updatedData || stepData;
+    if (currentStep < WORKFLOW_STEPS.length - 1 && canProceed(dataToCheck)) {
       // Special handling for moving from selection to processing
-      if (currentStepInfo.id === "selection" && stepData.selectedItems) {
+      if (currentStepInfo.id === "selection" && dataToCheck.selectedItems) {
         try {
           setIsProcessing(true);
           
           // Create a job with the selected items
-          const selectedItems = await fetchSelectedItemsDetails(stepData.selectedItems);
+          const selectedItems = await fetchSelectedItemsDetails(dataToCheck.selectedItems);
           const jobName = `Badge Application - ${new Date().toISOString().replace(/[:.]/g, '-')}`;
           
           const jobPayload = {
@@ -125,12 +127,14 @@ export default function RunAphrodite() {
   };
 
   const handleLibrarySelection = (selectedLibraries: string[], enabledBadges: string[]) => {
-    setStepData(prev => ({
-      ...prev,
+    const updatedData = {
+      ...stepData,
       libraries: selectedLibraries,
       enabledBadges: enabledBadges
-    }));
-    handleNext();
+    };
+    setStepData(updatedData);
+    // Move to next step after updating state
+    handleNext(updatedData);
   };
 
   const handlePrevious = () => {
@@ -163,8 +167,13 @@ export default function RunAphrodite() {
               <PosterSelector
                 libraryIds={stepData.libraries || []}
                 onContinue={(selectedItems) => {
-                  setStepData(prev => ({ ...prev, selectedItems }));
-                  handleNext();
+                  const updatedData = {
+                    ...stepData,
+                    selectedItems
+                  };
+                  setStepData(updatedData);
+                  // Move to next step after updating state
+                  handleNext(updatedData);
                 }}
                 preselectedItems={stepData.selectedItems}
               />
@@ -342,8 +351,17 @@ export default function RunAphrodite() {
           onClick={handleNext}
           disabled={!canProceed() || isProcessing}
         >
-          {currentStep === WORKFLOW_STEPS.length - 1 ? "Finish" : "Next"}
-          {currentStep < WORKFLOW_STEPS.length - 1 && <ChevronRight className="h-4 w-4 ml-2" />}
+          {isProcessing ? (
+            <>
+              <span className="mr-2">Processing...</span>
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
+            </>
+          ) : (
+            <>
+              {currentStep === WORKFLOW_STEPS.length - 1 ? "Finish" : "Next"}
+              {currentStep < WORKFLOW_STEPS.length - 1 && <ChevronRight className="h-4 w-4 ml-2" />}
+            </>
+          )}
         </Button>
       </div>
     </div>

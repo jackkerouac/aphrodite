@@ -24,6 +24,7 @@ export interface ResolutionBadgeSettings {
   customText?: string;
   directImageRender?: boolean; // New property to allow direct image rendering without container
   enabled?: boolean; // Whether this badge is enabled (visible)
+  useBrandColors?: boolean; // Whether to use brand-specific colors
 }
 
 interface ResolutionBadgeProps {

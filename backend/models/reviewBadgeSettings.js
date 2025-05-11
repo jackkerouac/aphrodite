@@ -67,8 +67,9 @@ export const upsertReviewBadgeSettings = async (settings) => {
           font_weight = $27,
           text_color = $28,
           text_opacity = $29,
-          enabled = $30
-        WHERE user_id = $31
+          enabled = $30,
+          use_brand_colors = $31
+        WHERE user_id = $32
         RETURNING *`,
         [
           settings.size,
@@ -101,6 +102,7 @@ export const upsertReviewBadgeSettings = async (settings) => {
           settings.text_color,
           settings.text_opacity || settings.text_transparency,
           settings.enabled !== undefined ? settings.enabled : true,
+          settings.use_brand_colors !== undefined ? settings.use_brand_colors : true,
           settings.user_id
         ]
       );
@@ -143,8 +145,9 @@ export const upsertReviewBadgeSettings = async (settings) => {
           font_weight,
           text_color,
           text_opacity,
-          enabled
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31)
+          enabled,
+          use_brand_colors
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32)
         RETURNING *`,
         [
           settings.user_id,
@@ -177,7 +180,8 @@ export const upsertReviewBadgeSettings = async (settings) => {
           settings.font_weight,
           settings.text_color,
           settings.text_opacity || settings.text_transparency,
-          settings.enabled !== undefined ? settings.enabled : true
+          settings.enabled !== undefined ? settings.enabled : true,
+          settings.use_brand_colors !== undefined ? settings.use_brand_colors : true
         ]
       );
       

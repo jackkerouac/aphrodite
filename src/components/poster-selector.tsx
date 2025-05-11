@@ -108,11 +108,11 @@ export const PosterSelector: React.FC<PosterSelectorProps> = ({
 
       {/* Pagination controls */}
       {data && data.total > data.limit && (
-        <div className="flex justify-between items-center mt-4">
-          <div className="text-sm text-muted-foreground">
+        <div className="space-y-4">
+          <div className="text-center text-sm text-muted-foreground">
             Page {page} of {Math.ceil(data.total / data.limit)} ({data.total} total items)
           </div>
-          <div className="flex gap-2">
+          <div className="flex justify-center gap-2">
             <Button
               variant="secondary"
               size="sm"

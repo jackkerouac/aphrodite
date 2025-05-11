@@ -56,8 +56,9 @@ export const upsertAudioBadgeSettings = async (settings) => {
           z_index = $16,
           badge_image = $17,
           enabled = $18,
+          use_brand_colors = $19,
           updated_at = CURRENT_TIMESTAMP
-        WHERE user_id = $19
+        WHERE user_id = $20
         RETURNING *`,
         [
           settings.size,
@@ -78,6 +79,7 @@ export const upsertAudioBadgeSettings = async (settings) => {
           settings.z_index,
           settings.badge_image || null,
           settings.enabled !== undefined ? settings.enabled : true,
+          settings.use_brand_colors !== undefined ? settings.use_brand_colors : true,
           settings.user_id
         ]
       );
@@ -109,9 +111,10 @@ export const upsertAudioBadgeSettings = async (settings) => {
           z_index,
           badge_image,
           enabled,
+          use_brand_colors,
           created_at,
           updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         RETURNING *`,
         [
           settings.user_id,
@@ -132,7 +135,8 @@ export const upsertAudioBadgeSettings = async (settings) => {
           settings.shadow_offset_y,
           settings.z_index,
           settings.badge_image || null,
-          settings.enabled !== undefined ? settings.enabled : true
+          settings.enabled !== undefined ? settings.enabled : true,
+          settings.use_brand_colors !== undefined ? settings.use_brand_colors : true
         ]
       );
       

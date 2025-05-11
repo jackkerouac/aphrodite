@@ -124,16 +124,27 @@ export default function Preview() {
     posterState.debugMode
   ]);
   
-  // Force re-render of canvas when toggle states change
+  // Force re-render of canvas when toggle states or badge settings change
   useEffect(() => {
     if (canvasRef.current && !posterState.loading) {
       const ctx = canvasRef.current.getContext('2d');
       if (ctx) {
-        console.log('Toggle state changed - forcing canvas update');
+        console.log('Settings or toggle state changed - forcing canvas update');
         badgeRenderCallback(ctx, posterState.posterDimensions);
       }
     }
-  }, [showAudioBadge, showResolutionBadge, showReviewBadge, posterState.loading, posterState.posterDimensions, badgeRenderCallback]);
+  }, [
+    showAudioBadge, 
+    showResolutionBadge, 
+    showReviewBadge, 
+    posterState.loading, 
+    posterState.posterDimensions, 
+    badgeRenderCallback,
+    // Include individual settings as dependencies for more granular updates
+    badgeState.audioBadgeSettings,
+    badgeState.resolutionBadgeSettings,
+    badgeState.reviewBadgeSettings
+  ]);
   
   // Update the canvas callback ref with latest function
   useEffect(() => {

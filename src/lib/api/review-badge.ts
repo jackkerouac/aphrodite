@@ -43,6 +43,7 @@ export const reviewBadge = {
           font_weight: 600,
           text_color: '#ffffff',
           text_transparency: 0,
+          use_brand_colors: true,
         };
       }
       console.error('❌ [apiClient] Review Badge settings error:', error);
@@ -110,7 +111,8 @@ export const reviewBadge = {
       font_size: Number(settings.font_size),
       font_weight: Number(settings.font_weight),
       text_color: String(settings.text_color),
-      text_transparency: Number(settings.text_transparency)
+      text_transparency: Number(settings.text_transparency),
+      use_brand_colors: settings.use_brand_colors !== undefined ? Boolean(settings.use_brand_colors) : true
     };
 
     console.log('📤 [apiClient] Processed settings to send:', settingsToSend);

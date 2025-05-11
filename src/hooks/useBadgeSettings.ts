@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { AudioBadgeSettings } from '@/components/badges/types/AudioBadge';
 import { ResolutionBadgeSettings } from '@/components/badges/types/ResolutionBadge';
 import { ReviewBadgeSettings, ReviewSource } from '@/components/badges/types/ReviewBadge';
+import apiClient from '@/lib/api-client';
+import { BadgePosition } from '@/components/badges/PositionSelector';
 
 export type BadgeType = 'audio' | 'resolution' | 'review';
 
@@ -15,10 +17,8 @@ const defaultAudioBadgeSettings: AudioBadgeSettings = {
   textColor: '#FFFFFF',
   codecType: 'Dolby Atmos',
   fontSize: 24,
-  position: {
-    percentX: 5,
-    percentY: 5,
-  },
+  position: BadgePosition.TopLeft,
+  margin: 16,
 };
 
 const defaultResolutionBadgeSettings: ResolutionBadgeSettings = {
@@ -30,10 +30,8 @@ const defaultResolutionBadgeSettings: ResolutionBadgeSettings = {
   textColor: '#FFFFFF',
   resolutionType: '4K',
   fontSize: 36,
-  position: {
-    percentX: 5,
-    percentY: 15,
-  },
+  position: BadgePosition.TopRight,
+  margin: 16,
 };
 
 const defaultReviewBadgeSettings: ReviewBadgeSettings = {
@@ -51,10 +49,8 @@ const defaultReviewBadgeSettings: ReviewBadgeSettings = {
     { name: 'IMDB', rating: 8.5, outOf: 10 },
     { name: 'RT', rating: 90, outOf: 100 }
   ],
-  position: {
-    percentX: 5,
-    percentY: 25,
-  },
+  position: BadgePosition.BottomLeft,
+  margin: 16,
 };
 
 /**
@@ -105,6 +101,16 @@ export const useBadgeSettings = <T>(
         if (savedSettings) {
           try {
             const parsedSettings = JSON.parse(savedSettings);
+            
+            // Validate that the saved settings have the correct type
+            if (parsedSettings.type && parsedSettings.type !== type) {
+              console.warn(`Saved settings had incorrect type: ${parsedSettings.type}, expected: ${type}. Using defaults.`);
+              const defaultSettings = getDefaultSettings<T>(type);
+              setBadgeSettings(defaultSettings);
+              // Save correct defaults to localStorage
+              localStorage.setItem(settingsKey, JSON.stringify(defaultSettings));
+              return;
+            }
             
             // No need to constrain the size anymore since badge size is now determined by the codec image
             // The size property is still kept for backward compatibility but isn't used for audio badges
@@ -157,7 +163,7 @@ export const useBadgeSettings = <T>(
   }, [userId, type]);
 
   /**
-   * Save badge settings with immediate UI update
+   * Save badge settings with immediate UI update and API persistence
    */
   const saveBadgeSettings = async (newSettings: T) => {
     console.log(`saveBadgeSettings called for ${type} with:`, newSettings);
@@ -165,9 +171,15 @@ export const useBadgeSettings = <T>(
       // Create a unique key for the settings
       const settingsKey = `badgeSettings-${userId}-${type}`;
       
+      // Ensure the type field matches the badge type to prevent cross-contamination
+      const settingsWithCorrectType = {
+        ...newSettings,
+        type: type // Force the correct type
+      };
+      
       // Make sure to include default settings for any missing properties
       const defaultSettings = getDefaultSettings<T>(type);
-      const mergedSettings = { ...defaultSettings, ...newSettings };
+      const mergedSettings = { ...defaultSettings, ...settingsWithCorrectType };
       
       console.log(`Settings after merging with defaults:`, mergedSettings);
       
@@ -178,8 +190,37 @@ export const useBadgeSettings = <T>(
       try {
         console.log(`Saving settings to localStorage with key: ${settingsKey}`);
         localStorage.setItem(settingsKey, JSON.stringify(mergedSettings));
+        
+        // Also save to backend API
+        console.log(`Saving ${type} badge settings to backend API`);
+        const apiSettings = { ...mergedSettings };
+        
+        // Map fields to match API expectations
+        if (type === 'audio') {
+          apiSettings.audio_codec_type = apiSettings.codecType;
+          apiSettings.background_transparency = apiSettings.backgroundOpacity;
+          apiSettings.border_transparency = apiSettings.borderOpacity;
+          apiSettings.shadow_toggle = apiSettings.shadowEnabled;
+          apiSettings.shadow_blur_radius = apiSettings.shadowBlur;
+          await apiClient.audioBadge.saveSettings(apiSettings, userId);
+        } else if (type === 'resolution') {
+          apiSettings.resolution_type = apiSettings.resolutionType;
+          apiSettings.background_transparency = apiSettings.backgroundOpacity;
+          apiSettings.border_transparency = apiSettings.borderOpacity;
+          apiSettings.shadow_toggle = apiSettings.shadowEnabled;
+          apiSettings.shadow_blur_radius = apiSettings.shadowBlur;
+          await apiClient.resolutionBadge.saveSettings(apiSettings, userId);
+        } else if (type === 'review') {
+          apiSettings.background_transparency = apiSettings.backgroundOpacity;
+          apiSettings.border_transparency = apiSettings.borderOpacity;
+          apiSettings.shadow_toggle = apiSettings.shadowEnabled;
+          apiSettings.shadow_blur_radius = apiSettings.shadowBlur;
+          await apiClient.reviewBadge.saveSettings(apiSettings, userId);
+        }
+        
+        console.log(`Successfully saved ${type} badge settings to backend API`);
       } catch (storageError) {
-        console.error(`Error saving ${type} badge settings to localStorage:`, storageError);
+        console.error(`Error saving ${type} badge settings:`, storageError);
       }
       
       return true;

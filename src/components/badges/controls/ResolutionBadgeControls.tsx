@@ -34,11 +34,8 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
     // Update local state first for immediate UI feedback
     setLocalSettings(newSettings);
     
-    // Force a synchronous execution to ensure local state is updated
-    setTimeout(() => {
-      // Then update parent settings
-      onChange(newSettings);
-    }, 0);
+    // Then update parent settings immediately
+    onChange(newSettings);
   };
   
   const handleSliderChange = (field: keyof ResolutionBadgeSettings, value: number) => {
@@ -127,7 +124,7 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                   id="size"
                   value={[localSettings.size]} 
                   min={20} 
-                  max={200} 
+                  max={500} 
                   step={1}
                   onValueChange={(values) => handleSliderChange('size', values[0])}
                 />
@@ -136,11 +133,11 @@ const ResolutionBadgeControls: React.FC<ResolutionBadgeControlsProps> = ({ setti
                   value={localSettings.size} 
                   onChange={(e) => {
                     // Constrain the size to the slider range
-                    const newSize = Math.max(20, Math.min(200, parseFloat(e.target.value) || 20));
+                    const newSize = Math.max(20, Math.min(500, parseFloat(e.target.value) || 20));
                     handleChange('size', newSize);
                   }}
                   min={20}
-                  max={200}
+                  max={500}
                   className="w-20"
                 />
               </div>

@@ -108,20 +108,20 @@ export const useBadgeState = (
   // Create wrapped save functions that force immediate updates
   const saveAudioBadgeSettingsWithUpdate = (settings: AudioBadgeSettings) => {
     saveAudioBadgeSettings(settings);
-    // Force immediate update instead of waiting for effect
-    setTimeout(updatePreview, 0);
+    // Force immediate update
+    requestAnimationFrame(updatePreview);
   };
   
   const saveResolutionBadgeSettingsWithUpdate = (settings: ResolutionBadgeSettings) => {
     saveResolutionBadgeSettings(settings);
-    // Force immediate update instead of waiting for effect
-    setTimeout(updatePreview, 0);
+    // Force immediate update
+    requestAnimationFrame(updatePreview);
   };
   
   const saveReviewBadgeSettingsWithUpdate = (settings: ReviewBadgeSettings) => {
     saveReviewBadgeSettings(settings);
-    // Force immediate update instead of waiting for effect
-    setTimeout(updatePreview, 0);
+    // Force immediate update
+    requestAnimationFrame(updatePreview);
   };
 
   return {

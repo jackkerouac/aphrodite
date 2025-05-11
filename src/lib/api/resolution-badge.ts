@@ -26,7 +26,8 @@ export const resolutionBadge = {
           shadow_blur_radius: 5,
           shadow_offset_x: 0,
           shadow_offset_y: 0,
-          z_index: 10
+          z_index: 10,
+          use_brand_colors: true
         };
       }
       console.error('❌ [apiClient] Resolution Badge settings error:', error);
@@ -81,7 +82,8 @@ export const resolutionBadge = {
       shadow_blur_radius: Number(settings.shadow_blur_radius || 0),
       shadow_offset_x: Number(settings.shadow_offset_x || 0),
       shadow_offset_y: Number(settings.shadow_offset_y || 0),
-      z_index: Number(settings.z_index)
+      z_index: Number(settings.z_index),
+      use_brand_colors: settings.use_brand_colors !== undefined ? Boolean(settings.use_brand_colors) : true
     };
 
     console.log('📤 [apiClient] Processed settings to send:', settingsToSend);

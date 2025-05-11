@@ -22,6 +22,7 @@ export interface AudioBadgeSettings {
   margin: number; // Edge padding in pixels
   codecType?: string;
   enabled?: boolean; // Whether this badge is enabled (visible)
+  useBrandColors?: boolean; // Whether to use brand-specific colors
 }
 
 interface AudioBadgeProps {
