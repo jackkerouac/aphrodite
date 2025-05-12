@@ -47,10 +47,40 @@ export async function fetchApi<T>(
   const url = `${API_BASE_URL}${endpoint}`;
   console.log(`🔍 API REQUEST: ${options.method || 'GET'} ${url}`);
 
-  // Log request body if present
+  // Clone the options to avoid modifying the original
+  const fetchOptions = { ...options };
+  
+  // Extra validation for request body
   if (options.body) {
     try {
-      const bodyObj = JSON.parse(options.body.toString());
+      let bodyObj;
+      // If it's already a string, parse it to check validity
+      if (typeof options.body === 'string') {
+        bodyObj = JSON.parse(options.body);
+        fetchOptions.body = options.body; // Keep the original string
+      } else {
+        // If it's an object, convert to string
+        bodyObj = options.body;
+        try {
+          // Ensure stringification works and then use it
+          const bodyStr = JSON.stringify(bodyObj);
+          fetchOptions.body = bodyStr;
+          
+          // Double check the result still has badge_type properties
+          const testParse = JSON.parse(bodyStr);
+          if (Array.isArray(testParse)) {
+            testParse.forEach((item, index) => {
+              if (!item.badge_type || !['audio', 'resolution', 'review'].includes(item.badge_type)) {
+                console.error(`❌ Warning: Item ${index} in request array has invalid badge_type: ${item.badge_type}`);
+              }
+            });
+          }
+        } catch (e) {
+          console.error('Error stringifying request body:', e);
+          throw new ApiError('Failed to prepare request body');
+        }
+      }
+      
       console.log(`📣 REQUEST BODY (parsed):`, bodyObj);
     } catch (e) {
       console.log(`📣 REQUEST BODY (raw):`, options.body);
@@ -63,10 +93,15 @@ export async function fetchApi<T>(
         'Content-Type': 'application/json',
         ...options.headers,
       },
-      ...options,
+      ...fetchOptions,
     });
 
     console.log(`📥 API RESPONSE: ${response.status} ${response.statusText}`);
+
+    // For debugging, show the request body that was actually sent
+    if (fetchOptions.body) {
+      console.log('📄 Request body sent:', fetchOptions.body);
+    }
 
     // Parse the JSON response
     try {

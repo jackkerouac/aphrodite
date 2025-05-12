@@ -40,19 +40,27 @@ export class BadgeRenderer {
    * Clear the entire canvas
    */
   clear(): void {
-    this.ctx.clearRect(0, 0, this.width, this.height);
+    // Don't clear the canvas - this will remove the poster image
+    // Instead, handle clearing in the UnifiedBadgePreview component
+    // this.ctx.clearRect(0, 0, this.width, this.height);
+    console.log('Canvas clear method called but skipped to preserve poster');
   }
 
   /**
    * Renders multiple badges on the canvas
    * @param badges - Array of badge settings to render
    * @param activeBadgeType - Currently selected badge type (for highlighting)
+   * @param skipClear - If true, skip clearing the canvas (to preserve the background)
    */
   async renderBadges(
     badges: UnifiedBadgeSettings[],
-    activeBadgeType: string | null = null
+    activeBadgeType: string | null = null,
+    skipClear: boolean = true
   ): Promise<void> {
-    this.clear();
+    // Only clear the canvas if explicitly requested
+    if (!skipClear) {
+      this.clear();
+    }
 
     for (const badge of badges) {
       await this.renderBadge(badge, activeBadgeType === badge.badge_type);
@@ -71,11 +79,15 @@ export class BadgeRenderer {
     try {
       console.log(`Rendering ${badgeSettings.badge_type} badge`, badgeSettings);
       
+      // Save the current canvas state to preserve the background
+      this.ctx.save();
+      
       // Create the badge canvas
       const badgeCanvas = await this.createBadgeCanvas(badgeSettings);
       
       if (!badgeCanvas) {
         console.error(`Failed to create canvas for ${badgeSettings.badge_type} badge`);
+        this.ctx.restore();
         return null;
       }
       
@@ -95,9 +107,16 @@ export class BadgeRenderer {
         this.highlightActiveBadge(x, y, badgeCanvas.width, badgeCanvas.height);
       }
       
+      // Restore the canvas state
+      this.ctx.restore();
+      
       return badgeCanvas;
     } catch (error) {
       console.error(`Error rendering ${badgeSettings.badge_type} badge:`, error);
+      
+      // Make sure to restore the canvas state even if there's an error
+      this.ctx.restore();
+      
       return null;
     }
   }
@@ -115,12 +134,17 @@ export class BadgeRenderer {
     const ctx = canvas.getContext('2d')!;
     
     // Start with a reasonable size, we'll resize later if needed
+    // For image badges (audio, resolution), the size will be adjusted based on the actual image dimensions
     const initialSize = badgeSettings.badge_size * 2;
     canvas.width = initialSize;
     canvas.height = initialSize;
     
-    // Apply background
-    this.drawBackground(ctx, badgeSettings, initialSize, initialSize);
+    // For review badges, the size is determined by the badge_size setting
+    // For audio and resolution badges, the size will be determined by the image dimensions
+    if (badgeSettings.badge_type === 'review') {
+      // Apply background for review badges
+      this.drawBackground(ctx, badgeSettings, initialSize, initialSize);
+    }
     
     // Draw badge content based on type
     switch (badgeSettings.badge_type) {
@@ -135,10 +159,13 @@ export class BadgeRenderer {
         break;
     }
     
-    // Trim the canvas to the actual content size
-    const trimmedCanvas = this.trimCanvas(canvas);
+    // For review badges, trim the canvas to remove excess space
+    // For audio and resolution badges, the canvas is already properly sized by drawImageBadge
+    if (badgeSettings.badge_type === 'review') {
+      return this.trimCanvas(canvas);
+    }
     
-    return trimmedCanvas;
+    return canvas;
   }
 
   /**
@@ -148,20 +175,22 @@ export class BadgeRenderer {
     ctx: CanvasRenderingContext2D,
     settings: UnifiedBadgeSettings,
     width: number,
-    height: number
+    height: number,
+    contentWidth?: number,
+    contentHeight?: number
   ): void {
     ctx.save();
     
     // Clear the canvas
     ctx.clearRect(0, 0, width, height);
     
-    // Calculate badge dimensions based on size
-    const badgeWidth = settings.badge_size;
-    const badgeHeight = settings.badge_size;
+    // Use the content dimensions if provided, otherwise use the settings badge size
+    const badgeWidth = contentWidth ? width : settings.badge_size;
+    const badgeHeight = contentHeight ? height : settings.badge_size;
     
-    // Center the badge in the canvas
-    const x = (width - badgeWidth) / 2;
-    const y = (height - badgeHeight) / 2;
+    // Position at 0,0 for content-sized badges, otherwise center
+    const x = contentWidth ? 0 : (width - badgeWidth) / 2;
+    const y = contentHeight ? 0 : (height - badgeHeight) / 2;
     
     // Shadow
     if (settings.shadow_enabled) {
@@ -331,27 +360,33 @@ export class BadgeRenderer {
       const img = new Image();
       
       img.onload = () => {
-        // Calculate dimensions to fit inside the badge
-        const badgeSize = settings.badge_size;
-        const padding = badgeSize * 0.15; // Add some padding inside the badge
-        const maxWidth = badgeSize - (padding * 2);
-        const maxHeight = badgeSize - (padding * 2);
+        // Get the defined padding from settings or use a default
+        const padding = 10; // Fixed padding around the image
+        
+        // Use the actual image dimensions plus padding
+        // Use the badge_size as a scaling factor for the image
+        const scale = settings.badge_size / 100; // 100 is the default size
         
         // Calculate scaled dimensions while preserving aspect ratio
-        let drawWidth, drawHeight;
-        if (img.width / img.height > maxWidth / maxHeight) {
-          // Image is wider than tall
-          drawWidth = maxWidth;
-          drawHeight = (img.height * maxWidth) / img.width;
-        } else {
-          // Image is taller than wide
-          drawHeight = maxHeight;
-          drawWidth = (img.width * maxHeight) / img.height;
+        const drawWidth = img.width * scale;
+        const drawHeight = img.height * scale;
+        
+        // Update the canvas size to match the image size plus padding
+        // This effectively resizes the badge to fit the image
+        if (ctx.canvas) {
+          ctx.canvas.width = drawWidth + (padding * 2);
+          ctx.canvas.height = drawHeight + (padding * 2);
         }
         
+        // Clear the canvas with the new dimensions
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        
+        // Redraw the background with the new dimensions
+        this.drawBackground(ctx, settings, ctx.canvas.width, ctx.canvas.height, drawWidth, drawHeight);
+        
         // Calculate position (centered in badge)
-        const x = (width - drawWidth) / 2;
-        const y = (height - drawHeight) / 2;
+        const x = padding;
+        const y = padding;
         
         // Draw the image
         ctx.drawImage(img, x, y, drawWidth, drawHeight);
@@ -403,6 +438,11 @@ export class BadgeRenderer {
     // Get the width and height of the content
     const trimWidth = right - left + 1;
     const trimHeight = bottom - top + 1;
+    
+    // If there's no content found, return the original canvas
+    if (trimWidth <= padding * 2 || trimHeight <= padding * 2) {
+      return canvas;
+    }
     
     // Create a new canvas with the trimmed dimensions
     const trimmedCanvas = document.createElement('canvas');
@@ -456,6 +496,13 @@ export class BadgeRenderer {
       // Bottom positioning
       y = this.height - badgeHeight - parseInt(positionStyles.bottom, 10);
     }
+    
+    // Apply an additional padding offset to ensure badges don't touch the edge of the poster
+    const edgePadding = 5; // Small additional padding from poster edge
+    
+    // Ensure badges stay within the canvas boundaries with a minimum edge padding
+    x = Math.max(edgePadding, Math.min(this.width - badgeWidth - edgePadding, x));
+    y = Math.max(edgePadding, Math.min(this.height - badgeHeight - edgePadding, y));
     
     return { x, y };
   }
@@ -514,5 +561,33 @@ export class BadgeRenderer {
     canvas: HTMLCanvasElement
   ): Promise<string> {
     return canvas.toDataURL('image/png');
+  }
+
+  /**
+   * Render a single badge and return it as a data URL
+   * This is a public method used for downloading individual badges
+   * @param badgeSettings - The badge settings to use
+   * @returns Data URL of the rendered badge with transparency
+   */
+  async renderSingleBadge(badgeSettings: UnifiedBadgeSettings): Promise<string> {
+    try {
+      console.log(`Rendering single badge for download: ${badgeSettings.badge_type}`);
+      
+      // Clear the canvas for this new badge
+      this.ctx.clearRect(0, 0, this.width, this.height);
+      
+      // Create the badge canvas
+      const badgeCanvas = await this.createBadgeCanvas(badgeSettings);
+      
+      if (!badgeCanvas) {
+        throw new Error(`Failed to create canvas for ${badgeSettings.badge_type} badge`);
+      }
+      
+      // Return the badge as a data URL
+      return BadgeRenderer.extractBadgeWithTransparency(badgeCanvas);
+    } catch (error) {
+      console.error(`Error rendering single badge: ${error}`);
+      throw error;
+    }
   }
 }

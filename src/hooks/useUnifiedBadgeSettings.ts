@@ -500,44 +500,144 @@ export const useUnifiedBadgeSettings = (
   const saveAudioBadge = useCallback(async () => {
     if (!localAudioBadge) return;
     
-    await audioMutation.mutateAsync(localAudioBadge);
-  }, [localAudioBadge, audioMutation]);
+    // Ensure badge_type is explicitly set to 'audio'
+    await audioMutation.mutateAsync({
+      ...localAudioBadge,
+      badge_type: 'audio',
+      user_id: userId
+    });
+  }, [localAudioBadge, audioMutation, userId]);
   
   const saveResolutionBadge = useCallback(async () => {
     if (!localResolutionBadge) return;
     
-    await resolutionMutation.mutateAsync(localResolutionBadge);
-  }, [localResolutionBadge, resolutionMutation]);
+    // Ensure badge_type is explicitly set to 'resolution'
+    await resolutionMutation.mutateAsync({
+      ...localResolutionBadge,
+      badge_type: 'resolution',
+      user_id: userId
+    });
+  }, [localResolutionBadge, resolutionMutation, userId]);
   
   const saveReviewBadge = useCallback(async () => {
     if (!localReviewBadge) return;
     
-    await reviewMutation.mutateAsync(localReviewBadge);
-  }, [localReviewBadge, reviewMutation]);
+    // Ensure badge_type is explicitly set to 'review'
+    await reviewMutation.mutateAsync({
+      ...localReviewBadge,
+      badge_type: 'review',
+      user_id: userId
+    });
+  }, [localReviewBadge, reviewMutation, userId]);
   
   const saveAllBadges = useCallback(async () => {
-    const settingsToSave: UnifiedBadgeSettings[] = [];
-    
-    if (localAudioBadge) {
-      settingsToSave.push(localAudioBadge);
-    } else if (audioBadge) {
-      settingsToSave.push(audioBadge);
-    }
-    
-    if (localResolutionBadge) {
-      settingsToSave.push(localResolutionBadge);
-    } else if (resolutionBadge) {
-      settingsToSave.push(resolutionBadge);
-    }
-    
-    if (localReviewBadge) {
-      settingsToSave.push(localReviewBadge);
-    } else if (reviewBadge) {
-      settingsToSave.push(reviewBadge);
-    }
-    
-    if (settingsToSave.length > 0) {
-      await allBadgesMutation.mutateAsync(settingsToSave);
+    try {
+      // Instead of using batch save, let's try saving each badge individually
+      const results = [];
+      
+      if (localAudioBadge || audioBadge) {
+        const audioBadgeToSave: AudioBadgeSettings = {
+          ...(localAudioBadge || audioBadge),
+          badge_type: 'audio',
+          user_id: userId.toString()
+        };
+        
+        console.log('Saving audio badge individually:', audioBadgeToSave);
+        const audioResult = await audioMutation.mutateAsync(audioBadgeToSave);
+        results.push(audioResult);
+      }
+      
+      if (localResolutionBadge || resolutionBadge) {
+        const resolutionBadgeToSave: ResolutionBadgeSettings = {
+          ...(localResolutionBadge || resolutionBadge),
+          badge_type: 'resolution',
+          user_id: userId.toString()
+        };
+        
+        console.log('Saving resolution badge individually:', resolutionBadgeToSave);
+        const resolutionResult = await resolutionMutation.mutateAsync(resolutionBadgeToSave);
+        results.push(resolutionResult);
+      }
+      
+      if (localReviewBadge || reviewBadge) {
+        const reviewBadgeToSave: ReviewBadgeSettings = {
+          ...(localReviewBadge || reviewBadge),
+          badge_type: 'review',
+          user_id: userId.toString()
+        };
+        
+        console.log('Saving review badge individually:', reviewBadgeToSave);
+        const reviewResult = await reviewMutation.mutateAsync(reviewBadgeToSave);
+        results.push(reviewResult);
+      }
+      
+      // Return the combined results
+      return results;
+      
+      /* Original batch save logic
+      const settingsToSave: UnifiedBadgeSettings[] = [];
+      
+      if (localAudioBadge) {
+        // Create a fresh object with only the required properties
+        const audioBadgeToSave: AudioBadgeSettings = {
+          ...localAudioBadge,
+          badge_type: 'audio',
+          user_id: userId.toString()
+        };
+        settingsToSave.push(audioBadgeToSave);
+      } else if (audioBadge) {
+        const audioBadgeToSave: AudioBadgeSettings = {
+          ...audioBadge,
+          badge_type: 'audio',
+          user_id: userId.toString()
+        };
+        settingsToSave.push(audioBadgeToSave);
+      }
+      
+      if (localResolutionBadge) {
+        // Create a fresh object with only the required properties
+        const resolutionBadgeToSave: ResolutionBadgeSettings = {
+          ...localResolutionBadge,
+          badge_type: 'resolution',
+          user_id: userId.toString()
+        };
+        settingsToSave.push(resolutionBadgeToSave);
+      } else if (resolutionBadge) {
+        const resolutionBadgeToSave: ResolutionBadgeSettings = {
+          ...resolutionBadge,
+          badge_type: 'resolution',
+          user_id: userId.toString()
+        };
+        settingsToSave.push(resolutionBadgeToSave);
+      }
+      
+      if (localReviewBadge) {
+        // Create a fresh object with only the required properties
+        const reviewBadgeToSave: ReviewBadgeSettings = {
+          ...localReviewBadge,
+          badge_type: 'review',
+          user_id: userId.toString()
+        };
+        settingsToSave.push(reviewBadgeToSave);
+      } else if (reviewBadge) {
+        const reviewBadgeToSave: ReviewBadgeSettings = {
+          ...reviewBadge,
+          badge_type: 'review',
+          user_id: userId.toString()
+        };
+        settingsToSave.push(reviewBadgeToSave);
+      }
+      
+      // Log what we're about to save
+      console.log('About to save badge settings:', JSON.stringify(settingsToSave));
+      
+      if (settingsToSave.length > 0) {
+        await allBadgesMutation.mutateAsync(settingsToSave);
+      }
+      */
+    } catch (error) {
+      console.error('Error in saveAllBadges:', error);
+      throw error;
     }
   }, [
     localAudioBadge,
@@ -546,7 +646,10 @@ export const useUnifiedBadgeSettings = (
     audioBadge,
     resolutionBadge,
     reviewBadge,
-    allBadgesMutation
+    audioMutation,
+    resolutionMutation,
+    reviewMutation,
+    userId
   ]);
 
   // Reset functions

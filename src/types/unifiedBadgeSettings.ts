@@ -97,7 +97,7 @@ export type UnifiedBadgeSettings = AudioBadgeSettings | ResolutionBadgeSettings 
 export const DEFAULT_AUDIO_BADGE_SETTINGS: AudioBadgeSettings = {
   user_id: '1',
   badge_type: 'audio',
-  badge_size: 100,
+  badge_size: 100, // Used as a scaling factor for the badge (100 = original size)
   edge_padding: 10,
   badge_position: BadgePosition.TopLeft,
   background_color: '#000000',
@@ -105,13 +105,13 @@ export const DEFAULT_AUDIO_BADGE_SETTINGS: AudioBadgeSettings = {
   border_size: 2,
   border_color: '#FFFFFF',
   border_opacity: 80,
-  border_radius: 5,
+  border_radius: 10, // Increased for better appearance with variable sizes
   border_width: 1,
-  shadow_enabled: false,
+  shadow_enabled: true, // Default to true for better visibility
   shadow_color: '#000000',
-  shadow_blur: 10,
-  shadow_offset_x: 0,
-  shadow_offset_y: 0,
+  shadow_blur: 8,
+  shadow_offset_x: 2,
+  shadow_offset_y: 2,
   properties: {
     codec_type: 'dolby_atmos'
   }
@@ -120,7 +120,7 @@ export const DEFAULT_AUDIO_BADGE_SETTINGS: AudioBadgeSettings = {
 export const DEFAULT_RESOLUTION_BADGE_SETTINGS: ResolutionBadgeSettings = {
   user_id: '1',
   badge_type: 'resolution',
-  badge_size: 100,
+  badge_size: 100, // Used as a scaling factor for the badge (100 = original size)
   edge_padding: 10,
   badge_position: BadgePosition.TopRight,
   background_color: '#000000',
@@ -128,13 +128,13 @@ export const DEFAULT_RESOLUTION_BADGE_SETTINGS: ResolutionBadgeSettings = {
   border_size: 2,
   border_color: '#FFFFFF',
   border_opacity: 80,
-  border_radius: 5,
+  border_radius: 10, // Increased for better appearance with variable sizes
   border_width: 1,
-  shadow_enabled: false,
+  shadow_enabled: true, // Default to true for better visibility
   shadow_color: '#000000',
-  shadow_blur: 10,
-  shadow_offset_x: 0,
-  shadow_offset_y: 0,
+  shadow_blur: 8,
+  shadow_offset_x: 2,
+  shadow_offset_y: 2,
   properties: {
     resolution_type: '4k'
   }

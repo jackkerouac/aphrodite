@@ -50,7 +50,12 @@ export function BaseBadgeControls<T extends BaseBadgeSettings>({
 
             {/* Badge Size */}
             <div className="space-y-2 mb-4">
-              <Label htmlFor="badge_size">Badge Size</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="badge_size">Badge Size</Label>
+                <div className="text-xs text-muted-foreground">
+                  {badgeType === 'review' ? 'Absolute Size' : 'Scale %'}
+                </div>
+              </div>
               <div className="flex items-center gap-4">
                 <Slider
                   id="badge_size"
@@ -72,6 +77,11 @@ export function BaseBadgeControls<T extends BaseBadgeSettings>({
                   className="w-20"
                 />
               </div>
+              {badgeType !== 'review' && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  For {badgeType} badges, this value represents a scaling factor where 100 = original size.
+                </p>
+              )}
             </div>
 
             {/* Edge Padding */}

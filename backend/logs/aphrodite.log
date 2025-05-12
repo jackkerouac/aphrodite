@@ -35,3 +35,37 @@
 [2025-05-12T17:03:24.703Z] INFO: Migration completed successfully!
 [2025-05-12T17:03:31.516Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
 [2025-05-12T17:03:31.533Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-12T17:04:30.085Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-12T17:04:30.107Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-12T17:04:30.111Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 27ms
+[2025-05-12T17:13:52.523Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-12T17:13:52.554Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-12T17:13:52.556Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 33ms
+[2025-05-12T17:16:03.448Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-12T17:16:03.471Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-12T17:16:03.473Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 24ms
+[2025-05-12T17:16:34.486Z] INFO: [POST] /api/v1/unified-badge-settings/batch 400 — 1ms
+[2025-05-12T17:17:17.195Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-12T17:17:17.215Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-12T17:17:17.217Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 22ms
+[2025-05-12T17:17:35.468Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-12T17:17:35.490Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-12T17:17:35.491Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 23ms
+[2025-05-12T17:20:50.990Z] INFO: [POST] /api/v1/unified-badge-settings/batch 400 — 1ms
+[2025-05-12T17:20:59.496Z] INFO: [POST] /api/v1/unified-badge-settings/batch 400 — 1ms
+[2025-05-12T17:23:06.786Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-12T17:23:06.805Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-12T17:23:06.806Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 20ms
+[2025-05-12T17:23:57.657Z] INFO: [POST] /api/v1/unified-badge-settings/batch 400 — 1ms
+[2025-05-12T17:24:26.615Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-12T17:24:26.632Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-12T17:24:26.634Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 19ms
+[2025-05-12T17:24:45.224Z] INFO: [POST] /api/v1/unified-badge-settings/batch 400 — 1ms
+[2025-05-12T17:24:52.747Z] INFO: [POST] /api/v1/unified-badge-settings/batch 400 — 0ms
+[2025-05-12T17:26:53.263Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-12T17:26:53.283Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-12T17:26:53.284Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 21ms
+[2025-05-12T17:27:48.585Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-12T17:27:48.603Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-12T17:27:48.605Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 20ms
+[2025-05-12T17:28:05.693Z] INFO: [POST] /api/v1/unified-badge-settings/batch 400 — 1ms
