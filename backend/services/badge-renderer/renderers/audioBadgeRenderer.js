@@ -33,18 +33,8 @@ export async function renderAudioBadge(canvas, settings, metadata, sourceImagePa
       return await renderImageBadge(canvas, settings, sourceImagePath);
     }
     
-    // Apply brand colors if enabled and no background_color is set
-    if (settings.use_brand_colors && !settings.backgroundColor && !settings.background_color) {
-      console.log('Using brand colors for audio badge');
-      // Audio badges typically use blue color
-      settings.backgroundColor = '#2E51A2'; // Blue color for audio badges
-    } else {
-      // Ensure backgroundColor (camelCase) is set from background_color (snake_case)
-      if (settings.background_color && !settings.backgroundColor) {
-        settings.backgroundColor = settings.background_color;
-        console.log(`Using custom background color: ${settings.backgroundColor}`);
-      }
-    }
+    // Note: Brand colors are now handled centrally in canvasUtils.js 
+    // Let background color flow through as-is, all background color logic is in applyBackground
     
     // Otherwise render text-based badge
     return await renderTextBadge(canvas, settings, metadata.audioFormat || 'Audio', fonts);

@@ -152,7 +152,8 @@ class PosterProcessor {
         shadow_offset_x,
         shadow_offset_y,
         margin as padding,
-        z_index as stacking_order
+        z_index as stacking_order,
+        use_brand_colors
       FROM resolution_badge_settings
       WHERE user_id = $1 AND enabled = true
       
@@ -178,7 +179,8 @@ class PosterProcessor {
         shadow_offset_x,
         shadow_offset_y,
         margin as padding,
-        z_index as stacking_order
+        z_index as stacking_order,
+        use_brand_colors
       FROM audio_badge_settings
       WHERE user_id = $1 AND enabled = true
       
@@ -276,6 +278,7 @@ class PosterProcessor {
           margin: setting.padding ? parseInt(setting.padding) : 8,
           transparency: setting.transparency ? parseFloat(setting.transparency) : 1,
           stackingOrder: setting.stacking_order ? parseInt(setting.stacking_order) : 0,
+          use_brand_colors: setting.use_brand_colors,
           // Fixed settings for Review badges specifically - ensure maxSourcesToShow is properly mapped
           maxSourcesToShow: setting.type === 'review' ? (reviewSettings?.max_sources_to_show ? parseInt(reviewSettings.max_sources_to_show) : 3) : undefined,
           displayFormat: setting.type === 'review' ? (reviewSettings?.display_format || 'vertical') : undefined,
@@ -547,6 +550,8 @@ class PosterProcessor {
         // Map visual settings with consistent naming between frontend/backend
         const badgeSettings = {
           ...config.settings,
+          // Ensure type is explicitly set for identification in applyBackground
+          type: config.settings.type,
           // Map transparency to backgroundOpacity for consistency with frontend
           backgroundOpacity: config.settings.transparency !== undefined ? config.settings.transparency : 1,
           // Ensure size is passed through directly

@@ -33,18 +33,8 @@ export async function renderResolutionBadge(canvas, settings, metadata, sourceIm
       return await renderImageBadge(canvas, settings, sourceImagePath);
     }
     
-    // Apply brand colors if enabled and no background_color is set
-    if (settings.use_brand_colors && !settings.backgroundColor && !settings.background_color) {
-      console.log('Using brand colors for resolution badge');
-      // Resolution badges typically use red color
-      settings.backgroundColor = '#FA320A'; // Red color for resolution badges
-    } else {
-      // Ensure backgroundColor (camelCase) is set from background_color (snake_case)
-      if (settings.background_color && !settings.backgroundColor) {
-        settings.backgroundColor = settings.background_color;
-        console.log(`Using custom background color: ${settings.backgroundColor}`);
-      }
-    }
+    // Note: Brand colors are now handled centrally in canvasUtils.js 
+    // Let background color flow through as-is, all background color logic is in applyBackground
     
     // Otherwise render text-based badge 
     return await renderTextBadge(canvas, settings, metadata.resolution || 'HD', fonts);

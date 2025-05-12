@@ -1,4 +1,50 @@
-import path from 'path';
+/**
+ * Get the appropriate background color based on settings
+ * @param {Object} settings - The badge settings
+ * @returns {string} The selected background color
+ */
+function determineBadgeBackgroundColor(settings) {
+  // Default black fallback
+  let bgColor = '#000000';
+  
+  // First check if brand colors should be used
+  if (settings.use_brand_colors === true) {
+    // Apply brand colors based on badge type
+    switch (settings.type) {
+      case 'audio':
+        bgColor = '#2E51A2'; // Blue for audio badges
+        console.log(`Using brand color for ${settings.type}: ${bgColor}`);
+        break;
+      case 'resolution':
+        bgColor = '#FA320A'; // Red for resolution badges
+        console.log(`Using brand color for ${settings.type}: ${bgColor}`);
+        break;
+      case 'review':
+        bgColor = '#000000'; // Black for review badges
+        console.log(`Using brand color for ${settings.type}: ${bgColor}`);
+        break;
+      default:
+        // If specific type has no brand color, check for explicit color settings
+        if (settings.backgroundColor) {
+          bgColor = settings.backgroundColor;
+          console.log(`Using explicit backgroundColor: ${bgColor}`);
+        } else if (settings.background_color) {
+          bgColor = settings.background_color;
+          console.log(`Using background_color: ${bgColor}`);
+        }
+    }
+  }
+  // If brand colors not enabled, check for explicit color settings
+  else if (settings.backgroundColor) {
+    bgColor = settings.backgroundColor;
+    console.log(`Using explicit backgroundColor: ${bgColor}`);
+  } else if (settings.background_color) {
+    bgColor = settings.background_color;
+    console.log(`Using background_color: ${bgColor}`);
+  }
+  
+  return bgColor;
+}import path from 'path';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 
@@ -7,6 +53,54 @@ const __dirname = path.dirname(__filename);
 
 // Get the project root directory (go up from backend/services/badge-renderer/utils to root)
 const projectRoot = path.resolve(__dirname, '../../../..');
+
+/**
+ * Get the appropriate background color based on settings
+ * @param {Object} settings - The badge settings
+ * @returns {string} The selected background color
+ */
+function determineBadgeBackgroundColor(settings) {
+  // Default black fallback
+  let bgColor = '#000000';
+  
+  // First check if brand colors should be used
+  if (settings.use_brand_colors === true) {
+    // Apply brand colors based on badge type
+    switch (settings.type) {
+      case 'audio':
+        bgColor = '#2E51A2'; // Blue for audio badges
+        console.log(`Using brand color for ${settings.type}: ${bgColor}`);
+        break;
+      case 'resolution':
+        bgColor = '#FA320A'; // Red for resolution badges
+        console.log(`Using brand color for ${settings.type}: ${bgColor}`);
+        break;
+      case 'review':
+        bgColor = '#000000'; // Black for review badges
+        console.log(`Using brand color for ${settings.type}: ${bgColor}`);
+        break;
+      default:
+        // If specific type has no brand color, check for explicit color settings
+        if (settings.backgroundColor) {
+          bgColor = settings.backgroundColor;
+          console.log(`Using explicit backgroundColor: ${bgColor}`);
+        } else if (settings.background_color) {
+          bgColor = settings.background_color;
+          console.log(`Using background_color: ${bgColor}`);
+        }
+    }
+  }
+  // If brand colors not enabled, check for explicit color settings
+  else if (settings.backgroundColor) {
+    bgColor = settings.backgroundColor;
+    console.log(`Using explicit backgroundColor: ${bgColor}`);
+  } else if (settings.background_color) {
+    bgColor = settings.background_color;
+    console.log(`Using background_color: ${bgColor}`);
+  }
+  
+  return bgColor;
+}
 
 /**
  * Draw a rounded rectangle on a canvas context
@@ -55,17 +149,11 @@ export function applyBackground(ctx, width, height, settings) {
     ctx.shadowOffsetY = settings.shadowOffsetY || 2;
   }
   
-  // Ensure backgroundColor (camelCase) is set from background_color (snake_case)
-  // Priority: custom backgroundColor > custom background_color > default color
-  let bgColor = '#000000'; // Default black fallback
+  // Handle background color with proper priority order
+  let bgColor = determineBadgeBackgroundColor(settings);
   
-  if (settings.backgroundColor) {
-    bgColor = settings.backgroundColor;
-  } else if (settings.background_color) {
-    bgColor = settings.background_color;
-    // Also set it in camelCase for consistency
-    settings.backgroundColor = settings.background_color;
-  }
+  // Ensure backgroundColor is set for consistency
+  settings.backgroundColor = bgColor;
   
   ctx.fillStyle = bgColor;
   
@@ -321,4 +409,4 @@ export async function getAudioImagePath(audioFormat) {
   return null;
 }
 
-export { projectRoot };
+export { projectRoot, determineBadgeBackgroundColor };
