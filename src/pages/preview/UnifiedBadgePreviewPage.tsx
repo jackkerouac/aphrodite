@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useUnifiedBadgeSettings } from '@/hooks/useUnifiedBadgeSettings';
-import { usePreviewState } from '@/hooks/usePreviewState';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useUnifiedBadgeSettings } from '@/hooks';
+import { usePreviewState, BadgeType } from '@/hooks';
 import { UnifiedBadgePreview } from '@/components/badges/unified/UnifiedBadgePreview';
 import { BadgeSettingsPanel } from './components/BadgeSettingsPanel';
 import { PreviewControls } from './components/PreviewControls';
@@ -11,33 +11,36 @@ import { Button } from '@/components/ui/button';
 import { 
   Save, 
   Undo, 
-  Download, 
-  AlertTriangle
+  AlertTriangle,
+  Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { UnifiedBadgeSettings } from '@/types/unifiedBadgeSettings';
 
 /**
  * Main Preview Page component for managing and previewing badge settings
  */
-export default function PreviewPage() {
-  // Get badge settings from the hooks
+export default function UnifiedBadgePreviewPage() {
+  // Get badge settings from the refactored hook
   const {
     audioBadge,
     resolutionBadge,
     reviewBadge,
-    setAudioBadge,
-    setResolutionBadge,
-    setReviewBadge,
-    saveSettings,
-    resetSettings,
+    updateAudioBadge,
+    updateResolutionBadge,
+    updateReviewBadge,
+    saveAllBadges,
+    resetAllBadges,
     isLoading,
     isSaving,
-    lastSaved
-  } = useUnifiedBadgeSettings();
+    hasUnsavedChanges,
+    lastSaved,
+    error
+  } = useUnifiedBadgeSettings({ autoSave: false });
 
-  // Get preview state from the hook
+  // Get preview state from the refactored hook
   const {
     theme,
     toggleTheme,
@@ -47,13 +50,32 @@ export default function PreviewPage() {
     setHighlightedBadge
   } = usePreviewState();
 
-  // Track if there are unsaved changes
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  // State for unsaved changes alert
   const [showUnsavedAlert, setShowUnsavedAlert] = useState(false);
-  const [pendingAction, setPendingAction] = useState<() => void | null>(() => null);
+  const [pendingAction, setPendingAction] = useState<() => void>(() => () => {});
 
-  // Track the last time settings were saved
+  // Display for last saved time
   const [saveTimeDisplay, setSaveTimeDisplay] = useState<string>('');
+
+  // Format the last saved time
+  useEffect(() => {
+    if (lastSaved) {
+      const now = new Date();
+      const diff = now.getTime() - lastSaved.getTime();
+      
+      if (diff < 60000) { // Less than a minute
+        setSaveTimeDisplay('just now');
+      } else if (diff < 3600000) { // Less than an hour
+        const minutes = Math.floor(diff / 60000);
+        setSaveTimeDisplay(`${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`);
+      } else {
+        const hours = Math.floor(diff / 3600000);
+        setSaveTimeDisplay(`${hours} ${hours === 1 ? 'hour' : 'hours'} ago`);
+      }
+    } else {
+      setSaveTimeDisplay('never');
+    }
+  }, [lastSaved]);
 
   // Function to download the current badge
   const handleDownload = useCallback(async () => {
@@ -73,7 +95,8 @@ export default function PreviewPage() {
       const renderer = new BadgeRenderer(ctx, canvas.width, canvas.height);
 
       // Determine which badge to download based on highlighted badge
-      let badgeToDownload = null;
+      let badgeToDownload: UnifiedBadgeSettings | null = null;
+      
       if (highlightedBadge === 'audio' && audioBadge) {
         badgeToDownload = audioBadge;
       } else if (highlightedBadge === 'resolution' && resolutionBadge) {
@@ -116,64 +139,32 @@ export default function PreviewPage() {
   // Handle saving settings
   const handleSave = useCallback(async () => {
     try {
-      await saveSettings();
-      setHasUnsavedChanges(false);
+      await saveAllBadges();
+      toast.success('All badge settings saved successfully');
     } catch (error) {
       console.error('Error saving settings:', error);
+      toast.error('Failed to save badge settings');
     }
-  }, [saveSettings]);
+  }, [saveAllBadges]);
 
   // Handle discarding changes
   const handleReset = useCallback(() => {
     if (hasUnsavedChanges) {
       setShowUnsavedAlert(true);
       setPendingAction(() => () => {
-        resetSettings();
-        setHasUnsavedChanges(false);
+        resetAllBadges();
         toast.info('Changes discarded');
       });
     } else {
-      resetSettings();
+      resetAllBadges();
       toast.info('Settings reset to defaults');
     }
-  }, [hasUnsavedChanges, resetSettings]);
+  }, [hasUnsavedChanges, resetAllBadges]);
 
   // Handle tab change to highlight the active badge
   const handleTabChange = useCallback((tab: string) => {
-    setHighlightedBadge(tab);
+    setHighlightedBadge(tab as BadgeType);
   }, [setHighlightedBadge]);
-
-  // Format the last saved time
-  useEffect(() => {
-    if (lastSaved) {
-      const now = new Date();
-      const diff = now.getTime() - lastSaved.getTime();
-      
-      if (diff < 60000) { // Less than a minute
-        setSaveTimeDisplay('just now');
-      } else if (diff < 3600000) { // Less than an hour
-        const minutes = Math.floor(diff / 60000);
-        setSaveTimeDisplay(`${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`);
-      } else {
-        const hours = Math.floor(diff / 3600000);
-        setSaveTimeDisplay(`${hours} ${hours === 1 ? 'hour' : 'hours'} ago`);
-      }
-    } else {
-      setSaveTimeDisplay('never');
-    }
-  }, [lastSaved]);
-
-  // Update the unsaved changes state when settings change
-  useEffect(() => {
-    setHasUnsavedChanges(true);
-  }, [audioBadge, resolutionBadge, reviewBadge]);
-
-  // Filter visible badges for the preview
-  const visibleBadgesForPreview = [
-    audioBadge && visibleBadges.includes('audio') ? audioBadge : null,
-    resolutionBadge && visibleBadges.includes('resolution') ? resolutionBadge : null,
-    reviewBadge && visibleBadges.includes('review') ? reviewBadge : null,
-  ].filter(Boolean);
 
   // Handle window beforeunload event for unsaved changes warning
   useEffect(() => {
@@ -189,6 +180,20 @@ export default function PreviewPage() {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [hasUnsavedChanges]);
+
+  // Handle errors
+  useEffect(() => {
+    if (error) {
+      toast.error(`Error: ${error.message}`);
+    }
+  }, [error]);
+
+  // Filter visible badges for the preview
+  const visibleBadgesForPreview = [
+    audioBadge && visibleBadges.includes('audio') ? audioBadge : null,
+    resolutionBadge && visibleBadges.includes('resolution') ? resolutionBadge : null,
+    reviewBadge && visibleBadges.includes('review') ? reviewBadge : null,
+  ].filter(Boolean) as UnifiedBadgeSettings[];
 
   return (
     <div className="container mx-auto py-6 px-4 space-y-6">
@@ -212,7 +217,7 @@ export default function PreviewPage() {
           <Button 
             variant="outline" 
             onClick={handleReset}
-            disabled={isLoading}
+            disabled={isLoading || isSaving}
           >
             <Undo className="mr-2 h-4 w-4" /> Reset
           </Button>
@@ -221,7 +226,12 @@ export default function PreviewPage() {
             onClick={handleSave}
             disabled={isLoading || isSaving || !hasUnsavedChanges}
           >
-            <Save className="mr-2 h-4 w-4" /> Save
+            {isSaving ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="mr-2 h-4 w-4" />
+            )}
+            Save
           </Button>
         </div>
       </div>
@@ -234,61 +244,68 @@ export default function PreviewPage() {
       
       <Separator className="my-6" />
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Settings Panel - Left Side */}
-        <div className="lg:col-span-5 space-y-6">
-          <BadgeSettingsPanel 
-            audioBadge={audioBadge}
-            resolutionBadge={resolutionBadge}
-            reviewBadge={reviewBadge}
-            onAudioBadgeChange={setAudioBadge}
-            onResolutionBadgeChange={setResolutionBadge}
-            onReviewBadgeChange={setReviewBadge}
-            activeTab={highlightedBadge || undefined}
-            onTabChange={handleTabChange}
-          />
+      {/* Loading State */}
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+          <p className="text-lg text-muted-foreground">Loading badge settings...</p>
+        </div>
+      ) : (
+        /* Main Content */
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Settings Panel - Left Side */}
+          <div className="lg:col-span-5 space-y-6">
+            <BadgeSettingsPanel 
+              audioBadge={audioBadge}
+              resolutionBadge={resolutionBadge}
+              reviewBadge={reviewBadge}
+              onAudioBadgeChange={updateAudioBadge}
+              onResolutionBadgeChange={updateResolutionBadge}
+              onReviewBadgeChange={updateReviewBadge}
+              activeTab={highlightedBadge || undefined}
+              onTabChange={handleTabChange}
+              disabled={isSaving}
+            />
+            
+            <PreviewControls 
+              theme={theme}
+              onThemeToggle={toggleTheme}
+              visibleBadges={visibleBadges}
+              onToggleBadgeVisibility={toggleBadgeVisibility}
+              onDownload={handleDownload}
+              disabled={isSaving}
+            />
+          </div>
           
-          <PreviewControls 
-            theme={theme}
-            onThemeToggle={toggleTheme}
-            visibleBadges={visibleBadges}
-            onToggleBadgeVisibility={toggleBadgeVisibility}
-            onDownload={handleDownload}
-          />
-        </div>
-        
-        {/* Preview Area - Right Side */}
-        <div className="lg:col-span-7">
-          <Card className="p-6 flex items-center justify-center bg-muted/40">
-            <div className="w-full max-w-md">
-              <UnifiedBadgePreview 
-                badges={visibleBadgesForPreview}
-                activeBadgeType={highlightedBadge}
-                isDarkMode={theme === 'dark'}
-                className="w-full"
-              />
-              
-              <div className="mt-4 text-center text-sm text-muted-foreground">
-                Preview poster with applied badges
+          {/* Preview Area - Right Side */}
+          <div className="lg:col-span-7">
+            <Card className="p-6 flex items-center justify-center bg-muted/40">
+              <div className="w-full max-w-md">
+                <UnifiedBadgePreview 
+                  badges={visibleBadgesForPreview}
+                  activeBadgeType={highlightedBadge}
+                  isDarkMode={theme === 'dark'}
+                  className="w-full"
+                />
+                
+                <div className="mt-4 text-center text-sm text-muted-foreground">
+                  Preview poster with applied badges
+                </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Unsaved Changes Alert */}
       <UnsavedChangesAlert 
         isOpen={showUnsavedAlert}
         onCancel={() => {
           setShowUnsavedAlert(false);
-          handleSave();
         }}
         onContinue={() => {
           setShowUnsavedAlert(false);
-          if (pendingAction) {
-            pendingAction();
-          }
+          pendingAction();
         }}
       />
     </div>
