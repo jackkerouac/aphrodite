@@ -83,7 +83,7 @@ export const resolutionBadge = {
     settingsToSend.shadow_offset_y = Number(settings.shadow_offset_y || settings.shadowOffsetY || 0);
     settingsToSend.z_index = Number(settings.z_index || settings.zIndex || 10);
     settingsToSend.use_brand_colors = settings.use_brand_colors !== undefined ? Boolean(settings.use_brand_colors) : 
-                                    (settings.useBrandColors !== undefined ? Boolean(settings.useBrandColors) : true);
+                                    (settings.useBrandColors !== undefined ? Boolean(settings.useBrandColors) : false);
     
     // Check for required fields
     const requiredFields = [

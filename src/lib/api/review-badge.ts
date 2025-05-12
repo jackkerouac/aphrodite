@@ -113,7 +113,7 @@ export const reviewBadge = {
     settingsToSend.text_opacity = Number(settings.text_opacity || settings.text_transparency || settings.textOpacity || 0);
     settingsToSend.max_sources_to_show = Number(settings.max_sources_to_show || settings.maxSourcesToShow || 3);
     settingsToSend.use_brand_colors = settings.use_brand_colors !== undefined ? Boolean(settings.use_brand_colors) : 
-                                    (settings.useBrandColors !== undefined ? Boolean(settings.useBrandColors) : true);
+                                    (settings.useBrandColors !== undefined ? Boolean(settings.useBrandColors) : false);
     
     // Check for required fields
     const requiredFields = [

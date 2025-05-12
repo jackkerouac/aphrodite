@@ -19,6 +19,7 @@ const defaultAudioBadgeSettings: AudioBadgeSettings = {
   fontSize: 24,
   position: BadgePosition.TopLeft,
   margin: 16,
+  useBrandColors: false,
 };
 
 const defaultResolutionBadgeSettings: ResolutionBadgeSettings = {
@@ -32,6 +33,7 @@ const defaultResolutionBadgeSettings: ResolutionBadgeSettings = {
   fontSize: 36,
   position: BadgePosition.TopRight,
   margin: 16,
+  useBrandColors: false,
 };
 
 const defaultReviewBadgeSettings: ReviewBadgeSettings = {
@@ -51,6 +53,7 @@ const defaultReviewBadgeSettings: ReviewBadgeSettings = {
   ],
   position: BadgePosition.BottomLeft,
   margin: 16,
+  useBrandColors: false,
 };
 
 /**
