@@ -1,46 +1,40 @@
-// src/utils/audioCodecUtils.ts
+/**
+ * Utility functions and constants for audio codec options
+ */
 
-// Define audio codec options
-export const audioCodecOptions = [
-  { value: 'aac', label: 'AAC' },
-  { value: 'atmos', label: 'Atmos' },
-  { value: 'digital', label: 'Digital' },
-  { value: 'dolby_atmos', label: 'Dolby Atmos' },
-  { value: 'dts', label: 'DTS' },
-  { value: 'dtses', label: 'DTS-ES' },
-  { value: 'dtsx', label: 'DTS:X' },
-  { value: 'flac', label: 'FLAC' },
-  { value: 'hra', label: 'HRA' },
-  { value: 'ma', label: 'MA' },
-  { value: 'mp3', label: 'MP3' },
-  { value: 'opus', label: 'OPUS' },
-  { value: 'pcm', label: 'PCM' },
-  { value: 'plus', label: 'Plus' },
-  { value: 'plus_atmos', label: 'Plus Atmos' },
-  { value: 'truehd', label: 'TrueHD' },
-  { value: 'truehd_atmos', label: 'TrueHD Atmos' }
+export interface AudioCodecOption {
+  value: string;
+  label: string;
+  iconPath?: string;
+}
+
+// Available audio codec options
+export const audioCodecOptions: AudioCodecOption[] = [
+  { value: 'dolby_atmos', label: 'Dolby Atmos', iconPath: '/assets/images/audio/dolby_atmos.png' },
+  { value: 'dolby_digital', label: 'Dolby Digital', iconPath: '/assets/images/audio/dolby_digital.png' },
+  { value: 'dolby_digital_plus', label: 'Dolby Digital Plus', iconPath: '/assets/images/audio/dolby_digital_plus.png' },
+  { value: 'dolby_truehd', label: 'Dolby TrueHD', iconPath: '/assets/images/audio/dolby_truehd.png' },
+  { value: 'dts', label: 'DTS', iconPath: '/assets/images/audio/dts.png' },
+  { value: 'dts_hd', label: 'DTS-HD', iconPath: '/assets/images/audio/dts_hd.png' },
+  { value: 'dts_hd_ma', label: 'DTS-HD Master Audio', iconPath: '/assets/images/audio/dts_hd_ma.png' },
+  { value: 'dts_x', label: 'DTS:X', iconPath: '/assets/images/audio/dts_x.png' },
+  { value: 'auro_3d', label: 'Auro 3D', iconPath: '/assets/images/audio/auro_3d.png' },
+  { value: 'imax_enhanced', label: 'IMAX Enhanced', iconPath: '/assets/images/audio/imax_enhanced.png' },
+  { value: 'thx', label: 'THX', iconPath: '/assets/images/audio/thx.png' },
 ];
 
-// Get image path from codec type
-export const getAudioCodecImagePath = (codecType: string): string => {
-  // Default to dolby_atmos if none is provided
-  if (!codecType) return '/src/assets/audio_codec/compact/dolby_atmos.png';
+/**
+ * Get the icon path for a given audio codec
+ * @param codecType The audio codec type
+ * @returns The path to the codec icon
+ */
+export const getAudioCodecIcon = async (codecType: string): Promise<string> => {
+  const codec = audioCodecOptions.find(option => option.value === codecType);
   
-  // Handle legacy codec type values (from before this update)
-  // These are the full text labels that were previously used
-  const legacyMapping: Record<string, string> = {
-    'Dolby Atmos': 'dolby_atmos',
-    'Dolby Digital': 'digital',
-    'DTS-HD': 'dts',
-    'DTS:X': 'dtsx',
-    'AAC': 'aac',
-    'PCM': 'pcm',
-    'FLAC': 'flac'
-  };
+  if (codec && codec.iconPath) {
+    return codec.iconPath;
+  }
   
-  // Convert legacy values if needed
-  const codecValue = legacyMapping[codecType] || codecType;
-  
-  // Return the path to the image
-  return `/src/assets/audio_codec/compact/${codecValue}.png`;
+  // Return a default icon if the codec is not found
+  return '/assets/images/audio/dolby_atmos.png';
 };
