@@ -67,28 +67,67 @@ class CanvasBadgeRenderer {
   }
 
   /**
-   * Render a badge based on its type
-   * @param {string} type - The type of badge (resolution, audio, review)
-   * @param {Object} settings - The badge settings
-   * @param {Object} metadata - The metadata for the badge
-   * @param {string} [sourceImagePath] - Optional path to an image to use
-   * @returns {Promise<Buffer>} The rendered badge as a PNG buffer
-   */
-  async renderBadge(type, settings, metadata, sourceImagePath) {
-    await this.init();
+ * Render a badge based on its type
+ * @param {string} type - The type of badge (resolution, audio, review)
+ * @param {Object} settings - The badge settings
+ * @param {Object} metadata - The metadata for the badge
+ * @param {string} [sourceImagePath] - Optional path to an image to use
+ * @returns {Promise<Buffer>} The rendered badge as a PNG buffer
+ */
+async renderBadge(type, settings, metadata, sourceImagePath) {
+  await this.init();
+  
+  try {
+    // Validate inputs
+    if (!type) {
+      throw new Error('Missing badge type');
+    }
+    
+    if (!settings) {
+      throw new Error('Missing badge settings');
+    }
+    
+    // Make a copy of settings to avoid modifying the original
+    const safeSettings = { ...settings };
+    
+    // Ensure size is valid
+    if (safeSettings.size !== undefined) {
+      // Guard against negative or invalid sizes
+      if (typeof safeSettings.size !== 'number' || isNaN(safeSettings.size) || safeSettings.size <= 0) {
+        console.warn(`Invalid badge size: ${safeSettings.size}, using default size 100`);
+        safeSettings.size = 100; // Use default size if invalid
+      }
+    }
     
     // Handle different badge types
-    switch (type) {
+    switch (type.toLowerCase()) {
       case 'resolution':
-        return await renderResolutionBadge(this.canvas, settings, metadata, sourceImagePath, this.fonts);
+        return await renderResolutionBadge(this.canvas, safeSettings, metadata || {}, sourceImagePath, this.fonts);
       case 'audio':
-        return await renderAudioBadge(this.canvas, settings, metadata, sourceImagePath, this.fonts);
+        return await renderAudioBadge(this.canvas, safeSettings, metadata || {}, sourceImagePath, this.fonts);
       case 'review':
-        return await renderReviewBadge(this.canvas, settings, metadata, this.fonts);
+        return await renderReviewBadge(this.canvas, safeSettings, metadata || {}, this.fonts);
       default:
-        throw new Error(`Unsupported badge type: ${type}`);
+        console.error(`Unsupported badge type: ${type}, defaulting to text badge`);
+        // Create a fallback text badge
+        const TextRenderer = await import('./renderers/audioBadgeRenderer.js');
+        return TextRenderer.createFallbackBadge(this.canvas, `Unknown: ${type}`);
+    }
+  } catch (error) {
+    console.error(`Error rendering badge type '${type}':`, error);
+    try {
+      // Attempt to create a fallback badge
+      const TextRenderer = await import('./renderers/audioBadgeRenderer.js');
+      return TextRenderer.createFallbackBadge(this.canvas, `Error: ${type}`);
+    } catch (fallbackError) {
+      // If even the fallback fails, create a transparent dummy image
+      console.error('Failed to create fallback badge:', fallbackError);
+      this.canvas.width = 100;
+      this.canvas.height = 50;
+      return this.canvas.toBuffer('image/png');
     }
   }
+}
   
   /**
    * Map resolution values to asset paths - maintained for backward compatibility
@@ -96,7 +135,17 @@ class CanvasBadgeRenderer {
    * @returns {Promise<string|null>} The path to the resolution image, or null if not found
    */
   async getResolutionImagePath(resolution) {
-    return await getResolutionImagePath(resolution);
+    try {
+      if (!resolution) {
+        console.warn('Empty resolution value provided');
+        return null;
+      }
+      
+      return await getResolutionImagePath(resolution);
+    } catch (error) {
+      console.error(`Error finding resolution image path for '${resolution}':`, error);
+      return null;
+    }
   }
   
   /**
@@ -105,7 +154,17 @@ class CanvasBadgeRenderer {
    * @returns {Promise<string|null>} The path to the audio format image, or null if not found
    */
   async getAudioImagePath(audioFormat) {
-    return await getAudioImagePath(audioFormat);
+    try {
+      if (!audioFormat) {
+        console.warn('Empty audio format provided');
+        return null;
+      }
+      
+      return await getAudioImagePath(audioFormat);
+    } catch (error) {
+      console.error(`Error finding audio format image path for '${audioFormat}':`, error);
+      return null;
+    }
   }
 }
 
