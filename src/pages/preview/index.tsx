@@ -1,17 +1,17 @@
 import { useEffect } from "react";
-import { useRouter } from "next/router";
+import { useNavigate } from "react-router-dom";
 
 /**
  * Index redirect for preview directory
  * Routes users to the new unified badge preview page
  */
 export default function PreviewIndexRedirect() {
-  const router = useRouter();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Redirect to the unified badge preview page
-    router.replace("/preview/unified");
-  }, [router]);
+    navigate("/preview/unified", { replace: true });
+  }, [navigate]);
 
   return (
     <div className="container mx-auto py-12 flex items-center justify-center">

@@ -3,15 +3,15 @@
  * as part of the Phase 3 badge system refactoring.
  */
 import { useEffect } from "react";
-import { useRouter } from "next/router";
+import { useNavigate } from "react-router-dom";
 
 export default function LegacyPreviewRedirect() {
-  const router = useRouter();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Redirect to the new unified badge preview page
-    router.replace("/preview/unified");
-  }, [router]);
+    navigate("/preview/unified", { replace: true });
+  }, [navigate]);
 
   return (
     <div className="container mx-auto py-12 flex items-center justify-center">

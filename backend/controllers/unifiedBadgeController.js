@@ -161,6 +161,58 @@ export const saveBadgeSettings = async (req, res) => {
 };
 
 /**
+ * Save multiple badge settings at once
+ */
+export const saveBatchBadgeSettings = async (req, res) => {
+  try {
+    const settingsArray = req.body;
+    
+    if (!Array.isArray(settingsArray) || settingsArray.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Request body must be an array of badge settings'
+      });
+    }
+    
+    const savedSettings = [];
+    
+    // Process each badge setting in the array
+    for (const settings of settingsArray) {
+      if (!settings.badge_type || !settings.user_id) {
+        return res.status(400).json({
+          success: false,
+          message: 'Each badge setting must have badge_type and user_id'
+        });
+      }
+      
+      if (!['audio', 'resolution', 'review'].includes(settings.badge_type)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid badge type: ${settings.badge_type}. Must be one of: audio, resolution, review`
+        });
+      }
+      
+      // Save the settings
+      const savedSetting = await upsertBadgeSettings(settings);
+      savedSettings.push(savedSetting);
+    }
+    
+    return res.status(200).json({
+      success: true,
+      data: savedSettings,
+      message: 'All badge settings saved successfully'
+    });
+  } catch (error) {
+    logger.error(`Error saving batch badge settings: ${error.message}`);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to save batch badge settings',
+      error: error.message
+    });
+  }
+};
+
+/**
  * Delete badge settings
  */
 export const deleteBadgeSettingsHandler = async (req, res) => {

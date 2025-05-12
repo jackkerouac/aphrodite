@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import Sidebar from "@/components/sidebar"
 import { Toaster } from "@/components/ui/sonner.jsx"
 import { UserProvider } from "@/contexts/UserContext"
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Providers } from "@/providers"
 
 // Import pages
 import Dashboard from "@/pages/dashboard"
@@ -21,6 +21,7 @@ import TestIntegration from "@/pages/test-integration.tsx";
 import TestJobs from "@/pages/test-jobs.tsx";
 import { TestWebSocket } from "@/pages/test-websocket.tsx";
 import { UserSelector } from "@/components/user-selector"
+import UnifiedBadgePreviewPage from "@/pages/preview/UnifiedBadgePreviewPage";
 
 // Placeholder components for each settings page
 const UserSettings = () => (
@@ -38,19 +39,9 @@ const Settings = () => (
   </div>
 );
 
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 60 * 1000, // 1 minute
-      refetchOnWindowFocus: false,
-    },
-  },
-})
-
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
+    <Providers>
       <UserProvider>
         <Router>
           <div className="flex min-h-screen">
@@ -63,6 +54,7 @@ function App() {
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/run" element={<RunAphrodite />} />
                   <Route path="/preview" element={<Preview />} />
+                  <Route path="/preview/unified" element={<UnifiedBadgePreviewPage />} />
                   <Route path="/history" element={<JobHistory />} />
                   <Route path="/logs" element={<Logs />} />
                   <Route path="/scheduler" element={<Scheduler />} />
@@ -80,7 +72,7 @@ function App() {
           {/* The Toaster component will display notifications */}
         </Router>
       </UserProvider>
-    </QueryClientProvider>
+    </Providers>
   )
 }
 

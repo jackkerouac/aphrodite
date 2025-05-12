@@ -1,2 +1,37 @@
 [2025-05-12T16:03:50.301Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
 [2025-05-12T16:03:50.317Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-12T16:50:47.540Z] INFO: [GET] /api/jellyfin-libraries/1 200 — 685ms
+[2025-05-12T16:50:47.812Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 269ms
+[2025-05-12T16:50:48.083Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 268ms
+[2025-05-12T16:55:52.015Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 404 — 3ms
+[2025-05-12T16:55:53.192Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 404 — 1ms
+[2025-05-12T16:56:10.695Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 404 — 1ms
+[2025-05-12T16:56:11.767Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 404 — 1ms
+[2025-05-12T16:58:53.848Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 404 — 1ms
+[2025-05-12T16:58:54.899Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 404 — 1ms
+[2025-05-12T16:59:00.528Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 404 — 1ms
+[2025-05-12T16:59:01.613Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 404 — 0ms
+[2025-05-12T16:59:49.091Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-12T16:59:49.106Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-12T16:59:51.885Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 404 — 3ms
+[2025-05-12T16:59:52.997Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 404 — 2ms
+[2025-05-12T16:59:57.900Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-12T16:59:57.918Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-12T16:59:58.472Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-12T16:59:58.482Z] ERROR: Error getting all badge settings: relation "unified_badge_settings" does not exist
+[2025-05-12T16:59:58.482Z] ERROR: Error getting all badge settings: relation "unified_badge_settings" does not exist
+[2025-05-12T16:59:58.488Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 500 — 17ms
+[2025-05-12T16:59:59.602Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-12T16:59:59.621Z] ERROR: Error getting all badge settings: relation "unified_badge_settings" does not exist
+[2025-05-12T16:59:59.622Z] ERROR: Error getting all badge settings: relation "unified_badge_settings" does not exist
+[2025-05-12T16:59:59.624Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 500 — 23ms
+[2025-05-12T17:00:26.399Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-12T17:00:26.414Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-12T17:00:56.912Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-12T17:00:56.930Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-12T17:01:42.491Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-12T17:01:42.506Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-12T17:03:24.576Z] INFO: Starting unified_badge_settings table migration...
+[2025-05-12T17:03:24.703Z] INFO: Migration completed successfully!
+[2025-05-12T17:03:31.516Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-12T17:03:31.533Z] INFO: Server running on port 5000 with WebSocket support

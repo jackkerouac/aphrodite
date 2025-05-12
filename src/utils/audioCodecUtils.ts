@@ -10,17 +10,19 @@ export interface AudioCodecOption {
 
 // Available audio codec options
 export const audioCodecOptions: AudioCodecOption[] = [
-  { value: 'dolby_atmos', label: 'Dolby Atmos', iconPath: '/assets/images/audio/dolby_atmos.png' },
-  { value: 'dolby_digital', label: 'Dolby Digital', iconPath: '/assets/images/audio/dolby_digital.png' },
-  { value: 'dolby_digital_plus', label: 'Dolby Digital Plus', iconPath: '/assets/images/audio/dolby_digital_plus.png' },
-  { value: 'dolby_truehd', label: 'Dolby TrueHD', iconPath: '/assets/images/audio/dolby_truehd.png' },
-  { value: 'dts', label: 'DTS', iconPath: '/assets/images/audio/dts.png' },
-  { value: 'dts_hd', label: 'DTS-HD', iconPath: '/assets/images/audio/dts_hd.png' },
-  { value: 'dts_hd_ma', label: 'DTS-HD Master Audio', iconPath: '/assets/images/audio/dts_hd_ma.png' },
-  { value: 'dts_x', label: 'DTS:X', iconPath: '/assets/images/audio/dts_x.png' },
-  { value: 'auro_3d', label: 'Auro 3D', iconPath: '/assets/images/audio/auro_3d.png' },
-  { value: 'imax_enhanced', label: 'IMAX Enhanced', iconPath: '/assets/images/audio/imax_enhanced.png' },
-  { value: 'thx', label: 'THX', iconPath: '/assets/images/audio/thx.png' },
+  { value: 'dolby_atmos', label: 'Dolby Atmos', iconPath: '/src/assets/audio_codec/compact/dolby_atmos.png' },
+  { value: 'dolby_digital', label: 'Dolby Digital', iconPath: '/src/assets/audio_codec/compact/digital.png' },
+  { value: 'dolby_digital_plus', label: 'Dolby Digital Plus', iconPath: '/src/assets/audio_codec/compact/plus.png' },
+  { value: 'dolby_truehd', label: 'Dolby TrueHD', iconPath: '/src/assets/audio_codec/compact/truehd.png' },
+  { value: 'dts', label: 'DTS', iconPath: '/src/assets/audio_codec/compact/dts.png' },
+  { value: 'dts_hd', label: 'DTS-HD', iconPath: '/src/assets/audio_codec/compact/dtses.png' },
+  { value: 'dts_hd_ma', label: 'DTS-HD Master Audio', iconPath: '/src/assets/audio_codec/compact/ma.png' },
+  { value: 'dts_x', label: 'DTS:X', iconPath: '/src/assets/audio_codec/compact/dtsx.png' },
+  { value: 'aac', label: 'AAC', iconPath: '/src/assets/audio_codec/compact/aac.png' },
+  { value: 'flac', label: 'FLAC', iconPath: '/src/assets/audio_codec/compact/flac.png' },
+  { value: 'mp3', label: 'MP3', iconPath: '/src/assets/audio_codec/compact/mp3.png' },
+  { value: 'pcm', label: 'PCM', iconPath: '/src/assets/audio_codec/compact/pcm.png' },
+  { value: 'opus', label: 'Opus', iconPath: '/src/assets/audio_codec/compact/opus.png' },
 ];
 
 /**
@@ -36,5 +38,5 @@ export const getAudioCodecIcon = async (codecType: string): Promise<string> => {
   }
   
   // Return a default icon if the codec is not found
-  return '/assets/images/audio/dolby_atmos.png';
+  return '/src/assets/audio_codec/compact/dolby_atmos.png';
 };

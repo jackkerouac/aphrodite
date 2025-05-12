@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useUnifiedBadgeSettings } from '@/hooks';
 import { usePreviewState, BadgeType } from '@/hooks';
-import { UnifiedBadgePreview } from '@/components/badges/unified/UnifiedBadgePreview';
+import UnifiedBadgePreview from '@/components/badges/unified/UnifiedBadgePreview';
 import { BadgeSettingsPanel } from './components/BadgeSettingsPanel';
 import { PreviewControls } from './components/PreviewControls';
 import { UnsavedChangesAlert } from './components/UnsavedChangesAlert';

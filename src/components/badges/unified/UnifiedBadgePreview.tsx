@@ -34,8 +34,8 @@ const UnifiedBadgePreview: React.FC<UnifiedBadgePreviewProps> = ({
       try {
         // Load the appropriate poster based on theme
         const posterSrc = isDarkMode 
-          ? '/assets/images/example_poster_dark.png'
-          : '/assets/images/example_poster_light.png';
+          ? '/src/assets/example_poster_dark.png'
+          : '/src/assets/example_poster_light.png';
         
         const img = new Image();
         img.onload = () => {
