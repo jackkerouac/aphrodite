@@ -38,24 +38,24 @@ export const upsertResolutionBadgeSettings = async (settings) => {
       
       const result = await pool.query(
         `UPDATE resolution_badge_settings SET 
-          size = $1,
-          margin = $2,
-          position = $3,
-          resolution_type = $4,
-          background_color = $5,
-          background_opacity = $6,
-          border_radius = $7,
-          border_width = $8,
-          border_color = $9,
-          border_opacity = $10,
-          shadow_enabled = $11,
-          shadow_color = $12,
-          shadow_blur = $13,
-          shadow_offset_x = $14,
-          shadow_offset_y = $15,
-          z_index = $16,
-          enabled = $17,
-          use_brand_colors = $18
+        size = $1,
+        margin = $2,
+        position = $3,
+        resolution_type = $4,
+        background_color = $5,
+        background_opacity = $6,
+        border_radius = $7,
+        border_width = $8,
+        border_color = $9,
+        border_opacity = $10,
+        shadow_enabled = $11,
+        shadow_color = $12,
+        shadow_blur = $13,
+        shadow_offset_x = $14,
+        shadow_offset_y = $15,
+        z_index = $16,
+        enabled = $17,
+        use_brand_colors = $18
         WHERE user_id = $19
         RETURNING *`,
         [

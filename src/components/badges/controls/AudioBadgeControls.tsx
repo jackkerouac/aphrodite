@@ -28,6 +28,11 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
     // Log just the essential info
     console.log(`Updating ${field} to:`, value);
     
+    // Extra debug for background color
+    if (field === 'backgroundColor') {
+      console.log('Changing background color to:', value);
+    }
+    
     // Create new settings based on current local settings
     const newSettings = {
       ...localSettings,
@@ -45,6 +50,11 @@ const AudioBadgeControls: React.FC<AudioBadgeControlsProps> = ({ settings, onCha
     
     // Force a synchronous execution to ensure local state is updated
     setTimeout(() => {
+      // Extra debug for background color
+      if (field === 'backgroundColor') {
+        console.log('About to call onChange with backgroundColor:', newSettings.backgroundColor);
+      }
+      
       // Then update parent settings
       onChange(newSettings);
     }, 0);

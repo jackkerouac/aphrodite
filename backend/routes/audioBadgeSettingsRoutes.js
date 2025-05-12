@@ -45,27 +45,40 @@ router.post('/:userId', async (req, res) => {
   }
   const userId = Number(req.params.userId);
   
-  // Extract fields from request body
-  const { 
-    size, 
-    margin, 
-    position,
-    codec_type,
-    background_color, 
-    background_opacity,
-    border_radius,
-    border_width,
-    border_color,
-    border_opacity,
-    shadow_enabled,
-    shadow_color,
-    shadow_blur,
-    shadow_offset_x,
-    shadow_offset_y,
-    z_index,
-    badge_image,
-    enabled
-  } = req.body;
+  // Extract and normalize fields from request body
+  const body = req.body;
+  
+  // Support both camelCase and snake_case field names
+  const size = body.size;
+  const margin = body.margin;
+  const position = body.position;
+  const codec_type = body.codec_type || body.codecType || body.audio_codec_type;
+  const background_color = body.background_color || body.backgroundColor;
+  // Support both opacity and transparency naming
+  const background_opacity = body.background_opacity !== undefined ? body.background_opacity : 
+                            (body.background_transparency !== undefined ? body.background_transparency : 
+                            (body.backgroundOpacity !== undefined ? body.backgroundOpacity : body.backgroundTransparency));
+  const border_radius = body.border_radius || body.borderRadius;
+  const border_width = body.border_width || body.borderWidth;
+  const border_color = body.border_color || body.borderColor;
+  const border_opacity = body.border_opacity !== undefined ? body.border_opacity : 
+                        (body.border_transparency !== undefined ? body.border_transparency : 
+                        (body.borderOpacity !== undefined ? body.borderOpacity : body.borderTransparency));
+  const shadow_enabled = body.shadow_enabled !== undefined ? body.shadow_enabled : 
+                        (body.shadow_toggle !== undefined ? body.shadow_toggle : 
+                        (body.shadowEnabled !== undefined ? body.shadowEnabled : body.shadowToggle));
+  const shadow_color = body.shadow_color || body.shadowColor;
+  const shadow_blur = body.shadow_blur || body.shadow_blur_radius || body.shadowBlur;
+  const shadow_offset_x = body.shadow_offset_x || body.shadowOffsetX;
+  const shadow_offset_y = body.shadow_offset_y || body.shadowOffsetY;
+  const z_index = body.z_index || body.zIndex;
+  const badge_image = body.badge_image;
+  const enabled = body.enabled;
+  const text_color = body.text_color || body.textColor;
+  const font_family = body.font_family || body.fontFamily;
+  const font_size = body.font_size || body.fontSize;
+  const use_brand_colors = body.use_brand_colors !== undefined ? body.use_brand_colors : 
+                          (body.useBrandColors !== undefined ? body.useBrandColors : true);
   
   // Validate required fields
   const missingFields = [];
@@ -109,7 +122,11 @@ router.post('/:userId', async (req, res) => {
       shadow_offset_y,
       z_index,
       badge_image,
-      enabled
+      enabled,
+      text_color,
+      font_family,
+      font_size,
+      use_brand_colors
     });
     console.log('✅ Audio Badge settings saved successfully:', saved);
     res.json(saved);

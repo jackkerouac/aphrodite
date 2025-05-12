@@ -54,66 +54,93 @@ export const reviewBadge = {
   saveSettings: async (settings: ReviewBadgeSettings, userId: string = '1'): Promise<void> => {
     console.log('📤 [apiClient] Saving Review Badge settings:', settings);
 
+    // Convert camelCase to snake_case and ensure all required fields are properly mapped
+    const settingsToSend: any = {};
+    
+    // Handle position - could be enum or string format
+    let positionValue;
+    if (settings.position) {
+      if (typeof settings.position === 'string') {
+        // The position may be in formats like 'TopRight', 'top-right', etc.
+        // Normalize to the format expected by the backend ('top-right')
+        positionValue = settings.position
+          .replace(/([A-Z])/g, '-$1')
+          .toLowerCase()
+          .replace(/^-/, '');
+      } else if (typeof settings.position === 'object' && settings.position.name) {
+        // Handle enum objects like BadgePosition.TopRight
+        positionValue = settings.position.name
+          .replace(/([A-Z])/g, '-$1')
+          .toLowerCase()
+          .replace(/^-/, '');
+      } else {
+        // Default fallback
+        positionValue = 'bottom-left';
+      }
+    } else {
+      positionValue = 'bottom-left';
+    }
+    
+    // Map all properties - handle both camelCase and snake_case inputs
+    settingsToSend.size = Number(settings.size);
+    settingsToSend.margin = Number(settings.margin);
+    settingsToSend.position = positionValue;
+    settingsToSend.background_color = String(settings.background_color || settings.backgroundColor || '#000000');
+    settingsToSend.background_opacity = Number(settings.background_opacity || settings.background_transparency || settings.backgroundOpacity || 0.8);
+    settingsToSend.border_radius = Number(settings.border_radius || settings.borderRadius || 4);
+    settingsToSend.border_width = Number(settings.border_width || settings.borderWidth || 1);
+    settingsToSend.border_color = String(settings.border_color || settings.borderColor || '#ffffff');
+    settingsToSend.border_opacity = Number(settings.border_opacity || settings.border_transparency || settings.borderOpacity || 0.8);
+    settingsToSend.shadow_enabled = Boolean(settings.shadow_enabled || settings.shadow_toggle || settings.shadowEnabled || false);
+    settingsToSend.shadow_color = String(settings.shadow_color || settings.shadowColor || '#000000');
+    settingsToSend.shadow_blur = Number(settings.shadow_blur || settings.shadow_blur_radius || settings.shadowBlur || 5);
+    settingsToSend.shadow_offset_x = Number(settings.shadow_offset_x || settings.shadowOffsetX || 2);
+    settingsToSend.shadow_offset_y = Number(settings.shadow_offset_y || settings.shadowOffsetY || 2);
+    settingsToSend.z_index = Number(settings.z_index || settings.zIndex || 1);
+    settingsToSend.badge_layout = String(settings.badge_layout || settings.displayFormat || 'horizontal');
+    settingsToSend.display_sources = Array.isArray(settings.display_sources) ? settings.display_sources : (Array.isArray(settings.displaySources) ? settings.displaySources : ['IMDB', 'TMDB']);
+    settingsToSend.source_order = Array.isArray(settings.source_order) ? settings.source_order : (Array.isArray(settings.sourceOrder) ? settings.sourceOrder : reviewSources);
+    settingsToSend.show_logo = Boolean(settings.show_logo || settings.showLogo || true);
+    settingsToSend.logo_size = Number(settings.logo_size || settings.logoSize || 24);
+    settingsToSend.logo_position = String(settings.logo_position || settings.logoPosition || 'top');
+    settingsToSend.logo_text_spacing = Number(settings.logo_text_spacing || settings.logoTextSpacing || 5);
+    settingsToSend.score_format = String(settings.score_format || settings.scoreFormat || 'decimal');
+    settingsToSend.spacing = Number(settings.spacing || 5);
+    settingsToSend.font_family = String(settings.font_family || settings.fontFamily || 'Inter');
+    settingsToSend.font_size = Number(settings.font_size || settings.fontSize || 16);
+    settingsToSend.font_weight = Number(settings.font_weight || settings.fontWeight || 600);
+    settingsToSend.text_color = String(settings.text_color || settings.textColor || '#ffffff');
+    settingsToSend.text_opacity = Number(settings.text_opacity || settings.text_transparency || settings.textOpacity || 0);
+    settingsToSend.max_sources_to_show = Number(settings.max_sources_to_show || settings.maxSourcesToShow || 3);
+    settingsToSend.use_brand_colors = settings.use_brand_colors !== undefined ? Boolean(settings.use_brand_colors) : 
+                                    (settings.useBrandColors !== undefined ? Boolean(settings.useBrandColors) : true);
+    
+    // Check for required fields
     const requiredFields = [
       'size',
       'margin',
+      'position',
       'background_color',
-      'background_transparency',
+      'background_opacity',
       'border_radius',
       'border_width',
       'border_color',
-      'border_transparency',
+      'border_opacity',
       'z_index'
     ];
 
     const missingFields: string[] = [];
     for (const field of requiredFields) {
-      const value = settings[field as keyof ReviewBadgeSettings];
-      if (value === undefined || value === null || value === '') {
+      if (settingsToSend[field] === undefined || settingsToSend[field] === null || settingsToSend[field] === '') {
         missingFields.push(field);
       }
     }
 
     if (missingFields.length > 0) {
       console.error('🚫 [apiClient] Missing required fields:', missingFields);
-      console.error('🚫 [apiClient] Current settings values:', settings);
+      console.error('🚫 [apiClient] Current settings values:', settingsToSend);
       throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
     }
-
-    // Include all fields for the backend
-    const settingsToSend = {
-      size: Number(settings.size),
-      margin: Number(settings.margin),
-      background_color: String(settings.background_color),
-      background_transparency: Number(settings.background_transparency),
-      border_radius: Number(settings.border_radius),
-      border_width: Number(settings.border_width),
-      border_color: String(settings.border_color),
-      border_transparency: Number(settings.border_transparency),
-      shadow_toggle: Boolean(settings.shadow_toggle),
-      shadow_color: String(settings.shadow_color || '#000000'),
-      shadow_blur_radius: Number(settings.shadow_blur_radius || 0),
-      shadow_offset_x: Number(settings.shadow_offset_x || 0),
-      shadow_offset_y: Number(settings.shadow_offset_y || 0),
-      z_index: Number(settings.z_index),
-      position: String(settings.position),
-      badge_layout: String(settings.badge_layout),
-      // Convert the arrays to proper PostgreSQL array format
-      display_sources: Array.isArray(settings.display_sources) ? settings.display_sources : [],
-      source_order: Array.isArray(settings.source_order) ? settings.source_order : reviewSources,
-      show_logo: Boolean(settings.show_logo),
-      logo_size: Number(settings.logo_size),
-      logo_position: String(settings.logo_position),
-      logo_text_spacing: Number(settings.logoTextSpacing),
-      score_format: String(settings.score_format),
-      spacing: Number(settings.spacing),
-      font_family: String(settings.font_family),
-      font_size: Number(settings.font_size),
-      font_weight: Number(settings.font_weight),
-      text_color: String(settings.text_color),
-      text_transparency: Number(settings.text_transparency),
-      use_brand_colors: settings.use_brand_colors !== undefined ? Boolean(settings.use_brand_colors) : true
-    };
 
     console.log('📤 [apiClient] Processed settings to send:', settingsToSend);
 

@@ -206,7 +206,8 @@ class PosterProcessor {
         shadow_offset_x,
         shadow_offset_y,
         margin as padding,
-        z_index as stacking_order
+        z_index as stacking_order,
+        use_brand_colors
       FROM review_badge_settings
       WHERE user_id = $1 AND enabled = true
     `;

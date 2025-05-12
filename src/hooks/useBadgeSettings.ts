@@ -82,7 +82,7 @@ export const useBadgeSettings = <T>(
   const [badgeSettings, setBadgeSettings] = useState<T>(getDefaultSettings<T>(type));
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load settings from local storage or API with a memoized getter
+  // Load settings from API first, then fall back to local storage
   useEffect(() => {
     // Keep track of mounted status to prevent updates after unmount
     let isMounted = true;
@@ -92,7 +92,136 @@ export const useBadgeSettings = <T>(
     const loadSettings = async () => {
       setIsLoading(true);
       try {
-        // Try to load from local storage first
+        // First try to load from API
+        let fetchedSettings = null;
+        
+        try {
+          console.log(`Attempting to load ${type} badge settings from API for user ${userId}`);
+          if (type === 'audio') {
+            fetchedSettings = await apiClient.audioBadge.getSettings(userId);
+          } else if (type === 'resolution') {
+            fetchedSettings = await apiClient.resolutionBadge.getSettings(userId);
+          } else if (type === 'review') {
+            fetchedSettings = await apiClient.reviewBadge.getSettings(userId);
+          }
+          
+          if (fetchedSettings) {
+            console.log(`Successfully loaded ${type} badge settings from API:`, fetchedSettings);
+            
+            // Convert snake_case to camelCase for frontend use
+            const convertedSettings: any = {};
+            // First copy all properties as-is
+            Object.keys(fetchedSettings).forEach(key => {
+              convertedSettings[key] = fetchedSettings[key];
+            });
+            
+            // Then map specific snake_case properties to camelCase
+            if (type === 'audio') {
+              convertedSettings.codecType = fetchedSettings.codec_type || fetchedSettings.audio_codec_type;
+              convertedSettings.backgroundColor = fetchedSettings.background_color;
+              convertedSettings.backgroundOpacity = fetchedSettings.background_opacity || fetchedSettings.background_transparency;
+              convertedSettings.borderRadius = fetchedSettings.border_radius;
+              convertedSettings.borderWidth = fetchedSettings.border_width;
+              convertedSettings.borderColor = fetchedSettings.border_color;
+              convertedSettings.borderOpacity = fetchedSettings.border_opacity || fetchedSettings.border_transparency;
+              convertedSettings.shadowEnabled = fetchedSettings.shadow_enabled || fetchedSettings.shadow_toggle;
+              convertedSettings.shadowColor = fetchedSettings.shadow_color;
+              convertedSettings.shadowBlur = fetchedSettings.shadow_blur || fetchedSettings.shadow_blur_radius;
+              convertedSettings.shadowOffsetX = fetchedSettings.shadow_offset_x;
+              convertedSettings.shadowOffsetY = fetchedSettings.shadow_offset_y;
+              convertedSettings.zIndex = fetchedSettings.z_index;
+              convertedSettings.textColor = fetchedSettings.text_color;
+              convertedSettings.fontFamily = fetchedSettings.font_family;
+              convertedSettings.fontSize = fetchedSettings.font_size;
+              convertedSettings.useBrandColors = fetchedSettings.use_brand_colors;
+            } else if (type === 'resolution') {
+              convertedSettings.resolutionType = fetchedSettings.resolution_type;
+              convertedSettings.backgroundColor = fetchedSettings.background_color;
+              convertedSettings.backgroundOpacity = fetchedSettings.background_opacity || fetchedSettings.background_transparency;
+              convertedSettings.borderRadius = fetchedSettings.border_radius;
+              convertedSettings.borderWidth = fetchedSettings.border_width;
+              convertedSettings.borderColor = fetchedSettings.border_color;
+              convertedSettings.borderOpacity = fetchedSettings.border_opacity || fetchedSettings.border_transparency;
+              convertedSettings.shadowEnabled = fetchedSettings.shadow_enabled || fetchedSettings.shadow_toggle;
+              convertedSettings.shadowColor = fetchedSettings.shadow_color;
+              convertedSettings.shadowBlur = fetchedSettings.shadow_blur || fetchedSettings.shadow_blur_radius;
+              convertedSettings.shadowOffsetX = fetchedSettings.shadow_offset_x;
+              convertedSettings.shadowOffsetY = fetchedSettings.shadow_offset_y;
+              convertedSettings.zIndex = fetchedSettings.z_index;
+              convertedSettings.textColor = fetchedSettings.text_color;
+              convertedSettings.fontFamily = fetchedSettings.font_family;
+              convertedSettings.fontSize = fetchedSettings.font_size;
+              convertedSettings.useBrandColors = fetchedSettings.use_brand_colors;
+            } else if (type === 'review') {
+              convertedSettings.displayFormat = fetchedSettings.badge_layout; 
+              convertedSettings.displaySources = fetchedSettings.display_sources;
+              convertedSettings.sourceOrder = fetchedSettings.source_order;
+              convertedSettings.showLogo = fetchedSettings.show_logo;
+              convertedSettings.logoSize = fetchedSettings.logo_size;
+              convertedSettings.logoPosition = fetchedSettings.logo_position;
+              convertedSettings.logoTextSpacing = fetchedSettings.logo_text_spacing;
+              convertedSettings.scoreFormat = fetchedSettings.score_format;
+              convertedSettings.backgroundColor = fetchedSettings.background_color;
+              convertedSettings.backgroundOpacity = fetchedSettings.background_opacity || fetchedSettings.background_transparency;
+              convertedSettings.borderRadius = fetchedSettings.border_radius;
+              convertedSettings.borderWidth = fetchedSettings.border_width;
+              convertedSettings.borderColor = fetchedSettings.border_color;
+              convertedSettings.borderOpacity = fetchedSettings.border_opacity || fetchedSettings.border_transparency;
+              convertedSettings.shadowEnabled = fetchedSettings.shadow_enabled || fetchedSettings.shadow_toggle;
+              convertedSettings.shadowColor = fetchedSettings.shadow_color;
+              convertedSettings.shadowBlur = fetchedSettings.shadow_blur || fetchedSettings.shadow_blur_radius;
+              convertedSettings.shadowOffsetX = fetchedSettings.shadow_offset_x;
+              convertedSettings.shadowOffsetY = fetchedSettings.shadow_offset_y;
+              convertedSettings.zIndex = fetchedSettings.z_index;
+              convertedSettings.fontFamily = fetchedSettings.font_family;
+              convertedSettings.fontSize = fetchedSettings.font_size;
+              convertedSettings.fontWeight = fetchedSettings.font_weight;
+              convertedSettings.textColor = fetchedSettings.text_color;
+              convertedSettings.textOpacity = fetchedSettings.text_opacity || fetchedSettings.text_transparency;
+              convertedSettings.maxSourcesToShow = fetchedSettings.max_sources_to_show;
+              convertedSettings.useBrandColors = fetchedSettings.use_brand_colors;
+            }
+            
+            // Handle position conversion - from string to enum
+            if (typeof fetchedSettings.position === 'string') {
+              // Convert position from snake-case string to BadgePosition enum
+              const positionStr = fetchedSettings.position;
+              const formattedPosition = positionStr
+                .split('-')
+                .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+                .join('');
+                
+              // Find the matching BadgePosition value
+              convertedSettings.position = BadgePosition[formattedPosition as keyof typeof BadgePosition] || 
+                                         (type === 'audio' ? BadgePosition.TopLeft : 
+                                         (type === 'resolution' ? BadgePosition.TopRight : BadgePosition.BottomLeft));
+            }
+            
+            // Make sure to include type
+            convertedSettings.type = type;
+            
+            console.log(`Converted API settings to frontend format:`, convertedSettings);
+            
+            // Update local storage with the latest API settings
+            localStorage.setItem(settingsKey, JSON.stringify(convertedSettings));
+            
+            // Default settings for merging to ensure all properties exist
+            const defaultSettings = getDefaultSettings<T>(type);
+            
+            // Only update state if component is still mounted
+            if (isMounted) {
+              setBadgeSettings({ ...defaultSettings, ...convertedSettings as unknown as T });
+              setIsLoading(false);
+              return; // Success - no need to proceed further
+            }
+          }
+        } catch (apiError) {
+          console.warn(`Could not load ${type} badge settings from API:`, apiError);
+          // Continue to local storage as fallback
+        }
+      } catch (error) {
+        console.error(`Error loading ${type} badge settings:`, error);
+        // If the API call failed or didn't return valid settings, try localStorage as fallback
         const savedSettings = localStorage.getItem(settingsKey);
         
         // Only update state if component is still mounted
@@ -112,14 +241,11 @@ export const useBadgeSettings = <T>(
               return;
             }
             
-            // No need to constrain the size anymore since badge size is now determined by the codec image
-            // The size property is still kept for backward compatibility but isn't used for audio badges
-            
             // Merge with default settings to ensure all properties exist
             const defaultSettings = getDefaultSettings<T>(type);
             setBadgeSettings({ ...defaultSettings, ...parsedSettings });
           } catch (parseError) {
-            console.error(`Error parsing ${type} badge settings:`, parseError);
+            console.error(`Error parsing ${type} badge settings from localStorage:`, parseError);
             // Use default settings if parsing fails
             const defaultSettings = getDefaultSettings<T>(type);
             setBadgeSettings(defaultSettings);
@@ -127,24 +253,11 @@ export const useBadgeSettings = <T>(
             localStorage.setItem(settingsKey, JSON.stringify(defaultSettings));
           }
         } else {
-          // If not found in local storage, use default settings
+          // If not found in localStorage either, use default settings
           const defaultSettings = getDefaultSettings<T>(type);
           setBadgeSettings(defaultSettings);
           // Save default settings to localStorage for future use
           localStorage.setItem(settingsKey, JSON.stringify(defaultSettings));
-        }
-      } catch (error) {
-        console.error(`Error loading ${type} badge settings:`, error);
-        // Fall back to default settings if component is still mounted
-        if (isMounted) {
-          const defaultSettings = getDefaultSettings<T>(type);
-          setBadgeSettings(defaultSettings);
-          // Try to save default settings to localStorage
-          try {
-            localStorage.setItem(settingsKey, JSON.stringify(defaultSettings));
-          } catch (saveError) {
-            console.error(`Error saving default ${type} badge settings:`, saveError);
-          }
         }
       } finally {
         // Only update loading state if component is still mounted
@@ -167,6 +280,14 @@ export const useBadgeSettings = <T>(
    */
   const saveBadgeSettings = async (newSettings: T) => {
     console.log(`saveBadgeSettings called for ${type} with:`, newSettings);
+    
+    if (type === 'audio') {
+      // Special debug for background color
+      console.log('Audio badge background color before save:', 
+                 (newSettings as any).backgroundColor, 
+                 'Type:', typeof (newSettings as any).backgroundColor);
+    }
+    
     try {
       // Create a unique key for the settings
       const settingsKey = `badgeSettings-${userId}-${type}`;
@@ -196,31 +317,40 @@ export const useBadgeSettings = <T>(
         const apiSettings = { ...mergedSettings };
         
         // Map fields to match API expectations
-        if (type === 'audio') {
-          apiSettings.audio_codec_type = apiSettings.codecType;
-          apiSettings.background_transparency = apiSettings.backgroundOpacity;
-          apiSettings.border_transparency = apiSettings.borderOpacity;
-          apiSettings.shadow_toggle = apiSettings.shadowEnabled;
-          apiSettings.shadow_blur_radius = apiSettings.shadowBlur;
-          await apiClient.audioBadge.saveSettings(apiSettings, userId);
-        } else if (type === 'resolution') {
-          apiSettings.resolution_type = apiSettings.resolutionType;
-          apiSettings.background_transparency = apiSettings.backgroundOpacity;
-          apiSettings.border_transparency = apiSettings.borderOpacity;
-          apiSettings.shadow_toggle = apiSettings.shadowEnabled;
-          apiSettings.shadow_blur_radius = apiSettings.shadowBlur;
-          await apiClient.resolutionBadge.saveSettings(apiSettings, userId);
-        } else if (type === 'review') {
-          apiSettings.background_transparency = apiSettings.backgroundOpacity;
-          apiSettings.border_transparency = apiSettings.borderOpacity;
-          apiSettings.shadow_toggle = apiSettings.shadowEnabled;
-          apiSettings.shadow_blur_radius = apiSettings.shadowBlur;
-          await apiClient.reviewBadge.saveSettings(apiSettings, userId);
+        let savedToApi = false;
+        
+        // Explicit handling for the background color
+        if (apiSettings.backgroundColor) {
+          apiSettings.background_color = apiSettings.backgroundColor;
+          console.log(`Explicitly mapping backgroundColor (${apiSettings.backgroundColor}) to background_color`);
         }
         
-        console.log(`Successfully saved ${type} badge settings to backend API`);
+        try {
+          if (type === 'audio') {
+            console.log('Audio badge settings being sent to API:');
+            console.log('- backgroundColor:', apiSettings.backgroundColor);
+            console.log('- background_color:', apiSettings.background_color);
+            console.log('- Size:', apiSettings.size);
+            await apiClient.audioBadge.saveSettings(apiSettings, userId);
+            savedToApi = true;
+          } else if (type === 'resolution') {
+            await apiClient.resolutionBadge.saveSettings(apiSettings, userId);
+            savedToApi = true;
+          } else if (type === 'review') {
+            await apiClient.reviewBadge.saveSettings(apiSettings, userId);
+            savedToApi = true;
+          }
+          
+          console.log(`Successfully saved ${type} badge settings to backend API`);
+        } catch (apiError) {
+          console.error(`Error saving ${type} badge settings to API:`, apiError);
+          // If API save fails but localStorage succeeds, we'll at least have the visual updates
+          if (!savedToApi) {
+            console.warn(`Settings were saved to localStorage but not to the backend API. Changes may not persist across sessions.`);
+          }
+        }
       } catch (storageError) {
-        console.error(`Error saving ${type} badge settings:`, storageError);
+        console.error(`Error saving ${type} badge settings to localStorage:`, storageError);
       }
       
       return true;
