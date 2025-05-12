@@ -1,15 +1,15 @@
-/**
- * This page now redirects to the new, unified badge preview page
- * as part of the Phase 3 badge system refactoring.
- */
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 
-export default function LegacyPreviewRedirect() {
+/**
+ * Index redirect for preview directory
+ * Routes users to the new unified badge preview page
+ */
+export default function PreviewIndexRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to the new unified badge preview page
+    // Redirect to the unified badge preview page
     router.replace("/preview/unified");
   }, [router]);
 
@@ -18,7 +18,7 @@ export default function LegacyPreviewRedirect() {
       <div className="text-center">
         <h1 className="text-2xl font-bold mb-4">Redirecting...</h1>
         <p className="text-muted-foreground">
-          This page has been replaced by the new unified badge preview system.
+          Taking you to the badge preview system.
         </p>
         <p className="mt-4">
           If you are not redirected automatically, please{" "}
