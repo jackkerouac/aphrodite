@@ -142,25 +142,9 @@ const ReviewBadgeControls: React.FC<ReviewBadgeControlsProps> = ({ settings, onC
           </div>
         </div>
 
-        {/* Score Type */}
-        <div className="space-y-2 mb-4">
-          <Label htmlFor="score_type">Score Type</Label>
-          <Select
-            value={settings.properties.score_type || 'percentage'}
-            onValueChange={(value) => handlePropertyChange('score_type', value)}
-          >
-            <SelectTrigger id="score_type">
-              <SelectValue placeholder="Select score type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="percentage">Percentage</SelectItem>
-              <SelectItem value="rating">Rating (out of 10)</SelectItem>
-              <SelectItem value="stars">Stars (out of 5)</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="text-xs text-gray-500 mt-1">
-            How scores should be displayed in the badge
-          </div>
+        {/* Score Type display information */}
+        <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-md">
+          <p className="text-sm">All review scores will be displayed as percentages (e.g., 75%)</p>
         </div>
       </div>
     </BaseBadgeControls>

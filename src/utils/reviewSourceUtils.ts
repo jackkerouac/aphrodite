@@ -92,32 +92,33 @@ export const getRTIconForScore = (type: 'audience' | 'critic', score: number): s
  * @returns Formatted score string
  */
 export const formatScore = (source: string, score: number, scoreType: string = 'percentage'): string => {
+  // Convert all scores to percentage format with % symbol
   if (source === 'imdb') {
-    // IMDb is on a 1-10 scale with one decimal place
-    return score.toFixed(1);
+    // IMDb is on a 1-10 scale, convert to percentage
+    return `${Math.round(score * 10)}%`;
   } else if (source.startsWith('rt_')) {
-    // Rotten Tomatoes uses percentages
+    // Rotten Tomatoes already uses percentages
     return `${Math.round(score)}%`;
   } else if (source === 'metacritic') {
-    // Metacritic uses a 0-100 scale
-    return `${Math.round(score)}`;
+    // Metacritic already uses a 0-100 scale
+    return `${Math.round(score)}%`;
   } else if (source === 'letterboxd') {
-    // Letterboxd uses a 0-5 scale with half steps
-    return (Math.round(score * 2) / 2).toFixed(1);
+    // Letterboxd uses a 0-5 scale, convert to percentage
+    return `${Math.round(score * 20)}%`;
   } else if (source === 'tmdb') {
-    // TMDb uses a 0-10 scale with one decimal place
-    return score.toFixed(1);
+    // TMDb uses a 0-10 scale, convert to percentage
+    return `${Math.round(score * 10)}%`;
   } else if (source === 'mal') {
-    // MyAnimeList uses a 1-10 scale with two decimal places
-    return score.toFixed(2);
+    // MyAnimeList uses a 1-10 scale, convert to percentage
+    return `${Math.round(score * 10)}%`;
   } else {
-    // Default formatting based on score type
-    if (scoreType === 'percentage') {
+    // Default formatting to percentage for all other sources
+    // If the score is already in percentage format (0-100), use it directly
+    // Otherwise, assume it's a 0-10 rating and convert
+    if (score > 10) {
       return `${Math.round(score)}%`;
-    } else if (scoreType === 'rating') {
-      return score.toFixed(1);
     } else {
-      return score.toString();
+      return `${Math.round(score * 10)}%`;
     }
   }
 };

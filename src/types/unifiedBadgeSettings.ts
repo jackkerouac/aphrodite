@@ -161,6 +161,7 @@ export const DEFAULT_REVIEW_BADGE_SETTINGS: ReviewBadgeSettings = {
   shadow_offset_y: 0,
   properties: {
     review_sources: ['imdb', 'rotten_tomatoes'],
+    // Always use percentage as the default score type
     score_type: 'percentage'
   }
 };

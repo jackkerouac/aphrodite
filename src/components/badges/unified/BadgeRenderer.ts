@@ -417,12 +417,28 @@ export class BadgeRenderer {
           ctx.textAlign = 'center';
           ctx.textBaseline = 'top';
           
-          // Use score color based on source and value (using 75 as default demo value)
-          const demoScore = source === 'imdb' ? 7.5 : 75;
+          // Use realistic demo values based on source type
+          let demoScore;
+          if (source === 'imdb') {
+            demoScore = 7.5; // IMDb is typically 0-10
+          } else if (source.startsWith('rt_')) {
+            demoScore = 75; // RT is already percentage
+          } else if (source === 'metacritic') {
+            demoScore = 75; // Metacritic is already 0-100
+          } else if (source === 'letterboxd') {
+            demoScore = 3.8; // Letterboxd is 0-5
+          } else if (source === 'tmdb') {
+            demoScore = 7.5; // TMDb is 0-10
+          } else if (source === 'mal') {
+            demoScore = 7.8; // MAL is 0-10
+          } else {
+            demoScore = 75; // Default to percentage for unknown sources
+          }
+          
           ctx.fillStyle = getScoreColor(source, demoScore);
           
-          // Format score based on source
-          const scoreText = formatScore(source, demoScore, scoreType);
+          // Format score as percentage regardless of score type setting
+          const scoreText = formatScore(source, demoScore, 'percentage');
           ctx.fillText(
             scoreText,
             currentX + (iconWidth / 2),
@@ -530,9 +546,25 @@ export class BadgeRenderer {
           // Use white color for all scores regardless of source
           ctx.fillStyle = '#FFFFFF';
           
-          // Format score based on source
-          const demoScore = source === 'imdb' ? 7.5 : 75;
-          const scoreText = formatScore(source, demoScore, scoreType);
+          // Format score as percentage regardless of score type setting
+          // Use realistic demo values based on source type
+          let demoScore;
+          if (source === 'imdb') {
+            demoScore = 7.5; // IMDb is typically 0-10
+          } else if (source.startsWith('rt_')) {
+            demoScore = 75; // RT is already percentage
+          } else if (source === 'metacritic') {
+            demoScore = 75; // Metacritic is already 0-100
+          } else if (source === 'letterboxd') {
+            demoScore = 3.8; // Letterboxd is 0-5
+          } else if (source === 'tmdb') {
+            demoScore = 7.5; // TMDb is 0-10
+          } else if (source === 'mal') {
+            demoScore = 7.8; // MAL is 0-10
+          } else {
+            demoScore = 75; // Default to percentage for unknown sources
+          }
+          const scoreText = formatScore(source, demoScore, 'percentage');
           ctx.fillText(
             scoreText,
             centerX,
@@ -556,7 +588,25 @@ export class BadgeRenderer {
       // Draw text fallback
       reviewSources.forEach((source, index) => {
         const y = height / 2 + (index - reviewSources.length / 2 + 0.5) * fontSize * 1.5;
-        ctx.fillText(`${source.toUpperCase()}: 7.5`, width / 2, y);
+        // Display fallback score as percentage with realistic values
+        let demoScore;
+        if (source === 'imdb') {
+          demoScore = 7.5; // IMDb is typically 0-10
+        } else if (source.startsWith('rt_')) {
+          demoScore = 75; // RT is already percentage
+        } else if (source === 'metacritic') {
+          demoScore = 75; // Metacritic is already 0-100
+        } else if (source === 'letterboxd') {
+          demoScore = 3.8; // Letterboxd is 0-5
+        } else if (source === 'tmdb') {
+          demoScore = 7.5; // TMDb is 0-10
+        } else if (source === 'mal') {
+          demoScore = 7.8; // MAL is 0-10
+        } else {
+          demoScore = 75; // Default to percentage for unknown sources
+        }
+        const scoreText = formatScore(source, demoScore, 'percentage');
+        ctx.fillText(`${source.toUpperCase()}: ${scoreText}`, width / 2, y);
       });
     }
     
