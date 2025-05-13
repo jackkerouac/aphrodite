@@ -1,0 +1,336 @@
+[2025-05-13T03:07:35.406Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-13T03:07:35.418Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-13T03:07:39.770Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T03:07:39.777Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T03:07:39.780Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 11ms
+[2025-05-13T03:11:36.435Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T03:11:36.450Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T03:11:36.461Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T03:11:36.463Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 29ms
+[2025-05-13T03:11:36.470Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T03:11:36.472Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 22ms
+[2025-05-13T03:18:12.692Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T03:18:12.715Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T03:18:12.716Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 24ms
+[2025-05-13T03:18:24.151Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-13T03:18:24.165Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-13T03:18:36.987Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T03:18:37.009Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T03:18:37.012Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 26ms
+[2025-05-13T03:22:32.005Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T03:22:32.031Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T03:22:32.032Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 27ms
+[2025-05-13T03:23:03.288Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:23:03.291Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:23:03.311Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:23:03.312Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 24ms
+[2025-05-13T03:23:03.313Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:23:03.314Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 23ms
+[2025-05-13T03:23:48.283Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T03:23:48.299Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T03:23:48.300Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 17ms
+[2025-05-13T03:23:48.486Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:23:48.490Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:23:48.490Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 4ms
+[2025-05-13T03:23:48.502Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:23:48.505Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:23:48.507Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 5ms
+[2025-05-13T03:25:17.941Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:25:17.963Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:25:17.964Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 23ms
+[2025-05-13T03:25:38.268Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:25:38.272Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:25:38.289Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:25:38.290Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 23ms
+[2025-05-13T03:25:38.294Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:25:38.295Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 24ms
+[2025-05-13T03:28:55.088Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:28:55.108Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:28:55.109Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 21ms
+[2025-05-13T03:28:55.162Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:28:55.165Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:28:55.166Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 4ms
+[2025-05-13T03:28:55.196Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T03:28:55.198Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T03:28:55.199Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T03:33:57.960Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T03:33:57.982Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T03:33:57.983Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 23ms
+[2025-05-13T03:34:12.398Z] INFO: Saving audio badge settings for user ID: 1
+[2025-05-13T03:34:12.399Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:34:12.417Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:34:12.417Z] INFO: Updating existing audio badge settings for user ID: 1
+[2025-05-13T03:34:12.440Z] INFO: Successfully updated audio badge settings for user ID: 1
+[2025-05-13T03:34:12.441Z] INFO: [POST] /api/v1/unified-badge-settings/audio 200 — 43ms
+[2025-05-13T03:34:12.468Z] INFO: Saving resolution badge settings for user ID: 1
+[2025-05-13T03:34:12.468Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-13T03:34:12.471Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-13T03:34:12.471Z] INFO: Updating existing resolution badge settings for user ID: 1
+[2025-05-13T03:34:12.477Z] INFO: Successfully updated resolution badge settings for user ID: 1
+[2025-05-13T03:34:12.477Z] INFO: [POST] /api/v1/unified-badge-settings/resolution 200 — 9ms
+[2025-05-13T03:36:16.947Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:36:16.969Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:36:16.969Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 22ms
+[2025-05-13T03:36:16.994Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:36:16.996Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:36:16.997Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 3ms
+[2025-05-13T03:36:17.060Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T03:36:17.062Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T03:36:17.063Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T03:36:23.561Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:36:23.563Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:36:23.564Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 3ms
+[2025-05-13T03:36:23.607Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:36:23.610Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:36:23.611Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 4ms
+[2025-05-13T03:36:23.644Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T03:36:23.646Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T03:36:23.647Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T03:38:05.156Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:38:05.175Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:38:05.176Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 20ms
+[2025-05-13T03:38:05.202Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:38:05.205Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:38:05.206Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 4ms
+[2025-05-13T03:38:05.237Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T03:38:05.239Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T03:38:05.240Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T03:38:36.251Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:38:36.273Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:38:36.274Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 23ms
+[2025-05-13T03:38:36.297Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:38:36.300Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:38:36.301Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 4ms
+[2025-05-13T03:38:36.346Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T03:38:36.348Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T03:38:36.349Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T03:39:58.597Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:39:58.615Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:39:58.616Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 19ms
+[2025-05-13T03:40:26.765Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:40:26.789Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:40:26.790Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 25ms
+[2025-05-13T03:40:26.831Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:40:26.834Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:40:26.835Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 4ms
+[2025-05-13T03:40:26.913Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T03:40:26.916Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T03:40:26.917Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 4ms
+[2025-05-13T03:41:09.153Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-13T03:41:09.166Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-13T03:41:22.546Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:41:22.569Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:41:22.573Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 27ms
+[2025-05-13T03:41:22.608Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:41:22.612Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:41:22.613Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 5ms
+[2025-05-13T03:41:22.644Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T03:41:22.647Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T03:41:22.649Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 5ms
+[2025-05-13T03:41:32.240Z] INFO: Saving audio badge settings for user ID: 1
+[2025-05-13T03:41:32.241Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:41:32.243Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:41:32.243Z] INFO: Updating existing audio badge settings for user ID: 1
+[2025-05-13T03:41:32.254Z] INFO: Successfully updated audio badge settings for user ID: 1
+[2025-05-13T03:41:32.256Z] INFO: [POST] /api/v1/unified-badge-settings/audio 200 — 16ms
+[2025-05-13T03:41:32.305Z] INFO: Saving resolution badge settings for user ID: 1
+[2025-05-13T03:41:32.305Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-13T03:41:32.308Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-13T03:41:32.308Z] INFO: Updating existing resolution badge settings for user ID: 1
+[2025-05-13T03:41:32.312Z] INFO: Successfully updated resolution badge settings for user ID: 1
+[2025-05-13T03:41:32.312Z] INFO: [POST] /api/v1/unified-badge-settings/resolution 200 — 7ms
+[2025-05-13T03:43:48.865Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:43:48.871Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:43:48.888Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:43:48.890Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 25ms
+[2025-05-13T03:43:48.898Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:43:48.899Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 28ms
+[2025-05-13T03:43:49.021Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T03:43:49.023Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T03:43:49.024Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T03:45:32.411Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:45:32.431Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:45:32.432Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 21ms
+[2025-05-13T03:47:44.389Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:47:44.410Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:47:44.411Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 22ms
+[2025-05-13T03:56:57.799Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:56:57.821Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:56:57.822Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 23ms
+[2025-05-13T03:56:57.855Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:56:57.857Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:56:57.858Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 3ms
+[2025-05-13T03:56:57.877Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T03:56:57.879Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T03:56:57.880Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T03:57:08.359Z] INFO: Saving audio badge settings for user ID: 1
+[2025-05-13T03:57:08.360Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:57:08.377Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:57:08.378Z] INFO: Updating existing audio badge settings for user ID: 1
+[2025-05-13T03:57:08.388Z] INFO: Successfully updated audio badge settings for user ID: 1
+[2025-05-13T03:57:08.388Z] INFO: [POST] /api/v1/unified-badge-settings/audio 200 — 29ms
+[2025-05-13T03:57:08.488Z] INFO: Saving resolution badge settings for user ID: 1
+[2025-05-13T03:57:08.489Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-13T03:57:08.490Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-13T03:57:08.491Z] INFO: Updating existing resolution badge settings for user ID: 1
+[2025-05-13T03:57:08.494Z] INFO: Successfully updated resolution badge settings for user ID: 1
+[2025-05-13T03:57:08.494Z] INFO: [POST] /api/v1/unified-badge-settings/resolution 200 — 6ms
+[2025-05-13T03:57:13.909Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:57:13.911Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:57:13.912Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 4ms
+[2025-05-13T03:57:14.021Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:57:14.024Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:57:14.024Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 3ms
+[2025-05-13T03:57:14.054Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T03:57:14.056Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T03:57:14.057Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T03:59:55.396Z] INFO: Saving audio badge settings for user ID: 1
+[2025-05-13T03:59:55.396Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T03:59:55.415Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T03:59:55.415Z] INFO: Updating existing audio badge settings for user ID: 1
+[2025-05-13T03:59:55.421Z] INFO: Successfully updated audio badge settings for user ID: 1
+[2025-05-13T03:59:55.422Z] INFO: [POST] /api/v1/unified-badge-settings/audio 200 — 26ms
+[2025-05-13T03:59:55.617Z] INFO: Saving resolution badge settings for user ID: 1
+[2025-05-13T03:59:55.617Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-13T03:59:55.619Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-13T03:59:55.619Z] INFO: Updating existing resolution badge settings for user ID: 1
+[2025-05-13T03:59:55.624Z] INFO: Successfully updated resolution badge settings for user ID: 1
+[2025-05-13T03:59:55.624Z] INFO: [POST] /api/v1/unified-badge-settings/resolution 200 — 7ms
+[2025-05-13T04:00:14.618Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T04:00:14.637Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T04:00:14.639Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 21ms
+[2025-05-13T04:00:14.679Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T04:00:14.681Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T04:00:14.682Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 3ms
+[2025-05-13T04:00:14.711Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T04:00:14.713Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T04:00:14.713Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T04:00:28.003Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T04:00:28.020Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T04:00:28.021Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 18ms
+[2025-05-13T04:00:28.066Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T04:00:28.068Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T04:00:28.069Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 3ms
+[2025-05-13T04:00:28.083Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T04:00:28.085Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T04:00:28.087Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 4ms
+[2025-05-13T11:50:54.379Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-13T11:50:54.392Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-13T11:51:32.111Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 740ms
+[2025-05-13T11:51:32.436Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 276ms
+[2025-05-13T11:51:32.761Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 321ms
+[2025-05-13T11:51:39.879Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T11:51:39.881Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T11:51:39.892Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T11:51:39.896Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T11:51:39.899Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 21ms
+[2025-05-13T11:51:39.906Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T11:51:39.907Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 27ms
+[2025-05-13T11:51:39.914Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T11:51:39.915Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 23ms
+[2025-05-13T11:57:54.341Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T11:57:54.358Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T11:57:54.360Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 19ms
+[2025-05-13T12:02:58.233Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T12:02:58.251Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T12:02:58.252Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 19ms
+[2025-05-13T12:03:52.498Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:03:52.510Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T12:03:52.517Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:03:52.518Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 304 — 20ms
+[2025-05-13T12:03:52.523Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:03:52.526Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:03:52.528Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 304 — 5ms
+[2025-05-13T12:03:52.532Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T12:03:52.532Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 22ms
+[2025-05-13T12:07:10.885Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:07:10.889Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:07:10.906Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:07:10.907Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 304 — 22ms
+[2025-05-13T12:07:10.910Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:07:10.911Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 22ms
+[2025-05-13T12:07:10.965Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T12:07:10.968Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T12:07:10.969Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T12:07:24.990Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:07:24.995Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:07:25.009Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:07:25.010Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 304 — 20ms
+[2025-05-13T12:07:25.010Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T12:07:25.012Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T12:07:25.013Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T12:07:25.014Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:07:25.015Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 21ms
+[2025-05-13T12:07:54.118Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-13T12:07:54.130Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-13T12:08:09.528Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:08:09.534Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:08:09.555Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:08:09.558Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 304 — 30ms
+[2025-05-13T12:08:09.560Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T12:08:09.563Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:08:09.565Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 32ms
+[2025-05-13T12:08:09.566Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T12:08:09.567Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 7ms
+[2025-05-13T12:08:13.458Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:08:13.462Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:08:13.463Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 5ms
+[2025-05-13T12:08:13.467Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:08:13.470Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:08:13.471Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 4ms
+[2025-05-13T12:08:13.509Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T12:08:13.513Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T12:08:13.514Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 5ms
+[2025-05-13T12:08:17.331Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:08:17.333Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:08:17.335Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 4ms
+[2025-05-13T12:08:17.338Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:08:17.341Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:08:17.342Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 4ms
+[2025-05-13T12:08:17.386Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T12:08:17.389Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T12:08:17.391Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 5ms
+[2025-05-13T12:08:30.280Z] INFO: Saving audio badge settings for user ID: 1
+[2025-05-13T12:08:30.280Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:08:30.297Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:08:30.297Z] INFO: Updating existing audio badge settings for user ID: 1
+[2025-05-13T12:08:30.311Z] INFO: Successfully updated audio badge settings for user ID: 1
+[2025-05-13T12:08:30.312Z] INFO: [POST] /api/v1/unified-badge-settings/audio 200 — 33ms
+[2025-05-13T12:11:28.785Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:11:28.804Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:11:28.805Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 20ms
+[2025-05-13T12:11:28.873Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:11:28.875Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:11:28.876Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 3ms
+[2025-05-13T12:11:28.907Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T12:11:28.910Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T12:11:28.911Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 4ms
+[2025-05-13T12:11:44.690Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:11:44.709Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:11:44.710Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 20ms
+[2025-05-13T12:11:44.771Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:11:44.773Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:11:44.774Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 3ms
+[2025-05-13T12:11:44.839Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T12:11:44.841Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T12:11:44.842Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T12:12:57.774Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:12:57.794Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:12:57.795Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 21ms
+[2025-05-13T12:14:21.902Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-13T12:14:21.919Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-13T12:14:37.614Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:14:37.635Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:14:37.640Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 27ms
+[2025-05-13T12:14:37.734Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:14:37.737Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:14:37.738Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 4ms
+[2025-05-13T12:14:37.764Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T12:14:37.767Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T12:14:37.768Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 4ms
+[2025-05-13T12:14:52.500Z] INFO: Saving audio badge settings for user ID: 1
+[2025-05-13T12:14:52.501Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:14:52.518Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:14:52.518Z] INFO: Updating existing audio badge settings for user ID: 1
+[2025-05-13T12:14:52.524Z] INFO: Successfully updated audio badge settings for user ID: 1
+[2025-05-13T12:14:52.525Z] INFO: [POST] /api/v1/unified-badge-settings/audio 200 — 25ms

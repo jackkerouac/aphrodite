@@ -111,63 +111,88 @@ export const useUnifiedBadgeSettings = (
     refetch
   } = useQuery({
     queryKey: badgeSettingsKeys.byUser(userId),
-    queryFn: () => badgeSettingsApi.getAll(userId),
-    onSuccess: (data) => {
-      console.log("useQuery onSuccess data received:", data); // <-- We NEED to see this log!
-
-      // Find each badge type in the data
-      const audio = data.find((badge) => badge.badge_type === 'audio') as AudioBadgeSettings;
-      const resolution = data.find((badge) => badge.badge_type === 'resolution') as ResolutionBadgeSettings;
-      const review = data.find((badge) => badge.badge_type === 'review') as ReviewBadgeSettings;
-
-      // Always set local state from fetched data on initial load or successful refetch.
-      // The 'unsavedChanges' flag should only be set by user interaction.
-      setLocalAudioBadge(audio || null);
-      setLocalResolutionBadge(resolution || null);
-      setLocalReviewBadge(review || null);
-
-      // Reset unsaved changes to false after loading data
-      setUnsavedChanges({
-        audio: false,
-        resolution: false,
-        review: false
-      });
-      setLastSaved(new Date()); // Data is now up-to-date with "saved" data
+    queryFn: async () => {
+      console.log("Starting query function for badge settings");
+      const result = await badgeSettingsApi.getAll(userId);
+      console.log("Query function completed with result:", result);
+      return result;
     },
-    onError: (error) => { // <--- This onError callback is also crucial for debugging
+    onSuccess: (data) => {
+      console.log("useQuery onSuccess data received:", data);
+      
+      if (!data || !Array.isArray(data)) {
+        console.error("Received invalid data in onSuccess", data);
+        return;
+      }
+
+      try {
+        // Find each badge type in the data and create clean copies to prevent reference issues
+        const badgeData = data.filter(badge => badge && badge.badge_type);
+        
+        const audio = badgeData.find((badge) => badge.badge_type === 'audio');
+        const resolution = badgeData.find((badge) => badge.badge_type === 'resolution');
+        const review = badgeData.find((badge) => badge.badge_type === 'review');
+
+        // Debug information
+        console.log("Parsed badge data:", { 
+          audio: audio ? {...audio, badge_size: audio.badge_size} : null,
+          resolution: resolution ? {...resolution, badge_size: resolution.badge_size} : null, 
+          review: review ? {...review, badge_size: review.badge_size} : null 
+        });
+
+        // Always set local state from fetched data on initial load or successful refetch
+        // Create clean copies of the data to avoid reference issues
+        if (audio) setLocalAudioBadge(JSON.parse(JSON.stringify(audio)));
+        if (resolution) setLocalResolutionBadge(JSON.parse(JSON.stringify(resolution)));
+        if (review) setLocalReviewBadge(JSON.parse(JSON.stringify(review)));
+
+        // Reset unsaved changes to false after loading data
+        setUnsavedChanges({
+          audio: false,
+          resolution: false,
+          review: false
+        });
+        setLastSaved(new Date()); // Data is now up-to-date with "saved" data
+      } catch (err) {
+        console.error("Error processing badge data in onSuccess:", err);
+      }
+    },
+    onError: (error) => { 
       console.error("useQuery onError:", error);
       toast.error(`Error fetching badge settings: ${error.message}`);
     }
   });
-
-  // This useEffect logs the direct state of the useQuery result (data, loading, error)
-  useEffect(() => { // <--- IMPORTANT: Added this useEffect
-      console.log("useQuery state update - isLoading:", isLoading, "data:", badgeSettings, "error:", fetchError);
-  }, [isLoading, badgeSettings, fetchError]);
 
 
   // Mutation for saving audio badge settings
   const audioMutation = useMutation({
     mutationFn: (settings: AudioBadgeSettings) => badgeSettingsApi.save(settings),
     onSuccess: (savedSettings) => {
+      // Create a clean copy of the saved settings to avoid reference issues
+      const cleanSavedSettings = JSON.parse(JSON.stringify(savedSettings));
+      console.log('Audio mutation onSuccess:', cleanSavedSettings);
+      
       // Update cache with the saved settings
       queryClient.setQueryData(
         badgeSettingsKeys.byType(userId, 'audio'),
-        savedSettings
+        cleanSavedSettings
       );
 
       // Update the full cache
       queryClient.setQueryData(
         badgeSettingsKeys.byUser(userId),
         (oldData: UnifiedBadgeSettings[] | undefined) => {
-          if (!oldData) return [savedSettings];
+          if (!oldData) return [cleanSavedSettings];
 
           return oldData.map(badge =>
-            badge.badge_type === 'audio' ? savedSettings : badge
+            badge.badge_type === 'audio' ? cleanSavedSettings : badge
           );
         }
       );
 
+      // Set local state to match saved settings
+      setLocalAudioBadge(cleanSavedSettings);
+      
       // Reset unsaved changes flag
       setUnsavedChanges(prev => ({
         ...prev,
@@ -190,23 +215,30 @@ export const useUnifiedBadgeSettings = (
   const resolutionMutation = useMutation({
     mutationFn: (settings: ResolutionBadgeSettings) => badgeSettingsApi.save(settings),
     onSuccess: (savedSettings) => {
+      // Create a clean copy of the saved settings to avoid reference issues
+      const cleanSavedSettings = JSON.parse(JSON.stringify(savedSettings));
+      console.log('Resolution mutation onSuccess:', cleanSavedSettings);
+      
       // Update cache with the saved settings
       queryClient.setQueryData(
         badgeSettingsKeys.byType(userId, 'resolution'),
-        savedSettings
+        cleanSavedSettings
       );
 
       // Update the full cache
       queryClient.setQueryData(
         badgeSettingsKeys.byUser(userId),
         (oldData: UnifiedBadgeSettings[] | undefined) => {
-          if (!oldData) return [savedSettings];
+          if (!oldData) return [cleanSavedSettings];
 
           return oldData.map(badge =>
-            badge.badge_type === 'resolution' ? savedSettings : badge
+            badge.badge_type === 'resolution' ? cleanSavedSettings : badge
           );
         }
       );
+      
+      // Set local state to match saved settings
+      setLocalResolutionBadge(cleanSavedSettings);
 
       // Reset unsaved changes flag
       setUnsavedChanges(prev => ({
@@ -230,23 +262,30 @@ export const useUnifiedBadgeSettings = (
   const reviewMutation = useMutation({
     mutationFn: (settings: ReviewBadgeSettings) => badgeSettingsApi.save(settings),
     onSuccess: (savedSettings) => {
+      // Create a clean copy of the saved settings to avoid reference issues
+      const cleanSavedSettings = JSON.parse(JSON.stringify(savedSettings));
+      console.log('Review mutation onSuccess:', cleanSavedSettings);
+      
       // Update cache with the saved settings
       queryClient.setQueryData(
         badgeSettingsKeys.byType(userId, 'review'),
-        savedSettings
+        cleanSavedSettings
       );
 
       // Update the full cache
       queryClient.setQueryData(
         badgeSettingsKeys.byUser(userId),
         (oldData: UnifiedBadgeSettings[] | undefined) => {
-          if (!oldData) return [savedSettings];
+          if (!oldData) return [cleanSavedSettings];
 
           return oldData.map(badge =>
-            badge.badge_type === 'review' ? savedSettings : badge
+            badge.badge_type === 'review' ? cleanSavedSettings : badge
           );
         }
       );
+      
+      // Set local state to match saved settings
+      setLocalReviewBadge(cleanSavedSettings);
 
       // Reset unsaved changes flag
       setUnsavedChanges(prev => ({
@@ -270,18 +309,37 @@ export const useUnifiedBadgeSettings = (
   const allBadgesMutation = useMutation({
     mutationFn: (settings: UnifiedBadgeSettings[]) => badgeSettingsApi.saveAll(settings),
     onSuccess: (savedSettings) => {
+      // Create a clean copy of the saved settings to avoid reference issues
+      const cleanSavedSettings = savedSettings.map(setting => 
+        JSON.parse(JSON.stringify(setting)));
+      console.log('All badges mutation onSuccess:', cleanSavedSettings);
+      
       // Update the cache with all saved settings
       queryClient.setQueryData(
         badgeSettingsKeys.byUser(userId),
-        savedSettings
+        cleanSavedSettings
       );
 
-      // Update individual badge type caches
-      savedSettings.forEach(badge => {
+      // Update individual badge type caches and local state
+      cleanSavedSettings.forEach(badge => {
+        // Update query cache for this badge type
         queryClient.setQueryData(
           badgeSettingsKeys.byType(userId, badge.badge_type),
           badge
         );
+        
+        // Update local state based on badge type
+        switch(badge.badge_type) {
+          case 'audio':
+            setLocalAudioBadge(badge as AudioBadgeSettings);
+            break;
+          case 'resolution':
+            setLocalResolutionBadge(badge as ResolutionBadgeSettings);
+            break;
+          case 'review':
+            setLocalReviewBadge(badge as ReviewBadgeSettings);
+            break;
+        }
       });
 
       // Reset all unsaved changes flags
@@ -334,26 +392,77 @@ export const useUnifiedBadgeSettings = (
 
   // Derived state for badge settings with fallbacks to defaults
   const audioBadge = useMemo(() => {
-    const resolvedBadge = localAudioBadge ||
-                          (badgeSettings?.find(b => b.badge_type === 'audio') as AudioBadgeSettings) ||
-                          { ...DEFAULT_AUDIO_BADGE_SETTINGS, user_id: userId };
-    console.log("Derived audioBadge (from useMemo):", resolvedBadge); // Added debug log
+    // First try localAudioBadge, then try to find in badgeSettings, and finally use defaults
+    let resolvedBadge;
+    
+    if (localAudioBadge) {
+      resolvedBadge = localAudioBadge;
+      console.log("Using localAudioBadge with size:", localAudioBadge.badge_size);
+    } else if (badgeSettings && Array.isArray(badgeSettings)) {
+      const fromSettings = badgeSettings.find(b => b && b.badge_type === 'audio');
+      if (fromSettings) {
+        resolvedBadge = fromSettings;
+        console.log("Using badgeSettings cache for audio with size:", fromSettings.badge_size);
+      } else {
+        resolvedBadge = { ...DEFAULT_AUDIO_BADGE_SETTINGS, user_id: userId };
+        console.log("Using DEFAULT_AUDIO_BADGE_SETTINGS");
+      }
+    } else {
+      resolvedBadge = { ...DEFAULT_AUDIO_BADGE_SETTINGS, user_id: userId };
+      console.log("Using DEFAULT_AUDIO_BADGE_SETTINGS (fallback)");
+    }
+    
+    console.log("Final derived audioBadge size:", resolvedBadge.badge_size);
     return resolvedBadge;
   }, [localAudioBadge, badgeSettings, userId]);
 
   const resolutionBadge = useMemo(() => {
-    const resolvedBadge = localResolutionBadge ||
-                          (badgeSettings?.find(b => b.badge_type === 'resolution') as ResolutionBadgeSettings) ||
-                          { ...DEFAULT_RESOLUTION_BADGE_SETTINGS, user_id: userId };
-    console.log("Derived resolutionBadge (from useMemo):", resolvedBadge); // Added debug log
+    // First try localResolutionBadge, then try to find in badgeSettings, and finally use defaults
+    let resolvedBadge;
+    
+    if (localResolutionBadge) {
+      resolvedBadge = localResolutionBadge;
+      console.log("Using localResolutionBadge with size:", localResolutionBadge.badge_size);
+    } else if (badgeSettings && Array.isArray(badgeSettings)) {
+      const fromSettings = badgeSettings.find(b => b && b.badge_type === 'resolution');
+      if (fromSettings) {
+        resolvedBadge = fromSettings;
+        console.log("Using badgeSettings cache for resolution with size:", fromSettings.badge_size);
+      } else {
+        resolvedBadge = { ...DEFAULT_RESOLUTION_BADGE_SETTINGS, user_id: userId };
+        console.log("Using DEFAULT_RESOLUTION_BADGE_SETTINGS");
+      }
+    } else {
+      resolvedBadge = { ...DEFAULT_RESOLUTION_BADGE_SETTINGS, user_id: userId };
+      console.log("Using DEFAULT_RESOLUTION_BADGE_SETTINGS (fallback)");
+    }
+    
+    console.log("Final derived resolutionBadge size:", resolvedBadge.badge_size);
     return resolvedBadge;
   }, [localResolutionBadge, badgeSettings, userId]);
 
   const reviewBadge = useMemo(() => {
-    const resolvedBadge = localReviewBadge ||
-                          (badgeSettings?.find(b => b.badge_type === 'review') as ReviewBadgeSettings) ||
-                          { ...DEFAULT_REVIEW_BADGE_SETTINGS, user_id: userId };
-    console.log("Derived reviewBadge (from useMemo):", resolvedBadge); // Added debug log
+    // First try localReviewBadge, then try to find in badgeSettings, and finally use defaults
+    let resolvedBadge;
+    
+    if (localReviewBadge) {
+      resolvedBadge = localReviewBadge;
+      console.log("Using localReviewBadge with size:", localReviewBadge.badge_size);
+    } else if (badgeSettings && Array.isArray(badgeSettings)) {
+      const fromSettings = badgeSettings.find(b => b && b.badge_type === 'review');
+      if (fromSettings) {
+        resolvedBadge = fromSettings;
+        console.log("Using badgeSettings cache for review with size:", fromSettings.badge_size);
+      } else {
+        resolvedBadge = { ...DEFAULT_REVIEW_BADGE_SETTINGS, user_id: userId };
+        console.log("Using DEFAULT_REVIEW_BADGE_SETTINGS");
+      }
+    } else {
+      resolvedBadge = { ...DEFAULT_REVIEW_BADGE_SETTINGS, user_id: userId };
+      console.log("Using DEFAULT_REVIEW_BADGE_SETTINGS (fallback)");
+    }
+    
+    console.log("Final derived reviewBadge size:", resolvedBadge.badge_size);
     return resolvedBadge;
   }, [localReviewBadge, badgeSettings, userId]);
 
@@ -365,19 +474,26 @@ export const useUnifiedBadgeSettings = (
 
   // Update functions that allow partial updates
   const updateAudioBadge = useCallback((settings: Partial<AudioBadgeSettings>) => {
+    console.log('Updating audio badge, settings:', settings);
+    
     setLocalAudioBadge(prev => {
       if (!prev) {
-        return {
+        const newBadge = {
           ...DEFAULT_AUDIO_BADGE_SETTINGS,
           user_id: userId,
           ...settings
         };
+        console.log('Created new audio badge with size:', newBadge.badge_size);
+        return newBadge;
       }
 
-      return {
+      // Create the updated badge
+      const updatedBadge = {
         ...prev,
         ...settings
       };
+      console.log('Updated audio badge, final size:', updatedBadge.badge_size);
+      return updatedBadge;
     });
 
     setUnsavedChanges(prev => ({
@@ -387,19 +503,26 @@ export const useUnifiedBadgeSettings = (
   }, [userId]);
 
   const updateResolutionBadge = useCallback((settings: Partial<ResolutionBadgeSettings>) => {
+    console.log('Updating resolution badge, settings:', settings);
+    
     setLocalResolutionBadge(prev => {
       if (!prev) {
-        return {
+        const newBadge = {
           ...DEFAULT_RESOLUTION_BADGE_SETTINGS,
           user_id: userId,
           ...settings
         };
+        console.log('Created new resolution badge with size:', newBadge.badge_size);
+        return newBadge;
       }
 
-      return {
+      // Create the updated badge
+      const updatedBadge = {
         ...prev,
         ...settings
       };
+      console.log('Updated resolution badge, final size:', updatedBadge.badge_size);
+      return updatedBadge;
     });
 
     setUnsavedChanges(prev => ({
@@ -409,19 +532,26 @@ export const useUnifiedBadgeSettings = (
   }, [userId]);
 
   const updateReviewBadge = useCallback((settings: Partial<ReviewBadgeSettings>) => {
+    console.log('Updating review badge, settings:', settings);
+    
     setLocalReviewBadge(prev => {
       if (!prev) {
-        return {
+        const newBadge = {
           ...DEFAULT_REVIEW_BADGE_SETTINGS,
           user_id: userId,
           ...settings
         };
+        console.log('Created new review badge with size:', newBadge.badge_size);
+        return newBadge;
       }
 
-      return {
+      // Create the updated badge
+      const updatedBadge = {
         ...prev,
         ...settings
       };
+      console.log('Updated review badge, final size:', updatedBadge.badge_size);
+      return updatedBadge;
     });
 
     setUnsavedChanges(prev => ({
@@ -513,6 +643,7 @@ export const useUnifiedBadgeSettings = (
   const saveAudioBadge = useCallback(async () => {
     if (!localAudioBadge) return;
 
+    console.log('Saving audio badge with size:', localAudioBadge.badge_size);
     // Ensure badge_type is explicitly set to 'audio'
     await audioMutation.mutateAsync({
       ...localAudioBadge,
@@ -524,6 +655,7 @@ export const useUnifiedBadgeSettings = (
   const saveResolutionBadge = useCallback(async () => {
     if (!localResolutionBadge) return;
 
+    console.log('Saving resolution badge with size:', localResolutionBadge.badge_size);
     // Ensure badge_type is explicitly set to 'resolution'
     await resolutionMutation.mutateAsync({
       ...localResolutionBadge,
@@ -535,6 +667,7 @@ export const useUnifiedBadgeSettings = (
   const saveReviewBadge = useCallback(async () => {
     if (!localReviewBadge) return;
 
+    console.log('Saving review badge with size:', localReviewBadge.badge_size);
     // Ensure badge_type is explicitly set to 'review'
     await reviewMutation.mutateAsync({
       ...localReviewBadge,
@@ -545,105 +678,71 @@ export const useUnifiedBadgeSettings = (
 
   const saveAllBadges = useCallback(async () => {
     try {
-      // Instead of using batch save, let's try saving each badge individually
+      // Save each badge individually
       const results = [];
+      console.log("Starting saveAllBadges with current badge sizes:", {
+        audio: audioBadge?.badge_size,
+        resolution: resolutionBadge?.badge_size,
+        review: reviewBadge?.badge_size
+      });
 
       if (localAudioBadge || audioBadge) {
-        const audioBadgeToSave: AudioBadgeSettings = {
+        // Always use the local badge if it exists, otherwise use the computed badge
+        const audioBadgeToSave = {
           ...(localAudioBadge || audioBadge),
           badge_type: 'audio',
           user_id: userId.toString()
         };
 
-        console.log('Saving audio badge individually:', audioBadgeToSave);
-        const audioResult = await audioMutation.mutateAsync(audioBadgeToSave);
+        // Clean the badge object to avoid passing any undefined or circular references
+        const cleanAudioBadge = JSON.parse(JSON.stringify(audioBadgeToSave));
+        console.log('Saving audio badge with size:', cleanAudioBadge.badge_size);
+        const audioResult = await audioMutation.mutateAsync(cleanAudioBadge);
         results.push(audioResult);
       }
 
       if (localResolutionBadge || resolutionBadge) {
-        const resolutionBadgeToSave: ResolutionBadgeSettings = {
+        // Always use the local badge if it exists, otherwise use the computed badge
+        const resolutionBadgeToSave = {
           ...(localResolutionBadge || resolutionBadge),
           badge_type: 'resolution',
           user_id: userId.toString()
         };
 
-        console.log('Saving resolution badge individually:', resolutionBadgeToSave);
-        const resolutionResult = await resolutionMutation.mutateAsync(resolutionBadgeToSave);
+        // Clean the badge object to avoid passing any undefined or circular references
+        const cleanResolutionBadge = JSON.parse(JSON.stringify(resolutionBadgeToSave));
+        console.log('Saving resolution badge with size:', cleanResolutionBadge.badge_size);
+        const resolutionResult = await resolutionMutation.mutateAsync(cleanResolutionBadge);
         results.push(resolutionResult);
       }
 
       if (localReviewBadge || reviewBadge) {
-        const reviewBadgeToSave: ReviewBadgeSettings = {
+        // Always use the local badge if it exists, otherwise use the computed badge
+        const reviewBadgeToSave = {
           ...(localReviewBadge || reviewBadge),
           badge_type: 'review',
           user_id: userId.toString()
         };
-        console.log('Saving review badge individually:', reviewBadgeToSave);
-        const reviewResult = await reviewMutation.mutateAsync(reviewBadgeToSave);
+
+        // Clean the badge object to avoid passing any undefined or circular references
+        const cleanReviewBadge = JSON.parse(JSON.stringify(reviewBadgeToSave));
+        console.log('Saving review badge with size:', cleanReviewBadge.badge_size);
+        const reviewResult = await reviewMutation.mutateAsync(cleanReviewBadge);
         results.push(reviewResult);
       }
 
+      // Reset unsaved changes flags after successful save
+      setUnsavedChanges({
+        audio: false,
+        resolution: false,
+        review: false
+      });
+
+      // Update last saved timestamp
+      setLastSaved(new Date());
+
       // Return the combined results
       return results;
-      /* Original batch save logic
-      const settingsToSave: UnifiedBadgeSettings[] = [];
-      if (localAudioBadge) {
-        // Create a fresh object with only the required properties
-        const audioBadgeToSave: AudioBadgeSettings = {
-          ...localAudioBadge,
-          badge_type: 'audio',
-          user_id: userId.toString()
-        };
-        settingsToSave.push(audioBadgeToSave);
-      } else if (audioBadge) {
-        const audioBadgeToSave: AudioBadgeSettings = {
-          ...audioBadge,
-          badge_type: 'audio',
-          user_id: userId.toString()
-        };
-        settingsToSave.push(audioBadgeToSave);
-      }
-
-      if (localResolutionBadge) {
-        // Create a fresh object with only the required properties
-        const resolutionBadgeToSave: ResolutionBadgeSettings = {
-          ...localResolutionBadge,
-          badge_type: 'resolution',
-          user_id: userId.toString()
-        };
-        settingsToSave.push(resolutionBadgeToSave);
-      } else if (resolutionBadge) {
-        const resolutionBadgeToSave: ResolutionBadgeSettings = {
-          ...resolutionBadge,
-          badge_type: 'resolution',
-          user_id: userId.toString()
-        };
-        settingsToSave.push(resolutionBadgeToSave);
-      }
-
-      if (localReviewBadge) {
-        // Create a fresh object with only the required properties
-        const reviewBadgeToSave: ReviewBadgeSettings = {
-          ...localReviewBadge,
-          badge_type: 'review',
-          user_id: userId.toString()
-        };
-        settingsToSave.push(reviewBadgeToSave);
-      } else if (reviewBadge) {
-        const reviewBadgeToSave: ReviewBadgeSettings = {
-          ...reviewBadge,
-          badge_type: 'review',
-          user_id: userId.toString()
-        };
-        settingsToSave.push(reviewBadgeToSave);
-      }
-
-      // Log what we're about to save
-      console.log('About to save badge settings:', JSON.stringify(settingsToSave));
-      if (settingsToSave.length > 0) {
-        await allBadgesMutation.mutateAsync(settingsToSave);
-      }
-      */
     } catch (error) {
       console.error('Error in saveAllBadges:', error);
       throw error;
@@ -706,6 +805,7 @@ export const useUnifiedBadgeSettings = (
 
   // Refetch badge settings
   const refetchBadgeSettings = useCallback(async () => {
+    console.log("Refetching badge settings");
     await refetch();
   }, [refetch]);
 

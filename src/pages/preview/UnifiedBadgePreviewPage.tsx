@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useUnifiedBadgeSettings } from '@/hooks';
 import { usePreviewState, BadgeType } from '@/hooks';
 import UnifiedBadgePreview from '@/components/badges/unified/UnifiedBadgePreview';
@@ -12,12 +12,14 @@ import {
   Save, 
   Undo, 
   AlertTriangle,
-  Loader2
+  Loader2,
+  Info
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { UnifiedBadgeSettings } from '@/types/unifiedBadgeSettings';
+import { UnifiedBadgeSettings, AudioBadgeSettings } from '@/types/unifiedBadgeSettings';
+import { badgeSettingsApi } from '@/api/badgeSettingsApi';
 
 /**
  * Main Preview Page component for managing and previewing badge settings
@@ -56,6 +58,62 @@ export default function UnifiedBadgePreviewPage() {
 
   // Display for last saved time
   const [saveTimeDisplay, setSaveTimeDisplay] = useState<string>('');
+
+  // State to store the direct database badge size
+  const [directDbAudioSize, setDirectDbAudioSize] = useState<number | null>(null);
+  
+  // Fetch the direct database size
+  useEffect(() => {
+    const fetchDirectSize = async () => {
+      try {
+        // Make a direct fetch to the API endpoint
+        const response = await fetch('http://localhost:5000/api/v1/unified-badge-settings/audio?user_id=1');
+        const data = await response.json();
+        
+        console.log('DIRECT DB QUERY - Raw response:', data);
+        
+        // Extract the badge size based on the response structure
+        let badgeSize;
+        if (data.success && data.data) {
+          badgeSize = data.data.badge_size;
+        } else if (data.badge_size) {
+          badgeSize = data.badge_size;
+        } else {
+          console.error('DIRECT DB QUERY - Could not find badge_size in response');
+          return;
+        }
+        
+        console.log('DIRECT DB QUERY - Audio badge size from database:', badgeSize);
+        setDirectDbAudioSize(badgeSize);
+      } catch (error) {
+        console.error('Error querying database directly:', error);
+      }
+    };
+    
+    fetchDirectSize();
+  }, []);
+
+  // State to track whether initial syncing has happened
+  const [initialSyncDone, setInitialSyncDone] = useState(false);
+  
+  // Effect to update the audioBadge when directDbAudioSize changes, but only once at the beginning
+  useEffect(() => {
+    if (directDbAudioSize && audioBadge && !initialSyncDone) {
+      // Only sync the database size once when it's first loaded
+      console.log(`Initial sync: Database audio badge size ${directDbAudioSize} synced to local state`);
+      updateAudioBadge({
+        badge_size: directDbAudioSize
+      });
+      setInitialSyncDone(true);
+    }
+  }, [directDbAudioSize, audioBadge, updateAudioBadge, initialSyncDone]);
+
+  // Create a wrapper for updateAudioBadge that handles all updates correctly
+  const handleAudioBadgeChange = useCallback((settings: Partial<AudioBadgeSettings>) => {
+    // For any update, just update directly without overriding with database values
+    console.log(`Badge update: `, settings);
+    updateAudioBadge(settings);
+  }, [updateAudioBadge]);
 
   // Format the last saved time
   useEffect(() => {
@@ -139,13 +197,14 @@ export default function UnifiedBadgePreviewPage() {
   // Handle saving settings
   const handleSave = useCallback(async () => {
     try {
+      console.log(`Saving settings with audio badge size: ${audioBadge?.badge_size}`);
       await saveAllBadges();
       toast.success('All badge settings saved successfully');
     } catch (error) {
       console.error('Error saving settings:', error);
       toast.error('Failed to save badge settings');
     }
-  }, [saveAllBadges]);
+  }, [saveAllBadges, audioBadge]);
 
   // Handle discarding changes
   const handleReset = useCallback(() => {
@@ -255,11 +314,12 @@ export default function UnifiedBadgePreviewPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Settings Panel - Left Side */}
           <div className="lg:col-span-5 space-y-6">
+            
             <BadgeSettingsPanel 
               audioBadge={audioBadge}
               resolutionBadge={resolutionBadge}
               reviewBadge={reviewBadge}
-              onAudioBadgeChange={updateAudioBadge}
+              onAudioBadgeChange={handleAudioBadgeChange}
               onResolutionBadgeChange={updateResolutionBadge}
               onReviewBadgeChange={updateReviewBadge}
               activeTab={highlightedBadge || undefined}
@@ -281,6 +341,8 @@ export default function UnifiedBadgePreviewPage() {
           <div className="lg:col-span-7">
             <Card className="p-6 flex items-center justify-center bg-muted/40">
               <div className="w-full max-w-md">
+                
+                {/* The preview component uses our fixed badges */}
                 <UnifiedBadgePreview 
                   badges={visibleBadgesForPreview}
                   activeBadgeType={highlightedBadge}

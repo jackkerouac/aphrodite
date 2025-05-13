@@ -367,6 +367,8 @@ export class BadgeRenderer {
         // Use the badge_size as a scaling factor for the image
         const scale = settings.badge_size / 100; // 100 is the default size
         
+        console.log(`Badge rendering: Badge type ${settings.badge_type}, badge_size=${settings.badge_size}, scale=${scale}`);
+        
         // Calculate scaled dimensions while preserving aspect ratio
         const drawWidth = img.width * scale;
         const drawHeight = img.height * scale;

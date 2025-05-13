@@ -117,8 +117,28 @@ export const badgeSettingsApi = {
    */
   getByType: async (badgeType: string, userId: string | number = '1'): Promise<UnifiedBadgeSettings> => {
     try {
+      console.log(`Direct API call - Getting ${badgeType} badge settings for user ID: ${userId}`);
       const response = await api.get(`/api/v1/unified-badge-settings/${badgeType}?user_id=${userId}`);
-      return response.data;
+      console.log(`Direct API call - Raw response for ${badgeType} badge:`, response);
+      
+      // Handle different response formats - some endpoints return {success: true, data: {...}}
+      // while others return the data directly
+      if (response.data && response.data.success && response.data.data) {
+        console.log(`Direct API call - Extracted ${badgeType} badge data:`, response.data.data);
+        console.log(`Direct API call - Badge size is:`, response.data.data.badge_size);
+        return response.data.data;
+      }
+      
+      // Handle direct response format
+      console.log(`Direct API call - Standard response for ${badgeType} badge:`, response.data);
+      if (response.data) {
+        console.log(`Direct API call - Badge size is:`, response.data.badge_size);
+        return response.data;
+      }
+      
+      // If we get here, something is wrong with the response
+      console.error(`Direct API call - Unexpected response format for ${badgeType} badge:`, response);
+      throw new Error(`Unexpected response format for ${badgeType} badge`);
     } catch (error) {
       console.error(`Error fetching ${badgeType} badge settings:`, error);
       
