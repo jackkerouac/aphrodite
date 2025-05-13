@@ -103,8 +103,26 @@ export const RunAphroditeProvider: React.FC<RunAphroditeProviderProps> = ({ chil
           const selectedItems = await fetchSelectedItemsDetails(dataToCheck.selectedItems);
           const jobName = `Badge Application - ${new Date().toISOString().replace(/[:.]/g, '-')}`;
           
+          // Get badge settings for job creation
+          let badgeSettingsToUse = dataToCheck.badgeSettings;
+          
+          // If no settings in step data, use the available badge settings
+          if (!badgeSettingsToUse || badgeSettingsToUse.length === 0) {
+            badgeSettingsToUse = availableBadgeSettings;
+            console.log('Using available badge settings:', badgeSettingsToUse.map(b => b.badge_type));
+          }
+          
           // Process badge settings for the job using our helper function
-          const processedBadgeSettings = prepareBadgeSettingsForJob(dataToCheck.badgeSettings);
+          // Filter based on enabled badges selected by the user
+          const processedBadgeSettings = prepareBadgeSettingsForJob(
+            badgeSettingsToUse, 
+            dataToCheck.enabledBadges
+          );
+          
+          // Check if we have any badge settings to apply
+          if (!processedBadgeSettings || processedBadgeSettings.length === 0) {
+            throw new Error('No badge settings available for job creation. Please select at least one badge type.');
+          }
           
           // Enhanced job payload with unified badge settings
           const jobPayload = {
@@ -117,7 +135,13 @@ export const RunAphroditeProvider: React.FC<RunAphroditeProviderProps> = ({ chil
             badgeSettings: processedBadgeSettings
           };
           
-          console.log('Creating job with payload:', jobPayload);
+          console.log('Creating job with payload:', {
+            user_id: jobPayload.user_id,
+            name: jobPayload.name,
+            items_count: jobPayload.items.length,
+            badge_settings_count: jobPayload.badgeSettings.length,
+            badge_types: jobPayload.badgeSettings.map(b => b.badge_type)
+          });
           
           const job = await createJob.mutateAsync(jobPayload);
           
