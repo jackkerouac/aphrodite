@@ -114,3 +114,5 @@
 [2025-05-13T19:43:58.364Z] INFO: [GET] /api/audio-badge-settings/1/enabled 200 — 34ms
 [2025-05-13T19:43:58.900Z] INFO: [GET] /api/jellyfin-libraries/1 200 — 574ms
 [2025-05-13T19:43:58.905Z] INFO: [GET] /api/jellyfin-libraries/1 200 — 593ms
+[2025-05-13T22:51:50.894Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-13T22:51:50.907Z] INFO: Server running on port 5000 with WebSocket support
