@@ -1,0 +1,2432 @@
+[2025-05-13T00:09:35.614Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-13T00:09:35.626Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-13T00:10:00.744Z] INFO: [GET] /api/jellyfin-libraries/1 200 — 989ms
+[2025-05-13T00:10:00.746Z] INFO: [GET] /api/jellyfin-libraries/1 200 — 996ms
+[2025-05-13T00:10:00.779Z] INFO: [GET] /api/jellyfin-libraries/1 200 — 1025ms
+[2025-05-13T00:10:04.401Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:10:04.404Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:10:04.406Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 5ms
+[2025-05-13T00:23:45.466Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:23:45.487Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:23:45.488Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 22ms
+[2025-05-13T00:24:00.811Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:24:00.832Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:24:00.834Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 23ms
+[2025-05-13T00:24:15.693Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-13T00:24:15.706Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-13T00:24:46.924Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:24:46.944Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:24:46.948Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 25ms
+[2025-05-13T00:24:59.077Z] INFO: Saving audio badge settings for user ID: 1
+[2025-05-13T00:24:59.078Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T00:24:59.100Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T00:24:59.100Z] INFO: Updating existing audio badge settings for user ID: 1
+[2025-05-13T00:24:59.124Z] INFO: Successfully updated audio badge settings for user ID: 1
+[2025-05-13T00:24:59.125Z] INFO: [POST] /api/v1/unified-badge-settings/audio 200 — 49ms
+[2025-05-13T00:24:59.198Z] INFO: Saving resolution badge settings for user ID: 1
+[2025-05-13T00:24:59.198Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-13T00:24:59.201Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-13T00:24:59.201Z] INFO: Updating existing resolution badge settings for user ID: 1
+[2025-05-13T00:24:59.206Z] INFO: Successfully updated resolution badge settings for user ID: 1
+[2025-05-13T00:24:59.207Z] INFO: [POST] /api/v1/unified-badge-settings/resolution 200 — 9ms
+[2025-05-13T00:25:10.853Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:25:10.872Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:25:10.873Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 20ms
+[2025-05-13T00:31:09.422Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:31:09.440Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:31:09.441Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 19ms
+[2025-05-13T00:31:20.749Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:31:20.769Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:31:20.770Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 22ms
+[2025-05-13T00:40:37.052Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.076Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.078Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 26ms
+[2025-05-13T00:40:37.085Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.088Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.089Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:37.226Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.229Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.230Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:37.266Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.268Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.269Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.289Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.292Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.292Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.316Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.319Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.320Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:37.339Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.341Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.342Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.357Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.359Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.360Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.375Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.377Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.378Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.397Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.400Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.400Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.432Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.434Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.435Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.449Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.451Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.451Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:37.465Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.467Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.468Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.482Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.484Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.484Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:37.499Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.502Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.503Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:37.526Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.528Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.529Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.548Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.550Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.551Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.567Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.569Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.570Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.590Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.592Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.593Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.607Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.609Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.610Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.622Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.624Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.625Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.639Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.641Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.641Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:37.657Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.659Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.660Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.674Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.676Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.676Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.689Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.691Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.692Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.707Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.709Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.710Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.725Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.726Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.727Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.739Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.740Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.741Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:37.756Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.758Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.759Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.783Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.785Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.785Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:37.799Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.801Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.801Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:37.814Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.817Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.818Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:37.874Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.876Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.877Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.889Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.890Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.891Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:37.903Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.906Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.906Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.918Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.920Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.921Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.932Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.934Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.934Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:37.946Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.949Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.950Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:37.961Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.964Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.964Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.975Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.977Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.978Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:37.989Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:37.991Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:37.992Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.004Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.006Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.007Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.018Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.020Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.020Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:38.032Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.034Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.034Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:38.045Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.048Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.048Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.059Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.061Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.062Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.074Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.076Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.077Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.088Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.090Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.091Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.103Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.105Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.106Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.119Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.121Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.121Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:38.134Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.135Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.136Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:38.149Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.150Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.151Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:38.161Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.163Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.164Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.194Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.197Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.197Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.208Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.210Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.210Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:38.222Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.224Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.224Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:38.235Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.237Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.238Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.251Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.253Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.254Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.306Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.309Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.310Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:38.330Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.333Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.334Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:38.346Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.349Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.350Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:38.368Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.370Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.371Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.385Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.387Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.388Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.400Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.402Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.403Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.419Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.421Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.422Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.433Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.435Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.435Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:38.447Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.449Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.449Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:38.460Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.462Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.463Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.474Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.476Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.477Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.488Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.490Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.491Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.503Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.505Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.506Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.517Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.519Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.520Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.531Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.533Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.534Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.545Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.548Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.549Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:38.559Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.561Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.561Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:38.573Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.575Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.575Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:38.586Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.588Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.589Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.599Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.601Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.602Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.614Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.616Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.616Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:38.627Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.629Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.630Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.641Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.643Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.644Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.655Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.657Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.657Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:38.668Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.670Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.670Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:38.694Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.697Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.697Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.709Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.711Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.712Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.723Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.725Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.726Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.739Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.741Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.741Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.754Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.756Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.757Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.770Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.772Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.773Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.785Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.787Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.788Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.801Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.803Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.804Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.817Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.819Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.819Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.830Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.832Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.833Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.844Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.847Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.848Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:38.859Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.861Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.862Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.873Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.875Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.875Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:38.887Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.889Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.889Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:38.901Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.903Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.904Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.915Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.917Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.917Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:38.931Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.933Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.933Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:38.944Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.946Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.947Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.957Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.959Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.960Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:38.971Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.973Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.973Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:38.988Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:38.990Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:38.991Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.002Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.004Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.005Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.016Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.018Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.018Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:39.029Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.031Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.032Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.042Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.044Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.045Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.058Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.060Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.061Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.072Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.074Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.075Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.085Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.087Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.088Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.099Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.101Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.101Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:39.113Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.115Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.116Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.127Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.130Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.130Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.141Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.143Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.143Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:39.154Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.157Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.157Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.168Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.170Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.171Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.182Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.184Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.185Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.196Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.198Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.199Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.210Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.212Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.213Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.224Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.226Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.227Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.240Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.242Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.242Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:39.254Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.256Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.257Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.269Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.271Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.271Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:39.282Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.284Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.285Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.296Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.298Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.299Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.310Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.312Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.313Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.323Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.325Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.326Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.337Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.339Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.340Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.352Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.353Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.354Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.366Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.368Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.369Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.380Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.382Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.382Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:39.393Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.395Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.395Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:39.406Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.408Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.409Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.420Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.422Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.422Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:39.433Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.435Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.436Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.447Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.448Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.449Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.459Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.461Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.462Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.473Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.474Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.475Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:39.487Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.488Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.489Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:39.500Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.502Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.502Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:39.513Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.515Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.516Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.531Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.533Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.534Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.544Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.547Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.548Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:39.558Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.560Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.561Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.573Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.575Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.576Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.587Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.589Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.590Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.602Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.603Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.604Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:39.616Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.618Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.618Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:39.629Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.631Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.632Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.642Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.644Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.645Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.657Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.659Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.660Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.672Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.674Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.674Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:39.685Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.687Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.688Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.701Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.703Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.704Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.716Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.717Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.718Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:39.728Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.730Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.731Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.742Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.744Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.745Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.757Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.758Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.759Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:39.771Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.773Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.773Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:39.784Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.786Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.786Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:39.798Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.800Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.801Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.811Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.813Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.814Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.825Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.827Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.828Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.842Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.844Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.844Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:39.856Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.858Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.859Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.872Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.874Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.874Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:39.886Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.888Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.889Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.902Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.904Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.905Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.921Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.922Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.923Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:39.940Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.942Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.943Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.958Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.960Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.961Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:39.975Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.977Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.979Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:39.994Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:39.996Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:39.997Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.068Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.069Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.070Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.081Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.083Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.083Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.093Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.095Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.095Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.118Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.120Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.121Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.133Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.135Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.135Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.147Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.149Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.150Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.159Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.162Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.162Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.176Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.178Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.178Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.190Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.192Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.192Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.203Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.205Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.205Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.217Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.219Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.220Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.231Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.232Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.233Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.243Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.245Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.246Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.257Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.259Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.259Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.271Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.273Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.274Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.287Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.288Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.289Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.299Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.301Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.302Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.314Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.316Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.317Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.328Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.330Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.330Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.341Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.342Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.343Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.354Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.356Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.356Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.367Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.369Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.370Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.382Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.384Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.384Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.394Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.396Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.397Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.408Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.409Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.410Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.421Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.423Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.423Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.433Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.435Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.436Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.447Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.450Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.451Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:40.482Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.484Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.484Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.499Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.501Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.501Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.522Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.524Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.524Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.537Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.539Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.539Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.553Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.555Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.556Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.569Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.571Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.571Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.584Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.586Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.587Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.601Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.603Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.604Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.633Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.635Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.635Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.646Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.648Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.649Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.659Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.661Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.662Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.673Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.675Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.676Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.688Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.689Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.690Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.701Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.703Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.704Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.722Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.724Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.724Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.740Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.742Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.743Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.758Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.761Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.762Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:40.780Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.782Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.783Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.795Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.799Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.800Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 5ms
+[2025-05-13T00:40:40.814Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.816Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.817Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.827Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.830Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.830Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.842Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.844Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.844Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.857Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.859Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.860Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.872Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.874Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.874Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.886Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.888Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.888Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.900Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.902Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.902Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.913Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.915Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.916Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.928Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.930Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.931Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.941Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.943Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.943Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.955Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.957Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.957Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.968Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.970Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.970Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:40.981Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.983Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.984Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:40.995Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:40.997Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:40.998Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.009Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.011Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.012Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.023Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.025Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.025Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.037Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.039Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.039Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.051Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.053Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.054Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.066Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.068Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.068Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.083Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.085Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.086Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.097Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.099Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.100Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.112Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.114Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.115Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:41.125Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.127Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.128Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.139Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.141Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.142Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.154Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.156Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.157Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.168Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.171Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.171Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.182Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.184Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.184Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.195Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.197Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.198Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.207Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.209Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.210Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.224Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.225Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.226Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.238Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.240Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.240Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.252Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.253Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.254Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.265Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.267Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.267Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.278Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.280Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.281Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.292Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.293Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.294Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.307Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.309Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.310Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.320Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.322Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.322Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.333Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.335Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.335Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.347Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.348Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.349Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.359Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.361Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.362Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.372Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.374Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.374Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.386Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.388Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.388Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.400Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.401Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.402Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.415Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.417Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.417Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.428Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.431Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.431Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.442Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.443Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.444Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.457Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.459Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.460Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.473Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.475Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.475Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.489Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.491Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.491Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.507Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.509Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.510Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.524Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.527Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.527Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.539Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.541Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.541Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.553Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.555Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.556Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.569Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.571Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.571Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.584Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.586Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.587Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.605Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.607Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.607Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.620Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.621Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.622Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.637Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.639Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.639Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.652Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.654Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.655Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.669Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.671Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.671Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.683Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.685Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.686Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.700Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.702Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.703Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.715Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.717Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.717Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.738Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.740Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.741Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.752Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.754Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.755Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.772Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.774Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.775Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.786Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.788Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.788Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.800Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.802Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.802Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.812Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.814Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.815Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.833Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.835Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.835Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.846Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.848Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.848Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.859Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.861Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.862Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.872Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.874Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.874Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.885Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.887Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.887Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.899Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.901Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.902Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:41.913Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.915Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.915Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:41.926Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:41.928Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:41.928Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.036Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.038Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.038Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.054Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.056Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.057Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.068Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.070Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.070Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.081Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.082Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.083Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.095Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.097Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.098Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.108Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.110Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.110Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.122Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.123Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.124Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.135Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.136Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.137Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.148Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.150Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.151Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.161Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.163Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.164Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.175Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.176Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.177Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.188Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.190Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.191Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.336Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.338Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.338Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.350Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.352Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.352Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.364Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.366Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.366Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.376Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.378Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.379Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.389Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.390Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.391Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.403Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.405Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.405Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.417Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.419Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.419Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.433Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.435Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.435Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.447Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.449Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.449Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.459Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.461Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.462Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.473Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.475Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.475Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.487Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.489Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.489Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.500Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.502Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.503Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.514Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.516Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.516Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.526Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.528Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.529Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.539Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.541Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.541Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.553Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.555Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.555Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.566Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.568Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.568Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.579Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.581Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.581Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.592Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.594Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.595Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.606Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.609Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.609Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.620Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.622Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.622Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.633Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.635Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.635Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.645Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.648Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.648Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.658Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.660Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.661Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.672Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.674Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.674Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.685Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.687Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.688Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.699Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.701Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.701Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.711Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.713Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.714Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.726Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.729Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.729Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.739Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.741Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.741Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.752Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.754Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.755Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.766Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.768Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.768Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.778Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.781Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.781Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.791Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.793Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.794Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.805Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.807Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.807Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.818Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.820Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.820Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.834Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.836Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.836Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.851Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.852Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.853Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.867Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.868Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.869Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.882Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.884Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.884Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.898Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.900Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.900Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.911Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.913Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.914Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.928Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.930Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.931Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.945Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.947Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.948Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.958Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.960Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.960Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:42.976Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.978Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.979Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:42.990Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:42.992Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:42.993Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.004Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.006Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.007Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.020Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.021Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.022Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.034Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.035Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.036Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.048Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.050Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.051Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.061Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.064Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.064Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.076Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.077Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.078Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.090Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.092Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.093Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.104Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.106Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.107Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.118Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.120Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.120Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.132Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.134Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.134Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.145Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.147Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.148Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.158Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.160Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.160Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.171Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.173Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.174Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.185Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.186Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.187Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.198Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.200Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.201Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.212Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.214Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.214Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.225Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.227Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.227Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.238Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.240Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.240Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.252Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.254Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.255Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.266Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.268Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.268Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.279Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.281Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.282Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.292Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.294Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.294Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.305Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.307Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.308Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.319Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.321Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.321Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.332Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.334Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.334Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.345Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.347Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.348Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.358Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.360Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.361Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.372Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.374Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.374Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.385Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.387Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.388Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.403Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.405Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.405Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.417Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.418Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.419Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.430Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.432Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.432Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.444Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.447Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.448Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:43.460Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.462Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.463Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.478Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.481Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.482Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:43.495Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.497Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.498Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.511Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.514Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.515Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:43.530Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.532Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.534Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:43.543Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.546Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.547Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:43.558Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.560Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.560Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.572Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.574Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.574Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.589Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.590Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.591Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.607Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.608Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.609Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.623Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.625Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.625Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.642Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.644Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.645Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.664Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.666Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.667Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.680Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.683Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.684Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:43.700Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.702Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.702Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.716Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.719Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.719Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.734Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.736Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.736Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.747Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.749Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.750Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.760Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.762Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.763Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.775Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.777Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.778Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.789Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.791Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.792Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.804Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.806Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.806Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.820Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.821Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.822Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.836Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.838Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.839Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.858Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.860Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.860Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.873Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.875Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.876Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.887Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.889Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.890Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.900Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.902Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.902Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.914Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.915Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.916Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.927Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.929Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.930Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.940Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.942Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.942Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.954Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.956Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.956Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.968Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.970Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.970Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:43.983Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.985Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.986Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:43.996Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:43.998Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:43.998Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.008Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.009Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.010Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.022Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.023Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.024Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.035Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.037Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.037Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.049Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.051Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.052Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:44.062Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.064Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.064Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.074Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.076Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.076Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.088Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.090Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.090Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.102Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.103Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.104Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.118Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.120Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.120Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.132Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.133Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.134Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.145Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.147Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.148Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:44.158Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.160Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.160Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.171Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.173Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.173Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.185Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.187Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.188Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:44.199Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.201Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.202Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:44.213Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.215Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.215Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.227Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.230Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.231Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:44.242Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.243Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.244Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.260Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.262Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.262Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.273Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.275Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.275Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.286Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.288Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.289Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:44.300Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.301Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.302Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.313Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.314Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.315Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:44.325Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.327Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.328Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:44.339Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.342Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.342Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:44.355Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.356Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.357Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.368Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.369Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.370Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.381Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.383Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.384Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:44.394Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.396Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.396Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.408Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.409Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.410Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.423Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.425Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.425Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.471Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.473Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.473Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.535Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.537Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.538Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:44.553Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.555Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.555Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.575Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.577Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.577Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.615Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.617Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.617Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.632Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.634Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.635Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:44.647Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.649Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.650Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:44.683Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.685Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.686Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:44.701Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.703Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.704Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:44.722Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.723Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.724Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.736Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.738Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.739Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:44.753Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.755Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.756Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:44.770Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.772Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.772Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.790Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.791Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.792Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.804Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.806Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.807Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:44.820Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.821Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.822Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.833Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.835Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.835Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.847Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.849Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.849Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.860Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.862Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.863Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:44.874Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.876Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.876Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.888Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.890Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.890Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.902Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.904Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.904Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.916Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.918Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.918Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.930Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.932Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.933Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:44.943Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.945Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.946Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:44.957Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.959Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.959Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.973Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.975Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.975Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:44.986Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:44.988Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:44.989Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:45.000Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.002Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.003Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:45.015Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.016Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.017Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:45.027Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.029Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.030Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:45.041Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.043Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.043Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.055Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.057Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.057Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.069Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.071Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.071Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.084Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.085Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.086Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.097Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.099Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.099Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.110Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.112Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.113Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:45.124Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.126Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.126Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.137Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.139Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.140Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:45.151Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.153Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.154Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:45.165Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.167Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.168Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:45.181Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.183Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.183Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.197Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.199Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.200Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:45.212Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.215Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.216Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:45.227Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.230Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.231Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:45.246Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.248Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.249Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:45.260Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.262Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.262Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.284Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.286Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.288Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:45.300Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.301Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.302Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:45.313Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.314Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.315Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.327Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.330Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.331Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-13T00:40:45.342Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.344Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.344Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.356Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.357Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.358Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.370Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.372Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.372Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.383Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.385Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.386Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:45.397Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.399Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.399Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.410Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.412Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.413Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:45.424Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.425Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.426Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.438Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.440Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.440Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.453Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.454Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.455Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.470Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.472Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.473Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:45.484Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.486Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.486Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.497Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.499Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.499Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.510Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.513Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.513Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:45.525Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.527Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.527Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.539Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.541Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.541Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.552Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.554Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.554Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.565Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.567Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.567Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.578Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.580Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.580Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.591Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.593Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.593Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.604Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.606Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.606Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.617Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.619Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.619Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.630Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.632Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.633Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:45.643Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.645Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.645Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.656Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.658Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.658Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.669Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.671Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.671Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.683Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.684Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.685Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.697Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.699Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.699Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.710Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.713Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.713Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:45.725Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.726Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.727Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:45.739Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.741Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.741Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.752Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.754Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.754Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:45.769Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.772Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:45.772Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:45.997Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:45.999Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.000Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:46.014Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.016Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.017Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:46.026Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.029Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.029Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:46.040Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.042Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.042Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.053Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.055Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.055Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.066Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.068Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.068Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.079Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.081Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.081Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.091Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.093Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.093Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.105Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.107Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.108Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:46.119Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.121Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.121Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.132Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.134Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.134Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.145Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.147Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.147Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.159Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.160Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.161Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.174Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.176Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.176Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.188Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.189Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.190Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.201Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.203Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.203Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.214Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.216Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.217Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.227Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.229Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.230Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:46.240Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.242Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.242Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.253Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.255Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.255Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.268Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.270Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.270Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.282Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.284Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.284Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.294Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.296Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.297Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:46.308Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.309Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.310Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.321Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.322Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.323Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.334Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.336Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.337Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 3ms
+[2025-05-13T00:40:46.347Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.349Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.349Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.359Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.361Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.361Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.372Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.374Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.374Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.385Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.387Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.387Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.398Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.400Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.400Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 2ms
+[2025-05-13T00:40:46.867Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:46.869Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:46.870Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:47.053Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:47.055Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:47.055Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:47.173Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:47.175Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:47.176Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:47.390Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:47.392Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:47.392Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:47.419Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:47.420Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:47.421Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:47.472Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:47.473Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:47.474Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:47.524Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:47.525Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:47.526Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:47.555Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:47.557Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:47.558Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:47.604Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:47.605Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:47.606Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:47.647Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:47.648Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:47.649Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:47.702Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:47.704Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:47.704Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:47.771Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:47.773Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:47.773Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:47.822Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:47.824Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:47.825Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:47.868Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:47.870Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:47.870Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:47.931Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:47.932Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:47.933Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:47.981Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:47.982Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:47.983Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:48.021Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:48.022Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:48.023Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:48.091Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:48.093Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:48.093Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:48.168Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:48.170Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:48.170Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:48.190Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:48.192Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:48.193Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:48.234Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:48.236Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:48.237Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:48.256Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:48.258Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:48.259Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:48.319Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:48.321Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:48.321Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:48.382Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:48.383Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:48.384Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:48.438Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:48.440Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:48.440Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:48.475Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:48.477Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:48.477Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:48.535Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:48.537Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:48.537Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:48.589Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:48.590Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:48.591Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:48.684Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:48.686Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:48.686Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:48.784Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:48.786Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:48.786Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:48.865Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:48.866Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:48.867Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:48.938Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:48.940Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:48.940Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:49.008Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:49.010Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:49.010Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:49.117Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:49.119Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:49.120Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:49.191Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:49.192Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:49.193Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:49.252Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:49.254Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:49.254Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:49.284Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:49.286Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:49.287Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:49.354Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:49.355Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:49.356Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:49.383Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:49.385Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:49.386Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:49.446Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:49.448Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:49.448Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:49.536Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:49.538Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:49.539Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:49.559Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:49.561Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:49.561Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:49.585Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:49.587Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:49.587Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:49.639Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:49.640Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:49.641Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:49.663Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:49.665Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:49.665Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:49.713Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:49.715Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:49.715Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:49.737Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:49.739Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:49.739Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:49.796Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:49.798Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:49.799Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:49.868Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:49.870Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:49.871Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:49.892Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:49.894Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:49.895Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:49.958Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:49.960Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:49.960Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:50.020Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.022Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.023Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:50.057Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.059Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.059Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:50.117Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.119Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.119Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:50.169Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.171Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.171Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:50.196Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.198Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.199Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:50.240Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.242Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.243Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:50.273Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.275Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.275Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:50.322Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.324Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.324Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:50.348Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.350Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.351Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:50.405Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.407Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.407Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:50.434Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.436Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.437Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:50.485Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.486Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.487Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:50.507Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.510Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.511Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 4ms
+[2025-05-13T00:40:50.559Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.561Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.562Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:50.591Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.592Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.593Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:50.640Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.642Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.642Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:50.664Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.666Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.666Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:50.716Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.718Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.718Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:50.739Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.741Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.742Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:50.793Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.795Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.796Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:50.825Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.827Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.828Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:50.873Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.875Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.875Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:50.923Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.925Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.925Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:50.955Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:50.957Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:50.958Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:51.004Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.006Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.006Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:51.037Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.039Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.039Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:51.090Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.091Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.092Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:51.124Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.126Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.126Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:51.180Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.182Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.183Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:51.207Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.209Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.209Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:51.264Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.266Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.267Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:51.323Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.325Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.325Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:51.353Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.355Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.355Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:51.402Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.403Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.404Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:51.430Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.432Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.433Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:51.475Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.477Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.477Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:51.502Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.504Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.505Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:51.557Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.559Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.560Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:51.586Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.588Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.589Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:51.630Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.632Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.633Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:51.655Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.657Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.658Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:51.707Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.709Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.709Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:51.734Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.735Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.736Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:51.797Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.799Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.799Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:51.854Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.856Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.856Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:51.914Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.916Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.916Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:51.956Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:51.958Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:51.958Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:52.018Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.020Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.020Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:52.041Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.042Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.043Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:52.088Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.090Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.090Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:52.124Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.125Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.126Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:52.180Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.182Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.182Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:52.235Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.237Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.238Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:52.266Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.268Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.269Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:52.335Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.338Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.338Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:52.405Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.407Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.407Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:52.470Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.471Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.472Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:52.500Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.502Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.502Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:52.553Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.555Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.555Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:52.614Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.616Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.617Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:52.650Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.651Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.652Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:52.701Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.703Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.704Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:52.724Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.726Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.727Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:52.773Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.775Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.775Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:52.799Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.801Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.801Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:52.849Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.850Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.851Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:52.887Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.888Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.889Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:52.946Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.949Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.949Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:52.969Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:52.971Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:52.971Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:53.019Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:53.021Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:53.021Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:53.041Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:53.043Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:53.043Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:53.152Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:53.153Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:53.154Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:53.270Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:53.272Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:53.272Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:53.380Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:53.382Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:53.382Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:53.528Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:53.530Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:53.530Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:53.634Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:53.635Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:53.636Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:53.689Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:53.691Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:53.691Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:53.766Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:53.768Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:53.768Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:53.824Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:53.826Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:53.827Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:53.890Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:53.892Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:53.892Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:53.985Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:53.987Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:53.988Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:54.083Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:54.085Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:54.085Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:54.104Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:54.106Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:54.106Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:54.167Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:54.169Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:54.169Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:54.236Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:54.238Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:54.239Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:54.259Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:54.260Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:54.261Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:54.308Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:54.309Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:54.310Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:54.338Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:54.340Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:54.340Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:54.388Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:54.390Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:54.390Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:54.421Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:54.423Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:54.423Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:54.470Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:54.472Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:54.473Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:54.496Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:54.498Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:54.498Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:54.597Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:54.599Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:54.599Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:54.641Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:54.643Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:54.643Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:54.689Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:54.691Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:54.691Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:54.723Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:54.726Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:54.726Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:54.780Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:54.782Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:54.782Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:54.804Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:54.805Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:54.806Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:54.857Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:54.859Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:54.860Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:54.884Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:54.886Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:54.886Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:54.938Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:54.940Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:54.940Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:54.963Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:54.964Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:54.965Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:55.005Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:55.006Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:55.007Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:55.066Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:55.067Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:55.068Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:55.097Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:55.099Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:55.100Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:55.157Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:55.159Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:55.159Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:55.184Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:55.186Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:55.187Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:55.235Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:55.236Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:55.237Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:55.257Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:55.258Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:55.259Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:55.311Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:55.313Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:55.314Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:55.337Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:55.339Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:55.339Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:55.360Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:55.362Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:55.363Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:55.406Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:55.408Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:55.409Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:55.434Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:55.436Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:55.436Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:55.484Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:55.486Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:55.486Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:55.740Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:55.742Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:55.742Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:55.777Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:55.779Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:55.779Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:55.823Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:55.825Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:55.826Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:55.847Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:55.849Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:55.849Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:55.901Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:55.903Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:55.903Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:55.952Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:55.954Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:55.954Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:56.001Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:56.003Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:56.003Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:56.063Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:56.064Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:56.065Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:56.120Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:56.122Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:56.123Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:56.148Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:56.150Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:56.151Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:56.195Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:56.197Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:56.197Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:56.222Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:56.224Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:56.224Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:56.279Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:56.282Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:56.283Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 4ms
+[2025-05-13T00:40:56.305Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:56.306Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:56.307Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:56.364Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:56.366Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:56.366Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:56.392Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:56.394Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:56.394Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:56.449Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:56.451Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:56.451Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:56.476Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:56.479Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:56.480Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 4ms
+[2025-05-13T00:40:56.537Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:56.539Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:56.539Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:56.602Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:56.604Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:56.605Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:56.630Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:56.632Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:56.632Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:56.689Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:56.691Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:56.691Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:56.756Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:56.758Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:56.758Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:56.831Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:56.833Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:56.834Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:56.856Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:56.858Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:56.859Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:56.913Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:56.915Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:56.915Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:56.984Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:56.985Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:56.986Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:57.006Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:57.008Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:57.009Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:57.031Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:57.033Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:57.033Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:57.074Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:57.076Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:57.077Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:57.098Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:57.100Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:57.100Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:57.138Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:57.139Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:57.140Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:57.200Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:57.202Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:57.202Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:57.224Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:57.226Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:57.226Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:57.249Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:57.251Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:57.252Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:57.313Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:57.315Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:57.316Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:57.370Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:57.372Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:57.372Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:57.407Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:57.409Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:57.410Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:57.465Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:57.467Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:57.467Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:57.520Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:57.522Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:57.523Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:57.634Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:57.635Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:57.636Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:57.706Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:57.708Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:57.708Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:57.772Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:57.773Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:57.774Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:57.854Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:57.856Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:57.856Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:57.931Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:57.933Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:57.934Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:57.964Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:57.966Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:57.967Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:58.108Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:58.110Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:58.111Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:58.140Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:58.142Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:58.143Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:58.299Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:58.301Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:58.302Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:58.414Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:58.416Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:58.417Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
+[2025-05-13T00:40:58.469Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:58.471Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:58.471Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:58.497Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:58.499Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:58.499Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:58.553Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:58.555Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:58.555Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:58.623Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:58.625Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:58.625Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:58.739Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:40:58.741Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:40:58.741Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 2ms
+[2025-05-13T00:40:59.658Z] INFO: [GET] /api/jellyfin-libraries/1 200 — 852ms
+[2025-05-13T00:40:59.659Z] INFO: [GET] /api/jellyfin-libraries/1 200 — 854ms
+[2025-05-13T00:47:44.733Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:47:44.753Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:47:44.754Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 21ms
+[2025-05-13T00:53:23.996Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:53:24.012Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:53:24.013Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 17ms
+[2025-05-13T00:53:52.230Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:53:52.246Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:53:52.247Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 17ms
+[2025-05-13T00:54:13.039Z] INFO: [GET] /api/jellyfin-libraries/1 200 — 663ms
+[2025-05-13T00:54:13.044Z] INFO: [GET] /api/jellyfin-libraries/1 200 — 667ms
+[2025-05-13T00:54:15.262Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T00:54:15.265Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T00:54:15.265Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 3ms
