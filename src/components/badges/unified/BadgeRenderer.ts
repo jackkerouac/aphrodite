@@ -2,6 +2,7 @@ import { UnifiedBadgeSettings, BadgePosition, AudioBadgeSettings, ResolutionBadg
 import { getBadgePositionStyles } from '@/lib/utils/badge-position';
 import { getSourceImageUrlForResolution } from '@/utils/resolutionUtils';
 import { getAudioCodecIcon } from '@/utils/audioCodecUtils';
+import { getReviewSourceIcon, formatScore, getScoreColor } from '@/utils/reviewSourceUtils';
 
 // Canvas dimensions for the badge preview
 export const PREVIEW_CANVAS_WIDTH = 1000;
@@ -291,54 +292,271 @@ export class BadgeRenderer {
   ): Promise<void> {
     const { properties, display_format } = settings;
     const reviewSources = properties.review_sources || ['imdb'];
+    const scoreType = properties.score_type || 'percentage';
     
     // Calculate badge dimensions based on size
     const badgeSize = settings.badge_size;
-    const x = (width - badgeSize) / 2;
-    const y = (height - badgeSize) / 2;
+    const padding = Math.max(10, badgeSize * 0.05);
+    
+    // Resize canvas to match content size later
+    let totalWidth = 0;
+    let totalHeight = 0;
     
     // Save context state
     ctx.save();
     
-    // Font settings
-    const fontSize = Math.max(badgeSize * 0.3, 12);
-    ctx.font = `bold ${fontSize}px Arial`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#FFFFFF';
+    // Font settings for scores
+    const scoreFontSize = Math.max(badgeSize * 0.3, 14);
+    const sourceFontSize = Math.max(badgeSize * 0.18, 10);
     
-    // Calculate positions based on display format
-    if (display_format === 'horizontal') {
-      // Horizontal layout
-      const scoreY = y + badgeSize / 2;
-      let scoreX = x + badgeSize / 2;
-      
-      // Divide space evenly for multiple sources
-      const sourceWidth = badgeSize / reviewSources.length;
-      
-      reviewSources.forEach((source, index) => {
-        // Position for this source
-        const sourceX = x + (index * sourceWidth) + (sourceWidth / 2);
-        
-        // Draw the source logo or name
-        ctx.fillText(source.toUpperCase(), sourceX, scoreY - fontSize * 0.6);
-        
-        // Draw the score (dummy value for preview)
-        ctx.fillText('8.7', sourceX, scoreY + fontSize * 0.6);
+    const loadSourceIcons = async () => {
+      const iconPromises = reviewSources.map(async (source) => {
+        try {
+          const iconPath = await getReviewSourceIcon(source);
+          const img = new Image();
+          
+          return new Promise<{ source: string, img: HTMLImageElement }>((resolve, reject) => {
+            img.onload = () => resolve({ source, img });
+            img.onerror = () => reject(new Error(`Failed to load icon for ${source}`));
+            img.src = iconPath;
+          });
+        } catch (error) {
+          console.error(`Failed to load icon for ${source}:`, error);
+          return { source, img: null };
+        }
       });
-    } else {
-      // Vertical layout - stack the scores
-      const sourceHeight = badgeSize / reviewSources.length;
       
+      return Promise.all(iconPromises);
+    };
+    
+    try {
+      // Load all source icons
+      const sourceIcons = await loadSourceIcons();
+      
+      // Calculate layout based on display format
+      if (display_format === 'horizontal') {
+        // Horizontal layout
+        let currentX = padding;
+        const iconHeight = badgeSize * 0.4;
+        const iconSpacing = badgeSize * 0.15;
+        
+        // First pass to calculate total width
+        reviewSources.forEach((source, index) => {
+          const sourceIcon = sourceIcons.find(si => si.source === source);
+          let iconWidth = 0;
+          
+          if (sourceIcon && sourceIcon.img) {
+            // Scale icon to maintain aspect ratio with fixed height
+            const aspectRatio = sourceIcon.img.width / sourceIcon.img.height;
+            iconWidth = iconHeight * aspectRatio;
+          } else {
+            // Fallback if icon not loaded
+            iconWidth = scoreFontSize * 3;
+          }
+          
+          // Add spacing between multiple sources
+          if (index > 0) {
+            currentX += iconSpacing;
+          }
+          
+          // Add width for this source's section
+          currentX += iconWidth + (padding * 2);
+        });
+        
+        // Set the total width and height for the badge
+        totalWidth = currentX;
+        totalHeight = iconHeight + (scoreFontSize * 1.2) + (padding * 2);
+        
+        // Resize the canvas to fit the content
+        if (ctx.canvas) {
+          ctx.canvas.width = totalWidth;
+          ctx.canvas.height = totalHeight;
+        }
+        
+        // Clear and redraw the background for the new dimensions
+        ctx.clearRect(0, 0, totalWidth, totalHeight);
+        this.drawBackground(ctx, settings, totalWidth, totalHeight, totalWidth, totalHeight);
+        
+        // Second pass to draw the content
+        currentX = padding;
+        
+        reviewSources.forEach((source, index) => {
+          const sourceIcon = sourceIcons.find(si => si.source === source);
+          let iconWidth = 0;
+          
+          // Add spacing between multiple sources
+          if (index > 0) {
+            currentX += iconSpacing;
+          }
+          
+          // Draw source icon
+          if (sourceIcon && sourceIcon.img) {
+            // Scale icon to maintain aspect ratio with fixed height
+            const aspectRatio = sourceIcon.img.width / sourceIcon.img.height;
+            iconWidth = iconHeight * aspectRatio;
+            
+            ctx.drawImage(
+              sourceIcon.img,
+              currentX,
+              padding,
+              iconWidth,
+              iconHeight
+            );
+          } else {
+            // Fallback to text if icon not available
+            iconWidth = scoreFontSize * 3;
+            ctx.font = `bold ${sourceFontSize}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillText(source.toUpperCase(), currentX + (iconWidth / 2), padding + (iconHeight / 2));
+          }
+          
+          // Draw score below icon
+          ctx.font = `bold ${scoreFontSize}px Arial`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          
+          // Use score color based on source and value (using 75 as default demo value)
+          const demoScore = source === 'imdb' ? 7.5 : 75;
+          ctx.fillStyle = getScoreColor(source, demoScore);
+          
+          // Format score based on source
+          const scoreText = formatScore(source, demoScore, scoreType);
+          ctx.fillText(
+            scoreText,
+            currentX + (iconWidth / 2),
+            padding + iconHeight + (padding * 0.5)
+          );
+          
+          // Move to next position
+          currentX += iconWidth + padding;
+        });
+      } else {
+        // Vertical layout - stacking logos on top of scores
+        // Size settings for the layout
+        const logoWidth = badgeSize * 0.55;
+        const logoHeight = badgeSize * 0.3;
+        const scoreHeight = badgeSize * 0.3;
+        const sourceSpacing = badgeSize * 0.15;
+        // Increase internal padding
+        const internalPadding = padding * 2;
+        // Increase spacing between logo and score
+        const logoScoreSpacing = badgeSize * 0.12;
+        let currentY = internalPadding;
+        
+        // Calculate the width needed for all sources
+        let maxSourceWidth = 0;
+        
+        // First pass to calculate dimensions
+        reviewSources.forEach(source => {
+          const sourceIcon = sourceIcons.find(si => si.source === source);
+          let currentWidth = 0;
+          
+          if (sourceIcon && sourceIcon.img) {
+            // Use logo width as the base size
+            currentWidth = logoWidth;
+          } else {
+            // Fallback width if icon not loaded
+            currentWidth = scoreFontSize * 2.5;
+          }
+          
+          // Update max width if this source is wider
+          maxSourceWidth = Math.max(maxSourceWidth, currentWidth);
+        });
+        
+        // Add padding to max width (increased internal padding)
+        maxSourceWidth += internalPadding * 2;
+        
+        // Calculate total badge dimensions
+        totalWidth = maxSourceWidth;
+        totalHeight = currentY + (reviewSources.length * (logoHeight + logoScoreSpacing + scoreHeight + sourceSpacing)) - sourceSpacing + internalPadding;
+        
+        // Resize the canvas to fit the content
+        if (ctx.canvas) {
+          ctx.canvas.width = totalWidth;
+          ctx.canvas.height = totalHeight;
+        }
+        
+        // Clear and redraw the background for the new dimensions
+        ctx.clearRect(0, 0, totalWidth, totalHeight);
+        this.drawBackground(ctx, settings, totalWidth, totalHeight, totalWidth, totalHeight);
+        
+        // Second pass to draw the content
+        currentY = padding;
+        
+        reviewSources.forEach((source, index) => {
+          const sourceIcon = sourceIcons.find(si => si.source === source);
+          
+          // Horizontal center position for this source
+          const centerX = totalWidth / 2;
+          
+          // Draw source icon on top
+          if (sourceIcon && sourceIcon.img) {
+            // Calculate icon dimensions while maintaining aspect ratio
+            const aspectRatio = sourceIcon.img.width / sourceIcon.img.height;
+            const iconHeight = logoHeight;
+            const iconWidth = iconHeight * aspectRatio;
+            
+            // Center the icon horizontally
+            const iconX = centerX - (iconWidth / 2);
+            
+            // Draw the icon
+            ctx.drawImage(
+              sourceIcon.img,
+              iconX,
+              currentY,
+              iconWidth,
+              iconHeight
+            );
+          } else {
+            // Fallback to text if icon not available
+            ctx.font = `bold ${sourceFontSize}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillText(
+              source.toUpperCase(), 
+              centerX, 
+              currentY + (logoHeight / 2)
+            );
+          }
+          
+          // Draw score below icon with increased spacing
+          ctx.font = `bold ${scoreFontSize}px Arial`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          
+          // Use white color for all scores regardless of source
+          ctx.fillStyle = '#FFFFFF';
+          
+          // Format score based on source
+          const demoScore = source === 'imdb' ? 7.5 : 75;
+          const scoreText = formatScore(source, demoScore, scoreType);
+          ctx.fillText(
+            scoreText,
+            centerX,
+            currentY + logoHeight + logoScoreSpacing + (scoreHeight / 2)
+          );
+          
+          // Move to next source position
+          currentY += logoHeight + logoScoreSpacing + scoreHeight + sourceSpacing;
+        });
+      }
+    } catch (error) {
+      console.error('Error rendering review badge:', error);
+      
+      // Fallback rendering if icon loading fails
+      const fontSize = Math.max(badgeSize * 0.3, 12);
+      ctx.font = `bold ${fontSize}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#FFFFFF';
+      
+      // Draw text fallback
       reviewSources.forEach((source, index) => {
-        // Position for this source
-        const sourceY = y + (index * sourceHeight) + (sourceHeight / 2);
-        
-        // Draw the source logo or name
-        ctx.fillText(source.toUpperCase(), x + badgeSize / 2 - fontSize, sourceY);
-        
-        // Draw the score (dummy value for preview)
-        ctx.fillText('8.7', x + badgeSize / 2 + fontSize, sourceY);
+        const y = height / 2 + (index - reviewSources.length / 2 + 0.5) * fontSize * 1.5;
+        ctx.fillText(`${source.toUpperCase()}: 7.5`, width / 2, y);
       });
     }
     
