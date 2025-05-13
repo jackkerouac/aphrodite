@@ -59,61 +59,138 @@ export default function UnifiedBadgePreviewPage() {
   // Display for last saved time
   const [saveTimeDisplay, setSaveTimeDisplay] = useState<string>('');
 
-  // State to store the direct database badge size
+  // State to store the direct database badge settings
   const [directDbAudioSize, setDirectDbAudioSize] = useState<number | null>(null);
+  const [directDbResolutionSize, setDirectDbResolutionSize] = useState<number | null>(null);
+  const [directDbReviewSize, setDirectDbReviewSize] = useState<number | null>(null);
   
-  // Fetch the direct database size
+  // State to store complete badge settings
+  const [directDbAudioSettings, setDirectDbAudioSettings] = useState<AudioBadgeSettings | null>(null);
+  const [directDbResolutionSettings, setDirectDbResolutionSettings] = useState<ResolutionBadgeSettings | null>(null);
+  const [directDbReviewSettings, setDirectDbReviewSettings] = useState<ReviewBadgeSettings | null>(null);
+  
+  // Fetch the direct database settings for all badge types
   useEffect(() => {
-    const fetchDirectSize = async () => {
+    const fetchDirectSettings = async () => {
       try {
-        // Make a direct fetch to the API endpoint
-        const response = await fetch('http://localhost:5000/api/v1/unified-badge-settings/audio?user_id=1');
-        const data = await response.json();
+        // Make direct fetches to the API endpoints for all badge types
+        const fetchBadgeSettings = async (badgeType: string) => {
+          try {
+            const response = await fetch(`http://localhost:5000/api/v1/unified-badge-settings/${badgeType}?user_id=1`);
+            const data = await response.json();
+            
+            console.log(`DIRECT DB QUERY - Raw response for ${badgeType}:`, data);
+            
+            // Extract the badge settings based on the response structure
+            let badgeSettings;
+            if (data.success && data.data) {
+              badgeSettings = data.data;
+            } else if (data.badge_type === badgeType) {
+              badgeSettings = data;
+            } else {
+              console.error(`DIRECT DB QUERY - Could not find valid settings in ${badgeType} response`);
+              return null;
+            }
+            
+            console.log(`DIRECT DB QUERY - ${badgeType} badge settings from database:`, badgeSettings);
+            return badgeSettings;
+          } catch (error) {
+            console.error(`Error querying ${badgeType} badge directly:`, error);
+            return null;
+          }
+        };
+
+        // Fetch settings for all badge types in parallel
+        const [audioSettings, resolutionSettings, reviewSettings] = await Promise.all([
+          fetchBadgeSettings('audio'),
+          fetchBadgeSettings('resolution'),
+          fetchBadgeSettings('review')
+        ]);
         
-        console.log('DIRECT DB QUERY - Raw response:', data);
-        
-        // Extract the badge size based on the response structure
-        let badgeSize;
-        if (data.success && data.data) {
-          badgeSize = data.data.badge_size;
-        } else if (data.badge_size) {
-          badgeSize = data.badge_size;
-        } else {
-          console.error('DIRECT DB QUERY - Could not find badge_size in response');
-          return;
+        // Set the state for each badge type
+        if (audioSettings !== null) {
+          setDirectDbAudioSize(audioSettings.badge_size);
+          setDirectDbAudioSettings(audioSettings);
         }
-        
-        console.log('DIRECT DB QUERY - Audio badge size from database:', badgeSize);
-        setDirectDbAudioSize(badgeSize);
+        if (resolutionSettings !== null) {
+          setDirectDbResolutionSize(resolutionSettings.badge_size);
+          setDirectDbResolutionSettings(resolutionSettings);
+        }
+        if (reviewSettings !== null) {
+          setDirectDbReviewSize(reviewSettings.badge_size);
+          setDirectDbReviewSettings(reviewSettings);
+        }
       } catch (error) {
         console.error('Error querying database directly:', error);
       }
     };
     
-    fetchDirectSize();
+    fetchDirectSettings();
   }, []);
 
-  // State to track whether initial syncing has happened
-  const [initialSyncDone, setInitialSyncDone] = useState(false);
+  // State to track whether initial syncing has happened for each badge type
+  const [initialAudioSyncDone, setInitialAudioSyncDone] = useState(false);
+  const [initialResolutionSyncDone, setInitialResolutionSyncDone] = useState(false);
+  const [initialReviewSyncDone, setInitialReviewSyncDone] = useState(false);
   
-  // Effect to update the audioBadge when directDbAudioSize changes, but only once at the beginning
+  // Effect to update badges when direct DB sizes change, but only once at the beginning for each badge type
+  
+  // Audio badge sync
   useEffect(() => {
-    if (directDbAudioSize && audioBadge && !initialSyncDone) {
-      // Only sync the database size once when it's first loaded
-      console.log(`Initial sync: Database audio badge size ${directDbAudioSize} synced to local state`);
-      updateAudioBadge({
-        badge_size: directDbAudioSize
-      });
-      setInitialSyncDone(true);
+    if (directDbAudioSettings && audioBadge && !initialAudioSyncDone) {
+      // Only sync the database settings once when it's first loaded
+      console.log(`Initial sync: Database audio badge settings synced to local state:`, directDbAudioSettings);
+      
+      // Update with all properties from database settings
+      updateAudioBadge(directDbAudioSettings);
+      
+      setInitialAudioSyncDone(true);
     }
-  }, [directDbAudioSize, audioBadge, updateAudioBadge, initialSyncDone]);
+  }, [directDbAudioSettings, audioBadge, updateAudioBadge, initialAudioSyncDone]);
+  
+  // Resolution badge sync
+  useEffect(() => {
+    if (directDbResolutionSettings && resolutionBadge && !initialResolutionSyncDone) {
+      // Only sync the database settings once when it's first loaded
+      console.log(`Initial sync: Database resolution badge settings synced to local state:`, directDbResolutionSettings);
+      
+      // Update with all properties from database settings
+      updateResolutionBadge(directDbResolutionSettings);
+      
+      setInitialResolutionSyncDone(true);
+    }
+  }, [directDbResolutionSettings, resolutionBadge, updateResolutionBadge, initialResolutionSyncDone]);
+  
+  // Review badge sync
+  useEffect(() => {
+    if (directDbReviewSettings && reviewBadge && !initialReviewSyncDone) {
+      // Only sync the database settings once when it's first loaded
+      console.log(`Initial sync: Database review badge settings synced to local state:`, directDbReviewSettings);
+      
+      // Update with all properties from database settings
+      updateReviewBadge(directDbReviewSettings);
+      
+      setInitialReviewSyncDone(true);
+    }
+  }, [directDbReviewSettings, reviewBadge, updateReviewBadge, initialReviewSyncDone]);
 
-  // Create a wrapper for updateAudioBadge that handles all updates correctly
+  // Create wrappers for updating badge settings that handle all updates correctly
   const handleAudioBadgeChange = useCallback((settings: Partial<AudioBadgeSettings>) => {
     // For any update, just update directly without overriding with database values
-    console.log(`Badge update: `, settings);
+    console.log(`Audio badge update: `, settings);
     updateAudioBadge(settings);
   }, [updateAudioBadge]);
+  
+  // Wrappers for resolution and review badges to ensure consistent behavior
+  const handleResolutionBadgeChange = useCallback((settings: Partial<AudioBadgeSettings>) => {
+    console.log(`Resolution badge update: `, settings);
+    updateResolutionBadge(settings);
+  }, [updateResolutionBadge]);
+  
+  const handleReviewBadgeChange = useCallback((settings: Partial<AudioBadgeSettings>) => {
+    console.log(`Review badge update: `, settings);
+    updateReviewBadge(settings);
+  }, [updateReviewBadge]);
 
   // Format the last saved time
   useEffect(() => {
@@ -320,8 +397,8 @@ export default function UnifiedBadgePreviewPage() {
               resolutionBadge={resolutionBadge}
               reviewBadge={reviewBadge}
               onAudioBadgeChange={handleAudioBadgeChange}
-              onResolutionBadgeChange={updateResolutionBadge}
-              onReviewBadgeChange={updateReviewBadge}
+              onResolutionBadgeChange={handleResolutionBadgeChange}
+              onReviewBadgeChange={handleReviewBadgeChange}
               activeTab={highlightedBadge || undefined}
               onTabChange={handleTabChange}
               disabled={isSaving}
