@@ -74,6 +74,48 @@ export default function RunAphrodite() {
     reviewBadge,
   ].filter(Boolean) as UnifiedBadgeSettings[];
 
+  // Convert unified badge settings to the format required for batch processing
+  const prepareBadgeSettingsForJob = (badgeSettings: UnifiedBadgeSettings[] = []): any[] => {
+    if (!badgeSettings || badgeSettings.length === 0) {
+      console.warn('No badge settings provided for job creation');
+      return [];
+    }
+
+    // Map each badge setting to the format expected by the API
+    return badgeSettings.map(setting => {
+      // Create a clean copy to avoid reference issues
+      const settingCopy = JSON.parse(JSON.stringify(setting));
+      
+      // Ensure required fields are present
+      if (!settingCopy.badge_type) {
+        console.error('Badge setting missing badge_type:', settingCopy);
+        return null;
+      }
+      
+      // Format badge settings as expected by the API
+      return {
+        badge_type: settingCopy.badge_type,
+        badge_size: settingCopy.badge_size || 100,
+        badge_position: settingCopy.badge_position,
+        background_color: settingCopy.background_color,
+        background_opacity: settingCopy.background_opacity,
+        border_size: settingCopy.border_size,
+        border_color: settingCopy.border_color,
+        border_opacity: settingCopy.border_opacity,
+        border_radius: settingCopy.border_radius,
+        border_width: settingCopy.border_width,
+        shadow_enabled: settingCopy.shadow_enabled,
+        shadow_color: settingCopy.shadow_color,
+        shadow_blur: settingCopy.shadow_blur,
+        shadow_offset_x: settingCopy.shadow_offset_x,
+        shadow_offset_y: settingCopy.shadow_offset_y,
+        properties: settingCopy.properties,
+        // Include display_format only for review badges
+        ...(settingCopy.badge_type === 'review' ? { display_format: settingCopy.display_format } : {})
+      };
+    }).filter(Boolean); // Remove any null entries
+  };
+
   const currentStepInfo = WORKFLOW_STEPS[currentStep];
   const Icon = currentStepInfo.icon;
 
@@ -106,6 +148,9 @@ export default function RunAphrodite() {
           const selectedItems = await fetchSelectedItemsDetails(dataToCheck.selectedItems);
           const jobName = `Badge Application - ${new Date().toISOString().replace(/[:.]/g, '-')}`;
           
+          // Process badge settings for the job using our new helper function
+          const processedBadgeSettings = prepareBadgeSettingsForJob(dataToCheck.badgeSettings);
+          
           // Enhanced job payload with unified badge settings
           const jobPayload = {
             user_id: parseInt(user?.id || '1'),
@@ -114,7 +159,7 @@ export default function RunAphrodite() {
               jellyfin_item_id: item.id,
               title: item.name
             })),
-            badgeSettings: dataToCheck.badgeSettings || []
+            badgeSettings: processedBadgeSettings
           };
           
           console.log('Creating job with payload:', jobPayload);
@@ -163,6 +208,9 @@ export default function RunAphrodite() {
       selectedBadgeTypes.includes(badge.badge_type)
     );
 
+    console.log('Selected badge types:', selectedBadgeTypes);
+    console.log('Selected badge settings:', selectedBadgeSettings);
+    
     const updatedData = {
       ...stepData,
       libraries: selectedLibraries,

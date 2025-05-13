@@ -29,6 +29,7 @@ export interface CreateJobParams {
     jellyfin_item_id: string;
     title: string;
   }>;
+  badgeSettings?: any[]; // Add support for badge settings in job creation
 }
 
 export interface JobsResponse {
