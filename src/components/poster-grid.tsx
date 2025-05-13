@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, Checkbox, Button, Input, Skeleton } from "@/components/ui";
-import { Search, CheckCircle2, Circle, Image, Loader2 } from "lucide-react";
+import { Card, CardContent, Checkbox, Button, Input, Skeleton, Badge } from "@/components/ui";
+import { 
+  Search, 
+  CheckCircle2, 
+  Circle, 
+  Image, 
+  Loader2, 
+  Film, 
+  Tv,
+  Volume2,
+  Star,
+  MonitorSmartphone,
+  Badge as BadgeIcon
+} from "lucide-react";
 import { fetchApi } from "@/lib/api-client";
 import { useUser } from "@/contexts/UserContext";
 
@@ -8,12 +20,15 @@ export interface PosterItem {
   id: string;
   title: string;
   year?: string;
-  type: "Movie" | "Series";
+  type: "Movie" | "Series" | "Season" | "Episode";
   posterUrl?: string;
   overview?: string;
   mediaType?: string;
   path?: string;
   serverId?: string;
+  resolution?: string;
+  audio?: string;
+  review?: string;
 }
 
 interface PosterGridProps {
@@ -42,6 +57,7 @@ export const PosterGrid: React.FC<PosterGridProps> = ({
   const { user } = useUser();
   const [selectAll, setSelectAll] = useState(false);
   const [isSelectingAllItems, setIsSelectingAllItems] = useState(false);
+  const [searchDebounce, setSearchDebounce] = useState(searchQuery);
 
   // Update validation status when selection changes
   useEffect(() => {
@@ -58,6 +74,15 @@ export const PosterGrid: React.FC<PosterGridProps> = ({
       setSelectAll(allPageItemsSelected);
     }
   }, [selectedItems, items]);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onSearchChange(searchDebounce);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [searchDebounce, onSearchChange]);
 
   const handleItemToggle = (itemId: string) => {
     if (selectedItems.includes(itemId)) {
@@ -78,59 +103,6 @@ export const PosterGrid: React.FC<PosterGridProps> = ({
       const newSelection = [...new Set([...selectedItems, ...pageIds])];
       onItemsChange(newSelection);
     }
-  };
-
-  const handleSelectAllInLibrary = async () => {
-    if (!user?.id) return;
-    
-    if (!libraryIds.length) {
-      alert('No libraries selected');
-      return;
-    }
-
-    try {
-      setIsSelectingAllItems(true);
-      
-      // Build query params for fetching all items
-      const params = new URLSearchParams({
-        libraryIds: libraryIds.join(','),
-        all: 'true',
-        ...(searchQuery && { search: searchQuery })
-      });
-      
-      const response = await fetchApi<{ success: boolean; items: PosterItem[] }>(
-        `/library-items/${user.id}?${params}`
-      );
-      
-      if (response.success && response.items) {
-        const allItemIds = response.items.map(item => item.id);
-        onItemsChange(allItemIds);
-        
-        // Show confirmation
-        const message = searchQuery 
-          ? `Selected ${allItemIds.length} items matching "${searchQuery}" from all pages`
-          : `Selected all ${allItemIds.length} items in the library`;
-        alert(message);
-      }
-    } catch (error) {
-      console.error('Failed to select all items:', error);
-      alert('Failed to select all items. Please try again.');
-    } finally {
-      setIsSelectingAllItems(false);
-    }
-  };
-
-  const handleClearSelection = () => {
-    onItemsChange([]);
-  };
-
-  const handleInvertSelection = () => {
-    const currentPageIds = items.map(item => item.id);
-    const currentPageSelected = selectedItems.filter(id => currentPageIds.includes(id));
-    const currentPageNotSelected = currentPageIds.filter(id => !selectedItems.includes(id));
-    const otherPagesSelected = selectedItems.filter(id => !currentPageIds.includes(id));
-    
-    onItemsChange([...otherPagesSelected, ...currentPageNotSelected]);
   };
 
   // Loading state
@@ -158,66 +130,38 @@ export const PosterGrid: React.FC<PosterGridProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Search and selection tools */}
-      <div className="flex flex-col gap-4">
-        <div className="flex gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search all items..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleSelectAllPage}
-          >
-            {selectAll ? "Deselect All" : "Select All on Page"}
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleSelectAllInLibrary}
-            disabled={isSelectingAllItems}
-          >
-            {isSelectingAllItems ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Selecting...
-              </>
-            ) : (
-              `Select All Items in Library${searchQuery ? ' (filtered)' : ''}`
-            )}
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleClearSelection}
-            disabled={selectedItems.length === 0}
-          >
-            Clear Selection
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleInvertSelection}
-          >
-            Invert Selection
-          </Button>
+      {/* Search input */}
+      <div className="flex gap-4">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search titles, years, or content types..."
+            value={searchDebounce}
+            onChange={(e) => setSearchDebounce(e.target.value)}
+            className="pl-10"
+          />
         </div>
       </div>
 
       {/* Selection summary */}
-      <div className="text-sm text-muted-foreground">
-        {selectedItems.length} items selected
-        {totalItems && totalItems > items.length && (
-          <span> (out of {totalItems} total in library{searchQuery ? ` matching "${searchQuery}"` : ''})</span>
+      <div className="text-sm text-muted-foreground flex flex-wrap items-center gap-2">
+        <span className="font-medium">{selectedItems.length}</span> items selected
+        {totalItems && totalItems > 0 && (
+          <span className="text-muted-foreground">
+            out of <span className="font-medium">{totalItems}</span> total
+            {searchQuery && <span> matching "<span className="italic">{searchQuery}</span>"</span>}
+          </span>
+        )}
+        {items.length > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSelectAllPage}
+            className="h-7 px-2 ml-2"
+          >
+            {selectAll ? "Deselect Page" : "Select Page"}
+          </Button>
         )}
       </div>
 
@@ -259,11 +203,32 @@ export const PosterGrid: React.FC<PosterGridProps> = ({
                       )}
                     </div>
                   </div>
+                  
+                  {/* Badge indicators */}
+                  <div className="absolute bottom-1 left-1 flex gap-1">
+                    {item.resolution === "4k" && (
+                      <Badge variant="secondary" className="bg-black/70 text-white text-xs py-0 h-5">
+                        <MonitorSmartphone className="h-3 w-3 mr-1" />4K
+                      </Badge>
+                    )}
+                    {item.audio === "dolby-atmos" && (
+                      <Badge variant="secondary" className="bg-black/70 text-white text-xs py-0 h-5">
+                        <Volume2 className="h-3 w-3 mr-1" />Atmos
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-1">
                   <h4 className="text-sm font-medium line-clamp-2">{item.title}</h4>
                   <div className="flex justify-between items-center text-xs text-muted-foreground">
-                    <span>{item.type}</span>
+                    <span className="flex items-center gap-1">
+                      {item.type === "Movie" ? (
+                        <Film className="h-3 w-3" />
+                      ) : item.type === "Series" ? (
+                        <Tv className="h-3 w-3" />
+                      ) : null}
+                      {item.type}
+                    </span>
                     {item.year && <span>{item.year}</span>}
                   </div>
                 </div>
@@ -276,23 +241,19 @@ export const PosterGrid: React.FC<PosterGridProps> = ({
       {/* Empty states */}
       {items.length === 0 && searchQuery && (
         <div className="text-center py-8 text-muted-foreground">
-          No items match your search criteria.
+          <Image className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
+          <p>No items match your search criteria.</p>
+          <p className="text-sm mt-2">Try adjusting your filters or search terms.</p>
         </div>
       )}
 
       {items.length === 0 && !searchQuery && !isLoading && (
         <div className="text-center py-8 text-muted-foreground">
-          No items available in the selected libraries.
+          <Image className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
+          <p>No items available in the selected libraries.</p>
+          <p className="text-sm mt-2">Try selecting different libraries or adjusting filters.</p>
         </div>
       )}
     </div>
   );
 };
-
-// Note: This component is prepared for virtualization but currently uses a simple grid.
-// To add virtualization:
-// 1. Install react-window: npm install react-window @types/react-window
-// 2. Replace the grid div with a FixedSizeGrid from react-window
-// 3. Implement cell renderer for virtualized items
-// 4. Add InfiniteLoader for pagination if needed
-// 5. Handle window resize to adjust grid columns dynamically

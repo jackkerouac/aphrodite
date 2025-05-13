@@ -12,6 +12,9 @@ export interface LibraryItem {
   mediaType?: string;
   path?: string;
   serverId?: string;
+  resolution?: string;
+  audio?: string;
+  review?: string;
 }
 
 interface UseLibraryItemsOptions {
@@ -20,6 +23,12 @@ interface UseLibraryItemsOptions {
   limit?: number;
   search?: string;
   enabled?: boolean;
+  mediaType?: string;
+  resolution?: string;
+  audio?: string;
+  review?: string;
+  status?: string;
+  recent?: boolean;
 }
 
 interface ApiLibraryItemsResponse {
@@ -44,12 +53,42 @@ export function useLibraryItems({
   page = 1,
   limit = 50,
   search = "",
-  enabled = true
+  enabled = true,
+  mediaType,
+  resolution,
+  audio,
+  review,
+  status,
+  recent
 }: UseLibraryItemsOptions) {
   const { user } = useUser();
-  console.log('useLibraryItems called with:', { libraryIds, page, limit, search, enabled, userId: user?.id });
+  console.log('useLibraryItems called with:', { 
+    libraryIds, 
+    page, 
+    limit, 
+    search, 
+    enabled, 
+    userId: user?.id,
+    mediaType,
+    resolution,
+    audio,
+    review,
+    status,
+    recent
+  });
+
+  // Collect all filter parameters for query key
+  const filterParams = {
+    mediaType,
+    resolution,
+    audio,
+    review,
+    status,
+    recent
+  };
+
   return useQuery<LibraryItemsResponse>({
-    queryKey: ["library-items", libraryIds, page, limit, search, user?.id],
+    queryKey: ["library-items", libraryIds, page, limit, search, user?.id, filterParams],
     queryFn: async () => {
       console.log('Library items query function called');
       if (!libraryIds.length) {
@@ -68,7 +107,13 @@ export function useLibraryItems({
         page: String(page),
         limit: String(limit),
         ...(search && { search }),
-        libraryIds: libraryIds.join(",")
+        libraryIds: libraryIds.join(","),
+        ...(mediaType && { mediaType }),
+        ...(resolution && { resolution }),
+        ...(audio && { audio }),
+        ...(review && { review }),
+        ...(status && { status }),
+        ...(recent && { recent: String(recent) })
       });
       
       const url = `/library-items/${user?.id || '1'}?${params}`;
@@ -76,6 +121,7 @@ export function useLibraryItems({
 
       const data = await fetchApi<ApiLibraryItemsResponse>(url);
       console.log('Library items API response:', data);
+      
       // Extract the response data
       if (data.success !== undefined) {
         return {
@@ -94,10 +140,16 @@ export function useLibraryItems({
 }
 
 // Hook to fetch all items for selected libraries (without pagination, for export/processing)
-export function useAllLibraryItems(libraryIds: string[], enabled = false) {
+export function useAllLibraryItems(
+  libraryIds: string[], 
+  filters: Partial<UseLibraryItemsOptions> = {},
+  enabled = false
+) {
   const { user } = useUser();
+  const { search, mediaType, resolution, audio, review, status, recent } = filters;
+  
   return useQuery<LibraryItem[]>({
-    queryKey: ["all-library-items", libraryIds, user?.id],
+    queryKey: ["all-library-items", libraryIds, user?.id, filters],
     queryFn: async () => {
       if (!libraryIds.length) {
         return [];
@@ -105,7 +157,14 @@ export function useAllLibraryItems(libraryIds: string[], enabled = false) {
 
       const params = new URLSearchParams({
         libraryIds: libraryIds.join(","),
-        all: "true" // Special flag to fetch all items
+        all: "true", // Special flag to fetch all items
+        ...(search && { search }),
+        ...(mediaType && { mediaType }),
+        ...(resolution && { resolution }),
+        ...(audio && { audio }),
+        ...(review && { review }),
+        ...(status && { status }),
+        ...(recent && { recent: String(recent) })
       });
 
       const data = await fetchApi<{ success: boolean; items: LibraryItem[] }>(`/library-items/${user?.id || '1'}?${params}`);
