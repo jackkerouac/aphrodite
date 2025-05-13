@@ -37,35 +37,68 @@ class PosterProcessor {
     try {
       // Update item status to processing
       await this.updateItemStatus(item.id, 'processing');
+      logger.info(`Job ${jobId}: Processing item ${item.id} (${item.jellyfin_item_id}: ${item.title || 'No title'})`);
       
-      // Log the item to see what data we have
-      console.log('Processing item:', item);
+      // Validate input
+      if (!item.jellyfin_item_id) {
+        throw new Error('Missing jellyfin_item_id for item');
+      }
 
       // Fetch badge settings for this user
-      const badgeSettings = await this.getBadgeSettings(userId, item);
+      let badgeSettings = [];
+      try {
+        badgeSettings = await this.getBadgeSettings(userId, item);
+        logger.info(`Job ${jobId}: Retrieved ${badgeSettings.length} badge settings for item ${item.id}`);
+      } catch (settingsError) {
+        logger.error(`Job ${jobId}: Failed to get badge settings: ${settingsError.message}`);
+        throw new Error(`Failed to get badge settings: ${settingsError.message}`);
+      }
+
+      // Verify we have valid badge settings
+      if (!badgeSettings || badgeSettings.length === 0) {
+        logger.warn(`Job ${jobId}: No badge settings available for item ${item.id}`);
+        await this.updateItemStatus(item.id, 'completed', 'No badge settings available');
+        return { success: true, itemId: item.id, message: 'No badge settings available' };
+      }
 
       // Download poster from Jellyfin
-      await this.downloadPoster(item.jellyfin_item_id, tempPosterPath, userId);
+      try {
+        await this.downloadPoster(item.jellyfin_item_id, tempPosterPath, userId);
+        logger.info(`Job ${jobId}: Downloaded poster for item ${item.id}`);
+      } catch (downloadError) {
+        logger.error(`Job ${jobId}: Failed to download poster: ${downloadError.message}`);
+        await this.updateItemStatus(item.id, 'failed', `Failed to download poster: ${downloadError.message}`);
+        throw new Error(`Failed to download poster: ${downloadError.message}`);
+      }
       
       // Standardize the poster to 1000px width
-      const standardizationResult = await this.posterStandardizer.standardizePoster(
-        tempPosterPath,
-        standardizedPosterPath
-      );
-      console.log('Poster standardization result:', standardizationResult);
+      try {
+        const standardizationResult = await this.posterStandardizer.standardizePoster(
+          tempPosterPath,
+          standardizedPosterPath
+        );
+        logger.info(`Job ${jobId}: Standardized poster for item ${item.id}: ${JSON.stringify(standardizationResult)}`);
+      } catch (standardizeError) {
+        logger.error(`Job ${jobId}: Failed to standardize poster: ${standardizeError.message}`);
+        await this.updateItemStatus(item.id, 'failed', `Failed to standardize poster: ${standardizeError.message}`);
+        throw new Error(`Failed to standardize poster: ${standardizeError.message}`);
+      }
 
       // Apply badges using canvas renderer if enabled
       let modifiedPosterBuffer;
       let badgeApplied = false;
+      let badgeError = null;
       
       // Try canvas renderer first if enabled
       if (this.useCanvasRenderer) {
         try {
           modifiedPosterBuffer = await this.applyBadgesWithCanvas(standardizedPosterPath, badgeSettings);
           badgeApplied = true;
-          console.log('Successfully applied badges with canvas renderer');
+          logger.info(`Job ${jobId}: Successfully applied badges with canvas renderer for item ${item.id}`);
         } catch (canvasError) {
-          console.error(`Canvas renderer failed: ${canvasError.message}. Trying fallback renderer...`);
+          logger.error(`Job ${jobId}: Canvas renderer failed: ${canvasError.message}. Trying fallback renderer...`);
+          badgeError = canvasError.message;
+          
           // Fall back to the SVG renderer
           try {
             modifiedPosterBuffer = await this.badgeRenderer.applyMultipleBadges(
@@ -73,9 +106,10 @@ class PosterProcessor {
               badgeSettings
             );
             badgeApplied = true;
-            console.log('Successfully applied badges with fallback SVG renderer');
+            logger.info(`Job ${jobId}: Successfully applied badges with fallback SVG renderer for item ${item.id}`);
           } catch (svgError) {
-            console.error(`SVG renderer also failed: ${svgError.message}. Continuing with original poster...`);
+            logger.error(`Job ${jobId}: SVG renderer also failed: ${svgError.message}. Continuing with original poster...`);
+            badgeError = `Canvas renderer error: ${canvasError.message}. SVG renderer error: ${svgError.message}`;
             // If both renderers fail, use the standardized poster without badges
             modifiedPosterBuffer = await fs.readFile(standardizedPosterPath);
           }
@@ -88,42 +122,51 @@ class PosterProcessor {
             badgeSettings
           );
           badgeApplied = true;
-          console.log('Successfully applied badges with SVG renderer');
+          logger.info(`Job ${jobId}: Successfully applied badges with SVG renderer for item ${item.id}`);
         } catch (svgError) {
-          console.error(`SVG renderer failed: ${svgError.message}. Continuing with original poster...`);
+          logger.error(`Job ${jobId}: SVG renderer failed: ${svgError.message}. Continuing with original poster...`);
+          badgeError = svgError.message;
           // If SVG renderer fails, use the standardized poster without badges
           modifiedPosterBuffer = await fs.readFile(standardizedPosterPath);
         }
       }
       
+      // Verify we have a valid buffer
+      if (!modifiedPosterBuffer || modifiedPosterBuffer.length === 0) {
+        logger.error(`Job ${jobId}: Empty poster buffer for item ${item.id}`);
+        throw new Error('Generated poster buffer is empty');
+      }
+
       // Save the modified poster for inspection
       const modifiedPosterPath = path.join(this.tempDir, `poster-modified-${item.jellyfin_item_id}.png`);
       await fs.writeFile(modifiedPosterPath, modifiedPosterBuffer);
-      console.log(`Modified poster saved at: ${modifiedPosterPath}${badgeApplied ? '' : ' (without badges due to renderer errors)'}`);
+      logger.info(`Job ${jobId}: Modified poster saved at: ${modifiedPosterPath}${badgeApplied ? '' : ' (without badges due to renderer errors)'}`);
 
       // Upload modified poster back to Jellyfin
-      await this.uploadPoster(item.jellyfin_item_id, modifiedPosterBuffer, userId);
+      try {
+        await this.uploadPoster(item.jellyfin_item_id, modifiedPosterBuffer, userId);
+        logger.info(`Job ${jobId}: Uploaded modified poster for item ${item.id}`);
+      } catch (uploadError) {
+        logger.error(`Job ${jobId}: Failed to upload poster: ${uploadError.message}`);
+        await this.updateItemStatus(item.id, 'failed', `Failed to upload poster: ${uploadError.message}`);
+        throw new Error(`Failed to upload poster: ${uploadError.message}`);
+      }
 
       // Update item status to completed
-      await this.updateItemStatus(item.id, 'completed', badgeApplied ? null : 'Badges could not be applied due to renderer errors');
+      if (badgeApplied) {
+        await this.updateItemStatus(item.id, 'completed');
+        logger.info(`Job ${jobId}: Item ${item.id} completed successfully with badges applied`);
+      } else {
+        await this.updateItemStatus(item.id, 'completed', `Badges could not be applied: ${badgeError || 'Unknown error'}`);
+        logger.warn(`Job ${jobId}: Item ${item.id} completed but no badges were applied: ${badgeError || 'Unknown error'}`);
+      }
 
-      // Clean up temp files
-      // await fs.unlink(tempPosterPath).catch(() => {});
-      // await fs.unlink(standardizedPosterPath).catch(() => {});
-      console.log(`Temp poster saved at: ${tempPosterPath}`);
-      console.log(`Standardized poster saved at: ${standardizedPosterPath}`);
-
+      // Keep temp files for debugging purposes
       return { success: true, itemId: item.id, badgeApplied };
     } catch (error) {
-      console.error(`Error processing item ${item.id}:`, error);
+      logger.error(`Job ${jobId}: Error processing item ${item.id}: ${error.message}`);
       await this.updateItemStatus(item.id, 'failed', error.message);
       
-      // Clean up temp files
-      // await fs.unlink(tempPosterPath).catch(() => {});
-      // await fs.unlink(standardizedPosterPath).catch(() => {});
-      console.log(`Temp poster saved at: ${tempPosterPath} (in error state)`);
-      console.log(`Standardized poster saved at: ${standardizedPosterPath} (in error state)`);
-
       return { success: false, itemId: item.id, error: error.message };
     }
   }
@@ -726,21 +769,69 @@ class PosterProcessor {
     return { left, top };
   }
 
+  /**
+   * Process items in batches with improved error handling and logging
+   */
   async processInBatches(items, jobId, userId, onProgress) {
     const results = [];
+    const failedItems = [];
+    let startTime = Date.now();
+    
+    // Log start of batch processing
+    console.log(`Starting batch processing for job ${jobId} with ${items.length} items and concurrency ${this.concurrency}`);
+    logger.info(`Starting batch processing for job ${jobId}. Items: ${items.length}, Concurrency: ${this.concurrency}`);
     
     // Process items in batches based on concurrency
     for (let i = 0; i < items.length; i += this.concurrency) {
+      const batchStartTime = Date.now();
       const batch = items.slice(i, i + this.concurrency);
+      const batchNumber = Math.floor(i / this.concurrency) + 1;
+      const totalBatches = Math.ceil(items.length / this.concurrency);
       
-      // Process batch in parallel
-      const batchResults = await Promise.all(
-        batch.map(item => this.processItem(item, jobId, userId))
-      );
+      // Log batch start
+      console.log(`Processing batch ${batchNumber}/${totalBatches} with ${batch.length} items`);
+      logger.info(`Job ${jobId}: Processing batch ${batchNumber}/${totalBatches} with ${batch.length} items`);
       
-      results.push(...batchResults);
+      try {
+        // Process batch in parallel
+        const batchResults = await Promise.all(
+          batch.map(item => this.processItem(item, jobId, userId)
+            .catch(error => {
+              // Capture individual item errors but don't fail the whole batch
+              logger.error(`Error processing item ${item.id} (${item.jellyfin_item_id}): ${error.message}`);
+              return { 
+                success: false, 
+                itemId: item.id, 
+                error: error.message,
+                jellyfin_item_id: item.jellyfin_item_id 
+              };
+            })
+          )
+        );
+        
+        results.push(...batchResults);
+        
+        // Track failed items for possible retry
+        const batchFailedItems = batchResults.filter(r => !r.success);
+        if (batchFailedItems.length > 0) {
+          failedItems.push(...batchFailedItems);
+          logger.warn(`Job ${jobId}: ${batchFailedItems.length} items failed in batch ${batchNumber}`);
+          console.log(`${batchFailedItems.length} items failed in batch ${batchNumber}:`, 
+            batchFailedItems.map(item => ({ id: item.itemId, error: item.error })));
+        }
+        
+        // Calculate batch duration and performance
+        const batchDuration = (Date.now() - batchStartTime) / 1000;
+        const itemsPerSecond = batch.length / batchDuration;
+        console.log(`Batch ${batchNumber} completed in ${batchDuration.toFixed(2)}s (${itemsPerSecond.toFixed(2)} items/sec)`);
+        logger.info(`Job ${jobId}: Batch ${batchNumber} completed in ${batchDuration.toFixed(2)}s (${itemsPerSecond.toFixed(2)} items/sec)`);
+      } catch (batchError) {
+        // Log batch failure but continue with next batch
+        logger.error(`Job ${jobId}: Error processing batch ${batchNumber}: ${batchError.message}`);
+        console.error(`Error processing batch ${batchNumber}:`, batchError);
+      }
       
-      // Report progress
+      // Report progress after each batch
       if (onProgress) {
         const completed = results.filter(r => r.success).length;
         const failed = results.filter(r => !r.success).length;
@@ -754,6 +845,15 @@ class PosterProcessor {
         });
       }
     }
+    
+    // Log final summary
+    const totalDuration = (Date.now() - startTime) / 1000;
+    const successCount = results.filter(r => r.success).length;
+    const failureCount = results.filter(r => !r.success).length;
+    const successRate = (successCount / items.length) * 100;
+    
+    console.log(`Batch processing complete. Duration: ${totalDuration.toFixed(2)}s, Success: ${successCount}/${items.length} (${successRate.toFixed(2)}%), Failed: ${failureCount}`);
+    logger.info(`Job ${jobId}: Batch processing complete. Duration: ${totalDuration.toFixed(2)}s, Success: ${successCount}/${items.length} (${successRate.toFixed(2)}%), Failed: ${failureCount}`);
     
     return results;
   }

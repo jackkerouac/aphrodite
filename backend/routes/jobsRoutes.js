@@ -40,11 +40,12 @@ router.get('/', async (req, res) => {
  * @body {number} user_id - User ID
  * @body {string} name - Job name
  * @body {Array} items - Array of items to process
+ * @body {Array} badgeSettings - Array of badge settings to apply
  */
 router.post('/', async (req, res) => {
   try {
     console.log('Received job creation request with body:', JSON.stringify(req.body, null, 2));
-    const { user_id, name, items } = req.body;
+    const { user_id, name, items, badgeSettings } = req.body;
     
     if (!user_id || !name || !items || !Array.isArray(items)) {
       return res.status(400).json({ 
@@ -53,11 +54,16 @@ router.post('/', async (req, res) => {
       });
     }
     
-    // Create the job
+    if (!badgeSettings || !Array.isArray(badgeSettings) || badgeSettings.length === 0) {
+      logger.warn('No badge settings provided for job creation');
+    }
+    
+    // Create the job with badge settings
     const job = await createJob({
       user_id,
       name,
-      items_total: items.length
+      items_total: items.length,
+      badge_settings: badgeSettings ? JSON.stringify(badgeSettings) : null
     });
     
     // Create job items

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { Button, Progress, Card, CardContent, AlertCircle, Badge, ScrollArea, Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui";
+import { Button, Progress, Card, CardContent, Badge, ScrollArea, Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui";
 import { useRunAphrodite } from "./RunAphroditeContext";
-import { XCircle, CheckCircle, RefreshCw, StopCircle, CopyCheck, HelpCircle } from "lucide-react";
+import { XCircle, CheckCircle, RefreshCw, StopCircle, CopyCheck, HelpCircle, AlertCircle } from "lucide-react";
 import apiClient from "@/lib/api-client";
 import { toast } from "sonner";
 

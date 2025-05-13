@@ -8,6 +8,9 @@ import PosterProcessor from './badge-renderer/posterProcessor.js';
  * Process a job and apply badges to all items
  */
 export async function processJob(jobId) {
+  let startTime = Date.now();
+  let job = null;
+  
   try {
     // First get the job without user_id constraint to find the user
     const { pool } = await import('../db.js');
@@ -18,9 +21,9 @@ export async function processJob(jobId) {
       return;
     }
     
-    const job = jobResult.rows[0];
+    job = jobResult.rows[0];
 
-    logger.info(`Starting job ${jobId} processing`);
+    logger.info(`Starting job ${jobId} processing for user ${job.user_id}`);
     await updateJobStatus(jobId, 'running');
 
     // Initialize poster processor
@@ -29,10 +32,20 @@ export async function processJob(jobId) {
 
     // Get job items
     const itemsResult = await pool.query(
-      'SELECT ji.* FROM job_items ji WHERE ji.job_id = $1 ORDER BY ji.id',
+      'SELECT ji.*, ji.jellyfin_item_id, j.badge_settings FROM job_items ji ' +
+      'JOIN jobs j ON ji.job_id = j.id ' +
+      'WHERE ji.job_id = $1 ORDER BY ji.id',
       [jobId]
     );
     const items = itemsResult.rows;
+    
+    // Get the badge settings from the job
+    try {
+      const badgeSettings = JSON.parse(job.badge_settings || '[]');
+      logger.info(`Job ${jobId} has ${badgeSettings.length} badge settings defined`);
+    } catch (error) {
+      logger.warn(`Failed to parse badge settings for job ${jobId}: ${error.message}`);
+    }
 
     // Emit job started event
     emitToUser(job.user_id, 'job-status', {
@@ -50,6 +63,9 @@ export async function processJob(jobId) {
       processedCount = completed;
       failedCount = failed;
 
+      // Log progress
+      logger.info(`Job ${jobId} progress: ${progress}% (${completed}/${total} completed, ${failed} failed)`);
+      
       // Update job status in database
       updateJobStatus(jobId, 'running', {
         items_processed: processedCount,
@@ -75,8 +91,22 @@ export async function processJob(jobId) {
     );
 
     // Determine final status
-    const finalStatus = failedCount === items.length ? 'failed' : 'completed';
+    let finalStatus = 'completed';
+    if (failedCount === items.length) {
+      finalStatus = 'failed';
+    } else if (failedCount > 0) {
+      finalStatus = 'completed'; // We'll still mark as completed even with some failures
+    }
 
+    // Calculate summary statistics
+    const successCount = processedCount - failedCount;
+    const successRate = items.length > 0 ? (successCount / items.length) * 100 : 0;
+    const duration = (Date.now() - startTime) / 1000;
+    
+    // Log completion
+    logger.info(`Job ${jobId} completed with status: ${finalStatus}`);
+    logger.info(`Job ${jobId} statistics: Processed: ${processedCount}/${items.length}, Success rate: ${successRate.toFixed(2)}%, Duration: ${duration.toFixed(2)}s`);
+    
     // Complete the job
     await updateJobStatus(jobId, finalStatus, {
       items_processed: processedCount,
@@ -93,22 +123,51 @@ export async function processJob(jobId) {
       progress: 100
     });
 
-    logger.info(`Job ${jobId} completed. Processed: ${processedCount}, Failed: ${failedCount}`);
+    // Return summary data for potential logging or future reporting
+    return {
+      jobId,
+      status: finalStatus,
+      processedCount,
+      failedCount,
+      successRate: successRate.toFixed(2),
+      duration: duration.toFixed(2)
+    };
   } catch (error) {
-    logger.error(`Fatal error processing job ${jobId}:`, error);
+    const duration = (Date.now() - startTime) / 1000;
+    logger.error(`Fatal error processing job ${jobId} after ${duration.toFixed(2)}s:`, error);
     await updateJobStatus(jobId, 'failed');
 
-    // Emit job error event - get job again to find user_id
-    const { pool } = await import('../db.js');
-    const jobResult = await pool.query('SELECT * FROM jobs WHERE id = $1', [jobId]);
-    const job = jobResult.rows[0];
-    
+    // Emit job error event - use job value from above if already fetched
     if (job) {
       emitToUser(job.user_id, 'job-error', {
         jobId,
         error: error.message
       });
+    } else {
+      // If job wasn't found initially, try again to find user_id
+      try {
+        const { pool } = await import('../db.js');
+        const jobResult = await pool.query('SELECT * FROM jobs WHERE id = $1', [jobId]);
+        const job = jobResult.rows[0];
+        
+        if (job) {
+          emitToUser(job.user_id, 'job-error', {
+            jobId,
+            error: error.message
+          });
+        }
+      } catch (secondaryError) {
+        logger.error(`Failed to emit job error for job ${jobId}:`, secondaryError);
+      }
     }
+    
+    // Return error information
+    return {
+      jobId,
+      status: 'failed',
+      error: error.message,
+      duration: duration.toFixed(2)
+    };
   }
 }
 

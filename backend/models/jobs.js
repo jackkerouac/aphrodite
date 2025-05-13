@@ -39,20 +39,34 @@ export async function getJobById(jobId, userId) {
 
 // Create a new job
 export async function createJob(jobData) {
-  const { user_id, name, items_total } = jobData;
+  const { user_id, name, items_total, badge_settings } = jobData;
   
   try {
-    console.log('Creating job with data:', { user_id, name, items_total });
+    console.log('Creating job with data:', { user_id, name, items_total, hasBadgeSettings: !!badge_settings });
     
-    const result = await pool.query(
-      `INSERT INTO jobs (user_id, name, items_total, status)
-       VALUES ($1, $2, $3, 'pending')
-       RETURNING *`,
-      [user_id, name, items_total]
-    );
-    
-    console.log('Job created successfully:', result.rows[0]);
-    return result.rows[0];
+    // If badge settings are provided, include them in the query
+    if (badge_settings) {
+      const result = await pool.query(
+        `INSERT INTO jobs (user_id, name, items_total, status, badge_settings)
+         VALUES ($1, $2, $3, 'pending', $4)
+         RETURNING *`,
+        [user_id, name, items_total, badge_settings]
+      );
+      
+      console.log('Job created successfully with badge settings');
+      return result.rows[0];
+    } else {
+      // Otherwise, use the basic query
+      const result = await pool.query(
+        `INSERT INTO jobs (user_id, name, items_total, status)
+         VALUES ($1, $2, $3, 'pending')
+         RETURNING *`,
+        [user_id, name, items_total]
+      );
+      
+      console.log('Job created successfully without badge settings');
+      return result.rows[0];
+    }
   } catch (error) {
     console.error('Database error in createJob:', error);
     throw error;

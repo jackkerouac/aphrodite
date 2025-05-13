@@ -35,22 +35,50 @@ class WebSocketClient {
   private isReconnecting = false;
 
   connect(userId: string) {
+    // Don't try to connect if already connected
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      console.log('WebSocket already connected, skipping connect');
+      return;
+    }
+    
+    // If there's a socket in CONNECTING state, don't create a new one
+    if (this.socket && this.socket.readyState === WebSocket.CONNECTING) {
+      console.log('WebSocket already connecting, skipping connect');
+      return;
+    }
+    
+    // If there's a socket in CLOSING state, wait for it to close before reconnecting
+    if (this.socket && this.socket.readyState === WebSocket.CLOSING) {
+      console.log('WebSocket is closing, will reconnect after close');
       return;
     }
 
     this.userId = userId;
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = process.env.NODE_ENV === 'development' 
-      ? 'localhost:5000' 
-      : window.location.host;
+    let host = '';
+    
+    try {
+      // Try to get the host from environment or window location
+      host = process.env.NODE_ENV === 'development' 
+        ? 'localhost:5000' 
+        : window.location.host;
+    } catch (error) {
+      console.error('Error determining host:', error);
+      host = 'localhost:5000'; // Fallback to localhost
+    }
+    
     const url = `${protocol}//${host}/socket.io/?EIO=4&transport=websocket`;
+    console.log(`Connecting to WebSocket at ${url}`);
 
     try {
-      this.socket = new WebSocket(url);
-      this.setupEventHandlers();
+      // Create a new socket only if we don't have one or if it's CLOSED
+      if (!this.socket || this.socket.readyState === WebSocket.CLOSED) {
+        this.socket = new WebSocket(url);
+        this.setupEventHandlers();
+      }
     } catch (error) {
       console.error('Failed to create WebSocket:', error);
+      this.socket = null;
       this.scheduleReconnect();
     }
   }

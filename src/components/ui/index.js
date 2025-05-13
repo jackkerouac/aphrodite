@@ -19,6 +19,7 @@ export * from './checkbox';
 export * from './skeleton';
 export * from './badge'; // Added Badge export
 export * from './dropdown-menu'; // Added DropdownMenu export
+export * from './scroll-area'; // Added ScrollArea export
 // export * from './toast'; // Deprecated - use Sonner instead
 
 // Advanced UI Components
