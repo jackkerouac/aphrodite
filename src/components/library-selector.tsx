@@ -9,6 +9,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Database, 
@@ -26,6 +27,7 @@ import useEnabledBadges from "@/hooks/useEnabledBadges";
 interface LibrarySelectorProps {
   onContinue: (selectedLibraries: string[], enabledBadges: string[]) => void;
   preselectedLibraries?: string[];
+  availableBadges?: string[];
 }
 
 // Function to get an icon based on library type/name (reused from dashboard)
@@ -42,18 +44,28 @@ const getLibraryIcon = (name: string) => {
 
 export const LibrarySelector: React.FC<LibrarySelectorProps> = ({
   onContinue,
-  preselectedLibraries = []
+  preselectedLibraries = [],
+  availableBadges = []
 }) => {
   const { libraries, isLoading, error } = useJellyfinLibraries();
   const { enabledBadges, isLoading: badgesLoading, error: badgesError } = useEnabledBadges();
   const [selectedLibraries, setSelectedLibraries] = useState<string[]>(preselectedLibraries);
+  const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
 
-  // Initialize preselected libraries when they change
+  // Initialize preselected libraries and badges when they change
   useEffect(() => {
     if (preselectedLibraries.length > 0) {
       setSelectedLibraries(preselectedLibraries);
     }
-  }, [preselectedLibraries]);
+    
+    // Initialize selected badges based on enabled badges from the hook
+    const initialBadges: string[] = [];
+    if (enabledBadges.audio && availableBadges.includes('audio')) initialBadges.push('audio');
+    if (enabledBadges.resolution && availableBadges.includes('resolution')) initialBadges.push('resolution');
+    if (enabledBadges.review && availableBadges.includes('review')) initialBadges.push('review');
+    
+    setSelectedBadges(initialBadges);
+  }, [preselectedLibraries, enabledBadges, availableBadges]);
 
   const handleLibraryToggle = (libraryId: string) => {
     setSelectedLibraries(prev => 
@@ -71,15 +83,17 @@ export const LibrarySelector: React.FC<LibrarySelectorProps> = ({
     setSelectedLibraries([]);
   };
 
+  const handleBadgeToggle = (badgeType: string) => {
+    setSelectedBadges(prev => 
+      prev.includes(badgeType)
+        ? prev.filter(type => type !== badgeType)
+        : [...prev, badgeType]
+    );
+  };
+
   const handleContinue = () => {
-    if (selectedLibraries.length > 0) {
-      // Collect enabled badges
-      const enabledBadgeTypes: string[] = [];
-      if (enabledBadges.audio) enabledBadgeTypes.push('audio');
-      if (enabledBadges.resolution) enabledBadgeTypes.push('resolution');
-      if (enabledBadges.review) enabledBadgeTypes.push('review');
-      
-      onContinue(selectedLibraries, enabledBadgeTypes);
+    if (selectedLibraries.length > 0 && selectedBadges.length > 0) {
+      onContinue(selectedLibraries, selectedBadges);
     }
   };
 
@@ -211,38 +225,75 @@ export const LibrarySelector: React.FC<LibrarySelectorProps> = ({
         })}
       </div>
 
-      {/* Badge Selection Display */}
+      {/* Badge Selection */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Enabled Badges</h3>
+        <h3 className="text-lg font-semibold">Badge Selection</h3>
         <div className="p-4 bg-muted rounded-lg">
           {!badgesLoading && !badgesError ? (
-            <div className="space-y-2">
-              {enabledBadges.audio && (
-                <div className="flex items-center space-x-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  <span>Audio Badge</span>
+            <div className="space-y-4">
+              {availableBadges.length > 0 ? (
+                <div className="space-y-3">
+                  {availableBadges.includes('audio') && (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle2 className={`h-4 w-4 ${selectedBadges.includes('audio') ? 'text-green-500' : 'text-muted-foreground'}`} />
+                        <span>Audio Badge</span>
+                      </div>
+                      <Switch 
+                        checked={selectedBadges.includes('audio')} 
+                        onCheckedChange={() => handleBadgeToggle('audio')}
+                        disabled={!enabledBadges.audio}
+                      />
+                    </div>
+                  )}
+                  {availableBadges.includes('resolution') && (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle2 className={`h-4 w-4 ${selectedBadges.includes('resolution') ? 'text-green-500' : 'text-muted-foreground'}`} />
+                        <span>Resolution Badge</span>
+                      </div>
+                      <Switch 
+                        checked={selectedBadges.includes('resolution')} 
+                        onCheckedChange={() => handleBadgeToggle('resolution')}
+                        disabled={!enabledBadges.resolution}
+                      />
+                    </div>
+                  )}
+                  {availableBadges.includes('review') && (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle2 className={`h-4 w-4 ${selectedBadges.includes('review') ? 'text-green-500' : 'text-muted-foreground'}`} />
+                        <span>Review Badge</span>
+                      </div>
+                      <Switch 
+                        checked={selectedBadges.includes('review')} 
+                        onCheckedChange={() => handleBadgeToggle('review')}
+                        disabled={!enabledBadges.review}
+                      />
+                    </div>
+                  )}
                 </div>
+              ) : (
+                <p className="text-muted-foreground">No badge types are available.</p>
               )}
-              {enabledBadges.resolution && (
-                <div className="flex items-center space-x-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  <span>Resolution Badge</span>
-                </div>
-              )}
-              {enabledBadges.review && (
-                <div className="flex items-center space-x-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  <span>Review Badge</span>
-                </div>
-              )}
-              {!enabledBadges.audio && !enabledBadges.resolution && !enabledBadges.review && (
-                <p className="text-muted-foreground">No badges are currently enabled.</p>
-              )}
+              
+              {/* Disabled badges warning */}
+              {(availableBadges.includes('audio') && !enabledBadges.audio) || 
+               (availableBadges.includes('resolution') && !enabledBadges.resolution) || 
+               (availableBadges.includes('review') && !enabledBadges.review) ? (
+                <Alert className="mt-3">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Some badge types are disabled in your settings. 
+                    Only enabled badges can be selected for processing.
+                  </AlertDescription>
+                </Alert>
+              ) : null}
             </div>
           ) : badgesError ? (
             <p className="text-destructive">Failed to load badge settings.</p>
           ) : (
-            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-16 w-full" />
           )}
         </div>
         <p className="text-sm text-muted-foreground">
@@ -253,11 +304,19 @@ export const LibrarySelector: React.FC<LibrarySelectorProps> = ({
         </p>
       </div>
 
-      {/* Validation message */}
+      {/* Validation messages */}
       {selectedLibraries.length === 0 && (
         <Alert>
           <AlertDescription>
             Please select at least one library to continue.
+          </AlertDescription>
+        </Alert>
+      )}
+      
+      {selectedLibraries.length > 0 && selectedBadges.length === 0 && (
+        <Alert>
+          <AlertDescription>
+            Please select at least one badge type to continue.
           </AlertDescription>
         </Alert>
       )}
@@ -266,7 +325,7 @@ export const LibrarySelector: React.FC<LibrarySelectorProps> = ({
       <div className="flex justify-end">
         <Button
           onClick={handleContinue}
-          disabled={selectedLibraries.length === 0}
+          disabled={selectedLibraries.length === 0 || selectedBadges.length === 0}
         >
           Continue
         </Button>

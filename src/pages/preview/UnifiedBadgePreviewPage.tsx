@@ -69,6 +69,15 @@ export default function UnifiedBadgePreviewPage() {
   const [directDbResolutionSettings, setDirectDbResolutionSettings] = useState<ResolutionBadgeSettings | null>(null);
   const [directDbReviewSettings, setDirectDbReviewSettings] = useState<ReviewBadgeSettings | null>(null);
   
+  // State to force re-rendering the preview when navigating back to the page
+  const [previewKey, setPreviewKey] = useState<number>(Date.now());
+  
+  // Update the preview key when the component mounts to force a clean re-render
+  useEffect(() => {
+    // Generate a new key to force the preview component to re-render when returning to this page
+    setPreviewKey(Date.now());
+  }, []);
+
   // Fetch the direct database settings for all badge types
   useEffect(() => {
     const fetchDirectSettings = async () => {
@@ -421,6 +430,7 @@ export default function UnifiedBadgePreviewPage() {
                 
                 {/* The preview component uses our fixed badges */}
                 <UnifiedBadgePreview 
+                  key={previewKey} /* Use the key to force complete re-rendering */
                   badges={visibleBadgesForPreview}
                   activeBadgeType={highlightedBadge}
                   isDarkMode={theme === 'dark'}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button, Card, CardContent, Progress } from "@/components/ui";
 import { ChevronLeft, ChevronRight, Library, Grid3X3, Zap, CheckCircle } from "lucide-react";
 import { LibrarySelector } from "@/components/library-selector";
@@ -8,6 +8,11 @@ import { useCreateJob } from "@/hooks/useCreateJob";
 import { useJobWebSocket } from "@/hooks/useJobWebSocket";
 import { useUser } from "@/contexts/UserContext";
 import apiClient from "@/lib/api-client";
+import { toast } from "sonner";
+
+// Import unified badge hooks and types only - not the preview component
+import { useUnifiedBadgeSettings } from "@/hooks/useUnifiedBadgeSettings";
+import { UnifiedBadgeSettings } from "@/types/unifiedBadgeSettings";
 
 // Workflow steps
 const WORKFLOW_STEPS = [
@@ -37,9 +42,11 @@ const WORKFLOW_STEPS = [
   },
 ];
 
+// Enhanced StepData interface to include unified badge settings
 interface StepData {
   libraries?: string[];
   enabledBadges?: string[];
+  badgeSettings?: UnifiedBadgeSettings[];
   selectedItems?: string[];
   jobId?: string;
 }
@@ -52,6 +59,21 @@ export default function RunAphrodite() {
   const createJob = useCreateJob();
   const { connected, jobStatus, jobProgress, jobError } = useJobWebSocket(stepData.jobId);
 
+  // Get unified badge settings from the hook
+  const {
+    audioBadge,
+    resolutionBadge,
+    reviewBadge,
+    isLoading: isLoadingBadges,
+  } = useUnifiedBadgeSettings({ autoSave: false });
+
+  // Prepare unified badge settings for processing
+  const availableBadgeSettings = [
+    audioBadge,
+    resolutionBadge,
+    reviewBadge,
+  ].filter(Boolean) as UnifiedBadgeSettings[];
+
   const currentStepInfo = WORKFLOW_STEPS[currentStep];
   const Icon = currentStepInfo.icon;
 
@@ -59,7 +81,8 @@ export default function RunAphrodite() {
     const checkData = data || stepData;
     switch (currentStepInfo.id) {
       case "libraries":
-        return checkData.libraries && checkData.libraries.length > 0 && checkData.enabledBadges && checkData.enabledBadges.length > 0;
+        return checkData.libraries && checkData.libraries.length > 0 && 
+               checkData.enabledBadges && checkData.enabledBadges.length > 0;
       case "selection":
         return checkData.selectedItems && checkData.selectedItems.length > 0;
       case "processing":
@@ -83,13 +106,15 @@ export default function RunAphrodite() {
           const selectedItems = await fetchSelectedItemsDetails(dataToCheck.selectedItems);
           const jobName = `Badge Application - ${new Date().toISOString().replace(/[:.]/g, '-')}`;
           
+          // Enhanced job payload with unified badge settings
           const jobPayload = {
             user_id: parseInt(user?.id || '1'),
             name: jobName,
             items: selectedItems.map(item => ({
               jellyfin_item_id: item.id,
               title: item.name
-            }))
+            })),
+            badgeSettings: dataToCheck.badgeSettings || []
           };
           
           console.log('Creating job with payload:', jobPayload);
@@ -104,6 +129,7 @@ export default function RunAphrodite() {
           setCurrentStep(currentStep + 1);
         } catch (error) {
           console.error('Failed to create job:', error);
+          toast.error('Failed to create job. Please try again.');
         } finally {
           setIsProcessing(false);
         }
@@ -126,13 +152,26 @@ export default function RunAphrodite() {
     }));
   };
 
-  const handleLibrarySelection = (selectedLibraries: string[], enabledBadges: string[]) => {
+  // Get available badge types from the unified badge settings
+  const availableBadgeTypes = useMemo(() => {
+    return availableBadgeSettings.map(badge => badge.badge_type);
+  }, [availableBadgeSettings]);
+
+  const handleLibrarySelection = (selectedLibraries: string[], selectedBadgeTypes: string[]) => {
+    // Filter badge settings based on selected badge types
+    const selectedBadgeSettings = availableBadgeSettings.filter(badge => 
+      selectedBadgeTypes.includes(badge.badge_type)
+    );
+
     const updatedData = {
       ...stepData,
       libraries: selectedLibraries,
-      enabledBadges: enabledBadges
+      enabledBadges: selectedBadgeTypes,
+      badgeSettings: selectedBadgeSettings
     };
+    
     setStepData(updatedData);
+    
     // Move to next step after updating state
     handleNext(updatedData);
   };
@@ -153,6 +192,7 @@ export default function RunAphrodite() {
           <LibrarySelector
             onContinue={handleLibrarySelection}
             preselectedLibraries={stepData.libraries}
+            availableBadges={availableBadgeTypes}
           />
         );
 
@@ -161,8 +201,10 @@ export default function RunAphrodite() {
           <div className="space-y-4">
             <p className="text-muted-foreground">Select the media items you want to apply badges to.</p>
             <div className="text-sm text-muted-foreground mb-4">
-              Selected libraries: {stepData.libraries?.length} | Enabled badges: {stepData.enabledBadges?.join(', ')}
+              Selected libraries: {stepData.libraries?.length} | 
+              Enabled badges: {stepData.enabledBadges?.join(', ')}
             </div>
+            
             <ErrorBoundary>
               <PosterSelector
                 libraryIds={stepData.libraries || []}
@@ -266,9 +308,38 @@ export default function RunAphrodite() {
         return (
           <div className="space-y-4">
             <p className="text-muted-foreground">Review the results of the badge application process.</p>
-            {/* Summary component will go here */}
-            <div className="border rounded-lg p-4 text-center text-muted-foreground">
-              Summary results will be displayed here
+            <div className="border rounded-lg p-4">
+              <h3 className="font-medium mb-2">Job Summary</h3>
+              
+              {jobStatus && (
+                <div className="space-y-2">
+                  <p className="text-sm">
+                    Status: <span className="font-medium">{jobStatus.status}</span>
+                  </p>
+                  <p className="text-sm">
+                    Total items: {jobStatus.totalItems || 0}
+                  </p>
+                  <p className="text-sm">
+                    Successfully processed: {(jobStatus.totalItems || 0) - (jobStatus.failedCount || 0)}
+                  </p>
+                  {jobStatus.failedCount !== undefined && jobStatus.failedCount > 0 && (
+                    <p className="text-sm text-destructive">
+                      Failed items: {jobStatus.failedCount}
+                    </p>
+                  )}
+                </div>
+              )}
+              
+              <div className="mt-4">
+                <h4 className="text-sm font-medium mb-2">Applied badges:</h4>
+                <div className="flex flex-wrap gap-2">
+                  {stepData.enabledBadges?.map(badgeType => (
+                    <div key={badgeType} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary">
+                      {badgeType.charAt(0).toUpperCase() + badgeType.slice(1)} Badge
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -277,6 +348,18 @@ export default function RunAphrodite() {
         return null;
     }
   };
+
+  // Show loading state when badges are loading
+  if (isLoadingBadges) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading badge settings...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

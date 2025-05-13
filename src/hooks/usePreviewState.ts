@@ -60,7 +60,7 @@ export const usePreviewState = (
   } = options;
 
   // Load theme preference from storage or use initial value
-  const loadTheme = (): 'light' | 'dark' => {
+  const loadTheme = useCallback((): 'light' | 'dark' => {
     if (!persistPreferences) return initialTheme;
     
     try {
@@ -72,10 +72,10 @@ export const usePreviewState = (
       console.error('Error loading theme preference from localStorage:', error);
       return initialTheme;
     }
-  };
+  }, [initialTheme, persistPreferences]);
 
   // Load visible badges preference from storage or use initial value
-  const loadVisibleBadges = (): BadgeType[] => {
+  const loadVisibleBadges = useCallback((): BadgeType[] => {
     if (!persistPreferences) return initialVisibleBadges;
     
     try {
@@ -95,7 +95,7 @@ export const usePreviewState = (
       console.error('Error loading visible badges preference from localStorage:', error);
       return initialVisibleBadges;
     }
-  };
+  }, [initialVisibleBadges, persistPreferences]);
 
   // Theme state
   const [theme, setThemeState] = useState<'light' | 'dark'>(loadTheme);
@@ -105,6 +105,12 @@ export const usePreviewState = (
   
   // Highlighted badge state (for active editing)
   const [highlightedBadge, setHighlightedBadgeState] = useState<BadgeType | null>(initialHighlightedBadge);
+  
+  // Force reload preferences from localStorage on mount or when dependencies change
+  useEffect(() => {
+    setThemeState(loadTheme());
+    setVisibleBadges(loadVisibleBadges());
+  }, [loadTheme, loadVisibleBadges]);
 
   // Save preferences to localStorage when they change
   useEffect(() => {
@@ -205,3 +211,15 @@ export const usePreviewState = (
 };
 
 export default usePreviewState;
+
+// Add a cleanup utility function to help with debugging
+export const clearPreviewStateStorage = () => {
+  try {
+    localStorage.removeItem(THEME_STORAGE_KEY);
+    localStorage.removeItem(VISIBLE_BADGES_STORAGE_KEY);
+    return true;
+  } catch (error) {
+    console.error('Error clearing preview state storage:', error);
+    return false;
+  }
+};
