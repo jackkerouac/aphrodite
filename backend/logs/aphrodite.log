@@ -1,0 +1,4 @@
+[2025-05-13T18:59:04.270Z] INFO: [GET] /api/jellyfin-libraries/1 200 — 707ms
+[2025-05-13T18:59:04.272Z] INFO: [GET] /api/jellyfin-libraries/1 200 — 707ms
+[2025-05-13T18:59:20.660Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-13T18:59:20.673Z] INFO: Server running on port 5000 with WebSocket support
