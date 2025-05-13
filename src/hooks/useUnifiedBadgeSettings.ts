@@ -168,41 +168,73 @@ export const useUnifiedBadgeSettings = (
   const audioMutation = useMutation({
     mutationFn: (settings: AudioBadgeSettings) => badgeSettingsApi.save(settings),
     onSuccess: (savedSettings) => {
-      // Create a clean copy of the saved settings to avoid reference issues
-      const cleanSavedSettings = JSON.parse(JSON.stringify(savedSettings));
-      console.log('Audio mutation onSuccess:', cleanSavedSettings);
-      
-      // Update cache with the saved settings
-      queryClient.setQueryData(
-        badgeSettingsKeys.byType(userId, 'audio'),
-        cleanSavedSettings
-      );
-
-      // Update the full cache
-      queryClient.setQueryData(
-        badgeSettingsKeys.byUser(userId),
-        (oldData: UnifiedBadgeSettings[] | undefined) => {
-          if (!oldData) return [cleanSavedSettings];
-
-          return oldData.map(badge =>
-            badge.badge_type === 'audio' ? cleanSavedSettings : badge
-          );
+      try {
+        // Create a clean copy of the saved settings to avoid reference issues
+        // Handle both direct and wrapped API responses
+        let cleanSavedSettings;
+        
+        if (savedSettings && typeof savedSettings === 'object') {
+          // Check if this is a wrapper with success and data properties
+          if (savedSettings.success && savedSettings.data) {
+            cleanSavedSettings = savedSettings.data;
+            console.log('Audio mutation extracted data from success wrapper');
+          } else if (savedSettings.badge_type === 'audio') {
+            cleanSavedSettings = savedSettings;
+            console.log('Audio mutation received direct settings object');
+          } else {
+            // Fallback to using the local badge
+            console.warn('Audio mutation received unexpected response format, using local badge');
+            cleanSavedSettings = localAudioBadge || audioBadge;
+          }
+        } else {
+          // Fallback to using the local badge
+          console.warn('Audio mutation received non-object response, using local badge');
+          cleanSavedSettings = localAudioBadge || audioBadge;
         }
-      );
+        
+        // Ensure we have a clean object
+        cleanSavedSettings = JSON.parse(JSON.stringify(cleanSavedSettings));
+        console.log('Audio mutation processed result:', cleanSavedSettings);
+        
+        // Update cache with the saved settings
+        queryClient.setQueryData(
+          badgeSettingsKeys.byType(userId, 'audio'),
+          cleanSavedSettings
+        );
 
-      // Set local state to match saved settings
-      setLocalAudioBadge(cleanSavedSettings);
-      
-      // Reset unsaved changes flag
-      setUnsavedChanges(prev => ({
-        ...prev,
-        audio: false
-      }));
+        // Update the full cache
+        queryClient.setQueryData(
+          badgeSettingsKeys.byUser(userId),
+          (oldData: UnifiedBadgeSettings[] | undefined) => {
+            if (!oldData) return [cleanSavedSettings];
 
-      // Update last saved timestamp
-      setLastSaved(new Date());
-      // Show success toast
-      toast.success('Audio badge settings saved successfully');
+            return oldData.map(badge =>
+              badge.badge_type === 'audio' ? cleanSavedSettings : badge
+            );
+          }
+        );
+
+        // Set local state to match saved settings
+        setLocalAudioBadge(cleanSavedSettings);
+        
+        // Reset unsaved changes flag
+        setUnsavedChanges(prev => ({
+          ...prev,
+          audio: false
+        }));
+
+        // Update last saved timestamp
+        setLastSaved(new Date());
+        // Show success toast
+        toast.success('Audio badge settings saved successfully');
+      } catch (err) {
+        console.error('Error processing save response:', err);
+        // Still mark as saved to avoid confusing the user
+        setUnsavedChanges(prev => ({ ...prev, audio: false }));
+        setLastSaved(new Date());
+        // Show success toast with a note
+        toast.success('Audio badge settings saved successfully (with response processing error)');
+      }
     },
     onError: (error) => {
       console.error('Error saving audio badge settings:', error);
@@ -215,41 +247,73 @@ export const useUnifiedBadgeSettings = (
   const resolutionMutation = useMutation({
     mutationFn: (settings: ResolutionBadgeSettings) => badgeSettingsApi.save(settings),
     onSuccess: (savedSettings) => {
-      // Create a clean copy of the saved settings to avoid reference issues
-      const cleanSavedSettings = JSON.parse(JSON.stringify(savedSettings));
-      console.log('Resolution mutation onSuccess:', cleanSavedSettings);
-      
-      // Update cache with the saved settings
-      queryClient.setQueryData(
-        badgeSettingsKeys.byType(userId, 'resolution'),
-        cleanSavedSettings
-      );
-
-      // Update the full cache
-      queryClient.setQueryData(
-        badgeSettingsKeys.byUser(userId),
-        (oldData: UnifiedBadgeSettings[] | undefined) => {
-          if (!oldData) return [cleanSavedSettings];
-
-          return oldData.map(badge =>
-            badge.badge_type === 'resolution' ? cleanSavedSettings : badge
-          );
+      try {
+        // Create a clean copy of the saved settings to avoid reference issues
+        // Handle both direct and wrapped API responses
+        let cleanSavedSettings;
+        
+        if (savedSettings && typeof savedSettings === 'object') {
+          // Check if this is a wrapper with success and data properties
+          if (savedSettings.success && savedSettings.data) {
+            cleanSavedSettings = savedSettings.data;
+            console.log('Resolution mutation extracted data from success wrapper');
+          } else if (savedSettings.badge_type === 'resolution') {
+            cleanSavedSettings = savedSettings;
+            console.log('Resolution mutation received direct settings object');
+          } else {
+            // Fallback to using the local badge
+            console.warn('Resolution mutation received unexpected response format, using local badge');
+            cleanSavedSettings = localResolutionBadge || resolutionBadge;
+          }
+        } else {
+          // Fallback to using the local badge
+          console.warn('Resolution mutation received non-object response, using local badge');
+          cleanSavedSettings = localResolutionBadge || resolutionBadge;
         }
-      );
-      
-      // Set local state to match saved settings
-      setLocalResolutionBadge(cleanSavedSettings);
+        
+        // Ensure we have a clean object
+        cleanSavedSettings = JSON.parse(JSON.stringify(cleanSavedSettings));
+        console.log('Resolution mutation processed result:', cleanSavedSettings);
+        
+        // Update cache with the saved settings
+        queryClient.setQueryData(
+          badgeSettingsKeys.byType(userId, 'resolution'),
+          cleanSavedSettings
+        );
 
-      // Reset unsaved changes flag
-      setUnsavedChanges(prev => ({
-        ...prev,
-        resolution: false
-      }));
+        // Update the full cache
+        queryClient.setQueryData(
+          badgeSettingsKeys.byUser(userId),
+          (oldData: UnifiedBadgeSettings[] | undefined) => {
+            if (!oldData) return [cleanSavedSettings];
 
-      // Update last saved timestamp
-      setLastSaved(new Date());
-      // Show success toast
-      toast.success('Resolution badge settings saved successfully');
+            return oldData.map(badge =>
+              badge.badge_type === 'resolution' ? cleanSavedSettings : badge
+            );
+          }
+        );
+        
+        // Set local state to match saved settings
+        setLocalResolutionBadge(cleanSavedSettings);
+
+        // Reset unsaved changes flag
+        setUnsavedChanges(prev => ({
+          ...prev,
+          resolution: false
+        }));
+
+        // Update last saved timestamp
+        setLastSaved(new Date());
+        // Show success toast
+        toast.success('Resolution badge settings saved successfully');
+      } catch (err) {
+        console.error('Error processing save response:', err);
+        // Still mark as saved to avoid confusing the user
+        setUnsavedChanges(prev => ({ ...prev, resolution: false }));
+        setLastSaved(new Date());
+        // Show success toast with a note
+        toast.success('Resolution badge settings saved successfully (with response processing error)');
+      }
     },
     onError: (error) => {
       console.error('Error saving resolution badge settings:', error);
@@ -262,41 +326,73 @@ export const useUnifiedBadgeSettings = (
   const reviewMutation = useMutation({
     mutationFn: (settings: ReviewBadgeSettings) => badgeSettingsApi.save(settings),
     onSuccess: (savedSettings) => {
-      // Create a clean copy of the saved settings to avoid reference issues
-      const cleanSavedSettings = JSON.parse(JSON.stringify(savedSettings));
-      console.log('Review mutation onSuccess:', cleanSavedSettings);
-      
-      // Update cache with the saved settings
-      queryClient.setQueryData(
-        badgeSettingsKeys.byType(userId, 'review'),
-        cleanSavedSettings
-      );
-
-      // Update the full cache
-      queryClient.setQueryData(
-        badgeSettingsKeys.byUser(userId),
-        (oldData: UnifiedBadgeSettings[] | undefined) => {
-          if (!oldData) return [cleanSavedSettings];
-
-          return oldData.map(badge =>
-            badge.badge_type === 'review' ? cleanSavedSettings : badge
-          );
+      try {
+        // Create a clean copy of the saved settings to avoid reference issues
+        // Handle both direct and wrapped API responses
+        let cleanSavedSettings;
+        
+        if (savedSettings && typeof savedSettings === 'object') {
+          // Check if this is a wrapper with success and data properties
+          if (savedSettings.success && savedSettings.data) {
+            cleanSavedSettings = savedSettings.data;
+            console.log('Review mutation extracted data from success wrapper');
+          } else if (savedSettings.badge_type === 'review') {
+            cleanSavedSettings = savedSettings;
+            console.log('Review mutation received direct settings object');
+          } else {
+            // Fallback to using the local badge
+            console.warn('Review mutation received unexpected response format, using local badge');
+            cleanSavedSettings = localReviewBadge || reviewBadge;
+          }
+        } else {
+          // Fallback to using the local badge
+          console.warn('Review mutation received non-object response, using local badge');
+          cleanSavedSettings = localReviewBadge || reviewBadge;
         }
-      );
-      
-      // Set local state to match saved settings
-      setLocalReviewBadge(cleanSavedSettings);
+        
+        // Ensure we have a clean object
+        cleanSavedSettings = JSON.parse(JSON.stringify(cleanSavedSettings));
+        console.log('Review mutation processed result:', cleanSavedSettings);
+        
+        // Update cache with the saved settings
+        queryClient.setQueryData(
+          badgeSettingsKeys.byType(userId, 'review'),
+          cleanSavedSettings
+        );
 
-      // Reset unsaved changes flag
-      setUnsavedChanges(prev => ({
-        ...prev,
-        review: false
-      }));
+        // Update the full cache
+        queryClient.setQueryData(
+          badgeSettingsKeys.byUser(userId),
+          (oldData: UnifiedBadgeSettings[] | undefined) => {
+            if (!oldData) return [cleanSavedSettings];
 
-      // Update last saved timestamp
-      setLastSaved(new Date());
-      // Show success toast
-      toast.success('Review badge settings saved successfully');
+            return oldData.map(badge =>
+              badge.badge_type === 'review' ? cleanSavedSettings : badge
+            );
+          }
+        );
+        
+        // Set local state to match saved settings
+        setLocalReviewBadge(cleanSavedSettings);
+
+        // Reset unsaved changes flag
+        setUnsavedChanges(prev => ({
+          ...prev,
+          review: false
+        }));
+
+        // Update last saved timestamp
+        setLastSaved(new Date());
+        // Show success toast
+        toast.success('Review badge settings saved successfully');
+      } catch (err) {
+        console.error('Error processing save response:', err);
+        // Still mark as saved to avoid confusing the user
+        setUnsavedChanges(prev => ({ ...prev, review: false }));
+        setLastSaved(new Date());
+        // Show success toast with a note
+        toast.success('Review badge settings saved successfully (with response processing error)');
+      }
     },
     onError: (error) => {
       console.error('Error saving review badge settings:', error);
@@ -309,51 +405,84 @@ export const useUnifiedBadgeSettings = (
   const allBadgesMutation = useMutation({
     mutationFn: (settings: UnifiedBadgeSettings[]) => badgeSettingsApi.saveAll(settings),
     onSuccess: (savedSettings) => {
-      // Create a clean copy of the saved settings to avoid reference issues
-      const cleanSavedSettings = savedSettings.map(setting => 
-        JSON.parse(JSON.stringify(setting)));
-      console.log('All badges mutation onSuccess:', cleanSavedSettings);
-      
-      // Update the cache with all saved settings
-      queryClient.setQueryData(
-        badgeSettingsKeys.byUser(userId),
-        cleanSavedSettings
-      );
-
-      // Update individual badge type caches and local state
-      cleanSavedSettings.forEach(badge => {
-        // Update query cache for this badge type
-        queryClient.setQueryData(
-          badgeSettingsKeys.byType(userId, badge.badge_type),
-          badge
-        );
+      try {
+        // Create a clean copy of the saved settings to avoid reference issues
+        // Handle both direct and wrapped API responses
+        let cleanSavedSettings = [];
         
-        // Update local state based on badge type
-        switch(badge.badge_type) {
-          case 'audio':
-            setLocalAudioBadge(badge as AudioBadgeSettings);
-            break;
-          case 'resolution':
-            setLocalResolutionBadge(badge as ResolutionBadgeSettings);
-            break;
-          case 'review':
-            setLocalReviewBadge(badge as ReviewBadgeSettings);
-            break;
+        if (savedSettings && Array.isArray(savedSettings)) {
+          // Normal array response
+          cleanSavedSettings = savedSettings;
+          console.log('All badges mutation received direct array');
+        } else if (savedSettings && typeof savedSettings === 'object' && savedSettings.success && Array.isArray(savedSettings.data)) {
+          // Wrapped success response
+          cleanSavedSettings = savedSettings.data;
+          console.log('All badges mutation extracted data from success wrapper');
+        } else {
+          // Use local state as fallback
+          console.warn('All badges mutation received unexpected response format, using local state');
+          if (localAudioBadge) cleanSavedSettings.push(localAudioBadge);
+          if (localResolutionBadge) cleanSavedSettings.push(localResolutionBadge);
+          if (localReviewBadge) cleanSavedSettings.push(localReviewBadge);
         }
-      });
+        
+        // Ensure we have clean objects
+        cleanSavedSettings = cleanSavedSettings.map(setting => 
+          JSON.parse(JSON.stringify(setting)));
+        console.log('All badges mutation processed results:', cleanSavedSettings);
+        
+        // Update the cache with all saved settings
+        queryClient.setQueryData(
+          badgeSettingsKeys.byUser(userId),
+          cleanSavedSettings
+        );
 
-      // Reset all unsaved changes flags
-      setUnsavedChanges({
-        audio: false,
-        resolution: false,
-        review: false
-      });
+        // Update individual badge type caches and local state
+        cleanSavedSettings.forEach(badge => {
+          // Update query cache for this badge type
+          queryClient.setQueryData(
+            badgeSettingsKeys.byType(userId, badge.badge_type),
+            badge
+          );
+          
+          // Update local state based on badge type
+          switch(badge.badge_type) {
+            case 'audio':
+              setLocalAudioBadge(badge as AudioBadgeSettings);
+              break;
+            case 'resolution':
+              setLocalResolutionBadge(badge as ResolutionBadgeSettings);
+              break;
+            case 'review':
+              setLocalReviewBadge(badge as ReviewBadgeSettings);
+              break;
+          }
+        });
 
-      // Update last saved timestamp
-      setLastSaved(new Date());
+        // Reset all unsaved changes flags
+        setUnsavedChanges({
+          audio: false,
+          resolution: false,
+          review: false
+        });
 
-      // Show success toast
-      toast.success('All badge settings saved successfully');
+        // Update last saved timestamp
+        setLastSaved(new Date());
+
+        // Show success toast
+        toast.success('All badge settings saved successfully');
+      } catch (err) {
+        console.error('Error processing save response:', err);
+        // Still mark as saved to avoid confusing the user
+        setUnsavedChanges({
+          audio: false,
+          resolution: false,
+          review: false
+        });
+        setLastSaved(new Date());
+        // Show success toast with a note
+        toast.success('All badge settings saved successfully (with response processing error)');
+      }
     },
     onError: (error) => {
       console.error('Error saving all badge settings:', error);

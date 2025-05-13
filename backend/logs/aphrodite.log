@@ -334,3 +334,20 @@
 [2025-05-13T12:14:52.518Z] INFO: Updating existing audio badge settings for user ID: 1
 [2025-05-13T12:14:52.524Z] INFO: Successfully updated audio badge settings for user ID: 1
 [2025-05-13T12:14:52.525Z] INFO: [POST] /api/v1/unified-badge-settings/audio 200 — 25ms
+[2025-05-13T12:17:38.727Z] INFO: Saving audio badge settings for user ID: 1
+[2025-05-13T12:17:38.727Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:17:38.743Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:17:38.743Z] INFO: Updating existing audio badge settings for user ID: 1
+[2025-05-13T12:17:38.749Z] INFO: Successfully updated audio badge settings for user ID: 1
+[2025-05-13T12:17:38.750Z] INFO: [POST] /api/v1/unified-badge-settings/audio 200 — 23ms
+[2025-05-13T12:17:46.913Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:17:46.918Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:17:46.920Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 7ms
+[2025-05-13T12:17:47.006Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-13T12:17:47.009Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-13T12:17:47.010Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 200 — 4ms
+[2025-05-13T12:17:47.038Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-13T12:17:47.041Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-13T12:17:47.042Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 200 — 4ms
+[2025-05-13T12:20:19.713Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-13T12:20:19.728Z] INFO: Server running on port 5000 with WebSocket support
