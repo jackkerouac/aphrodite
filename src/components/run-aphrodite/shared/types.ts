@@ -52,6 +52,9 @@ export interface RunAphroditeContextValue {
   jobProgress?: JobProgress;
   jobError?: JobError;
   connected: boolean;
+  isReconnecting: boolean;
+  reconnectAttempts: number;
+  cancelJob: () => void;
   setCurrentStep: (step: number) => void;
   setStepData: (data: StepData | ((prev: StepData) => StepData)) => void;
   setIsProcessing: (isProcessing: boolean) => void;

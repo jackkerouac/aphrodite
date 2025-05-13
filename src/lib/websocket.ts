@@ -18,6 +18,12 @@ interface JobProgressMessage {
   processedCount: number;
   failedCount: number;
   progress: number;
+  badgeType?: string;       // Badge type being processed (audio, resolution, review)
+  badgeDetails?: {         // Additional badge-specific details
+    badge_type: string;    // Matches badgeType, but included for consistency
+    badge_position: string;
+    success?: boolean;     // Whether this specific badge was applied successfully
+  };
 }
 
 interface JobErrorMessage {
@@ -29,8 +35,10 @@ class WebSocketClient {
   private socket: WebSocket | null = null;
   private userId: string | null = null;
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectDelay = 1000;
+private maxReconnectAttempts = 10;  // Increased for long-running jobs
+private reconnectDelay = 1000;
+private lastPingTime = 0;
+private pingInterval: NodeJS.Timeout | null = null;
   private messageHandlers: Map<string, Function[]> = new Map();
   private isReconnecting = false;
 
@@ -99,6 +107,9 @@ class WebSocketClient {
         this.emit('join-user-room', this.userId);
       }
       
+      // Start ping interval for connection monitoring
+      this.setupPingInterval();
+      
       this.emit('connect', {});
     };
 
@@ -115,12 +126,30 @@ class WebSocketClient {
           if (event.data === '2') this.socket?.send('3'); // Respond to ping with pong
           return;
         }
+        
+        // Handle socket.io pong response
+        if (event.data === '3') {
+          this.lastPingTime = Date.now();
+          return;
+        }
 
         // Parse socket.io message format
         if (event.data.startsWith('42')) {
           const jsonData = event.data.substring(2);
-          const [eventName, data] = JSON.parse(jsonData);
-          this.handleMessage(eventName, data);
+          try {
+            const [eventName, data] = JSON.parse(jsonData);
+            
+            // Enhanced logging for job status and progress
+            if (eventName === 'job-status') {
+              console.log(`Job ${data.jobId} status: ${data.status}`);
+            } else if (eventName === 'job-progress' && data.badgeType) {
+              console.log(`Processing ${data.badgeType} badge for item ${data.itemId}`);
+            }
+            
+            this.handleMessage(eventName, data);
+          } catch (parseError) {
+            console.error('Error parsing WebSocket message:', parseError, jsonData);
+          }
         }
       } catch (error) {
         console.error('Error processing WebSocket message:', error);
@@ -157,13 +186,33 @@ class WebSocketClient {
   }
 
   private handleMessage(event: string, data: any) {
+    // Handle pong responses for connection monitoring
+    if (event === 'pong') {
+      this.lastPingTime = Date.now();
+      return;
+    }
+    
+    // Enhanced logging for job-related events
+    if (event.startsWith('job-')) {
+      const statusInfo = data.status ? ` (status: ${data.status})` : '';
+      console.log(`WebSocket received ${event}${statusInfo} for job ${data.jobId}`);
+    }
+    
     const handlers = this.messageHandlers.get(event);
     if (handlers) {
       handlers.forEach(handler => handler(data));
+    } else {
+      console.log(`No handlers registered for event: ${event}`);
     }
   }
 
   disconnect() {
+    // Clear ping interval if it exists
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval);
+      this.pingInterval = null;
+    }
+    
     if (this.socket) {
       this.socket.close();
       this.socket = null;
@@ -175,6 +224,15 @@ class WebSocketClient {
       this.messageHandlers.set(event, []);
     }
     this.messageHandlers.get(event)?.push(callback);
+    
+    // If this is the first handler for 'connect' and we already have an open connection,
+    // immediately trigger the callback
+    if (event === 'connect' && 
+        this.socket && 
+        this.socket.readyState === WebSocket.OPEN && 
+        this.messageHandlers.get(event)?.length === 1) {
+      callback({});
+    }
   }
 
   off(event: string, callback: Function) {
@@ -195,6 +253,46 @@ class WebSocketClient {
     } else {
       console.warn('WebSocket is not connected');
     }
+  }
+}
+
+// Create singleton instance
+export const wsClient = new WebSocketClient();
+
+// Hook for using WebSocket in React components
+export function useWebSocket() {
+  return wsClient;
+}
+
+  // Setup ping interval to monitor connection health
+  private setupPingInterval() {
+    // Clear existing interval if any
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval);
+    }
+    
+    // Initialize last ping time
+    this.lastPingTime = Date.now();
+    
+    // Setup interval to ping server every 25 seconds
+    this.pingInterval = setInterval(() => {
+      // Only ping if socket is open
+      if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+        // If we haven't received a pong in more than 60 seconds, reconnect
+        const timeSinceLastPing = Date.now() - this.lastPingTime;
+        if (timeSinceLastPing > 60000) {
+          console.warn('No ping response received in 60 seconds, reconnecting...');
+          this.disconnect();
+          if (this.userId) {
+            this.connect(this.userId);
+          }
+          return;
+        }
+        
+        // Send ping
+        this.emit('ping', { timestamp: Date.now() });
+      }
+    }, 25000);
   }
 }
 

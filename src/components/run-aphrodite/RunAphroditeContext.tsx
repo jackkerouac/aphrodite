@@ -53,7 +53,15 @@ export const RunAphroditeProvider: React.FC<RunAphroditeProviderProps> = ({ chil
   const [isProcessing, setIsProcessing] = useState(false);
   const { user } = useUser();
   const createJob = useCreateJob();
-  const { connected, jobStatus, jobProgress, jobError } = useJobWebSocket(stepData.jobId);
+  const { 
+    connected, 
+    jobStatus, 
+    jobProgress, 
+    jobError,
+    isReconnecting,
+    reconnectAttempts,
+    cancelJob 
+  } = useJobWebSocket(stepData.jobId);
 
   // Get unified badge settings from the hook
   const {
@@ -178,6 +186,9 @@ export const RunAphroditeProvider: React.FC<RunAphroditeProviderProps> = ({ chil
     jobProgress,
     jobError,
     connected,
+    isReconnecting,
+    reconnectAttempts,
+    cancelJob,
     setCurrentStep,
     setStepData,
     setIsProcessing,

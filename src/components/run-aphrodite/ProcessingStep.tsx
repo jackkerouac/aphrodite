@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { Button, Progress, Card, CardContent, Badge, ScrollArea, Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui";
+import React, { useState, useEffect } from "react";
+import { Button, Progress, Card, CardContent, Badge, ScrollArea, Tabs, TabsList, TabsTrigger, TabsContent, Alert, AlertTitle, AlertDescription } from "@/components/ui";
 import { useRunAphrodite } from "./RunAphroditeContext";
-import { XCircle, CheckCircle, RefreshCw, StopCircle, CopyCheck, HelpCircle, AlertCircle } from "lucide-react";
+import { XCircle, CheckCircle, RefreshCw, StopCircle, CopyCheck, HelpCircle, AlertCircle, WifiOff } from "lucide-react";
 import apiClient from "@/lib/api-client";
 import { toast } from "sonner";
 
@@ -13,7 +13,9 @@ export const ProcessingStep: React.FC = () => {
     jobProgress, 
     jobError, 
     setCurrentStep, 
-    currentStep 
+    currentStep,
+    isReconnecting,
+    cancelJob
   } = useRunAphrodite();
   
   const [processingLog, setProcessingLog] = useState<Array<{message: string; timestamp: string; type: 'info' | 'error' | 'success'}>>([]);
@@ -62,11 +64,19 @@ export const ProcessingStep: React.FC = () => {
       setIsCancelling(true);
       addLogEntry('Cancelling job...', 'info');
       
-      // API call to cancel the job
-      await apiClient.jobs.updateJobStatus(stepData.jobId, 'failed');
+      // Try using WebSocket for faster cancellation
+      cancelJob();
+      addLogEntry('Cancel request sent via WebSocket', 'info');
       
-      addLogEntry('Job cancelled', 'info');
-      toast.success('Job cancelled');
+      // Also send via API as a fallback
+      try {
+        await apiClient.jobs.updateJobStatus(stepData.jobId, 'failed');
+        addLogEntry('Cancel request also sent via API as backup', 'info');
+      } catch (apiError) {
+        console.warn('API cancel fallback failed, WebSocket method only:', apiError);
+      }
+      
+      toast.success('Job cancellation requested');
     } catch (error) {
       console.error('Failed to cancel job:', error);
       addLogEntry(`Failed to cancel: ${(error as Error).message}`, 'error');
@@ -85,10 +95,32 @@ export const ProcessingStep: React.FC = () => {
 
   // Add to log when progress updates
   React.useEffect(() => {
+    // Log any errors
     if (jobProgress && jobProgress.status === 'failed' && jobProgress.error) {
       addLogEntry(`Error: ${jobProgress.error}`, 'error');
     }
-  }, [jobProgress?.error]);
+    
+    // Log badge-specific information if available
+    if (jobProgress && jobProgress.badgeType) {
+      const badgeType = jobProgress.badgeType;
+      const itemId = jobProgress.itemId;
+      const status = jobProgress.status;
+      
+      const logMessage = `${status === 'completed' ? 'Successfully applied' : 'Failed to apply'} ${badgeType} badge to item ${itemId}`;
+      addLogEntry(logMessage, status === 'completed' ? 'success' : 'error');
+    }
+  }, [jobProgress]);
+  
+  // Log connection status changes
+  useEffect(() => {
+    if (connected) {
+      addLogEntry('WebSocket connected', 'success');
+    } else if (isReconnecting) {
+      addLogEntry('WebSocket disconnected, attempting to reconnect...', 'info');
+    } else if (!connected && !isReconnecting) {
+      addLogEntry('WebSocket disconnected', 'error');
+    }
+  }, [connected, isReconnecting]);
 
   // Add to log when job has an error
   React.useEffect(() => {
@@ -130,13 +162,25 @@ export const ProcessingStep: React.FC = () => {
             <TabsContent value="status">
               <Card>
                 <CardContent className="p-4">
+                  {!connected && (
+                    <Alert className="mb-4" variant="warning">
+                      <WifiOff className="h-4 w-4 mr-2" />
+                      <AlertTitle>WebSocket Disconnected</AlertTitle>
+                      <AlertDescription>
+                        {isReconnecting 
+                          ? 'Attempting to reconnect to the server. Real-time updates may be delayed.'
+                          : 'Connection to the server has been lost. Refresh the page to reconnect.'}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <p className="font-medium">Job ID: {stepData.jobId}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`} />
+                        <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500' : isReconnecting ? 'bg-amber-500 animate-pulse' : 'bg-red-500'}`} />
                         <span className="text-sm text-muted-foreground">
-                          {connected ? 'Connected' : 'Disconnected'}
+                          {connected ? 'Connected' : isReconnecting ? 'Reconnecting...' : 'Disconnected'}
                         </span>
                       </div>
                     </div>
@@ -173,6 +217,19 @@ export const ProcessingStep: React.FC = () => {
                         <span>{jobProgress.progress}%</span>
                       </div>
                       <Progress value={jobProgress.progress} className="h-2" />
+                      
+                      {jobProgress.badgeType && (
+                        <div className="mt-2">
+                          <div className="text-sm font-medium mb-1">
+                            Processing <span className="font-semibold capitalize">{jobProgress.badgeType}</span> badge
+                          </div>
+                          {jobProgress.badgeDetails && (
+                            <div className="text-xs text-muted-foreground">
+                              Position: {jobProgress.badgeDetails.badge_position}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                   
