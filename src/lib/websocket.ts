@@ -35,10 +35,10 @@ class WebSocketClient {
   private socket: WebSocket | null = null;
   private userId: string | null = null;
   private reconnectAttempts = 0;
-private maxReconnectAttempts = 10;  // Increased for long-running jobs
-private reconnectDelay = 1000;
-private lastPingTime = 0;
-private pingInterval: NodeJS.Timeout | null = null;
+  private maxReconnectAttempts = 10;  // Increased for long-running jobs
+  private reconnectDelay = 1000;
+  private lastPingTime = 0;
+  private pingInterval: NodeJS.Timeout | null = null;
   private messageHandlers: Map<string, Function[]> = new Map();
   private isReconnecting = false;
 
@@ -254,16 +254,7 @@ private pingInterval: NodeJS.Timeout | null = null;
       console.warn('WebSocket is not connected');
     }
   }
-}
-
-// Create singleton instance
-export const wsClient = new WebSocketClient();
-
-// Hook for using WebSocket in React components
-export function useWebSocket() {
-  return wsClient;
-}
-
+  
   // Setup ping interval to monitor connection health
   private setupPingInterval() {
     // Clear existing interval if any

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/api-client';
 import { useUser } from '@/contexts/UserContext';
+import { useUnifiedBadgeSettings } from './useUnifiedBadgeSettings';
 
 interface EnabledBadges {
   audio: boolean;
@@ -11,33 +12,36 @@ interface EnabledBadges {
 export function useEnabledBadges() {
   const { user } = useUser();
   const [enabledBadges, setEnabledBadges] = useState<EnabledBadges>({
-    audio: false,
-    resolution: false,
-    review: false
+    audio: true,
+    resolution: true,
+    review: true
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Use unified badge settings to determine which badges are available
+  const { audioBadge, resolutionBadge, reviewBadge, isLoading: unifiedSettingsLoading } = useUnifiedBadgeSettings({ autoSave: false });
 
   useEffect(() => {
-    const fetchEnabledBadges = async () => {
-      if (!user) return;
+    const checkUnifiedBadgeSettings = async () => {
+      if (!user || unifiedSettingsLoading) return;
       
       try {
         setIsLoading(true);
         setError(null);
 
-        // Use API client methods with user ID from context
-        const [audioEnabled, resolutionEnabled, reviewEnabled] = await Promise.all([
-          apiClient.audioBadge.isEnabled(user.id),
-          apiClient.resolutionBadge.isEnabled(user.id),
-          apiClient.reviewBadge.isEnabled(user.id)
-        ]);
-
-        // Set the enabled state for each badge type
+        // All badges from unified settings are considered enabled
+        // as long as they exist in the unified settings table
         setEnabledBadges({
-          audio: audioEnabled,
-          resolution: resolutionEnabled,
-          review: reviewEnabled
+          audio: !!audioBadge,
+          resolution: !!resolutionBadge,
+          review: !!reviewBadge
+        });
+        
+        console.log('[useEnabledBadges] Using unified badge settings:', {
+          audio: !!audioBadge,
+          resolution: !!resolutionBadge,
+          review: !!reviewBadge
         });
       } catch (err) {
         console.error('❌ [useEnabledBadges] Error:', err);
@@ -47,8 +51,8 @@ export function useEnabledBadges() {
       }
     };
 
-    fetchEnabledBadges();
-  }, [user]);
+    checkUnifiedBadgeSettings();
+  }, [user, audioBadge, resolutionBadge, reviewBadge, unifiedSettingsLoading]);
 
   return { enabledBadges, isLoading, error };
 }

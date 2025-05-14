@@ -390,9 +390,11 @@ export const LibrarySelector: React.FC<LibrarySelectorProps> = ({
                   )}
                   
                   {/* Disabled badges warning */}
-                  {(availableBadges.includes('audio') && !enabledBadges.audio) || 
-                   (availableBadges.includes('resolution') && !enabledBadges.resolution) || 
-                   (availableBadges.includes('review') && !enabledBadges.review) ? (
+                  {!badgesLoading && !badgesError && (
+                    (availableBadges.includes('audio') && !enabledBadges.audio) || 
+                    (availableBadges.includes('resolution') && !enabledBadges.resolution) || 
+                    (availableBadges.includes('review') && !enabledBadges.review)
+                  ) ? (
                     <Alert className="mt-3">
                       <AlertCircle className="h-4 w-4" />
                       <AlertDescription>

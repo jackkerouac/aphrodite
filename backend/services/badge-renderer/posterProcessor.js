@@ -8,6 +8,7 @@ import { pool as db } from '../../db.js';
 import MetadataService from './metadataService.js';
 import sharp from 'sharp';
 import PosterStandardizer from './posterStandardizer.js';
+import logger from '../../lib/logger.js';
 
 class PosterProcessor {
   constructor() {
@@ -92,6 +93,13 @@ class PosterProcessor {
       // Try canvas renderer first if enabled
       if (this.useCanvasRenderer) {
         try {
+          // Log all badge settings coming from the job
+          logger.info(`Job ${jobId}: Using badge settings:`, JSON.stringify(badgeSettings.map(badge => ({
+            type: badge.settings.type,
+            size: badge.settings.size,
+            position: badge.settings.position
+          }))));
+          
           modifiedPosterBuffer = await this.applyBadgesWithCanvas(standardizedPosterPath, badgeSettings);
           badgeApplied = true;
           logger.info(`Job ${jobId}: Successfully applied badges with canvas renderer for item ${item.id}`);
@@ -552,7 +560,16 @@ class PosterProcessor {
       const sortedBadges = enabledBadges
       .sort((a, b) => (a.settings.stackingOrder || 0) - (b.settings.stackingOrder || 0));
       
-      console.log(`Processing ${sortedBadges.length} badges with canvas renderer...`); 
+      console.log(`Processing ${sortedBadges.length} badges with canvas renderer:`, 
+        sortedBadges.map(b => 
+          `${b.settings.type} (size=${b.settings.size}, position=${b.settings.position})` 
+        ));
+      
+      // If no badges to process, return the original poster
+      if (sortedBadges.length === 0) {
+        console.log('No enabled badges to process, returning original poster');
+        return posterBuffer;
+      } 
       
       // Apply each badge sequentially
       for (let i = 0; i < sortedBadges.length; i++) {
@@ -568,39 +585,46 @@ class PosterProcessor {
       
       // Special handling for review badge values - ensure the scores array is properly formatted
       if (config.settings.type === 'review' && Array.isArray(config.value)) {
-        console.log('Processing review badge with scores:', config.value);
-        
-        // Format the scores array correctly - this is key for matching frontend preview
-        config.value = config.value.map(score => ({
-          name: score.name,
-          rating: parseFloat(score.rating) || 0,
-          outOf: parseFloat(score.outOf) || (score.name === 'RT' || score.name === 'Metacritic' ? 100 : 10)
-        }));
+      console.log('Processing review badge with scores:', config.value);
+      
+      // Format the scores array correctly - this is key for matching frontend preview
+      config.value = config.value.map(score => ({
+      name: score.name,
+      rating: parseFloat(score.rating) || 0,
+      outOf: parseFloat(score.outOf) || (score.name === 'RT' || score.name === 'Metacritic' ? 100 : 10)
+      }));
       }
-        
-        // Determine the source image path based on badge type
-        let sourceImagePath = null;
-        try {
-          if (config.settings.type === 'resolution' && config.value) {
-            sourceImagePath = await this.canvasBadgeRenderer.getResolutionImagePath(config.value);
-          } else if (config.settings.type === 'audio' && config.value) {
-            sourceImagePath = await this.canvasBadgeRenderer.getAudioImagePath(config.value);
-          }
-        } catch (error) {
-          console.error(`Error getting source image path: ${error.message}. Continuing without source image.`);
-          sourceImagePath = null;
-        }
-        
-        // Map visual settings with consistent naming between frontend/backend
-        const badgeSettings = {
-          ...config.settings,
-          // Ensure type is explicitly set for identification in applyBackground
-          type: config.settings.type,
-          // Map transparency to backgroundOpacity for consistency with frontend
-          backgroundOpacity: config.settings.transparency !== undefined ? config.settings.transparency : 1,
-          // Ensure size is passed through directly
-          size: config.settings.size,
-          // Important display settings for review badges
+      
+      // Determine the source image path based on badge type
+      let sourceImagePath = null;
+      try {
+      if (config.settings.type === 'resolution' && config.value) {
+      sourceImagePath = await this.canvasBadgeRenderer.getResolutionImagePath(config.value);
+      } else if (config.settings.type === 'audio' && config.value) {
+      sourceImagePath = await this.canvasBadgeRenderer.getAudioImagePath(config.value);
+      }
+      } catch (error) {
+      console.error(`Error getting source image path: ${error.message}. Continuing without source image.`);
+      sourceImagePath = null;
+      }
+      
+      // Ensure badge size is a numeric value and is preserved in the rendering
+      const badgeSize = typeof config.settings.size === 'number' ? config.settings.size :
+                     typeof config.settings.badge_size === 'number' ? config.settings.badge_size : 100;
+      
+      console.log(`Using badge size: ${badgeSize} for ${config.settings.type} badge`);
+      
+      // Map visual settings with consistent naming between frontend/backend
+      const badgeSettings = {
+      ...config.settings,
+      // Ensure type is explicitly set for identification in applyBackground
+      type: config.settings.type,
+      // Map transparency to backgroundOpacity for consistency with frontend
+      backgroundOpacity: config.settings.transparency !== undefined ? config.settings.transparency : 1,
+      // Ensure size is passed through directly
+      size: badgeSize,
+      badge_size: badgeSize,
+        // Important display settings for review badges
           sources: config.settings.type === 'review' ? config.value : undefined,
           maxSourcesToShow: config.settings.type === 'review' ? config.settings.maxSourcesToShow : undefined,
           displayFormat: config.settings.type === 'review' ? config.settings.displayFormat || 'vertical' : undefined,
@@ -684,6 +708,9 @@ class PosterProcessor {
     let left = 0;
     let top = 0;
     
+    // Ensure margin is a number
+    const safeMargin = typeof margin === 'number' && !isNaN(margin) ? margin : 21;
+    
     // Enhanced debug logging
     console.log('calculateSafePosition called with:', {
       position,
@@ -691,42 +718,42 @@ class PosterProcessor {
       posterHeight,
       badgeWidth,
       badgeHeight,
-      margin,
-      marginType: typeof margin
+      margin: safeMargin,
+      marginType: typeof safeMargin
     });
     
     // Map position string to coordinates based on margin
     switch (position) {
       case 'top-left':
-        left = margin;
-        top = margin;
+        left = safeMargin;
+        top = safeMargin;
         break;
       case 'top-right':
-        left = posterWidth - badgeWidth - margin;
-        top = margin;
+        left = posterWidth - badgeWidth - safeMargin;
+        top = safeMargin;
         break;
       case 'bottom-left':
-        left = margin;
-        top = posterHeight - badgeHeight - margin;
+        left = safeMargin;
+        top = posterHeight - badgeHeight - safeMargin;
         break;
       case 'bottom-right':
-        left = posterWidth - badgeWidth - margin;
-        top = posterHeight - badgeHeight - margin;
+        left = posterWidth - badgeWidth - safeMargin;
+        top = posterHeight - badgeHeight - safeMargin;
         break;
       case 'top-center':
         left = (posterWidth - badgeWidth) / 2;
-        top = margin;
+        top = safeMargin;
         break;
       case 'bottom-center':
         left = (posterWidth - badgeWidth) / 2;
-        top = posterHeight - badgeHeight - margin;
+        top = posterHeight - badgeHeight - safeMargin;
         break;
       case 'center-left':
-        left = margin;
+        left = safeMargin;
         top = (posterHeight - badgeHeight) / 2;
         break;
       case 'center-right':
-        left = posterWidth - badgeWidth - margin;
+        left = posterWidth - badgeWidth - safeMargin;
         top = (posterHeight - badgeHeight) / 2;
         break;
       case 'center':
@@ -735,8 +762,8 @@ class PosterProcessor {
         break;
       default:
         // Default to bottom-right if position is unrecognized
-        left = posterWidth - badgeWidth - margin;
-        top = posterHeight - badgeHeight - margin;
+        left = posterWidth - badgeWidth - safeMargin;
+        top = posterHeight - badgeHeight - safeMargin;
     }
     
     // Ensure position is within bounds
@@ -757,7 +784,7 @@ class PosterProcessor {
     console.log(`Badge position for ${position}:`, {
       left,
       top,
-      margin,
+      margin: safeMargin,
       centerX: left + badgeWidth/2,
       centerY: top + badgeHeight/2,
       distanceFromLeftEdge: left,

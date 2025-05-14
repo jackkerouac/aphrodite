@@ -31,7 +31,7 @@ export const prepareBadgeSettingsForJob = (
   // Map each badge setting to the format expected by the API
   return settingsToProcess.map(setting => {
     try {
-      // Create a clean copy to avoid reference issues
+      // Create a complete deep copy to avoid reference issues
       const settingCopy = JSON.parse(JSON.stringify(setting));
       
       // Ensure required fields are present
@@ -40,27 +40,12 @@ export const prepareBadgeSettingsForJob = (
         return null;
       }
       
-      // Format badge settings as expected by the API
-      return {
-        badge_type: settingCopy.badge_type,
-        badge_size: settingCopy.badge_size || 100,
-        badge_position: settingCopy.badge_position,
-        background_color: settingCopy.background_color,
-        background_opacity: settingCopy.background_opacity,
-        border_size: settingCopy.border_size,
-        border_color: settingCopy.border_color,
-        border_opacity: settingCopy.border_opacity,
-        border_radius: settingCopy.border_radius,
-        border_width: settingCopy.border_width,
-        shadow_enabled: settingCopy.shadow_enabled,
-        shadow_color: settingCopy.shadow_color,
-        shadow_blur: settingCopy.shadow_blur,
-        shadow_offset_x: settingCopy.shadow_offset_x,
-        shadow_offset_y: settingCopy.shadow_offset_y,
-        properties: settingCopy.properties,
-        // Include display_format only for review badges
-        ...(settingCopy.badge_type === 'review' ? { display_format: settingCopy.display_format } : {})
-      };
+      // Log detailed badge sizes before sending to job
+      console.log(`Preparing badge of type ${settingCopy.badge_type} with size: ${settingCopy.badge_size}`);
+      
+      // Important: Just pass through the entire settings object as is
+      // This ensures all properties are preserved exactly as they are in the unified settings
+      return settingCopy;
     } catch (error) {
       console.error('Error processing badge setting:', error);
       return null;

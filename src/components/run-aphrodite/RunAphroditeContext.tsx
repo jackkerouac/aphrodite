@@ -120,6 +120,14 @@ export const RunAphroditeProvider: React.FC<RunAphroditeProviderProps> = ({ chil
             console.log('Using available badge settings:', badgeSettingsToUse.map(b => b.badge_type));
           }
           
+          // Log the actual settings we're using
+          console.log('Badge settings before processing:', badgeSettingsToUse.map(b => ({
+            type: b.badge_type,
+            size: b.badge_size,
+            position: b.badge_position,
+            display_format: b.display_format
+          })));
+          
           // Process badge settings for the job using our helper function
           // Filter based on enabled badges selected by the user
           const processedBadgeSettings = prepareBadgeSettingsForJob(
@@ -131,6 +139,14 @@ export const RunAphroditeProvider: React.FC<RunAphroditeProviderProps> = ({ chil
           if (!processedBadgeSettings || processedBadgeSettings.length === 0) {
             throw new Error('No badge settings available for job creation. Please select at least one badge type.');
           }
+          
+          // Log the processed settings to make sure size and other properties are preserved
+          console.log('Badge settings after processing:', processedBadgeSettings.map(b => ({
+            type: b.badge_type,
+            size: b.badge_size,
+            position: b.badge_position,
+            display_format: b.display_format
+          })));
           
           // Enhanced job payload with unified badge settings
           const jobPayload = {

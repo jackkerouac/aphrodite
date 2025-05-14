@@ -130,11 +130,26 @@ export class BadgeRenderer {
   private async createBadgeCanvas(
     badgeSettings: UnifiedBadgeSettings
   ): Promise<HTMLCanvasElement> {
+      // Log detailed badge settings
+    console.log(`Badge settings type: ${badgeSettings.badge_type}`);
+    console.log(`Badge settings size: ${badgeSettings.badge_size} (type: ${typeof badgeSettings.badge_size})`);
+    console.log(`Badge position: ${badgeSettings.badge_position}`);
+    console.log(`Edge padding: ${badgeSettings.edge_padding}`);
+    
+    // Ensure size is a number and has a reasonable default
+    if (typeof badgeSettings.badge_size !== 'number' || isNaN(badgeSettings.badge_size)) {
+      console.log(`Invalid badge_size: ${badgeSettings.badge_size}, using default size: 100`);
+      // Use a reasonable default if badge_size is invalid
+      badgeSettings.badge_size = 100;
+    }
+    
+    console.log(`Final badge_size to be used: ${badgeSettings.badge_size}`);
+    
     // Create a temporary canvas for the badge
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
     
-    // Start with a reasonable size, we'll resize later if needed
+    // Start with a reasonable size based on the badge_size setting
     // For image badges (audio, resolution), the size will be adjusted based on the actual image dimensions
     const initialSize = badgeSettings.badge_size * 2;
     canvas.width = initialSize;
@@ -146,7 +161,7 @@ export class BadgeRenderer {
       // Apply background for review badges
       this.drawBackground(ctx, badgeSettings, initialSize, initialSize);
     }
-    
+      
     // Draw badge content based on type
     switch (badgeSettings.badge_type) {
       case 'audio':
@@ -631,11 +646,16 @@ export class BadgeRenderer {
         // Get the defined padding from settings or use a default
         const padding = 10; // Fixed padding around the image
         
-        // Use the actual image dimensions plus padding
         // Use the badge_size as a scaling factor for the image
-        const scale = settings.badge_size / 100; // 100 is the default size
+        // Ensure badge_size is a number and has a valid value
+        const badgeSize = typeof settings.badge_size === 'number' && !isNaN(settings.badge_size) ? 
+          settings.badge_size : 100;
         
-        console.log(`Badge rendering: Badge type ${settings.badge_type}, badge_size=${settings.badge_size}, scale=${scale}`);
+        // Calculate scale based on badge size (100 is the default size)
+        // Badge size of 100 = 1.0 scale, 200 = 2.0 scale, etc.
+        const scale = badgeSize / 100; 
+        
+        console.log(`Badge rendering: Badge type ${settings.badge_type}, badge_size=${badgeSize}, scale=${scale}`);
         
         // Calculate scaled dimensions while preserving aspect ratio
         const drawWidth = img.width * scale;
