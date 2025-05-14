@@ -41,13 +41,17 @@ export const prepareBadgeSettingsForJob = (
         return null;
       }
       
+      // Force add a flag to indicate these are database settings, to prevent defaults from being applied
+      settingCopy._fromDatabase = true;
+      
       // Log the badge settings being sent to the job
       console.log(`Preparing badge of type ${settingCopy.badge_type} for job:`, {
         badge_size: settingCopy.badge_size,
         background_color: settingCopy.background_color,
         badge_position: settingCopy.badge_position,
         display_format: settingCopy.display_format,
-        border_radius: settingCopy.border_radius
+        border_radius: settingCopy.border_radius,
+        _fromDatabase: settingCopy._fromDatabase
       });
       
       // Return the complete badge settings without any modifications

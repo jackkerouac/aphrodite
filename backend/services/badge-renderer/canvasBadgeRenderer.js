@@ -90,14 +90,21 @@ async renderBadge(type, settings, metadata, sourceImagePath) {
     // Make a copy of settings to avoid modifying the original
     const safeSettings = { ...settings };
     
+    // Track if settings came from database to avoid applying defaults
+    const fromDatabase = settings._fromDatabase || false;
+    console.log(`Settings from database: ${fromDatabase ? 'YES' : 'NO'}`);
+    
     // Log the complete settings from the database
     console.log(`renderBadge called with settings:`, safeSettings, `and metadata:`, metadata);
     
-    // No need to validate or transform size - just use what's in the database
+    // CRITICAL: No need to validate or transform size - just use EXACTLY what's in the database
+    // This is the key to fixing the problem - use the exact badge_size from database
     if (!safeSettings.badge_size && !safeSettings.size) {
       console.warn('No badge_size or size property defined, this might cause issues');
     } else {
-      console.log(`Using badge size: ${safeSettings.badge_size || safeSettings.size}`);
+      // Log the specific badge size being used from database values
+      const badgeSize = safeSettings.badge_size || safeSettings.size;
+      console.log(`Using badge size from database: ${badgeSize}`);
     }
     
     // Ensure we have the proper background color from the settings

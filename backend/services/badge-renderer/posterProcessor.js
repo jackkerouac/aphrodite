@@ -212,11 +212,12 @@ class PosterProcessor {
             
             // Process each badge setting to get values
             const processingPromises = badgeSettings.map(async (setting) => {
-              // Check if the setting is already in the expected format
+              // Check if the setting already has the expected format with settings and value
               if (setting.settings && setting.value !== undefined) {
                 // Setting already has expected structure, just ensure it's enabled
                 return {
                   ...setting,
+                  _fromDatabase: true, // Flag to indicate this came from database
                   enabled: true
                 };
               }
@@ -224,30 +225,45 @@ class PosterProcessor {
               // Get badge value based on type - this is async
               const value = await this.getBadgeValueForType(setting.badge_type, item.jellyfin_item_id, userId);
               
+              // Log detailed information about preserving badge settings
+              console.log(`Preserving database values for badge type ${setting.badge_type}:`, {
+                badge_size: setting.badge_size,
+                badge_position: setting.badge_position,
+                background_color: setting.background_color,
+                background_opacity: setting.background_opacity,
+              });
+              
               // Format setting into the expected structure
+              // IMPORTANT: Preserve all database values WITHOUT applying defaults
+              // Only use defaults if the value is explicitly undefined or null
               return {
                 enabled: true, // Force enable the badge
+                _fromDatabase: true, // Flag to indicate these came from database
                 settings: {
                   type: setting.badge_type,
-                  position: setting.badge_position || 'top-right',
-                  size: setting.badge_size ? parseInt(setting.badge_size) : 100,
-                  badge_size: setting.badge_size ? parseInt(setting.badge_size) : 100,
+                  _fromDatabase: true, // Flag at settings level too
+                  // Only use setting if exists, otherwise use default - do not overwrite with defaults
+                  position: setting.badge_position,
+                  // These sizes should NEVER default - use exactly what's in the database
+                  size: setting.badge_size !== undefined ? parseInt(setting.badge_size) : undefined,
+                  badge_size: setting.badge_size !== undefined ? parseInt(setting.badge_size) : undefined,
+                  // Preserve all other settings directly from database when they exist
                   backgroundColor: setting.background_color,
-                  backgroundOpacity: setting.background_opacity ? parseInt(setting.background_opacity) : 80,
-                  borderRadius: setting.border_radius ? parseInt(setting.border_radius) : 5,
-                  borderWidth: setting.border_width ? parseInt(setting.border_width) : 1,
-                  borderColor: setting.border_color || '#FFFFFF',
-                  borderOpacity: setting.border_opacity ? parseInt(setting.border_opacity) : 80,
-                  shadowEnabled: setting.shadow_enabled || false,
-                  shadowColor: setting.shadow_color || '#000000',
-                  shadowBlur: setting.shadow_blur ? parseInt(setting.shadow_blur) : 10,
-                  shadowOffsetX: setting.shadow_offset_x ? parseInt(setting.shadow_offset_x) : 0,
-                  shadowOffsetY: setting.shadow_offset_y ? parseInt(setting.shadow_offset_y) : 0,
-                  padding: setting.edge_padding ? parseInt(setting.edge_padding) : 10,
-                  margin: setting.edge_padding ? parseInt(setting.edge_padding) : 10,
+                  backgroundOpacity: setting.background_opacity !== undefined ? parseInt(setting.background_opacity) : undefined,
+                  borderRadius: setting.border_radius !== undefined ? parseInt(setting.border_radius) : undefined,
+                  borderWidth: setting.border_width !== undefined ? parseInt(setting.border_width) : undefined,
+                  borderColor: setting.border_color,
+                  borderOpacity: setting.border_opacity !== undefined ? parseInt(setting.border_opacity) : undefined,
+                  shadowEnabled: setting.shadow_enabled,
+                  shadowColor: setting.shadow_color,
+                  shadowBlur: setting.shadow_blur !== undefined ? parseInt(setting.shadow_blur) : undefined,
+                  shadowOffsetX: setting.shadow_offset_x !== undefined ? parseInt(setting.shadow_offset_x) : undefined,
+                  shadowOffsetY: setting.shadow_offset_y !== undefined ? parseInt(setting.shadow_offset_y) : undefined,
+                  padding: setting.edge_padding !== undefined ? parseInt(setting.edge_padding) : undefined,
+                  margin: setting.edge_padding !== undefined ? parseInt(setting.edge_padding) : undefined,
                   properties: setting.properties,
-                  // Include display_format for review badges
-                  displayFormat: setting.badge_type === 'review' ? (setting.display_format || 'horizontal') : undefined,
+                  // Include display_format for review badges - preserve what came from database
+                  displayFormat: setting.badge_type === 'review' ? setting.display_format : undefined,
                 },
                 value
               };
@@ -535,7 +551,8 @@ class PosterProcessor {
     } catch (error) {
       console.error(`Error getting badge value for type ${badgeType}:`, error);
       
-      // Return sensible defaults if metadata fetching failed
+      // Return sensible defaults if metadata fetching failed but log it clearly
+      console.warn(`Using fallback value for ${badgeType} due to metadata fetch error`);
       switch (badgeType.toLowerCase()) {
         case 'audio':
           return 'dolby_atmos';
@@ -768,10 +785,15 @@ class PosterProcessor {
       }
       
       // IMPORTANT: Ensure we're using the exact badge_size value from the settings
-      // This was part of the issue - the badge size was not being preserved properly
-      const badgeSize = config.settings.badge_size || config.settings.size || 100;
+      // directly from what was passed from frontend to backend
+      // NEVER use default values for badge_size, always use what was in the database
+      const badgeSize = config.settings.badge_size || config.settings.size;
       
-      console.log(`Using badge size: ${badgeSize} for ${config.settings.type} badge`);
+      console.log(`Using badge size (from db): ${badgeSize} for ${config.settings.type} badge`);
+      
+      // Flag to track if settings came from database or are fallbacks
+      const fromDatabase = config._fromDatabase || config.settings._fromDatabase;
+      console.log(`Badge settings from database: ${fromDatabase ? 'YES' : 'NO'}`);
       
       // IMPORTANT: Use the badge settings exactly as they are 
       // without any default overrides or transformations
@@ -779,16 +801,21 @@ class PosterProcessor {
         ...config.settings,
         // Ensure type is explicitly set for identification
         type: config.settings.type,
-        // Ensure size is preserved from the original settings
-        size: config.settings.badge_size || config.settings.size,
-        badge_size: config.settings.badge_size || config.settings.size,
+        // Preserve database flag
+        _fromDatabase: fromDatabase,
+        // Ensure size is preserved EXACTLY from the original settings - NEVER use default values
+        size: badgeSize,
+        badge_size: badgeSize,
         // Ensure these are correctly mapped from database fields
-        backgroundOpacity: config.settings.background_opacity ? config.settings.background_opacity / 100 : 0.8,
-        backgroundColor: config.settings.background_color,
-        borderOpacity: config.settings.border_opacity ? config.settings.border_opacity / 100 : 0.8,
+        backgroundOpacity: config.settings.background_opacity ? config.settings.background_opacity / 100 : 
+                          (config.settings.backgroundOpacity !== undefined ? config.settings.backgroundOpacity : 0.8),
+        backgroundColor: config.settings.background_color || config.settings.backgroundColor,
+        borderOpacity: config.settings.border_opacity ? config.settings.border_opacity / 100 : 
+                     (config.settings.borderOpacity !== undefined ? config.settings.borderOpacity : 0.8),
         // Ensure correct review badge settings
         sources: config.settings.type === 'review' ? config.value : undefined,
-        displayFormat: config.settings.type === 'review' ? config.settings.display_format || 'vertical' : undefined,
+        displayFormat: config.settings.type === 'review' ? 
+                     (config.settings.display_format || config.settings.displayFormat || 'vertical') : undefined,
         showDividers: config.settings.type === 'review' ? true : undefined
       };
 
