@@ -41,7 +41,14 @@ export async function processJob(jobId) {
     
     // Get the badge settings from the job
     try {
-      const badgeSettings = JSON.parse(job.badge_settings || '[]');
+      let badgeSettings;
+      if (typeof job.badge_settings === 'string') {
+        badgeSettings = JSON.parse(job.badge_settings || '[]');
+      } else if (job.badge_settings) {
+        badgeSettings = job.badge_settings;
+      } else {
+        badgeSettings = [];
+      }
       logger.info(`Job ${jobId} has ${badgeSettings.length} badge settings defined`);
     } catch (error) {
       logger.warn(`Failed to parse badge settings for job ${jobId}: ${error.message}`);

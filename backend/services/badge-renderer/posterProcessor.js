@@ -1,22 +1,4 @@
-  /**
-   * Check if a badge is available for the item and its media type
-   */
-  checkBadgeAvailability(badgeSettings, jobId) {
-    // Extract all badge types from settings
-    const badgeTypes = badgeSettings.map(b => b.settings?.type || b.badge_type);
-    
-    // Log all badge types
-    logger.info(`Job ${jobId}: Available badge types: ${badgeTypes.join(', ')}`);
-    
-    // Force all badges to be enabled for job processing
-    const enabledSettings = badgeSettings.map(badge => ({ ...badge, enabled: true }));
-    
-    // Log enabled badge count
-    const enabledCount = enabledSettings.length;
-    logger.info(`Job ${jobId}: ${enabledCount} badge types enabled`);
-    
-    return enabledSettings;
-  }import { promises as fs } from 'fs';
+import { promises as fs } from 'fs';
 import path from 'path';
 import fetch from 'node-fetch';
 import FormData from 'form-data';
@@ -219,7 +201,13 @@ class PosterProcessor {
         
         if (jobResult.rows[0] && jobResult.rows[0].badge_settings) {
           try {
-            const badgeSettings = JSON.parse(jobResult.rows[0].badge_settings);
+            let badgeSettings;
+            if (typeof jobResult.rows[0].badge_settings === 'string') {
+              badgeSettings = JSON.parse(jobResult.rows[0].badge_settings);
+            } else {
+              badgeSettings = jobResult.rows[0].badge_settings;
+            }
+            
             console.log('Retrieved badge settings from job:', badgeSettings.length);
             
             // Process each badge setting to get values
@@ -268,11 +256,14 @@ class PosterProcessor {
             // Wait for all badge settings to be processed
             const processingSettings = await Promise.all(processingPromises);
             
+            // Filter out any undefined/null results
+            const validSettings = processingSettings.filter(s => s);
+            
             console.log('Process settings prepared for rendering:', 
-              processingSettings.map(s => `${s.settings?.type || s.badge_type} (enabled=${s.enabled})`)            
+              validSettings.map(s => `${s.settings?.type || s.badge_type} (enabled=${s.enabled})`)            
             );
             
-            return processingSettings;
+            return validSettings;
           } catch (jsonError) {
             console.warn('Failed to parse badge settings from job:', jsonError);
             // Fall through to legacy settings
@@ -730,7 +721,7 @@ class PosterProcessor {
       
       console.log(`Processing ${sortedBadges.length} badges with canvas renderer:`, 
         sortedBadges.map(b => 
-          `${b.settings.type} (size=${b.settings.size}, position=${b.settings.position})` 
+          `${b.settings.type} (size=${b.settings.size || b.settings.badge_size}, position=${b.settings.position})` 
         ));
       
       // If no badges to process, return the original poster
@@ -743,7 +734,7 @@ class PosterProcessor {
       for (let i = 0; i < sortedBadges.length; i++) {
       const config = sortedBadges[i];
       console.log(`Applying badge ${i + 1}/${sortedBadges.length}: ${config.settings.type} at position ${config.settings.position}`);
-      console.log(`Margin: ${config.settings.margin}, Size: ${config.settings.size}`);
+      console.log(`Margin: ${config.settings.margin}, Size: ${config.settings.badge_size || config.settings.size}`);
       
       const poster = sharp(posterBuffer);
       const metadata = posterMetadata;
@@ -776,56 +767,86 @@ class PosterProcessor {
       sourceImagePath = null;
       }
       
-      // Ensure badge size is a numeric value and is preserved in the rendering
-      const badgeSize = typeof config.settings.size === 'number' ? config.settings.size :
-                     typeof config.settings.badge_size === 'number' ? config.settings.badge_size : 100;
+      // IMPORTANT: Ensure we're using the exact badge_size value from the settings
+      // This was part of the issue - the badge size was not being preserved properly
+      const badgeSize = config.settings.badge_size || config.settings.size || 100;
       
       console.log(`Using badge size: ${badgeSize} for ${config.settings.type} badge`);
       
       // Map visual settings with consistent naming between frontend/backend
+      // IMPORTANT: Preserve ALL original properties from the config,
+      // especially background_color, display_format, and positioning
       const badgeSettings = {
       ...config.settings,
       // Ensure type is explicitly set for identification in applyBackground
       type: config.settings.type,
       // Map transparency to backgroundOpacity for consistency with frontend
-      backgroundOpacity: config.settings.transparency !== undefined ? config.settings.transparency : 1,
-      // Ensure size is passed through directly
+      backgroundOpacity: config.settings.background_opacity ? config.settings.background_opacity / 100 : 1,
+      // Preserve the exact original badge size
       size: badgeSize,
       badge_size: badgeSize,
+      // Ensure we're using the actual backgroundColor from settings
+      backgroundColor: config.settings.background_color,
         // Important display settings for review badges
-          sources: config.settings.type === 'review' ? config.value : undefined,
-          maxSourcesToShow: config.settings.type === 'review' ? config.settings.maxSourcesToShow : undefined,
-          displayFormat: config.settings.type === 'review' ? config.settings.displayFormat || 'vertical' : undefined,
-          // Other important settings
-          borderOpacity: config.settings.borderOpacity !== undefined ? config.settings.borderOpacity : 1,
-          showDividers: config.settings.type === 'review' ? true : undefined
-        };
+        // Use the display_format directly from the settings
+        sources: config.settings.type === 'review' ? config.value : undefined,
+        maxSourcesToShow: config.settings.type === 'review' ? 
+          (config.settings.maxSourcesToShow || config.settings.max_sources_to_show || 4) : undefined,
+        displayFormat: config.settings.type === 'review' ? 
+          (config.settings.display_format || config.settings.displayFormat || 'vertical') : undefined,
+        // Other important settings
+        borderOpacity: config.settings.border_opacity ? config.settings.border_opacity / 100 : 0.8,
+        showDividers: config.settings.type === 'review' ? true : undefined
+      };
         
-        console.log(`Using badge settings:`, {
-          type: config.settings.type,
-          margin: badgeSettings.margin,
-          size: badgeSettings.size,
-          position: badgeSettings.position
-        });
+      console.log(`Rendering ${config.settings.type} badge with settings:`, {
+        type: badgeSettings.type,
+        position: badgeSettings.position,
+        size: badgeSettings.size,
+        badge_size: badgeSettings.badge_size,
+        backgroundColor: badgeSettings.backgroundColor,
+        backgroundOpacity: badgeSettings.backgroundOpacity,
+        borderRadius: badgeSettings.borderRadius || badgeSettings.border_radius,
+        borderWidth: badgeSettings.borderWidth || badgeSettings.border_width,
+        borderColor: badgeSettings.borderColor || badgeSettings.border_color,
+        borderOpacity: badgeSettings.borderOpacity,
+        shadowEnabled: badgeSettings.shadowEnabled || badgeSettings.shadow_enabled,
+        shadowColor: badgeSettings.shadowColor || badgeSettings.shadow_color,
+        shadowBlur: badgeSettings.shadowBlur || badgeSettings.shadow_blur,
+        shadowOffsetX: badgeSettings.shadowOffsetX || badgeSettings.shadow_offset_x,
+        shadowOffsetY: badgeSettings.shadowOffsetY || badgeSettings.shadow_offset_y,
+        padding: badgeSettings.padding || badgeSettings.edge_padding || 10,
+        margin: badgeSettings.margin || badgeSettings.edge_padding || 10,
+        properties: badgeSettings.properties,
+        displayFormat: badgeSettings.displayFormat,
+        sources: badgeSettings.sources,
+        maxSourcesToShow: badgeSettings.maxSourcesToShow,
+        showDividers: badgeSettings.showDividers
+      });
         
-        // Generate badge using canvas renderer
-        let badgeBuffer;
-        try {
-          badgeBuffer = await this.canvasBadgeRenderer.renderBadge(
-            config.settings.type,
-            badgeSettings,
-            { 
-              resolution: config.settings.type === 'resolution' ? config.value : undefined,
-              audioFormat: config.settings.type === 'audio' ? config.value : undefined,
-              rating: config.settings.type === 'review' ? config.value : undefined,
-              ratingSource: config.settings.type === 'review' ? 'imdb' : undefined
-            },
-            sourceImagePath
-          );
-        } catch (renderError) {
-          console.error(`Error rendering badge: ${renderError.message}. Skipping this badge.`);
-          continue; // Skip this badge and move to the next one
-        }
+      // Check background color explicitly
+      if (badgeSettings.backgroundColor) {
+        console.log(`Using explicit backgroundColor: ${badgeSettings.backgroundColor}`);
+      }
+        
+      // Generate badge using canvas renderer
+      let badgeBuffer;
+      try {
+        badgeBuffer = await this.canvasBadgeRenderer.renderBadge(
+          config.settings.type,
+          badgeSettings,
+          { 
+            resolution: config.settings.type === 'resolution' ? config.value : undefined,
+            audioFormat: config.settings.type === 'audio' ? config.value : undefined,
+            rating: config.settings.type === 'review' ? config.value : undefined,
+            ratingSource: config.settings.type === 'review' ? 'imdb' : undefined
+          },
+          sourceImagePath
+        );
+      } catch (renderError) {
+        console.error(`Error rendering badge: ${renderError.message}. Skipping this badge.`);
+        continue; // Skip this badge and move to the next one
+      }
         
         // Create a Sharp instance from the badge buffer
         const badge = sharp(badgeBuffer);

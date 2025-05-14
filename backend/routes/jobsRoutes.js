@@ -63,7 +63,8 @@ router.post('/', async (req, res) => {
       user_id,
       name,
       items_total: items.length,
-      badge_settings: badgeSettings ? JSON.stringify(badgeSettings) : null
+      // Make sure badgeSettings is already a string, or stringify it if it's an object
+      badge_settings: badgeSettings ? (typeof badgeSettings === 'string' ? badgeSettings : JSON.stringify(badgeSettings)) : null
     });
     
     // Create job items
@@ -72,10 +73,16 @@ router.post('/', async (req, res) => {
     }
     
     // Start processing the job automatically
-    console.log('Starting job processing for job:', job.id);
-    const { startJobProcessing } = await import('../services/jobProcessor.js');
-    startJobProcessing(job.id);
-    console.log('Job processing started');
+    try {
+      console.log('Starting job processing for job:', job.id);
+      const { startJobProcessing } = await import('../services/jobProcessor.js');
+      startJobProcessing(job.id);
+      console.log('Job processing started');
+    } catch (processingError) {
+      logger.error('Error starting job processing:', processingError);
+      // Don't fail the job creation, just log the error and continue
+      // The user can manually start processing later
+    }
     
     res.status(201).json(job);
   } catch (error) {
@@ -205,13 +212,12 @@ router.post('/update-status', async (req, res) => {
 router.post('/:id/process', async (req, res) => {
   try {
     const { id } = req.params;
-    const { processJob } = await import('../services/jobProcessor.js');
+    const { startJobProcessing } = await import('../services/jobProcessor.js');
     
     // Start processing the job asynchronously
-    processJob(parseInt(id)).catch(error => {
-      logger.error(`Error in job processing for job ${id}:`, error);
-    });
+    startJobProcessing(parseInt(id));
     
+    // Just return success since the processing is asynchronous
     res.json({ message: 'Job processing started', jobId: id });
   } catch (error) {
     logger.error('Error starting job processing:', error);

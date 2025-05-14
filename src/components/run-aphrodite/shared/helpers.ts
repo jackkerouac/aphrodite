@@ -40,11 +40,17 @@ export const prepareBadgeSettingsForJob = (
         return null;
       }
       
-      // Log detailed badge sizes before sending to job
-      console.log(`Preparing badge of type ${settingCopy.badge_type} with size: ${settingCopy.badge_size}`);
+      // IMPORTANT: Make sure to preserve all original properties exactly as they are
+      // Most importantly, preserve badge_size, background_color, and display_format
+      console.log(`Preparing badge of type ${settingCopy.badge_type}:`, {
+        badge_size: settingCopy.badge_size,
+        background_color: settingCopy.background_color,
+        badge_position: settingCopy.badge_position,
+        display_format: settingCopy.display_format,
+        border_radius: settingCopy.border_radius
+      });
       
-      // Important: Just pass through the entire settings object as is
-      // This ensures all properties are preserved exactly as they are in the unified settings
+      // Return the complete badge settings without any modifications
       return settingCopy;
     } catch (error) {
       console.error('Error processing badge setting:', error);

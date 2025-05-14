@@ -46,11 +46,16 @@ export async function createJob(jobData) {
     
     // If badge settings are provided, include them in the query
     if (badge_settings) {
+      // Ensure that badge_settings is a string
+      const badgeSettingsString = typeof badge_settings === 'string' 
+        ? badge_settings 
+        : JSON.stringify(badge_settings);
+      
       const result = await pool.query(
         `INSERT INTO jobs (user_id, name, items_total, status, badge_settings)
          VALUES ($1, $2, $3, 'pending', $4)
          RETURNING *`,
-        [user_id, name, items_total, badge_settings]
+        [user_id, name, items_total, badgeSettingsString]
       );
       
       console.log('Job created successfully with badge settings');
