@@ -29,6 +29,7 @@ export const prepareBadgeSettingsForJob = (
   }
 
   // Map each badge setting to the format expected by the API
+  // IMPORTANT: Pass the settings through exactly as-is, without modification
   return settingsToProcess.map(setting => {
     try {
       // Create a complete deep copy to avoid reference issues
@@ -40,24 +41,14 @@ export const prepareBadgeSettingsForJob = (
         return null;
       }
       
-      // Important: Make sure to preserve all original properties exactly as they are
-      // Most importantly, preserve badge_size, background_color, and display_format
-      console.log(`Preparing badge of type ${settingCopy.badge_type}:`, {
+      // Log the badge settings being sent to the job
+      console.log(`Preparing badge of type ${settingCopy.badge_type} for job:`, {
         badge_size: settingCopy.badge_size,
         background_color: settingCopy.background_color,
         badge_position: settingCopy.badge_position,
         display_format: settingCopy.display_format,
-        border_radius: settingCopy.border_radius,
-        edge_padding: settingCopy.edge_padding,
-        background_opacity: settingCopy.background_opacity
+        border_radius: settingCopy.border_radius
       });
-      
-      // Ensure all critical fields are present and properly named
-      if (!settingCopy.edge_padding && settingCopy.badge_size > 120) {
-        // If edge_padding is missing but badge_size is large, add a proportional padding
-        settingCopy.edge_padding = Math.round(settingCopy.badge_size * 0.15); 
-        console.log(`Added edge_padding ${settingCopy.edge_padding} for large badge size ${settingCopy.badge_size}`);
-      }
       
       // Return the complete badge settings without any modifications
       return settingCopy;

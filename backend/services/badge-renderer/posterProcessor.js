@@ -773,31 +773,25 @@ class PosterProcessor {
       
       console.log(`Using badge size: ${badgeSize} for ${config.settings.type} badge`);
       
-      // Map visual settings with consistent naming between frontend/backend
-      // IMPORTANT: Preserve ALL original properties from the config,
-      // especially background_color, display_format, and positioning
+      // IMPORTANT: Use the badge settings exactly as they are 
+      // without any default overrides or transformations
       const badgeSettings = {
-      ...config.settings,
-      // Ensure type is explicitly set for identification in applyBackground
-      type: config.settings.type,
-      // Map transparency to backgroundOpacity for consistency with frontend
-      backgroundOpacity: config.settings.background_opacity ? config.settings.background_opacity / 100 : 1,
-      // Preserve the exact original badge size
-      size: badgeSize,
-      badge_size: badgeSize,
-      // Ensure we're using the actual backgroundColor from settings
-      backgroundColor: config.settings.background_color,
-        // Important display settings for review badges
-        // Use the display_format directly from the settings
-        sources: config.settings.type === 'review' ? config.value : undefined,
-        maxSourcesToShow: config.settings.type === 'review' ? 
-          (config.settings.maxSourcesToShow || config.settings.max_sources_to_show || 4) : undefined,
-        displayFormat: config.settings.type === 'review' ? 
-          (config.settings.display_format || config.settings.displayFormat || 'vertical') : undefined,
-        // Other important settings
+        ...config.settings,
+        // Ensure type is explicitly set for identification
+        type: config.settings.type,
+        // Ensure size is preserved from the original settings
+        size: config.settings.badge_size || config.settings.size,
+        badge_size: config.settings.badge_size || config.settings.size,
+        // Ensure these are correctly mapped from database fields
+        backgroundOpacity: config.settings.background_opacity ? config.settings.background_opacity / 100 : 0.8,
+        backgroundColor: config.settings.background_color,
         borderOpacity: config.settings.border_opacity ? config.settings.border_opacity / 100 : 0.8,
+        // Ensure correct review badge settings
+        sources: config.settings.type === 'review' ? config.value : undefined,
+        displayFormat: config.settings.type === 'review' ? config.settings.display_format || 'vertical' : undefined,
         showDividers: config.settings.type === 'review' ? true : undefined
       };
+
         
       console.log(`Rendering ${config.settings.type} badge with settings:`, {
         type: badgeSettings.type,

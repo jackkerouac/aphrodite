@@ -90,37 +90,14 @@ async renderBadge(type, settings, metadata, sourceImagePath) {
     // Make a copy of settings to avoid modifying the original
     const safeSettings = { ...settings };
     
-    // IMPORTANT: Log the complete settings to verify all properties are correctly passed
+    // Log the complete settings from the database
     console.log(`renderBadge called with settings:`, safeSettings, `and metadata:`, metadata);
     
-    // Ensure size is valid - first check badge_size, then size
-    // This ensures we respect the badge_size property from the unified_badge_settings table
-    if (safeSettings.badge_size !== undefined) {
-      if (typeof safeSettings.badge_size !== 'number' || isNaN(safeSettings.badge_size) || safeSettings.badge_size <= 0) {
-        console.warn(`Invalid badge_size: ${safeSettings.badge_size}, checking size property...`);
-        
-        // Fall back to size property if badge_size is invalid
-        if (safeSettings.size !== undefined && typeof safeSettings.size === 'number' && !isNaN(safeSettings.size) && safeSettings.size > 0) {
-          safeSettings.badge_size = safeSettings.size;
-          console.log(`Using size property as badge_size: ${safeSettings.badge_size}`);
-        } else {
-          console.warn(`Invalid size: ${safeSettings.size}, using default size 100`);
-          safeSettings.badge_size = 100; // Use default size if both are invalid
-        }
-      }
-    } else if (safeSettings.size !== undefined) {
-      // If badge_size is not defined but size is, use size as badge_size
-      if (typeof safeSettings.size === 'number' && !isNaN(safeSettings.size) && safeSettings.size > 0) {
-        safeSettings.badge_size = safeSettings.size;
-        console.log(`No badge_size property, using size as badge_size: ${safeSettings.badge_size}`);
-      } else {
-        console.warn(`Invalid size: ${safeSettings.size}, using default size 100`);
-        safeSettings.badge_size = 100; // Use default size if invalid
-      }
+    // No need to validate or transform size - just use what's in the database
+    if (!safeSettings.badge_size && !safeSettings.size) {
+      console.warn('No badge_size or size property defined, this might cause issues');
     } else {
-      // If neither badge_size nor size is defined, use default
-      console.warn(`No badge_size or size property defined, using default size 100`);
-      safeSettings.badge_size = 100;
+      console.log(`Using badge size: ${safeSettings.badge_size || safeSettings.size}`);
     }
     
     // Ensure we have the proper background color from the settings
