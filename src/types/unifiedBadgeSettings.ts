@@ -97,17 +97,17 @@ export type UnifiedBadgeSettings = AudioBadgeSettings | ResolutionBadgeSettings 
 export const DEFAULT_AUDIO_BADGE_SETTINGS: AudioBadgeSettings = {
   user_id: '1',
   badge_type: 'audio',
-  badge_size: 100, // Used as a scaling factor for the badge (100 = original size)
-  edge_padding: 10,
+  badge_size: 200, // Match the size in the database (200 instead of 100)
+  edge_padding: 30, // Match padding in database
   badge_position: BadgePosition.TopLeft,
-  background_color: '#000000',
+  background_color: '#05ed2e', // Green color used in preview
   background_opacity: 80,
   border_size: 2,
   border_color: '#FFFFFF',
   border_opacity: 80,
-  border_radius: 10, // Increased for better appearance with variable sizes
+  border_radius: 10,
   border_width: 1,
-  shadow_enabled: true, // Default to true for better visibility
+  shadow_enabled: true,
   shadow_color: '#000000',
   shadow_blur: 8,
   shadow_offset_x: 2,
@@ -120,17 +120,17 @@ export const DEFAULT_AUDIO_BADGE_SETTINGS: AudioBadgeSettings = {
 export const DEFAULT_RESOLUTION_BADGE_SETTINGS: ResolutionBadgeSettings = {
   user_id: '1',
   badge_type: 'resolution',
-  badge_size: 100, // Used as a scaling factor for the badge (100 = original size)
-  edge_padding: 10,
+  badge_size: 194, // Match the size in the database (194 instead of 100)
+  edge_padding: 30, // Match padding in database
   badge_position: BadgePosition.TopRight,
-  background_color: '#000000',
+  background_color: '#e220e8', // Purple color used in preview
   background_opacity: 80,
   border_size: 2,
   border_color: '#FFFFFF',
   border_opacity: 80,
-  border_radius: 10, // Increased for better appearance with variable sizes
+  border_radius: 10,
   border_width: 1,
-  shadow_enabled: true, // Default to true for better visibility
+  shadow_enabled: true,
   shadow_color: '#000000',
   shadow_blur: 8,
   shadow_offset_x: 2,
@@ -143,16 +143,16 @@ export const DEFAULT_RESOLUTION_BADGE_SETTINGS: ResolutionBadgeSettings = {
 export const DEFAULT_REVIEW_BADGE_SETTINGS: ReviewBadgeSettings = {
   user_id: '1',
   badge_type: 'review',
-  badge_size: 100,
-  edge_padding: 10,
+  badge_size: 231, // Match the size in the database (231 instead of 100)
+  edge_padding: 30, // Match padding in database
   badge_position: BadgePosition.BottomLeft,
-  display_format: DisplayFormat.Horizontal,
-  background_color: '#000000',
-  background_opacity: 80,
+  display_format: DisplayFormat.Vertical, // Vertical looks better than horizontal
+  background_color: '#d12125', // Red color used in preview
+  background_opacity: 48, // Lower opacity for review badges
   border_size: 2,
-  border_color: '#FFFFFF',
+  border_color: '#d12125', // Border matches background
   border_opacity: 80,
-  border_radius: 5,
+  border_radius: 13, // Larger radius for review badges
   border_width: 1,
   shadow_enabled: false,
   shadow_color: '#000000',
@@ -160,8 +160,7 @@ export const DEFAULT_REVIEW_BADGE_SETTINGS: ReviewBadgeSettings = {
   shadow_offset_x: 0,
   shadow_offset_y: 0,
   properties: {
-    review_sources: ['imdb', 'rotten_tomatoes'],
-    // Always use percentage as the default score type
+    review_sources: ['imdb', 'tmdb', 'rt_critic'], // Match sources in database
     score_type: 'percentage'
   }
 };
