@@ -1,0 +1,166 @@
+[2025-05-14T16:58:33.068Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-14T16:58:33.141Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-14T16:58:33.148Z] INFO: UnifiedPosterProcessor: Temp directory created at ./temp
+[2025-05-14T16:58:33.148Z] INFO: BadgeRenderingJobController initialized
+[2025-05-14T16:58:46.822Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 678ms
+[2025-05-14T16:58:47.196Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 367ms
+[2025-05-14T17:00:39.503Z] INFO: [GET] /api/jellyfin-libraries/1 200 — 973ms
+[2025-05-14T17:00:39.509Z] INFO: [GET] /api/jellyfin-libraries/1 200 — 983ms
+[2025-05-14T17:00:39.518Z] INFO: [GET] /api/jellyfin-libraries/1 200 — 990ms
+[2025-05-14T17:00:42.119Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-14T17:00:42.123Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-14T17:00:42.124Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 6ms
+[2025-05-14T17:00:42.541Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 375ms
+[2025-05-14T17:00:42.850Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 304ms
+[2025-05-14T17:00:46.940Z] INFO: [GET] /api/library-items/1?page=1&limit=50&libraryIds=f137a2dd21bbc1b99aa5c0f6bf02a805 200 — 485ms
+[2025-05-14T17:01:08.133Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 417ms
+[2025-05-14T17:01:08.520Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 383ms
+[2025-05-14T17:01:13.404Z] INFO: [GET] /api/jellyfin-libraries/1 200 — 585ms
+[2025-05-14T17:01:13.417Z] INFO: [GET] /api/jellyfin-libraries/1 200 — 599ms
+[2025-05-14T17:01:13.418Z] INFO: [GET] /api/jellyfin-libraries/1 200 — 599ms
+[2025-05-14T17:01:14.181Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-14T17:01:14.184Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-14T17:01:14.185Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-14T17:01:14.580Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 349ms
+[2025-05-14T17:01:14.917Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 333ms
+[2025-05-14T17:01:18.261Z] INFO: [GET] /api/library-items/1?page=1&limit=50&libraryIds=f137a2dd21bbc1b99aa5c0f6bf02a805 200 — 404ms
+[2025-05-14T17:01:28.705Z] INFO: Created job 139 with 1 items for user 1
+[2025-05-14T17:01:28.706Z] INFO: Starting job 139
+[2025-05-14T17:01:28.706Z] INFO: [POST] /api/unified-badge-render/jobs 201 — 30ms
+[2025-05-14T17:01:28.716Z] INFO: Job 139: Found 1 items to process
+[2025-05-14T17:01:28.717Z] INFO: Starting batch processing for job 139 with 1 items. Batch size: 4
+[2025-05-14T17:01:28.717Z] INFO: Processing batch 1/1 with 1 items
+[2025-05-14T17:01:28.720Z] INFO: Job 139: Processing item 139 (00ba4e022c0ef5f7849ac1119fd58f0d: Media Item)
+[2025-05-14T17:01:28.751Z] INFO: [GET] /api/unified-badge-render/jobs/139 200 — 3ms
+[2025-05-14T17:01:28.754Z] INFO: [GET] /api/unified-badge-render/jobs/139 200 — 2ms
+[2025-05-14T17:01:28.833Z] ERROR: Error fetching Jellyfin metadata: Failed to fetch Jellyfin metadata: 400 Bad Request
+[2025-05-14T17:01:28.834Z] ERROR: Error getting audio codec: Failed to fetch Jellyfin metadata: 400 Bad Request
+[2025-05-14T17:01:28.852Z] ERROR: Error fetching Jellyfin metadata: Failed to fetch Jellyfin metadata: 400 Bad Request
+[2025-05-14T17:01:28.852Z] ERROR: Error getting resolution: Failed to fetch Jellyfin metadata: 400 Bad Request
+[2025-05-14T17:01:28.853Z] ERROR: Error fetching Jellyfin metadata: Failed to fetch Jellyfin metadata: 400 Bad Request
+[2025-05-14T17:01:28.853Z] ERROR: Error getting review scores: Failed to fetch Jellyfin metadata: 400 Bad Request
+[2025-05-14T17:01:28.853Z] INFO: Job 139: Retrieved 3 badge settings for item 139
+[2025-05-14T17:01:28.854Z] INFO: Job 139: Badge type: audio, position: top-left, size: 200
+[2025-05-14T17:01:28.854Z] INFO: Job 139: Badge type: resolution, position: top-right, size: 194
+[2025-05-14T17:01:28.854Z] INFO: Job 139: Badge type: review, position: bottom-left, size: 231
+[2025-05-14T17:01:28.856Z] INFO: Downloading poster: https://jellyfin.okaymedia.ca/Items/00ba4e022c0ef5f7849ac1119fd58f0d/Images/Primary?api_key=d66524acc5d544d591e0cbbabff6053c
+[2025-05-14T17:01:29.034Z] INFO: Job 139: Downloaded poster for item 139
+[2025-05-14T17:01:29.282Z] INFO: Job 139: Standardized poster for item 139: {"originalWidth":2000,"originalHeight":3000,"newWidth":1000,"newHeight":1500,"aspectRatio":1.5}
+[2025-05-14T17:01:29.892Z] INFO: Rendering badge: audio
+[2025-05-14T17:01:29.912Z] INFO: Audio badge drawn: dolby_atmos, size: 200
+[2025-05-14T17:01:29.913Z] INFO: Badge rendered at position (30, 30)
+[2025-05-14T17:01:29.913Z] INFO: Rendering badge: resolution
+[2025-05-14T17:01:29.926Z] INFO: Resolution badge drawn: 4k, size: 194
+[2025-05-14T17:01:29.926Z] INFO: Badge rendered at position (506, 30)
+[2025-05-14T17:01:29.927Z] INFO: Rendering badge: review
+[2025-05-14T17:01:29.929Z] ERROR: Failed to load icon for imdb: No such file or directory
+[2025-05-14T17:01:29.951Z] INFO: Review badge drawn: imdb, format: vertical
+[2025-05-14T17:01:29.952Z] INFO: Badge rendered at position (30, 1281)
+[2025-05-14T17:01:30.738Z] INFO: Job 139: Modified poster saved at: temp\poster-modified-00ba4e022c0ef5f7849ac1119fd58f0d.png
+[2025-05-14T17:01:30.740Z] INFO: Uploading poster: https://jellyfin.okaymedia.ca/Items/00ba4e022c0ef5f7849ac1119fd58f0d/Images/Primary?api_key=d66524acc5d544d591e0cbbabff6053c
+[2025-05-14T17:01:30.741Z] INFO: Deleting existing image...
+[2025-05-14T17:01:30.785Z] INFO: [GET] /api/unified-badge-render/jobs/139 200 — 2ms
+[2025-05-14T17:01:31.003Z] INFO: Delete response: 204
+[2025-05-14T17:01:31.003Z] INFO: Uploading new poster...
+[2025-05-14T17:01:32.688Z] INFO: Poster uploaded successfully!
+[2025-05-14T17:01:32.688Z] INFO: Job 139: Uploaded modified poster for item 139
+[2025-05-14T17:01:32.693Z] INFO: Job 139: Item 139 completed successfully
+[2025-05-14T17:01:32.694Z] INFO: Batch processing complete for job 139
+[2025-05-14T17:01:32.698Z] INFO: Job 139 progress: 1/1 (100%)
+[2025-05-14T17:01:32.700Z] INFO: Job 139 completed: 1 successful, 0 failed
+[2025-05-14T17:01:32.790Z] INFO: [GET] /api/unified-badge-render/jobs/139 200 — 3ms
+[2025-05-14T17:03:38.697Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-14T17:03:38.699Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-14T17:03:38.700Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-14T17:03:38.720Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-14T17:03:38.721Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 304 — 24ms
+[2025-05-14T17:03:38.722Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-14T17:03:38.723Z] INFO: [GET] /api/v1/unified-badge-settings/resolution?user_id=1 304 — 24ms
+[2025-05-14T17:03:38.723Z] INFO: Found review badge settings for user ID: 1
+[2025-05-14T17:03:38.724Z] INFO: [GET] /api/v1/unified-badge-settings/review?user_id=1 304 — 24ms
+[2025-05-14T17:03:38.729Z] INFO: Getting audio badge settings for user ID: 1
+[2025-05-14T17:03:38.730Z] INFO: Getting resolution badge settings for user ID: 1
+[2025-05-14T17:03:38.731Z] INFO: Getting review badge settings for user ID: 1
+[2025-05-14T17:03:38.733Z] INFO: Found audio badge settings for user ID: 1
+[2025-05-14T17:03:38.733Z] INFO: [GET] /api/v1/unified-badge-settings/audio?user_id=1 304 — 4ms
+[2025-05-14T17:03:38.734Z] INFO: Found resolution badge settings for user ID: 1
+[2025-05-14T17:03:38.734Z] INFO: [GET] /api/v1/unified-badge-settings/resolution?user_id=1 304 — 4ms
+[2025-05-14T17:03:38.734Z] INFO: Found review badge settings for user ID: 1
+[2025-05-14T17:03:38.735Z] INFO: [GET] /api/v1/unified-badge-settings/review?user_id=1 304 — 4ms
+[2025-05-14T17:08:47.584Z] INFO: [GET] /api/omdb-settings/1 304 — 22ms
+[2025-05-14T17:08:47.587Z] INFO: [GET] /api/anidb-settings/1 304 — 24ms
+[2025-05-14T17:08:47.591Z] INFO: [GET] /api/tmdb-settings/1 304 — 29ms
+[2025-05-14T17:08:47.597Z] INFO: [GET] /api/jellyfin-settings/1 304 — 36ms
+[2025-05-14T17:08:47.598Z] INFO: [GET] /api/omdb-settings/1 304 — 4ms
+[2025-05-14T17:08:47.600Z] INFO: [GET] /api/anidb-settings/1 304 — 6ms
+[2025-05-14T17:08:47.604Z] INFO: [GET] /api/tmdb-settings/1 304 — 3ms
+[2025-05-14T17:08:47.616Z] INFO: [GET] /api/jellyfin-settings/1 304 — 4ms
+[2025-05-14T17:08:47.629Z] INFO: [GET] /api/jellyfin-settings/1 304 — 5ms
+[2025-05-14T17:08:47.638Z] INFO: [GET] /api/jellyfin-settings/1 304 — 5ms
+[2025-05-14T17:13:24.312Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-14T17:13:24.384Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-14T17:13:24.393Z] INFO: UnifiedPosterProcessor: Temp directory created at ./temp
+[2025-05-14T17:13:24.394Z] INFO: BadgeRenderingJobController initialized
+[2025-05-14T17:14:01.888Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-14T17:14:01.960Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-14T17:14:01.967Z] INFO: UnifiedPosterProcessor: Temp directory created at ./temp
+[2025-05-14T17:14:01.968Z] INFO: BadgeRenderingJobController initialized
+[2025-05-14T17:14:24.238Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-14T17:14:24.312Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-14T17:14:24.322Z] INFO: UnifiedPosterProcessor: Temp directory created at ./temp
+[2025-05-14T17:14:24.324Z] INFO: BadgeRenderingJobController initialized
+[2025-05-14T17:14:30.389Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-14T17:14:30.472Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-14T17:14:30.482Z] INFO: UnifiedPosterProcessor: Temp directory created at ./temp
+[2025-05-14T17:14:30.560Z] INFO: Copied review source icon: imdb_logo.png -> imdb.png
+[2025-05-14T17:14:30.581Z] INFO: Copied review source icon: rt_logo.png -> rt_critics.png
+[2025-05-14T17:14:30.588Z] INFO: Copied review source icon: metacritic_logo.png -> metacritic.png
+[2025-05-14T17:14:30.605Z] INFO: Copied review source icon: tmdb_logo.png -> tmdb.png
+[2025-05-14T17:14:30.605Z] INFO: Asset synchronization complete
+[2025-05-14T17:14:30.606Z] INFO: UnifiedPosterProcessor: Assets synchronized successfully
+[2025-05-14T17:14:30.606Z] INFO: BadgeRenderingJobController initialized
+[2025-05-14T17:14:44.462Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-14T17:14:44.559Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-14T17:14:44.569Z] INFO: UnifiedPosterProcessor: Temp directory created at ./temp
+[2025-05-14T17:14:44.590Z] INFO: Copied review source icon: imdb_logo.png -> imdb.png
+[2025-05-14T17:14:44.605Z] INFO: Copied review source icon: rt_logo.png -> rt_critics.png
+[2025-05-14T17:14:44.611Z] INFO: Copied review source icon: metacritic_logo.png -> metacritic.png
+[2025-05-14T17:14:44.614Z] INFO: Copied review source icon: tmdb_logo.png -> tmdb.png
+[2025-05-14T17:14:44.615Z] INFO: Asset synchronization complete
+[2025-05-14T17:14:44.615Z] INFO: UnifiedPosterProcessor: Assets synchronized successfully
+[2025-05-14T17:14:44.616Z] INFO: BadgeRenderingJobController initialized
+[2025-05-14T17:20:17.220Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-14T17:20:17.300Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-14T17:20:17.308Z] INFO: UnifiedPosterProcessor: Temp directory created at ./temp
+[2025-05-14T17:20:17.338Z] INFO: Copied review source icon: imdb_logo.png -> imdb.png
+[2025-05-14T17:20:17.351Z] INFO: Copied review source icon: rt_logo.png -> rt_critics.png
+[2025-05-14T17:20:17.357Z] INFO: Copied review source icon: metacritic_logo.png -> metacritic.png
+[2025-05-14T17:20:17.361Z] INFO: Copied review source icon: tmdb_logo.png -> tmdb.png
+[2025-05-14T17:20:17.361Z] INFO: Asset synchronization complete
+[2025-05-14T17:20:17.362Z] INFO: UnifiedPosterProcessor: Assets synchronized successfully
+[2025-05-14T17:20:17.362Z] INFO: BadgeRenderingJobController initialized
+[2025-05-14T17:22:00.424Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-14T17:22:00.509Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-14T17:22:00.517Z] INFO: UnifiedPosterProcessor: Temp directory created at ./temp
+[2025-05-14T17:22:00.790Z] INFO: UnifiedPosterProcessor: Assets synchronized successfully
+[2025-05-14T17:22:00.791Z] INFO: BadgeRenderingJobController initialized
+[2025-05-14T17:22:28.253Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-14T17:22:28.322Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-14T17:22:28.330Z] INFO: UnifiedPosterProcessor: Temp directory created at ./temp
+[2025-05-14T17:22:28.651Z] INFO: UnifiedPosterProcessor: Assets synchronized successfully
+[2025-05-14T17:22:28.652Z] INFO: BadgeRenderingJobController initialized
+[2025-05-14T17:23:11.625Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-14T17:23:11.699Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-14T17:23:11.707Z] INFO: UnifiedPosterProcessor: Temp directory created at ./temp
+[2025-05-14T17:23:11.981Z] INFO: UnifiedPosterProcessor: Assets synchronized successfully
+[2025-05-14T17:23:11.982Z] INFO: BadgeRenderingJobController initialized
+[2025-05-14T17:25:12.350Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-14T17:25:12.426Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-14T17:25:12.433Z] INFO: UnifiedPosterProcessor: Temp directory created at ./temp
+[2025-05-14T17:25:12.719Z] INFO: UnifiedPosterProcessor: Assets synchronized successfully
+[2025-05-14T17:25:12.720Z] INFO: BadgeRenderingJobController initialized
+[2025-05-14T17:26:21.300Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-14T17:26:21.368Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-14T17:26:21.375Z] INFO: UnifiedPosterProcessor: Temp directory created at ./temp
+[2025-05-14T17:26:21.630Z] INFO: UnifiedPosterProcessor: Assets synchronized successfully
+[2025-05-14T17:26:21.631Z] INFO: BadgeRenderingJobController initialized

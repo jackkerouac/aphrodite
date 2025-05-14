@@ -4,6 +4,7 @@ import { useCreateJob } from "@/hooks/useCreateJob";
 import { useJobWebSocket } from "@/hooks/useJobWebSocket";
 import { useUnifiedBadgeSettings } from "@/hooks/useUnifiedBadgeSettings";
 import apiClient from "@/lib/api-client";
+import axios from "axios";
 import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, Library, Grid3X3, Zap, CheckCircle } from "lucide-react";
 import { 
@@ -148,32 +149,28 @@ export const RunAphroditeProvider: React.FC<RunAphroditeProviderProps> = ({ chil
             display_format: b.display_format
           })));
           
-          // Enhanced job payload with unified badge settings
+          // Use our new unified badge rendering API
           const jobPayload = {
-            user_id: parseInt(user?.id || '1'),
             name: jobName,
             items: selectedItems.map(item => ({
               jellyfin_item_id: item.id,
               title: item.name
             })),
-            badgeSettings: processedBadgeSettings
           };
           
-          console.log('Creating job with payload:', {
-            user_id: jobPayload.user_id,
+          console.log('Creating job with unified badge renderer:', {
             name: jobPayload.name,
             items_count: jobPayload.items.length,
-            badge_settings_count: jobPayload.badgeSettings.length,
-            badge_types: jobPayload.badgeSettings.map(b => b.badge_type)
           });
           
-          const job = await createJob.mutateAsync(jobPayload);
+          // Create a new job using our unified badge rendering API
+          const response = await axios.post('/api/unified-badge-render/jobs', jobPayload);
+          const job = response.data;
           
-          // Start processing the job
-          await apiClient.jobs.startProcessing(job.id);
+          // The job starts automatically
           
           // Store job ID and move to processing step
-          setStepData(prev => ({ ...prev, jobId: job.id }));
+          setStepData(prev => ({ ...prev, jobId: job.jobId }));
           setCurrentStep(currentStep + 1);
         } catch (error) {
           console.error('Failed to create job:', error);

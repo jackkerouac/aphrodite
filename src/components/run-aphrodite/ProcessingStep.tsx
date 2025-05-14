@@ -2,25 +2,24 @@ import React, { useState, useEffect } from "react";
 import { Button, Progress, Card, CardContent, Badge, ScrollArea, Tabs, TabsList, TabsTrigger, TabsContent, Alert, AlertTitle, AlertDescription } from "@/components/ui";
 import { useRunAphrodite } from "./RunAphroditeContext";
 import { XCircle, CheckCircle, RefreshCw, StopCircle, CopyCheck, HelpCircle, AlertCircle, WifiOff } from "lucide-react";
-import apiClient from "@/lib/api-client";
+import { useUnifiedJobStatus } from "@/hooks/useUnifiedJobStatus";
 import { toast } from "sonner";
 
 export const ProcessingStep: React.FC = () => {
+  const { stepData, setCurrentStep, currentStep } = useRunAphrodite();
+  
+  // Use our new hook for job status monitoring
   const { 
-    stepData, 
-    connected, 
-    jobStatus, 
-    jobProgress, 
-    jobError, 
-    setCurrentStep, 
-    currentStep,
-    isReconnecting,
-    cancelJob
-  } = useRunAphrodite();
+    status, 
+    progress, 
+    error, 
+    loading, 
+    completed,
+    cancelJob 
+  } = useUnifiedJobStatus(stepData.jobId);
   
   const [processingLog, setProcessingLog] = useState<Array<{message: string; timestamp: string; type: 'info' | 'error' | 'success'}>>([]);
   const [isCancelling, setIsCancelling] = useState(false);
-  const [isRetrying, setIsRetrying] = useState(false);
 
   // Function to add log entries
   const addLogEntry = (message: string, type: 'info' | 'error' | 'success' = 'info') => {
@@ -34,28 +33,6 @@ export const ProcessingStep: React.FC = () => {
     ]);
   };
 
-  // Function to handle retry for failed jobs
-  const handleRetry = async () => {
-    if (!stepData.jobId) return;
-    
-    try {
-      setIsRetrying(true);
-      addLogEntry('Retrying failed items...', 'info');
-      
-      // API call to retry the job
-      await apiClient.jobs.startProcessing(stepData.jobId);
-      
-      addLogEntry('Retry initiated successfully', 'success');
-      toast.success('Retrying failed items');
-    } catch (error) {
-      console.error('Failed to retry job:', error);
-      addLogEntry(`Failed to retry: ${(error as Error).message}`, 'error');
-      toast.error('Failed to retry job');
-    } finally {
-      setIsRetrying(false);
-    }
-  };
-
   // Function to handle job cancellation
   const handleCancel = async () => {
     if (!stepData.jobId) return;
@@ -64,18 +41,10 @@ export const ProcessingStep: React.FC = () => {
       setIsCancelling(true);
       addLogEntry('Cancelling job...', 'info');
       
-      // Try using WebSocket for faster cancellation
-      cancelJob();
-      addLogEntry('Cancel request sent via WebSocket', 'info');
+      // Cancel job using the hook's cancelJob function
+      await cancelJob();
       
-      // Also send via API as a fallback
-      try {
-        await apiClient.jobs.updateJobStatus(stepData.jobId, 'failed');
-        addLogEntry('Cancel request also sent via API as backup', 'info');
-      } catch (apiError) {
-        console.warn('API cancel fallback failed, WebSocket method only:', apiError);
-      }
-      
+      addLogEntry('Job cancelled', 'success');
       toast.success('Job cancellation requested');
     } catch (error) {
       console.error('Failed to cancel job:', error);
@@ -87,61 +56,43 @@ export const ProcessingStep: React.FC = () => {
   };
 
   // Add to log when status changes
-  React.useEffect(() => {
-    if (jobStatus) {
-      addLogEntry(`Job status: ${jobStatus.status}`, jobStatus.status === 'failed' ? 'error' : jobStatus.status === 'completed' ? 'success' : 'info');
-    }
-  }, [jobStatus?.status]);
-
-  // Add to log when progress updates
-  React.useEffect(() => {
-    // Log any errors
-    if (jobProgress && jobProgress.status === 'failed' && jobProgress.error) {
-      addLogEntry(`Error: ${jobProgress.error}`, 'error');
-    }
-    
-    // Log badge-specific information if available
-    if (jobProgress && jobProgress.badgeType) {
-      const badgeType = jobProgress.badgeType;
-      const itemId = jobProgress.itemId;
-      const status = jobProgress.status;
-      
-      const logMessage = `${status === 'completed' ? 'Successfully applied' : 'Failed to apply'} ${badgeType} badge to item ${itemId}`;
-      addLogEntry(logMessage, status === 'completed' ? 'success' : 'error');
-    }
-  }, [jobProgress]);
-  
-  // Log connection status changes
   useEffect(() => {
-    if (connected) {
-      addLogEntry('WebSocket connected', 'success');
-    } else if (isReconnecting) {
-      addLogEntry('WebSocket disconnected, attempting to reconnect...', 'info');
-    } else if (!connected && !isReconnecting) {
-      addLogEntry('WebSocket disconnected', 'error');
+    if (status) {
+      addLogEntry(`Job status: ${status}`, 
+        status === 'failed' || status === 'cancelled' ? 'error' : 
+        status === 'completed' ? 'success' : 'info');
     }
-  }, [connected, isReconnecting]);
+  }, [status]);
 
-  // Add to log when job has an error
-  React.useEffect(() => {
-    if (jobError) {
-      addLogEntry(`Job Error: ${jobError.error}`, 'error');
+  // Add to log when there's an error
+  useEffect(() => {
+    if (error) {
+      addLogEntry(`Error: ${error}`, 'error');
     }
-  }, [jobError]);
+  }, [error]);
+
+  // Add initial log entry
+  useEffect(() => {
+    if (stepData.jobId) {
+      addLogEntry(`Starting job with ID: ${stepData.jobId}`, 'info');
+    }
+  }, [stepData.jobId]);
 
   // Determine job status for display
   const getStatusBadge = () => {
-    if (!jobStatus) return null;
+    if (!status) return null;
     
-    switch (jobStatus.status) {
+    switch (status) {
       case 'pending':
         return <Badge variant="outline" className="bg-amber-50 text-amber-700">Pending</Badge>;
-      case 'running':
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700">Running</Badge>;
+      case 'processing':
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700">Processing</Badge>;
       case 'completed':
         return <Badge variant="outline" className="bg-green-50 text-green-700">Completed</Badge>;
       case 'failed':
         return <Badge variant="outline" className="bg-red-50 text-red-700">Failed</Badge>;
+      case 'cancelled':
+        return <Badge variant="outline" className="bg-gray-50 text-gray-700">Cancelled</Badge>;
       default:
         return null;
     }
@@ -162,80 +113,26 @@ export const ProcessingStep: React.FC = () => {
             <TabsContent value="status">
               <Card>
                 <CardContent className="p-4">
-                  {!connected && (
-                    <Alert className="mb-4" variant="warning">
-                      <WifiOff className="h-4 w-4 mr-2" />
-                      <AlertTitle>WebSocket Disconnected</AlertTitle>
-                      <AlertDescription>
-                        {isReconnecting 
-                          ? 'Attempting to reconnect to the server. Real-time updates may be delayed.'
-                          : 'Connection to the server has been lost. Refresh the page to reconnect.'}
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <p className="font-medium">Job ID: {stepData.jobId}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500' : isReconnecting ? 'bg-amber-500 animate-pulse' : 'bg-red-500'}`} />
-                        <span className="text-sm text-muted-foreground">
-                          {connected ? 'Connected' : isReconnecting ? 'Reconnecting...' : 'Disconnected'}
-                        </span>
-                      </div>
                     </div>
                     <div>{getStatusBadge()}</div>
                   </div>
                   
-                  {jobStatus && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="border rounded-md p-3 flex flex-col items-center justify-center">
-                        <div className="text-3xl font-semibold">{jobStatus.totalItems || 0}</div>
-                        <div className="text-sm text-muted-foreground">Total Items</div>
-                      </div>
-                      
-                      <div className="border rounded-md p-3 flex flex-col items-center justify-center">
-                        <div className="text-3xl font-semibold text-green-600">
-                          {jobStatus.processedCount !== undefined ? jobStatus.processedCount - (jobStatus.failedCount || 0) : 0}
-                        </div>
-                        <div className="text-sm text-muted-foreground">Successful</div>
-                      </div>
-                      
-                      <div className="border rounded-md p-3 flex flex-col items-center justify-center">
-                        <div className={`text-3xl font-semibold ${jobStatus.failedCount ? 'text-red-600' : 'text-muted-foreground'}`}>
-                          {jobStatus.failedCount || 0}
-                        </div>
-                        <div className="text-sm text-muted-foreground">Failed</div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {jobProgress && (
+                  {status && (
                     <div className="mt-6">
                       <div className="flex justify-between text-sm mb-1">
                         <span>Overall Progress</span>
-                        <span>{jobProgress.progress}%</span>
+                        <span>{progress}%</span>
                       </div>
-                      <Progress value={jobProgress.progress} className="h-2" />
-                      
-                      {jobProgress.badgeType && (
-                        <div className="mt-2">
-                          <div className="text-sm font-medium mb-1">
-                            Processing <span className="font-semibold capitalize">{jobProgress.badgeType}</span> badge
-                          </div>
-                          {jobProgress.badgeDetails && (
-                            <div className="text-xs text-muted-foreground">
-                              Position: {jobProgress.badgeDetails.badge_position}
-                            </div>
-                          )}
-                        </div>
-                      )}
+                      <Progress value={progress} className="h-2" />
                     </div>
                   )}
                   
                   {/* Action buttons */}
                   <div className="mt-6 flex justify-end gap-2">
-                    {jobStatus?.status === 'running' && (
+                    {status === 'processing' && (
                       <Button 
                         variant="destructive" 
                         size="sm" 
@@ -255,48 +152,19 @@ export const ProcessingStep: React.FC = () => {
                         )}
                       </Button>
                     )}
-                    
-                    {jobStatus?.status === 'failed' && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={handleRetry}
-                        disabled={isRetrying}
-                      >
-                        {isRetrying ? (
-                          <>
-                            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                            Retrying...
-                          </>
-                        ) : (
-                          <>
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                            Retry Failed Items
-                          </>
-                        )}
-                      </Button>
-                    )}
                   </div>
                   
                   {/* Errors section */}
-                  {((jobStatus?.failedCount && jobStatus.failedCount > 0) || jobError) && (
+                  {error && (
                     <div className="mt-6 border-t pt-4">
                       <div className="flex items-center gap-2 mb-2">
                         <AlertCircle className="h-4 w-4 text-destructive" />
                         <h3 className="font-medium">Errors</h3>
                       </div>
                       
-                      {jobError && (
-                        <div className="mt-2 p-3 bg-destructive/10 rounded-md">
-                          <p className="text-sm text-destructive">{jobError.error}</p>
-                        </div>
-                      )}
-                      
-                      {jobProgress?.status === 'failed' && jobProgress.error && (
-                        <div className="mt-2 p-3 bg-destructive/10 rounded-md">
-                          <p className="text-sm text-destructive">{jobProgress.error}</p>
-                        </div>
-                      )}
+                      <div className="mt-2 p-3 bg-destructive/10 rounded-md">
+                        <p className="text-sm text-destructive">{error}</p>
+                      </div>
                     </div>
                   )}
                 </CardContent>
@@ -334,7 +202,7 @@ export const ProcessingStep: React.FC = () => {
             </TabsContent>
           </Tabs>
           
-          {jobStatus?.status === 'completed' && (
+          {status === 'completed' && (
             <div className="text-center">
               <Button onClick={() => setCurrentStep(currentStep + 1)}>
                 <CopyCheck className="h-4 w-4 mr-2" />

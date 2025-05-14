@@ -25,6 +25,7 @@ import logsRoutes from './logsRoutes.js';
 import badgeFilesRoutes from './routes/badgeFilesRoutes.js';
 import jobsRoutes from './routes/jobsRoutes.js';
 import badgeGeneratorRoutes from './routes/badgeGeneratorRoutes.js';
+import unifiedBadgeRenderRoutes from './routes/unified-badge-render.js';
 
 // Load environment variables
 dotenv.config();
@@ -65,6 +66,7 @@ app.use('/api/badge-files', badgeFilesRoutes);
 app.use('/api/jobs', jobsRoutes);
 app.use('/api/badge-generator', badgeGeneratorRoutes);
 app.use('/api/connection-tests', connectionTestsRoutes);
+app.use('/api/unified-badge-render', unifiedBadgeRenderRoutes);
 
 // Error logger middleware - should be used after all routes
 app.use(errorLogger);
