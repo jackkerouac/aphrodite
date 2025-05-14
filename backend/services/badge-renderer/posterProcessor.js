@@ -1,4 +1,22 @@
-import { promises as fs } from 'fs';
+  /**
+   * Check if a badge is available for the item and its media type
+   */
+  checkBadgeAvailability(badgeSettings, jobId) {
+    // Extract all badge types from settings
+    const badgeTypes = badgeSettings.map(b => b.settings?.type || b.badge_type);
+    
+    // Log all badge types
+    logger.info(`Job ${jobId}: Available badge types: ${badgeTypes.join(', ')}`);
+    
+    // Force all badges to be enabled for job processing
+    const enabledSettings = badgeSettings.map(badge => ({ ...badge, enabled: true }));
+    
+    // Log enabled badge count
+    const enabledCount = enabledSettings.length;
+    logger.info(`Job ${jobId}: ${enabledCount} badge types enabled`);
+    
+    return enabledSettings;
+  }import { promises as fs } from 'fs';
 import path from 'path';
 import fetch from 'node-fetch';
 import FormData from 'form-data';
@@ -50,6 +68,11 @@ class PosterProcessor {
       try {
         badgeSettings = await this.getBadgeSettings(userId, item);
         logger.info(`Job ${jobId}: Retrieved ${badgeSettings.length} badge settings for item ${item.id}`);
+        
+        // Log badge settings details
+        logger.info(`Job ${jobId}: Badge settings types: `, 
+          badgeSettings.map(b => ({ type: b.settings?.type || b.badge_type, enabled: b.enabled }))
+        );
       } catch (settingsError) {
         logger.error(`Job ${jobId}: Failed to get badge settings: ${settingsError.message}`);
         throw new Error(`Failed to get badge settings: ${settingsError.message}`);
@@ -61,6 +84,9 @@ class PosterProcessor {
         await this.updateItemStatus(item.id, 'completed', 'No badge settings available');
         return { success: true, itemId: item.id, message: 'No badge settings available' };
       }
+      
+      // Force enable all badge settings and check availability
+      badgeSettings = this.checkBadgeAvailability(badgeSettings, jobId);
 
       // Download poster from Jellyfin
       try {
@@ -93,12 +119,14 @@ class PosterProcessor {
       // Try canvas renderer first if enabled
       if (this.useCanvasRenderer) {
         try {
-          // Log all badge settings coming from the job
-          logger.info(`Job ${jobId}: Using badge settings:`, JSON.stringify(badgeSettings.map(badge => ({
-            type: badge.settings.type,
-            size: badge.settings.size,
-            position: badge.settings.position
-          }))));
+          // Log all badge settings being used for rendering
+          console.log(`Job ${jobId}: Using ${badgeSettings.length} badge settings for rendering:`);
+          badgeSettings.forEach((badge, idx) => {
+            const type = badge.settings?.type || badge.badge_type;
+            const size = badge.settings?.size || badge.badge_size;
+            const position = badge.settings?.position || badge.badge_position;
+            console.log(`  Badge ${idx+1}: ${type}, size=${size}, position=${position}`);
+          });
           
           modifiedPosterBuffer = await this.applyBadgesWithCanvas(standardizedPosterPath, badgeSettings);
           badgeApplied = true;
@@ -182,163 +210,238 @@ class PosterProcessor {
   async getBadgeSettings(userId, item) {
     // Map SQL positions to BadgePosition enum values
     console.log('Fetching badge settings for user:', userId);
-    const query = `
-      SELECT 
-        'resolution' as type,
-        enabled,
-        position,
-        size,
-        font_family,
-        font_size,
-        text_color,
-        background_color,
-        background_opacity as transparency,
-        border_radius,
-        border_width,
-        border_color,
-        border_opacity,
-        shadow_enabled,
-        shadow_color,
-        shadow_blur,
-        shadow_offset_x,
-        shadow_offset_y,
-        margin as padding,
-        z_index as stacking_order,
-        use_brand_colors
-      FROM resolution_badge_settings
-      WHERE user_id = $1 AND enabled = true
-      
-      UNION ALL
-      
-      SELECT 
-        'audio' as type,
-        enabled,
-        position,
-        size,
-        font_family,
-        font_size,
-        text_color,
-        background_color,
-        background_opacity as transparency,
-        border_radius,
-        border_width,
-        border_color,
-        border_opacity,
-        shadow_enabled,
-        shadow_color,
-        shadow_blur,
-        shadow_offset_x,
-        shadow_offset_y,
-        margin as padding,
-        z_index as stacking_order,
-        use_brand_colors
-      FROM audio_badge_settings
-      WHERE user_id = $1 AND enabled = true
-      
-      UNION ALL
-      
-      SELECT 
-        'review' as type,
-        enabled,
-        position,
-        size,
-        font_family,
-        font_size,
-        text_color,
-        background_color,
-        background_opacity as transparency,
-        border_radius,
-        border_width,
-        border_color,
-        border_opacity,
-        shadow_enabled,
-        shadow_color,
-        shadow_blur,
-        shadow_offset_x,
-        shadow_offset_y,
-        margin as padding,
-        z_index as stacking_order,
-        use_brand_colors
-      FROM review_badge_settings
-      WHERE user_id = $1 AND enabled = true
-    `;
-
-    const settingsResult = await db.query(query, [userId]);
-    const settings = settingsResult.rows;
-    console.log('Badge settings from database:', settings);
     
-    // Fetch review badge specific settings
-    const reviewSettingsQuery = `
-      SELECT 
-        badge_layout as display_format,
-        source_order,
-        show_logo,
-        size,
-        score_format,
-        max_sources_to_show
-      FROM review_badge_settings
-      WHERE user_id = $1 AND enabled = true
-    `;
-    
-    const reviewSettingsResult = await db.query(reviewSettingsQuery, [userId]);
-    const reviewSettings = reviewSettingsResult.rows[0];
-    console.log('Review badge specific settings:', reviewSettings);
-
-    // Fetch metadata for the item to determine badge values
-    const metadata = await this.fetchItemMetadata(item, userId);
-
-    // Map all styling fields from the database
-    return settings.map(setting => {
-      let extraSettings = {};
-      let value = null;
-      
-      // Add type-specific settings and values
-      if (setting.type === 'review') {
-        extraSettings = {
-          displayFormat: reviewSettings?.display_format || 'vertical',
-          sourceOrder: reviewSettings?.source_order || [],
-          showLogo: reviewSettings?.show_logo !== false,
-          size: parseInt(reviewSettings?.size || '100'),
-          scoreFormat: reviewSettings?.score_format || 'rating/outOf',
-          maxSourcesToShow: reviewSettings?.max_sources_to_show || 3
-        };
-        value = metadata.scores || [];
-      } else {
-        value = this.getBadgeValue(setting.type, metadata);
+    try {
+      // Try to get settings from job's badge_settings field first
+      if (item.job_id) {
+        const jobQuery = `SELECT badge_settings FROM jobs WHERE id = $1`;
+        const jobResult = await db.query(jobQuery, [item.job_id]);
+        
+        if (jobResult.rows[0] && jobResult.rows[0].badge_settings) {
+          try {
+            const badgeSettings = JSON.parse(jobResult.rows[0].badge_settings);
+            console.log('Retrieved badge settings from job:', badgeSettings.length);
+            
+            // Process each badge setting to get values
+            const processingPromises = badgeSettings.map(async (setting) => {
+              // Check if the setting is already in the expected format
+              if (setting.settings && setting.value !== undefined) {
+                // Setting already has expected structure, just ensure it's enabled
+                return {
+                  ...setting,
+                  enabled: true
+                };
+              }
+              
+              // Get badge value based on type - this is async
+              const value = await this.getBadgeValueForType(setting.badge_type, item.jellyfin_item_id, userId);
+              
+              // Format setting into the expected structure
+              return {
+                enabled: true, // Force enable the badge
+                settings: {
+                  type: setting.badge_type,
+                  position: setting.badge_position || 'top-right',
+                  size: setting.badge_size ? parseInt(setting.badge_size) : 100,
+                  badge_size: setting.badge_size ? parseInt(setting.badge_size) : 100,
+                  backgroundColor: setting.background_color,
+                  backgroundOpacity: setting.background_opacity ? parseInt(setting.background_opacity) : 80,
+                  borderRadius: setting.border_radius ? parseInt(setting.border_radius) : 5,
+                  borderWidth: setting.border_width ? parseInt(setting.border_width) : 1,
+                  borderColor: setting.border_color || '#FFFFFF',
+                  borderOpacity: setting.border_opacity ? parseInt(setting.border_opacity) : 80,
+                  shadowEnabled: setting.shadow_enabled || false,
+                  shadowColor: setting.shadow_color || '#000000',
+                  shadowBlur: setting.shadow_blur ? parseInt(setting.shadow_blur) : 10,
+                  shadowOffsetX: setting.shadow_offset_x ? parseInt(setting.shadow_offset_x) : 0,
+                  shadowOffsetY: setting.shadow_offset_y ? parseInt(setting.shadow_offset_y) : 0,
+                  padding: setting.edge_padding ? parseInt(setting.edge_padding) : 10,
+                  margin: setting.edge_padding ? parseInt(setting.edge_padding) : 10,
+                  properties: setting.properties,
+                  // Include display_format for review badges
+                  displayFormat: setting.badge_type === 'review' ? (setting.display_format || 'horizontal') : undefined,
+                },
+                value
+              };
+            });
+            
+            // Wait for all badge settings to be processed
+            const processingSettings = await Promise.all(processingPromises);
+            
+            console.log('Process settings prepared for rendering:', 
+              processingSettings.map(s => `${s.settings?.type || s.badge_type} (enabled=${s.enabled})`)            
+            );
+            
+            return processingSettings;
+          } catch (jsonError) {
+            console.warn('Failed to parse badge settings from job:', jsonError);
+            // Fall through to legacy settings
+          }
+        }
       }
       
-      return {
-        enabled: setting.enabled,
-        settings: {
-          type: setting.type,
-          position: setting.position || 'top-right',
-          size: setting.size ? parseInt(setting.size) : undefined,
-          fontSize: setting.font_size ? parseInt(setting.font_size) : undefined,
-          fontFamily: setting.font_family,
-          textColor: setting.text_color,
-          backgroundColor: setting.background_color,
-          borderRadius: setting.border_radius ? parseInt(setting.border_radius) : undefined,
-          borderWidth: setting.border_width ? parseInt(setting.border_width) : undefined,
-          borderColor: setting.border_color,
-          borderOpacity: setting.border_opacity ? parseFloat(setting.border_opacity) : undefined,
-          shadowEnabled: setting.shadow_enabled,
-          shadowColor: setting.shadow_color,
-          shadowBlur: setting.shadow_blur ? parseInt(setting.shadow_blur) : undefined,
-          shadowOffsetX: setting.shadow_offset_x ? parseInt(setting.shadow_offset_x) : undefined,
-          shadowOffsetY: setting.shadow_offset_y ? parseInt(setting.shadow_offset_y) : undefined,
-          padding: setting.padding ? parseInt(setting.padding) : 8,
-          margin: setting.padding ? parseInt(setting.padding) : 8,
-          transparency: setting.transparency ? parseFloat(setting.transparency) : 1,
-          stackingOrder: setting.stacking_order ? parseInt(setting.stacking_order) : 0,
-          use_brand_colors: setting.use_brand_colors,
-          // Fixed settings for Review badges specifically - ensure maxSourcesToShow is properly mapped
-          maxSourcesToShow: setting.type === 'review' ? (reviewSettings?.max_sources_to_show ? parseInt(reviewSettings.max_sources_to_show) : 3) : undefined,
-          displayFormat: setting.type === 'review' ? (reviewSettings?.display_format || 'vertical') : undefined,
-          ...extraSettings
-        },
-        value
-      };
-    });
+      // Fall back to legacy query if job settings not available
+      const query = `
+        SELECT 
+          'resolution' as type,
+          enabled,
+          position,
+          size,
+          font_family,
+          font_size,
+          text_color,
+          background_color,
+          background_opacity as transparency,
+          border_radius,
+          border_width,
+          border_color,
+          border_opacity,
+          shadow_enabled,
+          shadow_color,
+          shadow_blur,
+          shadow_offset_x,
+          shadow_offset_y,
+          margin as padding,
+          z_index as stacking_order,
+          use_brand_colors
+        FROM resolution_badge_settings
+        WHERE user_id = $1 AND enabled = true
+        
+        UNION ALL
+        
+        SELECT 
+          'audio' as type,
+          enabled,
+          position,
+          size,
+          font_family,
+          font_size,
+          text_color,
+          background_color,
+          background_opacity as transparency,
+          border_radius,
+          border_width,
+          border_color,
+          border_opacity,
+          shadow_enabled,
+          shadow_color,
+          shadow_blur,
+          shadow_offset_x,
+          shadow_offset_y,
+          margin as padding,
+          z_index as stacking_order,
+          use_brand_colors
+        FROM audio_badge_settings
+        WHERE user_id = $1 AND enabled = true
+        
+        UNION ALL
+        
+        SELECT 
+          'review' as type,
+          enabled,
+          position,
+          size,
+          font_family,
+          font_size,
+          text_color,
+          background_color,
+          background_opacity as transparency,
+          border_radius,
+          border_width,
+          border_color,
+          border_opacity,
+          shadow_enabled,
+          shadow_color,
+          shadow_blur,
+          shadow_offset_x,
+          shadow_offset_y,
+          margin as padding,
+          z_index as stacking_order,
+          use_brand_colors
+        FROM review_badge_settings
+        WHERE user_id = $1 AND enabled = true
+      `;
+
+      const settingsResult = await db.query(query, [userId]);
+      const settings = settingsResult.rows;
+      console.log('Badge settings from database:', settings);
+      
+      // Fetch review badge specific settings
+      const reviewSettingsQuery = `
+        SELECT 
+          badge_layout as display_format,
+          source_order,
+          show_logo,
+          size,
+          score_format,
+          max_sources_to_show
+        FROM review_badge_settings
+        WHERE user_id = $1 AND enabled = true
+      `;
+      
+      const reviewSettingsResult = await db.query(reviewSettingsQuery, [userId]);
+      const reviewSettings = reviewSettingsResult.rows[0];
+      console.log('Review badge specific settings:', reviewSettings);
+
+      // Fetch metadata for the item to determine badge values
+      const metadata = await this.fetchItemMetadata(item, userId);
+
+      // Map all styling fields from the database
+      return settings.map(setting => {
+        let extraSettings = {};
+        let value = null;
+        
+        // Add type-specific settings and values
+        if (setting.type === 'review') {
+          extraSettings = {
+            displayFormat: reviewSettings?.display_format || 'vertical',
+            sourceOrder: reviewSettings?.source_order || [],
+            showLogo: reviewSettings?.show_logo !== false,
+            size: parseInt(reviewSettings?.size || '100'),
+            scoreFormat: reviewSettings?.score_format || 'rating/outOf',
+            maxSourcesToShow: reviewSettings?.max_sources_to_show || 3
+          };
+          value = metadata.scores || [];
+        } else {
+          value = this.getBadgeValue(setting.type, metadata);
+        }
+        
+        return {
+          enabled: setting.enabled,
+          settings: {
+            type: setting.type,
+            position: setting.position || 'top-right',
+            size: setting.size ? parseInt(setting.size) : undefined,
+            fontSize: setting.font_size ? parseInt(setting.font_size) : undefined,
+            fontFamily: setting.font_family,
+            textColor: setting.text_color,
+            backgroundColor: setting.background_color,
+            borderRadius: setting.border_radius ? parseInt(setting.border_radius) : undefined,
+            borderWidth: setting.border_width ? parseInt(setting.border_width) : undefined,
+            borderColor: setting.border_color,
+            borderOpacity: setting.border_opacity ? parseFloat(setting.border_opacity) : undefined,
+            shadowEnabled: setting.shadow_enabled,
+            shadowColor: setting.shadow_color,
+            shadowBlur: setting.shadow_blur ? parseInt(setting.shadow_blur) : undefined,
+            shadowOffsetX: setting.shadow_offset_x ? parseInt(setting.shadow_offset_x) : undefined,
+            shadowOffsetY: setting.shadow_offset_y ? parseInt(setting.shadow_offset_y) : undefined,
+            padding: setting.padding ? parseInt(setting.padding) : 8,
+            margin: setting.padding ? parseInt(setting.padding) : 8,
+            transparency: setting.transparency ? parseFloat(setting.transparency) : 1,
+            stackingOrder: setting.stacking_order ? parseInt(setting.stacking_order) : 0,
+            use_brand_colors: setting.use_brand_colors,
+            // Fixed settings for Review badges specifically - ensure maxSourcesToShow is properly mapped
+            maxSourcesToShow: setting.type === 'review' ? (reviewSettings?.max_sources_to_show ? parseInt(reviewSettings.max_sources_to_show) : 3) : undefined,
+            displayFormat: setting.type === 'review' ? (reviewSettings?.display_format || 'vertical') : undefined,
+            ...extraSettings
+          },
+          value
+        };
+      });
+    } catch (error) {
+      console.error('Error fetching badge settings:', error);
+      throw error;
+    }
   }
 
   async fetchItemMetadata(item, userId) {
@@ -388,6 +491,71 @@ class PosterProcessor {
     
     console.log(`Badge value for ${type}: ${JSON.stringify(value)}`);
     return value;
+  }
+
+  /**
+   * Get badge value for a specific badge type
+   * This is used when processing badges from job settings
+   */
+  async getBadgeValueForType(badgeType, jellyfinId, userId) {
+    try {
+      console.log(`Getting badge value for type ${badgeType} and item ${jellyfinId}`);
+      
+      // Create a simplified item for metadata fetching
+      const metadataItem = {
+        jellyfin_id: jellyfinId,
+        media_type: 'Movie' // Will be determined by metadata service
+      };
+      
+      // Fetch metadata for the item
+      const metadata = await this.metadataService.fetchItemMetadata(metadataItem, userId);
+      
+      // Determine value based on badge type
+      switch (badgeType.toLowerCase()) {
+        case 'audio':
+          // For audio badges, use audio codec
+          return metadata.audioFormat || 'dolby_atmos';
+        
+        case 'resolution':
+          // For resolution badges, use resolution or determine from width/height
+          let value = metadata.resolution;
+          if (!value && metadata.width && metadata.height) {
+            const width = metadata.width;
+            if (width >= 7680) value = '8K';
+            else if (width >= 3840) value = '4K';
+            else if (width >= 2560) value = '1440p';
+            else if (width >= 1920) value = '1080p';
+            else if (width >= 1280) value = '720p';
+            else if (width >= 854) value = '480p';
+            else value = 'SD';
+          }
+          
+          // If still no value, default to 4K
+          return value || '4k';
+        
+        case 'review':
+          // For review badges, use scores
+          return metadata.scores || [];
+        
+        default:
+          console.warn(`Unknown badge type: ${badgeType}`);
+          return null;
+      }
+    } catch (error) {
+      console.error(`Error getting badge value for type ${badgeType}:`, error);
+      
+      // Return sensible defaults if metadata fetching failed
+      switch (badgeType.toLowerCase()) {
+        case 'audio':
+          return 'dolby_atmos';
+        case 'resolution':
+          return '4k';
+        case 'review':
+          return [];
+        default:
+          return null;
+      }
+    }
   }
 
   async downloadPoster(jellyfinId, outputPath, userId) {
@@ -794,6 +962,26 @@ class PosterProcessor {
     });
     
     return { left, top };
+  }
+
+  /**
+   * Check if a badge is available for the item and its media type
+   */
+  checkBadgeAvailability(badgeSettings, jobId) {
+    // Extract all badge types from settings
+    const badgeTypes = badgeSettings.map(b => b.settings?.type || b.badge_type);
+    
+    // Log all badge types
+    logger.info(`Job ${jobId}: Available badge types: ${badgeTypes.join(', ')}`);
+    
+    // Force all badges to be enabled for job processing
+    const enabledSettings = badgeSettings.map(badge => ({ ...badge, enabled: true }));
+    
+    // Log enabled badge count
+    const enabledCount = enabledSettings.length;
+    logger.info(`Job ${jobId}: ${enabledCount} badge types enabled`);
+    
+    return enabledSettings;
   }
 
   /**
