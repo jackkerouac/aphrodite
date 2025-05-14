@@ -22,25 +22,37 @@ export interface JobItem {
   updated_at: string;
 }
 
-// Define the badge settings structure expected by the API
+// Use the UnifiedBadgeSettings structure directly to ensure consistency
+// This is the exact same structure used by the unified badge settings system
 export interface JobBadgeSetting {
+  // Primary fields
   badge_type: string;
   badge_size: number;
   badge_position: string;
+  
+  // Visual appearance
   background_color: string;
   background_opacity: number;
-  border_size: number;
-  border_color: string;
-  border_opacity: number;
+  display_format?: string; // Only for review badges
+  
+  // Border settings
   border_radius: number;
   border_width: number;
+  border_color: string;
+  border_opacity: number;
+  
+  // Shadow settings
   shadow_enabled: boolean;
   shadow_color: string;
   shadow_blur: number;
   shadow_offset_x: number;
   shadow_offset_y: number;
+  
+  // Spacing
+  edge_padding?: number;
+  
+  // Badge-specific properties
   properties: Record<string, any>;
-  display_format?: string; // Only for review badges
 }
 
 export interface CreateJobParams {

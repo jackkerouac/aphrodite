@@ -12,50 +12,85 @@ import {
 /**
  * Create a clean badge object without any prototype issues
  * This ensures all the badge objects have the expected structure
+ * DO NOT override existing values with defaults - only provide defaults for missing properties
  */
-const createCleanBadgeObject = (badgeType: 'audio' | 'resolution' | 'review', userId: string | number, properties: any): UnifiedBadgeSettings => {
-  // Create base object depending on badge type
-  let badge: any = {
+const createCleanBadgeObject = (badgeType: 'audio' | 'resolution' | 'review', userId: string | number, properties: any, existingBadge?: any): UnifiedBadgeSettings => {
+  // Create base object depending on badge type with sensible defaults
+  // These will only be used if the existing badge doesn't have these properties
+  let defaultValues: any = {
     user_id: String(userId),
     badge_type: badgeType,
-    badge_size: 100,
-    edge_padding: 10,
-    background_color: '#000000',
+    badge_size: badgeType === 'audio' ? 200 : badgeType === 'resolution' ? 194 : 231, // Match preview default sizes
+    edge_padding: 30, // Larger padding for better appearance
+    background_color: badgeType === 'audio' ? '#05ed2e' : badgeType === 'resolution' ? '#e220e8' : '#d12125', // Custom colors
     background_opacity: 80,
     border_size: 2,
     border_color: '#FFFFFF',
     border_opacity: 80,
-    border_radius: 10,
+    border_radius: badgeType === 'review' ? 13 : 10,
     border_width: 1,
-    shadow_enabled: true,
+    shadow_enabled: badgeType !== 'review', // No shadow for review badges
     shadow_color: '#000000',
-    shadow_blur: 8,
-    shadow_offset_x: 2,
-    shadow_offset_y: 2,
+    shadow_blur: badgeType === 'review' ? 10 : 8,
+    shadow_offset_x: badgeType === 'review' ? 0 : 2,
+    shadow_offset_y: badgeType === 'review' ? 0 : 2,
     properties: {}
   };
   
+  // Add type-specific default properties
   switch (badgeType) {
     case 'audio':
-      badge.badge_position = 'top-left';
-      badge.properties = { codec_type: 'dolby_atmos', ...properties };
+      defaultValues.badge_position = 'top-left';
+      defaultValues.properties = { codec_type: 'dolby_atmos' };
       break;
     case 'resolution':
-      badge.badge_position = 'top-right';
-      badge.properties = { resolution_type: '4k', ...properties };
+      defaultValues.badge_position = 'top-right';
+      defaultValues.properties = { resolution_type: '4k' };
       break;
     case 'review':
-      badge.badge_position = 'bottom-left';
-      badge.properties = { 
+      defaultValues.badge_position = 'bottom-left';
+      defaultValues.properties = { 
         review_sources: ['imdb', 'rotten_tomatoes'],
-        score_type: 'percentage',
-        ...properties 
+        score_type: 'percentage'
       };
-      badge.display_format = 'horizontal';
+      defaultValues.display_format = 'vertical'; // Vertical looks better for reviews
       break;
   }
   
-  return badge;
+  // If we have an existing badge, use its values and only fill in missing properties
+  if (existingBadge) {
+    // Start with the defaults
+    const mergedBadge = { ...defaultValues };
+    
+    // Override with existing badge properties (don't lose any custom settings)
+    Object.entries(existingBadge).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        (mergedBadge as any)[key] = value;
+      }
+    });
+    
+    // Ensure badge_type is correct
+    mergedBadge.badge_type = badgeType;
+    
+    // Ensure properties are merged correctly (don't lose custom property settings)
+    if (existingBadge.properties) {
+      mergedBadge.properties = {
+        ...defaultValues.properties,
+        ...existingBadge.properties
+      };
+    }
+    
+    console.log(`Using enhanced badge for ${badgeType}:`, {
+      badge_size: mergedBadge.badge_size,
+      background_color: mergedBadge.background_color,
+      display_format: mergedBadge.display_format
+    });
+    
+    return mergedBadge;
+  }
+  
+  // If no existing badge, return the defaults
+  return defaultValues;
 };
 
 /**
@@ -178,29 +213,38 @@ export const badgeSettingsApi = {
   save: async (settings: UnifiedBadgeSettings): Promise<UnifiedBadgeSettings> => {
     try {
       // Ensure we're working with a clean copy of the settings
-      const validatedSettings = JSON.parse(JSON.stringify(settings)) as UnifiedBadgeSettings;
+      const inputSettings = JSON.parse(JSON.stringify(settings)) as UnifiedBadgeSettings;
       
       // Validate settings object and ensure badge type
-      if (!validatedSettings.badge_type) {
+      if (!inputSettings.badge_type) {
         throw new Error('Badge type is required');
       }
       
-      if (!validatedSettings.user_id) {
-        validatedSettings.user_id = '1';
+      if (!inputSettings.user_id) {
+        inputSettings.user_id = '1';
       }
       
       // Force the badge_type to be one of the allowed values as a string
-      validatedSettings.badge_type = String(validatedSettings.badge_type).toLowerCase();
+      inputSettings.badge_type = String(inputSettings.badge_type).toLowerCase();
       
       // Check if badge_type is one of the allowed values
-      if (!['audio', 'resolution', 'review'].includes(validatedSettings.badge_type)) {
-        throw new Error(`Invalid badge type: ${validatedSettings.badge_type}. Must be one of: audio, resolution, review`);
+      if (!['audio', 'resolution', 'review'].includes(inputSettings.badge_type)) {
+        throw new Error(`Invalid badge type: ${inputSettings.badge_type}. Must be one of: audio, resolution, review`);
       }
+      
+      // Use our enhanced helper function to create a clean badge object that preserves values
+      // from the original badge and only fills in missing properties with defaults
+      const validatedSettings = createCleanBadgeObject(
+        inputSettings.badge_type as 'audio' | 'resolution' | 'review',
+        inputSettings.user_id,
+        inputSettings.properties || {},
+        inputSettings // Pass the original badge to preserve its values
+      );
       
       // Convert user_id to string
       validatedSettings.user_id = String(validatedSettings.user_id);
       
-      console.log(`Saving ${validatedSettings.badge_type} badge settings with explicitly verified type:`, validatedSettings);
+      console.log(`Saving ${validatedSettings.badge_type} badge settings with size ${validatedSettings.badge_size} and color ${validatedSettings.background_color}:`, validatedSettings);
       
       // Try to save with a dedicated endpoint for each badge type
       const endpoint = `/api/v1/unified-badge-settings/${validatedSettings.badge_type}`;
@@ -231,7 +275,7 @@ export const badgeSettingsApi = {
       // Validate settings objects and ensure badge types are correctly set
       const validatedSettings = settings.map(setting => {
         // Make a deep copy to avoid reference issues
-        let validSetting = { ...setting };
+        let validSetting = JSON.parse(JSON.stringify(setting));
         
         // Ensure badge_type is one of the allowed values
         if (!validSetting.badge_type || 
@@ -260,18 +304,19 @@ export const badgeSettingsApi = {
           }
         }
         
-        // Use our helper function to create a clean badge object with appropriate values
+        // Use our enhanced helper function to create a clean badge object that preserves values
+        // from the original badge and only fills in missing properties with defaults
         const cleanBadge = createCleanBadgeObject(
           validSetting.badge_type as 'audio' | 'resolution' | 'review',
           validSetting.user_id || '1',
-          validSetting.properties
+          validSetting.properties || {},
+          validSetting // Pass the original badge to preserve its values
         );
         
-        // Copy over any custom settings from the original badge
-        Object.entries(validSetting).forEach(([key, value]) => {
-          if (key !== 'badge_type' && key !== 'user_id' && value !== undefined) {
-            (cleanBadge as any)[key] = value;
-          }
+        console.log(`Processed badge settings for saveAll: ${cleanBadge.badge_type}`, {
+          badge_size: cleanBadge.badge_size,
+          background_color: cleanBadge.background_color,
+          display_format: cleanBadge.display_format
         });
         
         return cleanBadge;

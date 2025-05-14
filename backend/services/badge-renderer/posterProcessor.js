@@ -824,10 +824,14 @@ class PosterProcessor {
         showDividers: badgeSettings.showDividers
       });
         
-      // Check background color explicitly
-      if (badgeSettings.backgroundColor) {
-        console.log(`Using explicit backgroundColor: ${badgeSettings.backgroundColor}`);
-      }
+      // Rendering audio badge with settings: {/* ... */}
+const useBadgeBackgroundColor = config.settings.background_color || config.settings.backgroundColor; 
+if (useBadgeBackgroundColor) {
+  console.log(`Using explicit backgroundColor: ${useBadgeBackgroundColor}`);
+  badgeSettings.backgroundColor = useBadgeBackgroundColor;
+} else {
+  console.log('No backgroundColor found in settings');
+}
         
       // Generate badge using canvas renderer
       let badgeBuffer;

@@ -294,3 +294,144 @@
 [2025-05-14T00:54:27.704Z] INFO: Server running on port 5000 with WebSocket support
 [2025-05-14T01:04:48.250Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
 [2025-05-14T01:04:48.263Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-14T10:36:00.111Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-14T10:36:00.123Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-14T10:36:29.634Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 738ms
+[2025-05-14T10:36:30.103Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 466ms
+[2025-05-14T10:36:30.480Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 373ms
+[2025-05-14T10:36:56.517Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-14T10:36:56.534Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-14T10:36:56.535Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 19ms
+[2025-05-14T10:36:57.145Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 549ms
+[2025-05-14T10:36:57.475Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 326ms
+[2025-05-14T10:37:04.319Z] INFO: [GET] /api/library-items/1?page=1&limit=50&libraryIds=f137a2dd21bbc1b99aa5c0f6bf02a805 200 — 654ms
+[2025-05-14T10:37:20.497Z] INFO: [POST] /api/jobs 201 — 164ms
+[2025-05-14T10:37:20.501Z] INFO: Starting job 120 processing for user 1
+[2025-05-14T10:37:20.531Z] INFO: [POST] /api/jobs/120/process 200 — 3ms
+[2025-05-14T10:37:20.533Z] INFO: Job 120 has 3 badge settings defined
+[2025-05-14T10:37:20.535Z] INFO: Starting batch processing for job 120. Items: 1, Concurrency: 4
+[2025-05-14T10:37:20.536Z] INFO: Job 120: Processing batch 1/1 with 1 items
+[2025-05-14T10:37:20.542Z] INFO: Job 120: Processing item 120 (00ba4e022c0ef5f7849ac1119fd58f0d: Media Item)
+[2025-05-14T10:37:20.560Z] INFO: Starting job 120 processing for user 1
+[2025-05-14T10:37:20.585Z] INFO: Job 120 has 3 badge settings defined
+[2025-05-14T10:37:20.586Z] INFO: Starting batch processing for job 120. Items: 1, Concurrency: 4
+[2025-05-14T10:37:20.586Z] INFO: Job 120: Processing batch 1/1 with 1 items
+[2025-05-14T10:37:20.591Z] INFO: Job 120: Processing item 120 (00ba4e022c0ef5f7849ac1119fd58f0d: Media Item)
+[2025-05-14T10:37:21.087Z] INFO: Job 120: Retrieved 3 badge settings for item 120
+[2025-05-14T10:37:21.087Z] INFO: Job 120: Badge settings types: 
+[2025-05-14T10:37:21.088Z] INFO: Job 120: Available badge types: audio, resolution, review
+[2025-05-14T10:37:21.088Z] INFO: Job 120: 3 badge types enabled
+[2025-05-14T10:37:21.093Z] INFO: Job 120: Retrieved 3 badge settings for item 120
+[2025-05-14T10:37:21.094Z] INFO: Job 120: Badge settings types: 
+[2025-05-14T10:37:21.094Z] INFO: Job 120: Available badge types: audio, resolution, review
+[2025-05-14T10:37:21.094Z] INFO: Job 120: 3 badge types enabled
+[2025-05-14T10:37:21.278Z] INFO: Job 120: Downloaded poster for item 120
+[2025-05-14T10:37:21.333Z] INFO: Job 120: Downloaded poster for item 120
+[2025-05-14T10:37:21.518Z] INFO: Job 120: Standardized poster for item 120: {"originalWidth":2000,"originalHeight":3000,"newWidth":1000,"newHeight":1500}
+[2025-05-14T10:37:21.574Z] INFO: Job 120: Standardized poster for item 120: {"originalWidth":2000,"originalHeight":3000,"newWidth":1000,"newHeight":1500}
+[2025-05-14T10:37:22.809Z] INFO: Job 120: Successfully applied badges with canvas renderer for item 120
+[2025-05-14T10:37:22.819Z] INFO: Job 120: Successfully applied badges with canvas renderer for item 120
+[2025-05-14T10:37:22.844Z] INFO: Job 120: Modified poster saved at: temp\poster-modified-00ba4e022c0ef5f7849ac1119fd58f0d.png
+[2025-05-14T10:37:22.855Z] INFO: Job 120: Modified poster saved at: temp\poster-modified-00ba4e022c0ef5f7849ac1119fd58f0d.png
+[2025-05-14T10:37:24.934Z] INFO: Job 120: Uploaded modified poster for item 120
+[2025-05-14T10:37:24.940Z] INFO: Job 120: Item 120 completed successfully with badges applied
+[2025-05-14T10:37:24.940Z] INFO: Job 120: Batch 1 completed in 4.40s (0.23 items/sec)
+[2025-05-14T10:37:24.941Z] INFO: Job 120 progress: 100% (1/1 completed, 0 failed)
+[2025-05-14T10:37:24.941Z] INFO: Job 120: Batch processing complete. Duration: 4.41s, Success: 1/1 (100.00%), Failed: 0
+[2025-05-14T10:37:24.941Z] INFO: Job 120 completed with status: completed
+[2025-05-14T10:37:24.942Z] INFO: Job 120 statistics: Processed: 1/1, Success rate: 100.00%, Duration: 4.45s
+[2025-05-14T10:37:25.039Z] INFO: Job 120: Uploaded modified poster for item 120
+[2025-05-14T10:37:25.044Z] INFO: Job 120: Item 120 completed successfully with badges applied
+[2025-05-14T10:37:25.045Z] INFO: Job 120: Batch 1 completed in 4.46s (0.22 items/sec)
+[2025-05-14T10:37:25.045Z] INFO: Job 120 progress: 100% (1/1 completed, 0 failed)
+[2025-05-14T10:37:25.045Z] INFO: Job 120: Batch processing complete. Duration: 4.46s, Success: 1/1 (100.00%), Failed: 0
+[2025-05-14T10:37:25.045Z] INFO: Job 120 completed with status: completed
+[2025-05-14T10:37:25.046Z] INFO: Job 120 statistics: Processed: 1/1, Success rate: 100.00%, Duration: 4.52s
+[2025-05-14T10:40:13.423Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-14T10:40:13.436Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-14T10:40:20.957Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 670ms
+[2025-05-14T10:40:21.309Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 348ms
+[2025-05-14T10:40:22.893Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 347ms
+[2025-05-14T10:40:23.259Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 358ms
+[2025-05-14T10:40:38.718Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-14T10:40:38.732Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-14T10:40:56.586Z] INFO: [POST] /api/jobs 201 — 157ms
+[2025-05-14T10:40:56.591Z] INFO: Starting job 121 processing for user 1
+[2025-05-14T10:40:56.607Z] INFO: [POST] /api/jobs/121/process 200 — 3ms
+[2025-05-14T10:40:56.611Z] INFO: Starting job 121 processing for user 1
+[2025-05-14T10:40:56.622Z] INFO: Job 121 has 3 badge settings defined
+[2025-05-14T10:40:56.624Z] INFO: Starting batch processing for job 121. Items: 1, Concurrency: 4
+[2025-05-14T10:40:56.625Z] INFO: Job 121: Processing batch 1/1 with 1 items
+[2025-05-14T10:40:56.632Z] INFO: Job 121: Processing item 121 (00ba4e022c0ef5f7849ac1119fd58f0d: Media Item)
+[2025-05-14T10:40:56.715Z] INFO: Job 121 has 3 badge settings defined
+[2025-05-14T10:40:56.716Z] INFO: Starting batch processing for job 121. Items: 1, Concurrency: 4
+[2025-05-14T10:40:56.716Z] INFO: Job 121: Processing batch 1/1 with 1 items
+[2025-05-14T10:40:56.726Z] INFO: Job 121: Processing item 121 (00ba4e022c0ef5f7849ac1119fd58f0d: Media Item)
+[2025-05-14T10:40:57.150Z] INFO: Job 121: Retrieved 3 badge settings for item 121
+[2025-05-14T10:40:57.151Z] INFO: Job 121: Badge settings types: 
+[2025-05-14T10:40:57.151Z] INFO: Job 121: Available badge types: audio, resolution, review
+[2025-05-14T10:40:57.151Z] INFO: Job 121: 3 badge types enabled
+[2025-05-14T10:40:57.177Z] INFO: Job 121: Retrieved 3 badge settings for item 121
+[2025-05-14T10:40:57.178Z] INFO: Job 121: Badge settings types: 
+[2025-05-14T10:40:57.178Z] INFO: Job 121: Available badge types: audio, resolution, review
+[2025-05-14T10:40:57.178Z] INFO: Job 121: 3 badge types enabled
+[2025-05-14T10:40:57.462Z] INFO: Job 121: Downloaded poster for item 121
+[2025-05-14T10:40:57.650Z] INFO: Job 121: Standardized poster for item 121: {"originalWidth":1000,"originalHeight":1500,"newWidth":1000,"newHeight":1500}
+[2025-05-14T10:40:57.790Z] INFO: Job 121: Downloaded poster for item 121
+[2025-05-14T10:40:58.542Z] INFO: Job 121: Standardized poster for item 121: {"originalWidth":1000,"originalHeight":1500,"newWidth":1000,"newHeight":1500}
+[2025-05-14T10:40:59.075Z] INFO: Job 121: Successfully applied badges with canvas renderer for item 121
+[2025-05-14T10:40:59.096Z] INFO: Job 121: Modified poster saved at: temp\poster-modified-00ba4e022c0ef5f7849ac1119fd58f0d.png
+[2025-05-14T10:40:59.289Z] INFO: Job 121: Successfully applied badges with canvas renderer for item 121
+[2025-05-14T10:40:59.327Z] INFO: Job 121: Modified poster saved at: temp\poster-modified-00ba4e022c0ef5f7849ac1119fd58f0d.png
+[2025-05-14T10:41:01.417Z] INFO: Job 121: Uploaded modified poster for item 121
+[2025-05-14T10:41:01.421Z] INFO: Job 121: Item 121 completed successfully with badges applied
+[2025-05-14T10:41:01.422Z] INFO: Job 121: Batch 1 completed in 4.80s (0.21 items/sec)
+[2025-05-14T10:41:01.422Z] INFO: Job 121 progress: 100% (1/1 completed, 0 failed)
+[2025-05-14T10:41:01.424Z] INFO: Job 121: Batch processing complete. Duration: 4.80s, Success: 1/1 (100.00%), Failed: 0
+[2025-05-14T10:41:01.424Z] INFO: Job 121 completed with status: completed
+[2025-05-14T10:41:01.424Z] INFO: Job 121 statistics: Processed: 1/1, Success rate: 100.00%, Duration: 4.84s
+[2025-05-14T10:41:01.443Z] INFO: Job 121: Uploaded modified poster for item 121
+[2025-05-14T10:41:01.447Z] INFO: Job 121: Item 121 completed successfully with badges applied
+[2025-05-14T10:41:01.447Z] INFO: Job 121: Batch 1 completed in 4.73s (0.21 items/sec)
+[2025-05-14T10:41:01.447Z] INFO: Job 121 progress: 100% (1/1 completed, 0 failed)
+[2025-05-14T10:41:01.448Z] INFO: Job 121: Batch processing complete. Duration: 4.73s, Success: 1/1 (100.00%), Failed: 0
+[2025-05-14T10:41:01.448Z] INFO: Job 121 completed with status: completed
+[2025-05-14T10:41:01.448Z] INFO: Job 121 statistics: Processed: 1/1, Success rate: 100.00%, Duration: 4.84s
+[2025-05-14T10:47:56.436Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-14T10:47:56.456Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-14T10:47:56.458Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 23ms
+[2025-05-14T10:48:05.029Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 538ms
+[2025-05-14T10:48:05.358Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 321ms
+[2025-05-14T10:48:05.759Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 398ms
+[2025-05-14T10:48:15.414Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-14T10:48:15.436Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-14T10:48:17.100Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-14T10:48:17.105Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-14T10:48:17.107Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 8ms
+[2025-05-14T10:48:18.459Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 515ms
+[2025-05-14T10:48:18.822Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 360ms
+[2025-05-14T10:48:20.475Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-14T10:48:20.493Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-14T10:48:21.568Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-14T10:48:21.574Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-14T10:48:21.577Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 10ms
+[2025-05-14T10:48:22.427Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 626ms
+[2025-05-14T10:48:22.749Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 317ms
+[2025-05-14T10:48:33.261Z] INFO: Badge files will be stored in: E:\programming\aphrodite\backend\storage\badges
+[2025-05-14T10:48:33.275Z] INFO: Server running on port 5000 with WebSocket support
+[2025-05-14T10:48:47.381Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-14T10:48:47.402Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-14T10:48:47.405Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 24ms
+[2025-05-14T10:48:48.038Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 506ms
+[2025-05-14T10:48:48.317Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 269ms
+[2025-05-14T10:48:54.595Z] INFO: [GET] /api/library-items/1?page=1&limit=50&libraryIds=f137a2dd21bbc1b99aa5c0f6bf02a805 200 — 684ms
+[2025-05-14T10:49:00.047Z] INFO: Getting all badge settings for user ID: 1
+[2025-05-14T10:49:00.050Z] INFO: Found 3 badge settings for user ID: 1
+[2025-05-14T10:49:00.051Z] INFO: [GET] /api/v1/unified-badge-settings?user_id=1 304 — 4ms
+[2025-05-14T10:49:00.716Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 432ms
+[2025-05-14T10:49:00.986Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 267ms
+[2025-05-14T10:49:05.524Z] INFO: [GET] /api/library-items/1?page=1&limit=50&libraryIds=f137a2dd21bbc1b99aa5c0f6bf02a805 304 — 458ms
+[2025-05-14T10:49:17.894Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 563ms
+[2025-05-14T10:49:18.247Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 344ms
+[2025-05-14T10:49:18.500Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 249ms
+[2025-05-14T10:49:18.747Z] INFO: [GET] /api/jellyfin-libraries/1 304 — 243ms
