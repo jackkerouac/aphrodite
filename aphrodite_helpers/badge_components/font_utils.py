@@ -33,6 +33,7 @@ def load_font(font_family, fallback_font, font_size):
     # Try all font paths in order
     for font_path in font_paths:
         try:
+            print(f"Attempting to load font: {font_path}")
             font = ImageFont.truetype(font_path, size=int(font_size))
             print(f"✅ Successfully loaded font: {font_path} at size {font_size}")
             return font

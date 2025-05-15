@@ -32,7 +32,7 @@ def create_badge(settings, text=None):
     text_padding = settings.get('General', {}).get('general_text_padding', 12)  # Get from settings or default to 12 pixels
     
     # Get font settings
-    font_family = settings.get('Text', {}).get('fonts', "Arial.ttf")
+    font_family = settings.get('Text', {}).get('font', "Arial.ttf")
     fallback_font = settings.get('Text', {}).get('fallback_font', "DejaVuSans.ttf")
     font_size = settings.get('Text', {}).get('text-size', 20)
     
@@ -110,6 +110,7 @@ def create_badge(settings, text=None):
     # Apply shadow if enabled
     shadow_enabled = settings.get('Shadow', {}).get('shadow_enable', False)
     if shadow_enabled:
+        print(f"📝 Shadow enabled with blur: {settings.get('Shadow', {}).get('shadow_blur', 5)}")
         badge = _apply_shadow(badge, settings, border_radius)
         
     return badge
@@ -209,9 +210,14 @@ def _add_text_to_badge(badge, text, font, settings):
         
         # Position text in center of badge
         # Get accurate text dimensions via textbbox
-        bbox = draw.textbbox((0, 0), text, font=font)
-        text_width = bbox[2] - bbox[0]
-        text_height = bbox[3] - bbox[1]
+        try:
+            bbox = draw.textbbox((0, 0), text, font=font)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+        except Exception as e:
+            print(f"⚠️ Error measuring text: {e}")
+            print(f"  Text: '{text}', Font: {font}")
+            return badge
         
         # Calculate exact center position for perfect centering
         # Adjust for the text's actual baseline and offset

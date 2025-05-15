@@ -4,11 +4,16 @@ api_keys:
           api_key: "d66524acc5d544d591e0cbbabff6053c"
           user_id: "34b672a45581450dbb14bb6a0a2ae85b"
     OMDB:
-        - api_key: ""
+        - api_key: "4b8ba0e1"
+          cache_expiration: 60
     TMDB:
-        - api_key: ""
+        - api_key: "0b2dc1bbbed569c9f97b2c54c7d167d2"
+          cache_expiration: 60
+          language: en
+          region: 
     aniDB:
-        - username: ""
+        - username: "jackkerouac4657"
+        - password: "Paradise4657"
           client: 1
           language: "en"
           cache_expiration: 60

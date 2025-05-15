@@ -1,16 +1,16 @@
 General:
   general_badge_size: 100
   general_edge_padding: 30
-  general_badge_position: top-left
+  general_badge_position: top-right
   general_text_padding: 12
   use_dynamic_sizing: true  # Set to false to use fixed badge size
 Text:
-  font: "Arial"
+  font: "AvenirNextLTPro-Bold.ttf"
   fallback_font: "DejaVuSans.ttf"
-  text-color: "#FFFFFF"
+  text-color: "#000000"
   text-size: 80
 Background:
-  background-color: "#000000"
+  background-color: "#FF69B4"
   background_opacity: 60
 Border:
   border-color: "#000000"
