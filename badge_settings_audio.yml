@@ -8,7 +8,7 @@ Text:
   font: "Arial"
   fallback_font: "DejaVuSans.ttf"
   text-color: "#FFFFFF"
-  text-size: 40
+  text-size: 80
 Background:
   background-color: "#000000"
   background_opacity: 60
