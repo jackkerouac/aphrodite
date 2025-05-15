@@ -11,10 +11,10 @@ Text:
   text-size: 90
 Background:
   background-color: "#0077FF"  # Different color from audio badge
-  background_opacity: 100
+  background_opacity: 40
 Border:
   border-color: "#0077FF"
-  border-radius: 130
+  border-radius: 10
   border_width: 1
 Shadow:
   shadow_enable: false

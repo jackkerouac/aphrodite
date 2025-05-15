@@ -11,10 +11,10 @@ Text:
   text-size: 90
 Background:
   background-color: "#FFFF00"
-  background_opacity: 100
+  background_opacity: 40
 Border:
   border-color: "#FFFF00"
-  border-radius: 130
+  border-radius: 10
   border_width: 1
 Shadow:
   shadow_enable: false

@@ -16,6 +16,10 @@ from aphrodite_helpers.get_media_info import (
     get_media_stream_info,
     get_primary_audio_codec
 )
+from aphrodite_helpers.get_resolution_info import (
+    get_media_resolution_info,
+    get_resolution_badge_text
+)
 from aphrodite_helpers.poster_fetcher import download_poster
 from aphrodite_helpers.apply_badge import (
     load_badge_settings,
@@ -35,7 +39,7 @@ BANNER = r"""
        | |                                    
        |_|                                    
 
-                    v0.1.0       
+                    v0.2.0       
 """
 
 def display_banner() -> None:
@@ -43,45 +47,89 @@ def display_banner() -> None:
 
 
 def process_single_item(jellyfin_url: str, api_key: str, user_id: str, 
-                        item_id: str, max_retries: int = 3) -> bool:
+                        item_id: str, max_retries: int = 3,
+                        add_audio: bool = True, add_resolution: bool = True) -> bool:
     print(f"\n📋 Processing item {item_id}")
 
-    # 1. Media info
-    info = get_media_stream_info(jellyfin_url, api_key, user_id, item_id)
-    if not info:
-        print("❌ Failed to retrieve media information")
+    if not add_audio and not add_resolution:
+        print("⚠️ No badge types selected. At least one badge type must be enabled.")
         return False
 
-    codec = get_primary_audio_codec(info)
-    print(f"📢 Found audio codec: {codec} for {info['name']}")
-
-    # 2. Poster download
+    # 1. Download poster (we'll need this for any badge type)
     poster_path = download_poster(jellyfin_url, api_key, item_id)
     if not poster_path:
         print("❌ Failed to download poster")
         return False
 
-    # 3. Badge
-    badge_settings = load_badge_settings()
-    badge = create_badge(badge_settings, codec)
-    output_path = apply_badge_to_poster(poster_path, badge, badge_settings)
-    if not output_path:
-        print("❌ Failed to apply badge to poster")
-        return False
+    # Get item name for display purposes
+    item_info = get_media_stream_info(jellyfin_url, api_key, user_id, item_id)
+    if not item_info:
+        item_name = "Unknown Item"
+    else:
+        item_name = item_info.get('name', 'Unknown Item')
 
-    # 4. Upload
+    working_poster_path = poster_path
+    output_path = None
+
+    # 2. Process Audio Badge if requested
+    if add_audio:
+        # Media info
+        audio_info = get_media_stream_info(jellyfin_url, api_key, user_id, item_id)
+        if not audio_info:
+            print("❌ Failed to retrieve audio information")
+            return False
+
+        codec = get_primary_audio_codec(audio_info)
+        print(f"📢 Found audio codec: {codec} for {item_name}")
+
+        # Create audio badge
+        audio_settings = load_badge_settings("badge_settings_audio.yml")
+        audio_badge = create_badge(audio_settings, codec)
+        
+        # Apply audio badge to poster
+        output_path = apply_badge_to_poster(working_poster_path, audio_badge, audio_settings)
+        if not output_path:
+            print("❌ Failed to apply audio badge to poster")
+            return False
+        
+        # Update working_poster_path to point to the poster with audio badge
+        working_poster_path = output_path
+
+    # 3. Process Resolution Badge if requested
+    if add_resolution:
+        # Get resolution info
+        resolution_info = get_media_resolution_info(jellyfin_url, api_key, user_id, item_id)
+        if not resolution_info:
+            print("❌ Failed to retrieve resolution information")
+            return False
+
+        resolution_text = get_resolution_badge_text(resolution_info)
+        print(f"📏 Found resolution: {resolution_text} for {item_name}")
+
+        # Create resolution badge
+        resolution_settings = load_badge_settings("badge_settings_resolution.yml")
+        resolution_badge = create_badge(resolution_settings, resolution_text)
+        
+        # Apply resolution badge to poster (which may already have an audio badge)
+        output_path = apply_badge_to_poster(working_poster_path, resolution_badge, resolution_settings)
+        if not output_path:
+            print("❌ Failed to apply resolution badge to poster")
+            return False
+
+    # 4. Upload the final modified poster
     uploader = PosterUploader(jellyfin_url, api_key, user_id)
     if not uploader.upload_poster(item_id, output_path, max_retries):
         print("❌ Failed to upload modified poster")
         return False
 
-    print(f"✅ Success: {info['name']}")
+    print(f"✅ Success: {item_name}")
     return True
 
 
 def process_library_items(jellyfin_url: str, api_key: str, user_id: str,
                           library_id: str, limit: int | None,
-                          max_retries: int) -> None:
+                          max_retries: int, add_audio: bool = True, 
+                          add_resolution: bool = True) -> None:
     items = get_library_items(jellyfin_url, api_key, user_id, library_id)
     if not items:
         print("⚠️  No items found in library")
@@ -96,7 +144,7 @@ def process_library_items(jellyfin_url: str, api_key: str, user_id: str,
         item_id = item["Id"]
         print(f"\n[{i}/{len(items)}] {name}")
         process_single_item(jellyfin_url, api_key, user_id,
-                            item_id, max_retries)
+                            item_id, max_retries, add_audio, add_resolution)
         time.sleep(1)
 
 
@@ -112,11 +160,15 @@ def main() -> int:
     item_p = sub.add_parser("item", help="Process a single item")
     item_p.add_argument("item_id")
     item_p.add_argument("--retries", type=int, default=3)
+    item_p.add_argument("--no-audio", action="store_true", help="Don't add audio codec badge")
+    item_p.add_argument("--no-resolution", action="store_true", help="Don't add resolution badge")
 
     lib_p = sub.add_parser("library", help="Process every item in a library")
     lib_p.add_argument("library_id")
     lib_p.add_argument("--limit", type=int)
     lib_p.add_argument("--retries", type=int, default=3)
+    lib_p.add_argument("--no-audio", action="store_true", help="Don't add audio codec badge")
+    lib_p.add_argument("--no-resolution", action="store_true", help="Don't add resolution badge")
 
     args = parser.parse_args()
     run_settings_check()
@@ -137,13 +189,25 @@ def main() -> int:
         return 0
 
     if args.cmd == "item":
-        ok = process_single_item(url, api_key, user_id,
-                                 args.item_id, args.retries)
+        # By default, both badge types are ON
+        add_audio = not (hasattr(args, 'no_audio') and args.no_audio)
+        add_resolution = not (hasattr(args, 'no_resolution') and args.no_resolution)
+        
+        ok = process_single_item(
+            url, api_key, user_id, args.item_id, args.retries,
+            add_audio=add_audio, add_resolution=add_resolution
+        )
         return 0 if ok else 1
 
     if args.cmd == "library":
-        process_library_items(url, api_key, user_id, args.library_id,
-                              args.limit, args.retries)
+        # By default, both badge types are ON
+        add_audio = not (hasattr(args, 'no_audio') and args.no_audio)
+        add_resolution = not (hasattr(args, 'no_resolution') and args.no_resolution)
+        
+        process_library_items(
+            url, api_key, user_id, args.library_id, args.limit, args.retries,
+            add_audio=add_audio, add_resolution=add_resolution
+        )
         return 0
 
     parser.print_help()
