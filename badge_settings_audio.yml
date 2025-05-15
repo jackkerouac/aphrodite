@@ -3,12 +3,12 @@ General:
   general_edge_padding: 30
   general_badge_position: top-left
 Background:
-  background-color:
-    background_opacity: 40
+  background-color: "#fe019a"
+  background_opacity: 60
 Border:
-  border-color:
-    border-radius: 10
-    border_width: 1
+  border-color: "#fe019a"
+  border-radius: 10
+  border_width: 4
 Shadow:
   shadow_enable: true
   shadow_blur: 8
