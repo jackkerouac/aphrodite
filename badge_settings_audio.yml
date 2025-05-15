@@ -1,7 +1,7 @@
 General:
   general_badge_size: 100
   general_edge_padding: 30
-  general_badge_position: center-left
+  general_badge_position: top-left
   general_text_padding: 12
   use_dynamic_sizing: true  # Set to false to use fixed badge size
 Text:

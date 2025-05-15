@@ -1,0 +1,60 @@
+General:
+  general_badge_size: 100
+  general_edge_padding: 30
+  general_badge_position: bottom-left
+  general_text_padding: 12
+  use_dynamic_sizing: true  # Set to false to use fixed badge size
+  
+  # New review-specific settings
+  badge_orientation: vertical  # Options: horizontal, vertical
+  badge_spacing: 10  # Space between badges in pixels
+  max_badges_to_display: 3  # Maximum number of badges to display
+
+Text:
+  font: "AvenirNextLTProBold.otf"
+  fallback_font: "DejaVuSans.ttf"
+  text-color: "#FFFFFF"
+  text-size: 90
+
+Background:
+  background-color: "#2C2C2C"
+  background_opacity: 80
+
+Border:
+  border-color: "#2C2C2C"
+  border-radius: 10
+  border_width: 1
+
+Shadow:
+  shadow_enable: true
+  shadow_blur: 5
+  shadow_offset_x: 2
+  shadow_offset_y: 2
+
+# Configuration for image-based review badges
+ImageBadges:
+  enable_image_badges: true   # Master switch to enable/disable image badges
+  codec_image_directory: "images/rating"   # Directory containing rating images
+  fallback_to_text: true   # If true, use text when image not found
+  image_padding: 5  # Padding around image content in pixels
+  image_mapping:   # Define specific mappings from review source to image filenames
+    "Trakt": "Trakt.png"
+    "AniDB": "AniDB.png"
+    "IMDb": "IMDb.png"
+    "IMDbTop": "IMDbTop.png"
+    "IMDbTop100": "IMDbTop100.png"
+    "IMDbTop250": "IMDbTop250.png"
+    "IMDbTop1000": "IMDbTop1000.png"
+    "Letterboxd": "Letterboxd.png"
+    "Metacritic": "metacritic_logo.png"
+    "MAL": "MAL.png"
+    "MDBList": "MDBList.png"
+    "MetacriticTop": "MetacriticTop.png"
+    "RT-Aud-Fresh": "RT-Aud-Fresh.png"
+    "RT-Aud-Rotten": "RT-Aud-Rotten.png"
+    "RT-Aud-Top": "RT-Aud-Top.png"
+    "RT-Crit-Fresh": "RT-Crit-Fresh.png"
+    "RT-Crit-Rotten": "RT-Crit-Rotten.png"
+    "RT-Crit-Top": "RT-Crit-Top.png"
+    "Star": "Star.png"
+    "TMDb": "TMDb.png"

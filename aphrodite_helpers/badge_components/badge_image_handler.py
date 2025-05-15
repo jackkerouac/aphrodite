@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # aphrodite_helpers/badge_components/badge_image_handler.py
 
-import os
 from PIL import Image
+import os
+import sys
 
 def get_codec_image_path(codec_text, settings):
     """
@@ -25,11 +26,13 @@ def get_codec_image_path(codec_text, settings):
     image_dir = os.path.join(root_dir, image_settings.get('codec_image_directory', 'images/codec'))
     
     if not os.path.exists(image_dir):
-        print(f"⚠️ Warning: Codec image directory not found: {image_dir}")
+        print(f"⚠️ Warning: Image directory not found: {image_dir}")
         return None
     
     # Check for direct mapping first (if provided)
     image_mapping = image_settings.get('image_mapping', {})
+    print(f"📊 Available image mappings: {list(image_mapping.keys())}")
+    print(f"🔍 Looking for image for: '{codec_text}'")
     
     # Try to find a match in the mapping table
     # First try exact match
