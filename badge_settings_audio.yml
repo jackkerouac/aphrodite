@@ -1,0 +1,16 @@
+General:
+  general_badge_size: 100
+  general_edge_padding: 30
+  general_badge_position: top-left
+Background:
+  background-color:
+    background_opacity: 40
+Border:
+  border-color:
+    border-radius: 10
+    border_width: 1
+Shadow:
+  shadow_enable: true
+  shadow_blur: 8
+  shadow_offset_x: 2
+  shadow_offset_y: 2

@@ -1,0 +1,15 @@
+api_keys:
+    Jellyfin:
+        - url: "https://jellyfin.okaymedia.ca"
+          api_key: "d66524acc5d544d591e0cbbabff6053c"
+          user_id: "34b672a45581450dbb14bb6a0a2ae85b"
+    OMDB:
+        - api_key: ""
+    TMDB:
+        - api_key: ""
+    aniDB:
+        - username: ""
+          client: 1
+          language: "en"
+          cache_expiration: 60
+
