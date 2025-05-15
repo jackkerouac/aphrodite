@@ -5,7 +5,7 @@ General:
   general_text_padding: 12
   use_dynamic_sizing: true  # Set to false to use fixed badge size
 Text:
-  font: "AvenirNextLTPro-Bold.ttf"
+  font: "AvenirNextLTProBold.otf"
   fallback_font: "DejaVuSans.ttf"
   text-color: "#000000"
   text-size: 80
@@ -21,3 +21,16 @@ Shadow:
   shadow_blur: 8
   shadow_offset_x: 2
   shadow_offset_y: 2
+
+# Configuration for image-based badges
+ImageBadges:
+  enable_image_badges: true  # Master switch to enable/disable image badges
+  codec_image_directory: "images/codec"  # Directory containing codec images
+  fallback_to_text: true  # If true, use text when image not found
+  image_mapping:  # Optional: Define specific mappings from codec text to image filenames
+    "DTS-HD MA": "DTS-HD.png"
+    "TRUEHD ATMOS": "TrueHD-Atmos.png"
+    "ATMOS": "Atmos.png"
+    "DOLBY DIGITAL PLUS": "DigitalPlus.png"
+    "TRUEHD": "TrueHD.png"
+    "DTS-X": "DTS-X.png"

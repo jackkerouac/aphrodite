@@ -5,8 +5,35 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from .color_utils import hex_to_rgba
 from .font_utils import load_font
 
-def create_badge(settings, text=None):
-    """Create a badge based on the settings, optionally with text."""
+def create_badge(settings, text=None, use_image=True):
+    """Create a badge based on the settings, optionally with text or image."""
+    # Try to use image badge if enabled and text is provided
+    if use_image and text and settings.get('ImageBadges', {}).get('enable_image_badges', False):
+        try:
+            from .badge_image_handler import load_codec_image
+            codec_image = load_codec_image(text, settings)
+            
+            if codec_image:
+                # Apply shadow if enabled and return the image
+                shadow_enabled = settings.get('Shadow', {}).get('shadow_enable', False)
+                if shadow_enabled:
+                    print(f"📝 Applying shadow to codec image with blur: {settings.get('Shadow', {}).get('shadow_blur', 5)}")
+                    codec_image = _apply_shadow(codec_image, settings, 0)  # 0 for border radius as images have their own shape
+                
+                print(f"✅ Using image badge for codec: {text}")
+                return codec_image
+                
+            # Fall back to text if image not found and fallback is enabled
+            if not settings.get('ImageBadges', {}).get('fallback_to_text', True):
+                print(f"ℹ️ No image found for '{text}' and fallback to text is disabled")
+                return None
+            print(f"ℹ️ No image found for '{text}', falling back to text badge")
+        except ImportError as e:
+            print(f"⚠️ Warning: Could not import badge_image_handler: {e}")
+        except Exception as e:
+            print(f"⚠️ Warning: Error creating image badge: {e}, falling back to text badge")
+    
+    # Continue with text-based badge if no image was used
     if not settings:
         print(f"❌ Error: No settings provided for badge creation.")
         return None

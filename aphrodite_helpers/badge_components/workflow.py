@@ -12,7 +12,8 @@ def download_and_badge_poster(
     item_id, 
     badge_text=None, 
     output_dir="posters/modified", 
-    settings_file="badge_settings_audio.yml"
+    settings_file="badge_settings_audio.yml",
+    use_image=True
 ):
     """Download a poster from Jellyfin, apply a badge with text, and save it."""
     # Import poster_fetcher here to avoid circular imports
@@ -41,7 +42,7 @@ def download_and_badge_poster(
         return False
     
     # Create badge with text
-    badge = create_badge(settings, badge_text)
+    badge = create_badge(settings, badge_text, use_image=use_image)
     
     # Apply badge to poster
     result_path = apply_badge_to_poster(
@@ -64,7 +65,8 @@ def process_all_posters(
     working_dir="posters/working", 
     output_dir="posters/modified", 
     settings_file="badge_settings_audio.yml",
-    badge_text=None
+    badge_text=None,
+    use_image=True
 ):
     """Process all posters in the specified directory."""
     # Load badge settings
@@ -73,7 +75,7 @@ def process_all_posters(
         return False
     
     # Create the badge once
-    badge = create_badge(settings, badge_text)
+    badge = create_badge(settings, badge_text, use_image=use_image)
     
     # Use badge_applicator to process all posters
     from .badge_applicator import process_posters
@@ -85,13 +87,13 @@ def process_all_posters(
         output_dir=output_dir
     )
 
-def save_test_badge(settings_file="badge_settings_audio.yml", text=None):
+def save_test_badge(settings_file="badge_settings_audio.yml", text=None, use_image=True):
     """Save a test badge to verify settings and implementation."""
     settings = load_badge_settings(settings_file)
     if not settings:
         return False
         
-    badge = create_badge(settings, text)
+    badge = create_badge(settings, text, use_image=use_image)
     
     # Save the badge
     root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

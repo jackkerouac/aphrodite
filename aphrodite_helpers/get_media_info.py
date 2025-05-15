@@ -112,7 +112,8 @@ def fetch_item_and_create_badge(jellyfin_url, api_key, item_id, output_dir="post
         api_key=api_key,
         item_id=item_id,
         badge_text=audio_codec,
-        output_dir=output_dir
+        output_dir=output_dir,
+        use_image=True  # Enable image-based badges
     )
     
     return success
