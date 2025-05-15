@@ -48,7 +48,8 @@ def display_banner() -> None:
 
 def process_single_item(jellyfin_url: str, api_key: str, user_id: str, 
                         item_id: str, max_retries: int = 3,
-                        add_audio: bool = True, add_resolution: bool = True) -> bool:
+                        add_audio: bool = True, add_resolution: bool = True,
+                        skip_upload: bool = False) -> bool:
     print(f"\n📋 Processing item {item_id}")
 
     if not add_audio and not add_resolution:
@@ -116,11 +117,15 @@ def process_single_item(jellyfin_url: str, api_key: str, user_id: str,
             print("❌ Failed to apply resolution badge to poster")
             return False
 
-    # 4. Upload the final modified poster
-    uploader = PosterUploader(jellyfin_url, api_key, user_id)
-    if not uploader.upload_poster(item_id, output_path, max_retries):
-        print("❌ Failed to upload modified poster")
-        return False
+    # 4. Upload the final modified poster (unless skipped)
+    if not skip_upload:
+        uploader = PosterUploader(jellyfin_url, api_key, user_id)
+        if not uploader.upload_poster(item_id, output_path, max_retries):
+            print("❌ Failed to upload modified poster")
+            return False
+        print(f"✅ Uploaded poster for: {item_name}")
+    else:
+        print(f"📤 Skipping upload, poster saved at: {output_path}")
 
     print(f"✅ Success: {item_name}")
     return True
@@ -129,7 +134,7 @@ def process_single_item(jellyfin_url: str, api_key: str, user_id: str,
 def process_library_items(jellyfin_url: str, api_key: str, user_id: str,
                           library_id: str, limit: int | None,
                           max_retries: int, add_audio: bool = True, 
-                          add_resolution: bool = True) -> None:
+                          add_resolution: bool = True, skip_upload: bool = False) -> None:
     items = get_library_items(jellyfin_url, api_key, user_id, library_id)
     if not items:
         print("⚠️  No items found in library")
@@ -144,7 +149,7 @@ def process_library_items(jellyfin_url: str, api_key: str, user_id: str,
         item_id = item["Id"]
         print(f"\n[{i}/{len(items)}] {name}")
         process_single_item(jellyfin_url, api_key, user_id,
-                            item_id, max_retries, add_audio, add_resolution)
+                            item_id, max_retries, add_audio, add_resolution, skip_upload)
         time.sleep(1)
 
 
@@ -162,6 +167,7 @@ def main() -> int:
     item_p.add_argument("--retries", type=int, default=3)
     item_p.add_argument("--no-audio", action="store_true", help="Don't add audio codec badge")
     item_p.add_argument("--no-resolution", action="store_true", help="Don't add resolution badge")
+    item_p.add_argument("--no-upload", action="store_true", help="Don't upload posters to Jellyfin, only save locally")
 
     lib_p = sub.add_parser("library", help="Process every item in a library")
     lib_p.add_argument("library_id")
@@ -169,6 +175,7 @@ def main() -> int:
     lib_p.add_argument("--retries", type=int, default=3)
     lib_p.add_argument("--no-audio", action="store_true", help="Don't add audio codec badge")
     lib_p.add_argument("--no-resolution", action="store_true", help="Don't add resolution badge")
+    lib_p.add_argument("--no-upload", action="store_true", help="Don't upload posters to Jellyfin, only save locally")
 
     args = parser.parse_args()
     run_settings_check()
@@ -192,10 +199,12 @@ def main() -> int:
         # By default, both badge types are ON
         add_audio = not (hasattr(args, 'no_audio') and args.no_audio)
         add_resolution = not (hasattr(args, 'no_resolution') and args.no_resolution)
+        skip_upload = hasattr(args, 'no_upload') and args.no_upload
         
         ok = process_single_item(
             url, api_key, user_id, args.item_id, args.retries,
-            add_audio=add_audio, add_resolution=add_resolution
+            add_audio=add_audio, add_resolution=add_resolution,
+            skip_upload=skip_upload
         )
         return 0 if ok else 1
 
@@ -203,10 +212,12 @@ def main() -> int:
         # By default, both badge types are ON
         add_audio = not (hasattr(args, 'no_audio') and args.no_audio)
         add_resolution = not (hasattr(args, 'no_resolution') and args.no_resolution)
+        skip_upload = hasattr(args, 'no_upload') and args.no_upload
         
         process_library_items(
             url, api_key, user_id, args.library_id, args.limit, args.retries,
-            add_audio=add_audio, add_resolution=add_resolution
+            add_audio=add_audio, add_resolution=add_resolution,
+            skip_upload=skip_upload
         )
         return 0
 

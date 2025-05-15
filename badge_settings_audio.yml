@@ -1,7 +1,7 @@
 General:
   general_badge_size: 100
   general_edge_padding: 30
-  general_badge_position: top-left
+  general_badge_position: center-left
   general_text_padding: 12
   use_dynamic_sizing: true  # Set to false to use fixed badge size
 Text:
@@ -27,7 +27,7 @@ ImageBadges:
   enable_image_badges: true   # Master switch to enable/disable image badges
   codec_image_directory: "images/codec"   # Directory containing codec images
   fallback_to_text: true   # If true, use text when image not found
-  image_padding: 15  # Padding around image content in pixels
+  image_padding: 0  # Padding around image content in pixels
   image_mapping:   # Optional: Define specific mappings from codec text to image filenames
     "DTS-HD MA": "DTS-HD.png"
     "TRUEHD ATMOS": "TrueHD-Atmos.png"

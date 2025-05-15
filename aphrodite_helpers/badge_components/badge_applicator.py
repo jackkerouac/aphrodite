@@ -42,6 +42,17 @@ def apply_badge_to_poster(
             coords = (edge_padding, poster.height - badge.height - edge_padding)
         elif position == 'bottom-right':
             coords = (poster.width - badge.width - edge_padding, poster.height - badge.height - edge_padding)
+        # New positions
+        elif position == 'top-center':
+            coords = ((poster.width - badge.width) // 2, edge_padding)
+        elif position == 'center-left':
+            coords = (edge_padding, (poster.height - badge.height) // 2)
+        elif position == 'center':
+            coords = ((poster.width - badge.width) // 2, (poster.height - badge.height) // 2)
+        elif position == 'center-right':
+            coords = (poster.width - badge.width - edge_padding, (poster.height - badge.height) // 2)
+        elif position == 'bottom-center':
+            coords = ((poster.width - badge.width) // 2, poster.height - badge.height - edge_padding)
         else:
             # Default to top-left
             coords = (edge_padding, edge_padding)
