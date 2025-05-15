@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# aphrodite_helpers/poster_uploader.py
+# aphrodite_helpers/poster_uploader.py  •  stateless edition
 
 import os
 import sys
@@ -13,241 +13,170 @@ from pathlib import Path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, 
-                   format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
 logger = logging.getLogger("poster_uploader")
+
 
 class PosterUploader:
     """
     Handles uploading modified posters back to Jellyfin.
-    
-    Features:
-    - Built-in retry mechanism for handling transient failures
-    - Verification of successful uploads
-    - Integration with the state management system
+
+    Features retained:
+    • Built-in retry mechanism with exponential back-off + jitter
+    • Upload verification by re-downloading the poster
+    • Batch-mode helper
+
+    State/workflow integration has been **completely removed**.
     """
-    
-    def __init__(self, jellyfin_url, api_key, user_id=None, state_manager=None):
-        """Initialize the PosterUploader."""
-        self.jellyfin_url = jellyfin_url
+
+    def __init__(self, jellyfin_url: str, api_key: str, user_id: str | None = None):
+        self.jellyfin_url = jellyfin_url.rstrip("/")
         self.api_key = api_key
         self.user_id = user_id
-        
-        # Initialize state manager if provided
-        if state_manager:
-            self.state_manager = state_manager
-        else:
-            # Import here to avoid circular imports
-            from aphrodite_helpers.state_manager import StateManager
-            self.state_manager = StateManager()
-        
-    def upload_poster(self, item_id, poster_path, max_retries=3, retry_delay=2):
+
+    # --------------------------------------------------------------------- #
+    #  SINGLE-ITEM UPLOAD
+    # --------------------------------------------------------------------- #
+    def upload_poster(
+        self,
+        item_id: str,
+        poster_path: str | Path,
+        max_retries: int = 3,
+        retry_delay: int = 2,
+    ) -> bool:
         """
         Upload a poster to Jellyfin for a specific item.
-        
-        Args:
-            item_id (str): The Jellyfin item ID
-            poster_path (str): Path to the poster image file
-            max_retries (int): Maximum number of retry attempts
-            retry_delay (int): Base delay between retries in seconds
-            
-        Returns:
-            bool: True if the upload was successful, False otherwise
+
+        Returns True on success, False on failure.
         """
-        if not os.path.exists(poster_path):
-            error_msg = f"Poster file not found: {poster_path}"
-            logger.error(error_msg)
-            if self.state_manager:
-                self.state_manager.record_failure(item_id, error_msg, "upload")
+
+        poster_path = Path(poster_path)
+
+        if not poster_path.exists():
+            logger.error("Poster file not found: %s", poster_path)
             return False
-        
-        # Track retry attempts
-        attempts = 0
-        last_error = None
-        
-        # Prepare URL and headers
+
         upload_url = f"{self.jellyfin_url}/Items/{item_id}/Images/Primary"
         headers = {"X-Emby-Token": self.api_key}
-        
+        attempts = 0
+        last_error = None
+
         while attempts < max_retries:
-            try:
-                # Read the image file
-                with open(poster_path, 'rb') as f:
-                    image_data = f.read()
-                
-                # Upload the poster
-                logger.info(f"Uploading poster for item {item_id} (Attempt {attempts + 1}/{max_retries})")
-                response = requests.post(
-                    upload_url,
-                    headers=headers,
-                    data=image_data,
-                    timeout=30  # Add a reasonable timeout
-                )
-                
-                # Check if successful
-                if response.status_code == 204 or response.status_code == 200:
-                    logger.info(f"✅ Successfully uploaded poster for item {item_id}")
-                    
-                    # Update state if state manager is available
-                    if self.state_manager:
-                        current_state = self.state_manager.get_current_state(item_id)
-                        if current_state == "badged":
-                            self.state_manager.transition_state(item_id, "uploaded")
-                    
-                    # Verify the upload by checking if we can download the new poster
-                    if self.verify_upload(item_id):
-                        logger.info(f"✅ Verified upload for item {item_id}")
-                        return True
-                    else:
-                        logger.warning(f"❌ Upload verification failed for item {item_id}, will retry")
-                        last_error = "Upload verification failed"
-                else:
-                    error_msg = f"Failed to upload poster: HTTP {response.status_code} - {response.text}"
-                    logger.error(error_msg)
-                    last_error = error_msg
-            
-            except requests.exceptions.RequestException as e:
-                error_msg = f"Request error while uploading poster: {str(e)}"
-                logger.error(error_msg)
-                last_error = error_msg
-            except Exception as e:
-                error_msg = f"Unexpected error while uploading poster: {str(e)}"
-                logger.error(error_msg)
-                last_error = error_msg
-            
-            # Record the failure in state manager if available
-            if self.state_manager:
-                self.state_manager.record_failure(item_id, last_error, "upload")
-            
-            # Increment attempts counter
             attempts += 1
-            
-            # If we've reached max retries, break out of the loop
-            if attempts >= max_retries:
-                break
-            
-            # Calculate exponential backoff with jitter
-            # This increases the delay with each retry and adds some randomness
-            # to prevent all retries happening at exactly the same time
-            backoff_time = retry_delay * (2 ** (attempts - 1))  # Exponential backoff
-            jitter = random.uniform(0, 0.5 * backoff_time)  # Add up to 50% jitter
-            wait_time = backoff_time + jitter
-            
-            logger.info(f"Retrying in {wait_time:.2f} seconds...")
-            time.sleep(wait_time)
-        
-        # If we've exhausted all retries, mark the item as failed in the state manager
-        if self.state_manager:
-            self.state_manager.mark_as_failed(item_id, f"Upload failed after {max_retries} attempts: {last_error}", "upload")
-        
-        logger.error(f"❌ Failed to upload poster for item {item_id} after {max_retries} attempts")
-        return False
-    
-    def verify_upload(self, item_id, timeout=5):
-        """
-        Verify that a poster was successfully uploaded by attempting to download it.
-        
-        Args:
-            item_id (str): The Jellyfin item ID
-            timeout (int): Timeout for the verification request in seconds
-            
-        Returns:
-            bool: True if verification was successful, False otherwise
-        """
-        try:
-            # Allow a short delay for Jellyfin to process the upload
-            time.sleep(1)
-            
-            # Try to download the primary image
-            verification_url = f"{self.jellyfin_url}/Items/{item_id}/Images/Primary"
-            headers = {"X-Emby-Token": self.api_key}
-            
-            response = requests.get(
-                verification_url,
-                headers=headers,
-                timeout=timeout,
-                stream=True  # Use stream=True to avoid downloading the entire image
-            )
-            
-            # Check if we can access the image
-            if response.status_code == 200:
-                # Read just the first few bytes to confirm it's an image
-                first_bytes = next(response.iter_content(256))
-                
-                # Check for common image file signatures
-                if (first_bytes.startswith(b'\xff\xd8\xff') or  # JPEG
-                    first_bytes.startswith(b'\x89PNG\r\n\x1a\n') or  # PNG
-                    first_bytes.startswith(b'GIF')):  # GIF
-                    return True
+            try:
+                with poster_path.open("rb") as f:
+                    image_data = f.read()
+
+                logger.info(
+                    "Uploading poster for item %s (attempt %s/%s)",
+                    item_id,
+                    attempts,
+                    max_retries,
+                )
+                resp = requests.post(upload_url, headers=headers, data=image_data, timeout=30)
+
+                if resp.status_code in (200, 204):
+                    logger.info("✅ Successfully uploaded poster for %s", item_id)
+                    if self._verify_upload(item_id):
+                        logger.info("✅ Verified upload for %s", item_id)
+                        return True
+                    logger.warning("❌ Verification failed for %s — will retry", item_id)
+                    last_error = "verification failed"
                 else:
-                    logger.warning(f"Verification response doesn't appear to be an image")
-                    return False
-            else:
-                logger.warning(f"Verification failed with status code: {response.status_code}")
+                    last_error = f"HTTP {resp.status_code}: {resp.text}"
+                    logger.warning("❌ Upload error for %s — %s", item_id, last_error)
+
+            except requests.exceptions.RequestException as e:
+                last_error = f"request error: {e}"
+                logger.warning("❌ Upload error for %s — %s", item_id, last_error)
+            except Exception as e:  # noqa: BLE001
+                last_error = f"unexpected error: {e}"
+                logger.warning("❌ Upload error for %s — %s", item_id, last_error)
+
+            # back-off before next retry
+            if attempts < max_retries:
+                backoff = retry_delay * (2 ** (attempts - 1))
+                jitter = random.uniform(0, 0.5 * backoff)
+                wait = backoff + jitter
+                logger.info("Retrying in %.2f s…", wait)
+                time.sleep(wait)
+
+        logger.error(
+            "❌ Failed to upload poster for %s after %s attempts (%s)", item_id, max_retries, last_error
+        )
+        return False
+
+    # --------------------------------------------------------------------- #
+    #  VERIFY
+    # --------------------------------------------------------------------- #
+    def _verify_upload(self, item_id: str, timeout: int = 5) -> bool:
+        """
+        Confirm that Jellyfin accepted the new image by downloading a few bytes.
+        """
+        time.sleep(1)  # allow Jellyfin to process the upload
+        url = f"{self.jellyfin_url}/Items/{item_id}/Images/Primary"
+        headers = {"X-Emby-Token": self.api_key}
+
+        try:
+            resp = requests.get(url, headers=headers, timeout=timeout, stream=True)
+            if resp.status_code != 200:
                 return False
-                
-        except Exception as e:
-            logger.error(f"Error during upload verification: {str(e)}")
+
+            first_chunk = next(resp.iter_content(256), b"")
+            # JPEG, PNG, GIF signatures
+            return first_chunk.startswith(b"\xff\xd8\xff") or \
+                   first_chunk.startswith(b"\x89PNG\r\n\x1a\n") or \
+                   first_chunk.startswith(b"GIF")
+        except Exception:  # noqa: BLE001
             return False
 
-    def batch_upload_posters(self, item_mappings, max_retries=3, retry_delay=2):
+    # --------------------------------------------------------------------- #
+    #  BATCH
+    # --------------------------------------------------------------------- #
+    def batch_upload_posters(
+        self,
+        item_to_path: dict[str, str | Path],
+        max_retries: int = 3,
+        retry_delay: int = 2,
+    ) -> dict[str, bool]:
         """
-        Upload multiple posters in batch mode.
-        
-        Args:
-            item_mappings (dict): Dictionary mapping item IDs to poster file paths
-            max_retries (int): Maximum number of retry attempts per poster
-            retry_delay (int): Base delay between retries in seconds
-            
-        Returns:
-            dict: Dictionary with item IDs as keys and success status as values
+        Upload multiple posters.  Returns a dict {item_id: success_bool}.
         """
-        results = {}
-        total_items = len(item_mappings)
-        
-        logger.info(f"Starting batch upload of {total_items} posters")
-        
-        for i, (item_id, poster_path) in enumerate(item_mappings.items(), 1):
-            logger.info(f"Processing item {i}/{total_items}: {item_id}")
-            success = self.upload_poster(item_id, poster_path, max_retries, retry_delay)
-            results[item_id] = success
-        
-        # Summarize results
-        success_count = sum(1 for success in results.values() if success)
-        logger.info(f"Batch upload complete: {success_count}/{total_items} successful")
-        
+        results: dict[str, bool] = {}
+        total = len(item_to_path)
+        logger.info("Starting batch upload of %s posters", total)
+
+        for idx, (item_id, pth) in enumerate(item_to_path.items(), 1):
+            logger.info("Processing %s/%s – %s", idx, total, item_id)
+            results[item_id] = self.upload_poster(item_id, pth, max_retries, retry_delay)
+
+        ok = sum(results.values())
+        logger.info("Batch complete: %s/%s successful", ok, total)
         return results
 
+
+# ------------------------------------------------------------------------- #
+#  CLI helper (unchanged)
+# ------------------------------------------------------------------------- #
 if __name__ == "__main__":
     import argparse
     from aphrodite_helpers.check_jellyfin_connection import load_settings
-    
-    parser = argparse.ArgumentParser(description="Upload modified posters to Jellyfin.")
+
+    parser = argparse.ArgumentParser(description="Upload a poster to Jellyfin.")
     parser.add_argument("--itemid", required=True, help="Jellyfin item ID")
-    parser.add_argument("--poster", required=True, help="Path to poster image file")
-    parser.add_argument("--retries", type=int, default=3, help="Maximum retry attempts")
-    
+    parser.add_argument("--poster", required=True, help="Path to poster PNG/JPG")
+    parser.add_argument("--retries", type=int, default=3, help="Max retries")
+
     args = parser.parse_args()
-    
-    # Load settings
+
     settings = load_settings()
     if not settings:
         sys.exit(1)
-    
-    jellyfin_settings = settings['api_keys']['Jellyfin'][0]
-    url = jellyfin_settings['url']
-    api_key = jellyfin_settings['api_key']
-    user_id = jellyfin_settings.get('user_id')
-    
-    # Initialize uploader
-    uploader = PosterUploader(url, api_key, user_id)
-    
-    # Upload poster
-    success = uploader.upload_poster(args.itemid, args.poster, args.retries)
-    
-    if success:
-        print(f"✅ Poster for item {args.itemid} uploaded successfully")
-        sys.exit(0)
-    else:
-        print(f"❌ Failed to upload poster for item {args.itemid}")
-        sys.exit(1)
+
+    jf = settings["api_keys"]["Jellyfin"][0]
+    uploader = PosterUploader(jf["url"], jf["api_key"], jf.get("user_id"))
+
+    sys.exit(0 if uploader.upload_poster(args.itemid, args.poster, args.retries) else 1)
