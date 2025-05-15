@@ -22,8 +22,18 @@ def apply_badge_to_poster(
     os.makedirs(os.path.dirname(working_path), exist_ok=True)
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     
-    # Copy to working directory
-    shutil.copy2(poster_path, working_path)
+    # Only copy to working directory if the source is not already there
+    if os.path.normpath(poster_path) != os.path.normpath(working_path):
+        try:
+            shutil.copy2(poster_path, working_path)
+        except (shutil.SameFileError, PermissionError) as e:
+            print(f"ℹ️ Copy skipped: {e}")
+            # If we can't copy, but working_path exists, we'll try to use it
+            if not os.path.exists(working_path):
+                print(f"❌ No working file available at {working_path}")
+                return None
+    else:
+        print(f"ℹ️ Poster already in working directory, skipping copy")
     
     try:
         # Open the poster
@@ -64,15 +74,27 @@ def apply_badge_to_poster(
         poster.convert("RGB").save(output_path, "JPEG")
         print(f"✅ Badge applied to {os.path.basename(poster_path)}")
         
-        # Remove the working file
-        os.remove(working_path)
+        # Remove the working file if it's different from the original path
+        # and different from the output path
+        if (os.path.normpath(working_path) != os.path.normpath(poster_path) and 
+            os.path.normpath(working_path) != os.path.normpath(output_path) and 
+            os.path.exists(working_path)):
+            try:
+                os.remove(working_path)
+                print(f"ℹ️ Cleaned up working file: {os.path.basename(working_path)}")
+            except Exception as e:
+                print(f"ℹ️ Could not clean up working file: {e}")
         
         return output_path
     except Exception as e:
         print(f"❌ Error applying badge to {os.path.basename(poster_path)}: {e}")
         # Clean up working file in case of error
-        if os.path.exists(working_path):
-            os.remove(working_path)
+        if (os.path.normpath(working_path) != os.path.normpath(poster_path) and 
+            os.path.exists(working_path)):
+            try:
+                os.remove(working_path)
+            except Exception as clean_error:
+                print(f"ℹ️ Could not clean up working file: {clean_error}")
         return None
 
 def process_posters(

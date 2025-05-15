@@ -2,23 +2,23 @@ General:
   general_badge_size: 100
   general_edge_padding: 30
   general_badge_position: bottom-left
-  general_text_padding: 12
+  general_text_padding: 20  # Increased from 12 to add more padding
   use_dynamic_sizing: true  # Set to false to use fixed badge size
   
   # New review-specific settings
   badge_orientation: vertical  # Options: horizontal, vertical
   badge_spacing: 10  # Space between badges in pixels
-  max_badges_to_display: 3  # Maximum number of badges to display
+  max_badges_to_display: 5  # Maximum number of badges to display
 
 Text:
   font: "AvenirNextLTProBold.otf"
   fallback_font: "DejaVuSans.ttf"
   text-color: "#FFFFFF"
-  text-size: 90
+  text-size: 42
 
 Background:
   background-color: "#2C2C2C"
-  background_opacity: 80
+  background_opacity: 60
 
 Border:
   border-color: "#2C2C2C"

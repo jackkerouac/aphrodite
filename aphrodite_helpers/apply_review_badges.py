@@ -35,11 +35,11 @@ def apply_badge_to_poster(
     working_path = os.path.join(root_dir, working_dir, os.path.basename(poster_path))
     output_path = os.path.join(root_dir, output_dir, os.path.basename(poster_path))
     
-    # Copy or open the poster
-    if os.path.exists(poster_path):
+    # Make sure we have the poster in memory
+    try:
         poster = Image.open(poster_path).convert("RGBA")
-    else:
-        print(f"❌ Error: Poster file not found: {poster_path}")
+    except Exception as e:
+        print(f"❌ Error opening poster file {poster_path}: {e}")
         return None
     
     # Get badge settings
@@ -98,7 +98,7 @@ def create_review_container(reviews, settings):
     
     # Get settings for the container
     badge_orientation = settings.get('General', {}).get('badge_orientation', 'vertical')
-    badge_spacing = settings.get('General', {}).get('badge_spacing', 10)
+    badge_spacing = settings.get('General', {}).get('badge_spacing', 1)
     padding = settings.get('General', {}).get('general_text_padding', 12)
     
     # Get color and style settings
@@ -198,9 +198,13 @@ def create_review_container(reviews, settings):
             # Update container height if needed
             container_height = max(container_height, element_height + inner_padding * 2)
     else:  # vertical layout
-        # For vertical layout, reviews are stacked
+        # For vertical layout, reviews are stacked with logos above text
         container_width = 0
-        container_height = inner_padding * 2  # Start with top and bottom padding
+        
+        # Increased top and bottom padding for the container
+        top_padding = inner_padding * 2  # Extra padding at the top
+        bottom_padding = inner_padding * 2  # Extra padding at the bottom
+        container_height = top_padding + bottom_padding  # Start with combined padding
         
         for i, element in enumerate(review_elements):
             logo = element["logo"]
@@ -216,9 +220,11 @@ def create_review_container(reviews, settings):
                 rating_width = font_size * len(rating_text) * 0.6
                 rating_height = font_size * 1.2
             
-            # Calculate total width and height for this review
-            element_width = logo.width + logo_rating_spacing + rating_width
-            element_height = max(logo.height, rating_height)
+            # In vertical orientation, we stack logo above text
+            # Each element needs enough width for the wider of logo or text
+            element_width = max(logo.width, rating_width)
+            # Height is logo + spacing + text height
+            element_height = logo.height + 15 + rating_height  # Increased from 5 to 15px spacing
             
             # Update element with size information
             element["width"] = element_width
@@ -230,7 +236,7 @@ def create_review_container(reviews, settings):
             container_width = max(container_width, element_width + inner_padding * 2)
             container_height += element_height
             if i < len(review_elements) - 1:
-                container_height += badge_spacing  # Add spacing between reviews
+                container_height += badge_spacing * 3  # Apply 3x multiplier for vertical spacing
     
     # Create the container image
     container = Image.new('RGBA', (container_width, container_height), (0, 0, 0, 0))
@@ -307,7 +313,14 @@ def create_review_container(reviews, settings):
     # Place each review element in the container
     if badge_orientation == 'horizontal':
         # Horizontal layout, place elements side by side
-        current_x = inner_padding
+        
+        # Calculate total width of all elements with spacing
+        total_elements_width = sum(element["width"] for element in review_elements)
+        total_elements_width += badge_spacing * (len(review_elements) - 1)  # Add spacing between elements
+        
+        # Center all elements horizontally in the container
+        # Start position for first element
+        current_x = (container_width - total_elements_width) // 2
         
         for element in review_elements:
             logo = element["logo"]
@@ -331,28 +344,29 @@ def create_review_container(reviews, settings):
             current_x += element["width"] + badge_spacing
     else:
         # Vertical layout, stack elements
-        current_y = inner_padding
+        current_y = top_padding  # Start at the increased top padding value
         
         for element in review_elements:
             logo = element["logo"]
             rating_text = element["rating"]
-            element_width = element["width"]
+            rating_width = element["rating_width"]
             rating_height = element["rating_height"]
             
-            # Horizontal centering
-            x_position = (container_width - element_width) // 2
-            
-            # Place the logo
-            logo_x = x_position
+            # Center the logo horizontally
+            logo_x = (container_width - logo.width) // 2
             container.paste(logo, (logo_x, current_y), logo)
             
-            # Draw the rating text next to the logo
-            rating_x = logo_x + logo.width + logo_rating_spacing
-            rating_y = current_y + (logo.height - rating_height) // 2
+            # Draw the rating text below the logo, centered horizontally
+            rating_x = (container_width - rating_width) // 2
+            rating_y = current_y + logo.height + 15  # Increased from 10 to 15px spacing between logo and text
             container_draw.text((rating_x, rating_y), rating_text, fill=text_color, font=font)
             
+            # Calculate total element height (logo + spacing + text)
+            total_element_height = logo.height + 15 + rating_height
+            
             # Move to the next element position
-            current_y += element["height"] + badge_spacing
+            # Apply a 3x multiplier to badge_spacing for vertical layout to make it more noticeable
+            current_y += total_element_height + (badge_spacing * 3)
     
     # Apply shadow if enabled
     if shadow_enabled:
@@ -390,7 +404,8 @@ def process_item_reviews(
     api_key, 
     user_id,
     settings_file="badge_settings_review.yml",
-    output_dir="posters/modified"
+    output_dir="posters/modified",
+    input_poster=None  # New parameter to accept an already processed poster
 ):
     """Process reviews for a Jellyfin item, create badges, and apply to poster."""
     # Load badge settings
@@ -417,21 +432,54 @@ def process_item_reviews(
         print(f"❌ Failed to create review container")
         return False
     
-    # Download poster
-    poster_path = download_poster(jellyfin_url, api_key, item_id)
-    if not poster_path:
-        print(f"❌ Failed to download poster for item ID: {item_id}")
-        return False
+    # Use the provided poster if available, otherwise download from Jellyfin
+    poster_path = input_poster
+    if not poster_path or not os.path.exists(poster_path):
+        # Download poster
+        poster_path = download_poster(jellyfin_url, api_key, item_id)
+        if not poster_path:
+            print(f"❌ Failed to download poster for item ID: {item_id}")
+            return False
+        
+        # If we downloaded a new poster (not using the input one), resize it
+        # Create a path for the resized poster
+        resized_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "posters", "working",
+            os.path.basename(poster_path)
+        )
+        
+        # Import resize function only when needed to avoid circular imports
+        from aphrodite_helpers.resize_posters import resize_image
+        
+        # Resize the poster for consistent badge sizing
+        resize_success = resize_image(poster_path, resized_path, target_width=1000)
+        if resize_success:
+            print(f"✅ Resized downloaded poster to 1000px width")
+            poster_path = resized_path
     
     # Apply container badge to poster
     result = apply_badge_to_poster(
         poster_path=poster_path,
         badge=container_badge,
         settings=badge_settings,
-        output_dir=output_dir
+        working_dir="posters/working",  # Explicitly set working directory
+        output_dir=output_dir           # Use output dir from parameters
     )
     
-    return result is not None
+    print(f"\nReview badge output path: {result}")
+    
+    # Check if the result is None, which indicates an error
+    if result is None:
+        print(f"❌ Error applying review badge to poster")
+        return False
+    else:
+        # Ensure the output file exists
+        if os.path.exists(result):
+            return True
+        else:
+            print(f"❌ Review badge was created but the output file doesn't exist: {result}")
+            return False
 
 def main():
     parser = argparse.ArgumentParser(description="Apply review badges to Jellyfin media posters")

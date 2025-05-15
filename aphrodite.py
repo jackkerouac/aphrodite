@@ -2,6 +2,7 @@
 # aphrodite.py  •  stripped-down (no StateManager)
 
 import sys
+import os
 import argparse
 import time
 
@@ -20,7 +21,9 @@ from aphrodite_helpers.get_resolution_info import (
     get_media_resolution_info,
     get_resolution_badge_text
 )
+from aphrodite_helpers.apply_review_badges import process_item_reviews
 from aphrodite_helpers.poster_fetcher import download_poster
+from aphrodite_helpers.resize_posters import resize_image
 from aphrodite_helpers.apply_badge import (
     load_badge_settings,
     create_badge,
@@ -39,7 +42,7 @@ BANNER = r"""
        | |                                    
        |_|                                    
 
-                    v0.2.0       
+                    v0.2.1       
 """
 
 def display_banner() -> None:
@@ -49,10 +52,10 @@ def display_banner() -> None:
 def process_single_item(jellyfin_url: str, api_key: str, user_id: str, 
                         item_id: str, max_retries: int = 3,
                         add_audio: bool = True, add_resolution: bool = True,
-                        skip_upload: bool = False) -> bool:
+                        add_reviews: bool = True, skip_upload: bool = False) -> bool:
     print(f"\n📋 Processing item {item_id}")
 
-    if not add_audio and not add_resolution:
+    if not add_audio and not add_resolution and not add_reviews:
         print("⚠️ No badge types selected. At least one badge type must be enabled.")
         return False
 
@@ -69,7 +72,28 @@ def process_single_item(jellyfin_url: str, api_key: str, user_id: str,
     else:
         item_name = item_info.get('name', 'Unknown Item')
 
-    working_poster_path = poster_path
+    # 1.5. Resize the poster for consistent badge placement
+    os.makedirs(os.path.join(os.path.dirname(os.path.abspath(__file__)), "posters", "working"), exist_ok=True)
+    
+    # Path for resized poster in working directory
+    resized_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "posters", "working", 
+        os.path.basename(poster_path)
+    )
+    
+    # Resize the poster to ensure consistent badge placement
+    resize_success = resize_image(poster_path, resized_path, target_width=1000)
+    if not resize_success:
+        print("⚠️ Failed to resize poster, continuing with original size")
+        working_poster_path = poster_path
+    else:
+        print("✅ Resized poster to 1000px width")
+        working_poster_path = resized_path
+        
+    # Ensure output directories exist
+    os.makedirs(os.path.join(os.path.dirname(os.path.abspath(__file__)), "posters", "modified"), exist_ok=True)
+
     output_path = None
 
     # 2. Process Audio Badge if requested
@@ -116,8 +140,43 @@ def process_single_item(jellyfin_url: str, api_key: str, user_id: str,
         if not output_path:
             print("❌ Failed to apply resolution badge to poster")
             return False
+            
+        # Update working_poster_path to point to the poster with resolution badge
+        working_poster_path = output_path
+    
+    # 4. Process Review Badges if requested
+    if add_reviews:
+        print(f"📊 Adding review badges for {item_name}")
+        # We want to add the review badges to the current version of the poster 
+        # (which may already have audio and resolution badges)
+        review_success = process_item_reviews(
+            item_id, 
+            jellyfin_url, 
+            api_key, 
+            user_id,
+            "badge_settings_review.yml",
+            "posters/modified",  # Save directly to modified directory
+            working_poster_path  # Pass the current working poster path
+        )
+        
+        if not review_success:
+            print("⚠️ No reviews found or failed to create review badges")
+        else:
+            # Update output_path to point to the review badge output
+            review_output_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "posters", "modified", 
+                os.path.basename(working_poster_path)
+            )
+            
+            if os.path.exists(review_output_path):
+                output_path = review_output_path
+                working_poster_path = output_path  # Update working path too
+                print(f"✅ Added review badges")
+            else:
+                print(f"⚠️ Review badges were processed but output not found at {review_output_path}")
 
-    # 4. Upload the final modified poster (unless skipped)
+    # 5. Upload the final modified poster (unless skipped)
     if not skip_upload:
         uploader = PosterUploader(jellyfin_url, api_key, user_id)
         if not uploader.upload_poster(item_id, output_path, max_retries):
@@ -134,7 +193,8 @@ def process_single_item(jellyfin_url: str, api_key: str, user_id: str,
 def process_library_items(jellyfin_url: str, api_key: str, user_id: str,
                           library_id: str, limit: int | None,
                           max_retries: int, add_audio: bool = True, 
-                          add_resolution: bool = True, skip_upload: bool = False) -> None:
+                          add_resolution: bool = True, add_reviews: bool = True,
+                          skip_upload: bool = False) -> None:
     items = get_library_items(jellyfin_url, api_key, user_id, library_id)
     if not items:
         print("⚠️  No items found in library")
@@ -149,7 +209,8 @@ def process_library_items(jellyfin_url: str, api_key: str, user_id: str,
         item_id = item["Id"]
         print(f"\n[{i}/{len(items)}] {name}")
         process_single_item(jellyfin_url, api_key, user_id,
-                            item_id, max_retries, add_audio, add_resolution, skip_upload)
+                            item_id, max_retries, add_audio, add_resolution, 
+                            add_reviews, skip_upload)
         time.sleep(1)
 
 
@@ -167,6 +228,7 @@ def main() -> int:
     item_p.add_argument("--retries", type=int, default=3)
     item_p.add_argument("--no-audio", action="store_true", help="Don't add audio codec badge")
     item_p.add_argument("--no-resolution", action="store_true", help="Don't add resolution badge")
+    item_p.add_argument("--no-reviews", action="store_true", help="Don't add review badges")
     item_p.add_argument("--no-upload", action="store_true", help="Don't upload posters to Jellyfin, only save locally")
 
     lib_p = sub.add_parser("library", help="Process every item in a library")
@@ -175,6 +237,7 @@ def main() -> int:
     lib_p.add_argument("--retries", type=int, default=3)
     lib_p.add_argument("--no-audio", action="store_true", help="Don't add audio codec badge")
     lib_p.add_argument("--no-resolution", action="store_true", help="Don't add resolution badge")
+    lib_p.add_argument("--no-reviews", action="store_true", help="Don't add review badges")
     lib_p.add_argument("--no-upload", action="store_true", help="Don't upload posters to Jellyfin, only save locally")
 
     args = parser.parse_args()
@@ -196,28 +259,30 @@ def main() -> int:
         return 0
 
     if args.cmd == "item":
-        # By default, both badge types are ON
+        # By default, all badge types are ON
         add_audio = not (hasattr(args, 'no_audio') and args.no_audio)
         add_resolution = not (hasattr(args, 'no_resolution') and args.no_resolution)
+        add_reviews = not (hasattr(args, 'no_reviews') and args.no_reviews)
         skip_upload = hasattr(args, 'no_upload') and args.no_upload
         
         ok = process_single_item(
             url, api_key, user_id, args.item_id, args.retries,
             add_audio=add_audio, add_resolution=add_resolution,
-            skip_upload=skip_upload
+            add_reviews=add_reviews, skip_upload=skip_upload
         )
         return 0 if ok else 1
 
     if args.cmd == "library":
-        # By default, both badge types are ON
+        # By default, all badge types are ON
         add_audio = not (hasattr(args, 'no_audio') and args.no_audio)
         add_resolution = not (hasattr(args, 'no_resolution') and args.no_resolution)
+        add_reviews = not (hasattr(args, 'no_reviews') and args.no_reviews)
         skip_upload = hasattr(args, 'no_upload') and args.no_upload
         
         process_library_items(
             url, api_key, user_id, args.library_id, args.limit, args.retries,
             add_audio=add_audio, add_resolution=add_resolution,
-            skip_upload=skip_upload
+            add_reviews=add_reviews, skip_upload=skip_upload
         )
         return 0
 

@@ -10,10 +10,10 @@ Text:
   text-color: "#FFFFFF"
   text-size: 90
 Background:
-  background-color: "#FFFF00"
+  background-color: "#000000"
   background_opacity: 40
 Border:
-  border-color: "#FFFF00"
+  border-color: "#000000"
   border-radius: 10
   border_width: 1
 Shadow:

@@ -180,19 +180,23 @@ class ReviewFetcher:
         if review_data.get("omdb"):
             omdb_data = review_data["omdb"]
             
-            # IMDB Rating
+            # IMDB Rating - Convert to percentage
             if "imdbRating" in omdb_data and omdb_data["imdbRating"] != "N/A":
-                formatted_reviews.append({
-                    "source": "IMDb",
-                    "rating": omdb_data["imdbRating"],
-                    "max_rating": "10",
-                    "votes": omdb_data.get("imdbVotes", "N/A"),
-                    "image_key": "IMDb"
-                })
-                
-                # Check if in top listings based on rating and votes
                 try:
+                    # Convert rating from 0-10 scale to percentage
                     imdb_rating = float(omdb_data["imdbRating"])
+                    percentage_rating = int(round(imdb_rating * 10))
+                    
+                    formatted_reviews.append({
+                        "source": "IMDb",
+                        "rating": f"{percentage_rating}%",  # Display as percentage
+                        "original_rating": omdb_data["imdbRating"],  # Keep original for reference
+                        "max_rating": "100%",  # Standardize max rating
+                        "votes": omdb_data.get("imdbVotes", "N/A"),
+                        "image_key": "IMDb"
+                    })
+                    
+                    # Check if in top listings based on rating and votes
                     imdb_votes_str = omdb_data.get("imdbVotes", "0").replace(",", "")
                     imdb_votes = int(imdb_votes_str) if imdb_votes_str.isdigit() else 0
                     
@@ -201,13 +205,13 @@ class ReviewFetcher:
                         if imdb_rating >= 8.5 and imdb_votes >= 250000:
                             formatted_reviews.append({
                                 "source": "IMDb Top 250",
-                                "rating": omdb_data["imdbRating"],
+                                "rating": f"{percentage_rating}%",
                                 "image_key": "IMDbTop250"
                             })
                         elif imdb_rating >= 8.0 and imdb_votes >= 100000:
                             formatted_reviews.append({
                                 "source": "IMDb Top 1000",
-                                "rating": omdb_data["imdbRating"],
+                                "rating": f"{percentage_rating}%",
                                 "image_key": "IMDbTop1000"
                             })
                 except (ValueError, TypeError):
@@ -231,7 +235,7 @@ class ReviewFetcher:
                                 
                             formatted_reviews.append({
                                 "source": "Rotten Tomatoes",
-                                "rating": f"{rt_score}%",
+                                "rating": f"{rt_score}%",  # Already a percentage
                                 "max_rating": "100%",
                                 "image_key": image_key
                             })
@@ -250,8 +254,8 @@ class ReviewFetcher:
                                 
                             formatted_reviews.append({
                                 "source": "Metacritic",
-                                "rating": mc_score,
-                                "max_rating": "100",
+                                "rating": f"{mc_score}%",  # Convert to percentage format
+                                "max_rating": "100%",
                                 "image_key": image_key
                             })
                         except ValueError:
@@ -267,25 +271,53 @@ class ReviewFetcher:
                 
                 # Only include if there are enough votes to be meaningful
                 if vote_count >= 10:
-                    formatted_reviews.append({
-                        "source": "TMDb",
-                        "rating": f"{vote_average:.1f}",
-                        "max_rating": "10",
-                        "votes": vote_count,
-                        "image_key": "TMDb"
-                    })
+                    try:
+                        # Convert from 0-10 scale to percentage
+                        percentage_rating = int(round(float(vote_average) * 10))
+                        
+                        formatted_reviews.append({
+                            "source": "TMDb",
+                            "rating": f"{percentage_rating}%",  # Display as percentage
+                            "original_rating": f"{vote_average:.1f}",  # Keep original for reference
+                            "max_rating": "100%",  # Standardize max rating
+                            "votes": vote_count,
+                            "image_key": "TMDb"
+                        })
+                    except (ValueError, TypeError):
+                        # Fallback in case of parsing errors
+                        formatted_reviews.append({
+                            "source": "TMDb",
+                            "rating": f"{vote_average:.1f}",
+                            "max_rating": "10",
+                            "votes": vote_count,
+                            "image_key": "TMDb"
+                        })
         
         # Process AniDB data (placeholder)
         if review_data.get("anidb"):
             anidb_data = review_data["anidb"]
             
             if "rating" in anidb_data:
-                formatted_reviews.append({
-                    "source": "AniDB",
-                    "rating": anidb_data["rating"],
-                    "max_rating": "10",
-                    "image_key": "AniDB"
-                })
+                try:
+                    # Convert from 0-10 scale to percentage
+                    anidb_rating = float(anidb_data["rating"])
+                    percentage_rating = int(round(anidb_rating * 10))
+                    
+                    formatted_reviews.append({
+                        "source": "AniDB",
+                        "rating": f"{percentage_rating}%",  # Display as percentage
+                        "original_rating": anidb_data["rating"],  # Keep original for reference
+                        "max_rating": "100%",  # Standardize max rating
+                        "image_key": "AniDB"
+                    })
+                except (ValueError, TypeError):
+                    # Fallback to original format if conversion fails
+                    formatted_reviews.append({
+                        "source": "AniDB",
+                        "rating": anidb_data["rating"],
+                        "max_rating": "10",
+                        "image_key": "AniDB"
+                    })
         
         # If show_details is True, return detailed review information
         if show_details:
