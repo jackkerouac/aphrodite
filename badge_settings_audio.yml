@@ -2,13 +2,20 @@ General:
   general_badge_size: 100
   general_edge_padding: 30
   general_badge_position: top-left
+  general_text_padding: 12
+  use_dynamic_sizing: true  # Set to false to use fixed badge size
+Text:
+  font: "Arial"
+  fallback_font: "DejaVuSans.ttf"
+  text-color: "#FFFFFF"
+  text-size: 40
 Background:
-  background-color: "#fe019a"
+  background-color: "#000000"
   background_opacity: 60
 Border:
-  border-color: "#fe019a"
+  border-color: "#000000"
   border-radius: 10
-  border_width: 4
+  border_width: 1
 Shadow:
   shadow_enable: true
   shadow_blur: 8

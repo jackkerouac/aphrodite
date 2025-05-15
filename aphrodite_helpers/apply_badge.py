@@ -61,21 +61,31 @@ def create_badge(settings, text=None):
         border_radius = settings.get('Border', {}).get('border-color', {}).get('border-radius', 10)
     
     # Text padding (space between text and badge edge)
-    text_padding = 12  # Pixels of padding on all sides
+    text_padding = settings.get('General', {}).get('general_text_padding', 12)  # Get from settings or default to 12 pixels
+    
+    # Get font settings
+    font_family = settings.get('Text', {}).get('font', "Arial")
+    fallback_font = settings.get('Text', {}).get('fallback_font', "DejaVuSans.ttf")
+    font_size = settings.get('Text', {}).get('text-size', 20)
+    
+    # Check if we should use dynamic sizing or fixed size
+    use_dynamic_sizing = settings.get('General', {}).get('use_dynamic_sizing', True)
     
     # Create initial dimensions based on text if provided
-    if text:
+    if text and use_dynamic_sizing:
         try:
             # Try to load a font
             try:
-                # For Windows, a standard font
-                font_path = "arial.ttf"
-                font_size = 20  # Starting font size
-                font = ImageFont.truetype(font_path, size=font_size)
+                # Try the specified font
+                font = ImageFont.truetype(font_family, size=font_size)
             except IOError:
-                # Default PIL font if standard font not found
-                font = ImageFont.load_default()
-                font_size = 12  # Smaller for default font
+                try:
+                    # Try fallback font
+                    font = ImageFont.truetype(fallback_font, size=font_size)
+                except IOError:
+                    # Default PIL font if specified fonts not found
+                    font = ImageFont.load_default()
+                    font_size = 12  # Smaller for default font
             
             # Create temporary image for text measurement
             temp_img = Image.new('RGBA', (500, 100), (0, 0, 0, 0))
@@ -101,8 +111,21 @@ def create_badge(settings, text=None):
             print(f"⚠️ Warning: Error calculating badge size: {e}")
             badge = Image.new('RGBA', (default_badge_size, default_badge_size), (0, 0, 0, 0))
     else:
-        # If no text, use default badge size
+        # If no text or dynamic sizing is disabled, use default badge size
         badge = Image.new('RGBA', (default_badge_size, default_badge_size), (0, 0, 0, 0))
+        
+        # Try to load the font if we have text but aren't using dynamic sizing
+        if text:
+            try:
+                # Try the specified font
+                font = ImageFont.truetype(font_family, size=font_size)
+            except IOError:
+                try:
+                    # Try fallback font
+                    font = ImageFont.truetype(fallback_font, size=font_size)
+                except IOError:
+                    # Default PIL font if specified fonts not found
+                    font = ImageFont.load_default()
     
     draw = ImageDraw.Draw(badge)
     
@@ -120,17 +143,86 @@ def create_badge(settings, text=None):
     background_color = hex_to_rgba(background_color_hex, background_opacity)
     border_color = hex_to_rgba(border_color_hex, 100)  # Full opacity for border
     
-    # Draw rounded rectangle for the badge background (currently simple rectangle for PIL compatibility)
-    # TODO: Implement proper rounded corners if needed
-    draw.rectangle([(0, 0), (badge.width, badge.height)], fill=background_color)
-    
-    # Draw border
-    draw.rectangle(
-        [(border_width//2, border_width//2), 
-         (badge.width-border_width//2, badge.height-border_width//2)], 
-        outline=border_color, 
-        width=border_width
-    )
+    # Check if we should implement rounded corners
+    if border_radius > 0:
+        try:
+            # Make the radius smaller if the badge is small
+            effective_radius = min(border_radius, badge.width // 4, badge.height // 4)
+            
+            # Create a mask for the rounded rectangle
+            mask = Image.new('L', badge.size, 0)
+            mask_draw = ImageDraw.Draw(mask)
+            
+            # Draw rounded rectangle on the mask
+            # Top left corner
+            mask_draw.pieslice([0, 0, effective_radius * 2, effective_radius * 2], 180, 270, fill=255)
+            # Top right corner
+            mask_draw.pieslice([badge.width - effective_radius * 2, 0, badge.width, effective_radius * 2], 270, 0, fill=255)
+            # Bottom left corner
+            mask_draw.pieslice([0, badge.height - effective_radius * 2, effective_radius * 2, badge.height], 90, 180, fill=255)
+            # Bottom right corner
+            mask_draw.pieslice([badge.width - effective_radius * 2, badge.height - effective_radius * 2, badge.width, badge.height], 0, 90, fill=255)
+            
+            # Fill in the center
+            mask_draw.rectangle([effective_radius, 0, badge.width - effective_radius, badge.height], fill=255)
+            mask_draw.rectangle([0, effective_radius, badge.width, badge.height - effective_radius], fill=255)
+            
+            # Create a background rectangle
+            background = Image.new('RGBA', badge.size, background_color)
+            
+            # Apply mask to background
+            badge = Image.composite(background, badge, mask)
+            
+            # Draw border if needed
+            if border_width > 0:
+                border_mask = Image.new('L', badge.size, 0)
+                border_draw = ImageDraw.Draw(border_mask)
+                
+                # Draw outer rounded rectangle
+                border_draw.pieslice([0, 0, effective_radius * 2, effective_radius * 2], 180, 270, fill=255)
+                border_draw.pieslice([badge.width - effective_radius * 2, 0, badge.width, effective_radius * 2], 270, 0, fill=255)
+                border_draw.pieslice([0, badge.height - effective_radius * 2, effective_radius * 2, badge.height], 90, 180, fill=255)
+                border_draw.pieslice([badge.width - effective_radius * 2, badge.height - effective_radius * 2, badge.width, badge.height], 0, 90, fill=255)
+                border_draw.rectangle([effective_radius, 0, badge.width - effective_radius, badge.height], fill=255)
+                border_draw.rectangle([0, effective_radius, badge.width, badge.height - effective_radius], fill=255)
+                
+                # Draw inner rounded rectangle (to cut out center)
+                inner_radius = max(0, effective_radius - border_width)
+                inner_padding = border_width
+                
+                # Only draw inner mask if border is thick enough
+                if inner_radius > 0 and badge.width > 2 * border_width and badge.height > 2 * border_width:
+                    border_draw.pieslice([inner_padding, inner_padding, inner_padding + inner_radius * 2, inner_padding + inner_radius * 2], 180, 270, fill=0)
+                    border_draw.pieslice([badge.width - inner_padding - inner_radius * 2, inner_padding, badge.width - inner_padding, inner_padding + inner_radius * 2], 270, 0, fill=0)
+                    border_draw.pieslice([inner_padding, badge.height - inner_padding - inner_radius * 2, inner_padding + inner_radius * 2, badge.height - inner_padding], 90, 180, fill=0)
+                    border_draw.pieslice([badge.width - inner_padding - inner_radius * 2, badge.height - inner_padding - inner_radius * 2, badge.width - inner_padding, badge.height - inner_padding], 0, 90, fill=0)
+                    border_draw.rectangle([inner_padding + inner_radius, inner_padding, badge.width - inner_padding - inner_radius, badge.height - inner_padding], fill=0)
+                    border_draw.rectangle([inner_padding, inner_padding + inner_radius, badge.width - inner_padding, badge.height - inner_padding - inner_radius], fill=0)
+                
+                # Create border overlay
+                border_overlay = Image.new('RGBA', badge.size, border_color)
+                
+                # Apply border mask to overlay
+                badge = Image.composite(border_overlay, badge, border_mask)
+        except Exception as e:
+            # Fall back to simple rectangle if rounded corners fail
+            print(f"⚠️ Warning: Error creating rounded corners: {e}, falling back to rectangle")
+            draw.rectangle([(0, 0), (badge.width, badge.height)], fill=background_color)
+            draw.rectangle(
+                [(border_width//2, border_width//2), 
+                 (badge.width-border_width//2, badge.height-border_width//2)], 
+                outline=border_color, 
+                width=border_width
+            )
+    else:
+        # Simple rectangle without rounded corners
+        draw.rectangle([(0, 0), (badge.width, badge.height)], fill=background_color)
+        draw.rectangle(
+            [(border_width//2, border_width//2), 
+             (badge.width-border_width//2, badge.height-border_width//2)], 
+            outline=border_color, 
+            width=border_width
+        )
     
     # Add text if provided
     if text:
@@ -146,28 +238,80 @@ def create_badge(settings, text=None):
             text_x = (badge.width - text_width) // 2
             text_y = (badge.height - text_height) // 2 - bbox[1]
             
-            # Draw text with white color (for contrast)
-            draw.text((text_x, text_y), text, fill=(255, 255, 255, 255), font=font)
+            # Create a new draw object if we used rounded corners (original might be invalid)
+            if border_radius > 0:
+                text_overlay = Image.new('RGBA', badge.size, (0, 0, 0, 0))
+                text_draw = ImageDraw.Draw(text_overlay)
+                # Get text color from settings or default to white
+                text_color_hex = settings.get('Text', {}).get('text-color', '#FFFFFF')
+                text_color = hex_to_rgba(text_color_hex, 100)  # Full opacity for text
+                text_draw.text((text_x, text_y), text, fill=text_color, font=font)
+                badge = Image.alpha_composite(badge, text_overlay)
+            else:
+                # Use the original draw object for simple rectangles
+                # Get text color from settings or default to white
+                text_color_hex = settings.get('Text', {}).get('text-color', '#FFFFFF')
+                text_color = hex_to_rgba(text_color_hex, 100)  # Full opacity for text
+                draw.text((text_x, text_y), text, fill=text_color, font=font)
         except Exception as e:
             print(f"⚠️ Warning: Could not add text to badge: {e}")
     
     # Apply shadow if enabled
     shadow_enabled = settings.get('Shadow', {}).get('shadow_enable', False)
     if shadow_enabled:
-        shadow_blur = settings.get('Shadow', {}).get('shadow_blur', 5)
-        # Create a shadow by blurring a black version of the badge
-        shadow = Image.new('RGBA', badge.size, (0, 0, 0, 0))
-        shadow_draw = ImageDraw.Draw(shadow)
-        shadow_draw.rectangle([(0, 0), (badge.width, badge.height)], fill=(0, 0, 0, 100))
-        shadow = shadow.filter(ImageFilter.GaussianBlur(shadow_blur))
-        
-        # Create a composite with the shadow and the badge
-        composite = Image.new('RGBA', badge.size, (0, 0, 0, 0))
-        shadow_offset_x = settings.get('Shadow', {}).get('shadow_offset_x', 2)
-        shadow_offset_y = settings.get('Shadow', {}).get('shadow_offset_y', 2)
-        composite.paste(shadow, (shadow_offset_x, shadow_offset_y), shadow)
-        composite.paste(badge, (0, 0), badge)
-        return composite
+        try:
+            shadow_blur = settings.get('Shadow', {}).get('shadow_blur', 5)
+            shadow_offset_x = settings.get('Shadow', {}).get('shadow_offset_x', 2)
+            shadow_offset_y = settings.get('Shadow', {}).get('shadow_offset_y', 2)
+            
+            # For rounded corners, create a shadow with the same mask
+            if border_radius > 0:
+                # Create a shadow by using the same mask as the badge
+                shadow = Image.new('RGBA', badge.size, (0, 0, 0, 0))
+                shadow_base = Image.new('RGBA', badge.size, (0, 0, 0, 100))  # Semi-transparent black
+                
+                # Recreate the mask for consistency
+                shadow_mask = Image.new('L', badge.size, 0)
+                shadow_mask_draw = ImageDraw.Draw(shadow_mask)
+                
+                effective_radius = min(border_radius, badge.width // 4, badge.height // 4)
+                shadow_mask_draw.pieslice([0, 0, effective_radius * 2, effective_radius * 2], 180, 270, fill=255)
+                shadow_mask_draw.pieslice([badge.width - effective_radius * 2, 0, badge.width, effective_radius * 2], 270, 0, fill=255)
+                shadow_mask_draw.pieslice([0, badge.height - effective_radius * 2, effective_radius * 2, badge.height], 90, 180, fill=255)
+                shadow_mask_draw.pieslice([badge.width - effective_radius * 2, badge.height - effective_radius * 2, badge.width, badge.height], 0, 90, fill=255)
+                shadow_mask_draw.rectangle([effective_radius, 0, badge.width - effective_radius, badge.height], fill=255)
+                shadow_mask_draw.rectangle([0, effective_radius, badge.width, badge.height - effective_radius], fill=255)
+                
+                # Use the mask for the shadow
+                shadow = Image.composite(shadow_base, shadow, shadow_mask)
+            else:
+                # Simple shadow for rectangular badges
+                shadow = Image.new('RGBA', badge.size, (0, 0, 0, 0))
+                shadow_draw = ImageDraw.Draw(shadow)
+                shadow_draw.rectangle([(0, 0), (badge.width, badge.height)], fill=(0, 0, 0, 100))
+            
+            # Apply blur to the shadow
+            shadow = shadow.filter(ImageFilter.GaussianBlur(shadow_blur))
+            
+            # Create a composite with the shadow and the badge
+            composite_width = badge.width + abs(shadow_offset_x) + shadow_blur
+            composite_height = badge.height + abs(shadow_offset_y) + shadow_blur
+            composite = Image.new('RGBA', (composite_width, composite_height), (0, 0, 0, 0))
+            
+            # Calculate positions for shadow and badge
+            shadow_x = max(0, shadow_offset_x)
+            shadow_y = max(0, shadow_offset_y)
+            badge_x = max(0, -shadow_offset_x)
+            badge_y = max(0, -shadow_offset_y)
+            
+            # Paste shadow and badge
+            composite.paste(shadow, (shadow_x, shadow_y), shadow)
+            composite.paste(badge, (badge_x, badge_y), badge)
+            
+            return composite
+        except Exception as e:
+            print(f"⚠️ Warning: Error creating shadow: {e}, returning badge without shadow")
+            return badge
         
     return badge
 
