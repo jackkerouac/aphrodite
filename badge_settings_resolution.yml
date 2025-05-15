@@ -27,6 +27,7 @@ ImageBadges:
   enable_image_badges: true   # Master switch to enable/disable image badges
   codec_image_directory: "images/resolution"   # Directory for resolution images
   fallback_to_text: true   # If true, use text when image not found
+  image_padding: 20  # Padding around image content in pixels (larger default for resolution badges)
   image_mapping:   # Resolution image mappings
     "480": "480.png"
     "480p": "480p.png"

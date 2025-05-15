@@ -31,12 +31,22 @@ def create_badge(settings, text=None, use_image=True):
                     border_radius = settings.get('Border', {}).get('border-color', {}).get('border-radius', 10)
                     border_color_hex = '#000000'  # Default black if not found
                 
+                # Get image padding from settings
+                image_padding = settings.get('ImageBadges', {}).get('image_padding', 15)
+                
                 # Convert colors to RGBA
                 background_color = hex_to_rgba(background_color_hex, background_opacity)
                 border_color = hex_to_rgba(border_color_hex, 100)  # Full opacity for border
                 
-                # Apply styling to image badges
-                codec_image = _apply_badge_style(codec_image, background_color, border_color, border_width, border_radius)
+                # Apply styling to image badges with padding
+                codec_image = _apply_badge_style(
+                    codec_image, 
+                    background_color, 
+                    border_color, 
+                    border_width, 
+                    border_radius,
+                    image_padding  # Pass padding parameter
+                )
                 
                 # Apply shadow if enabled
                 shadow_enabled = settings.get('Shadow', {}).get('shadow_enable', False)
@@ -167,10 +177,18 @@ def create_badge(settings, text=None, use_image=True):
         
     return badge
 
-def _apply_badge_style(badge, background_color, border_color, border_width, border_radius):
+def _apply_badge_style(badge, background_color, border_color, border_width, border_radius, padding=0):
     """Apply background and border styling to the badge."""
     # Create a new transparent image for the background and border
-    styled_badge = Image.new('RGBA', badge.size, (0, 0, 0, 0))
+    # If padding is provided, create a larger image to accommodate the padded content
+    if padding > 0 and any(pixel[3] > 0 for pixel in badge.getdata()):
+        # Add padding to both dimensions
+        new_width = badge.width + (padding * 2)
+        new_height = badge.height + (padding * 2)
+        styled_badge = Image.new('RGBA', (new_width, new_height), (0, 0, 0, 0))
+    else:
+        styled_badge = Image.new('RGBA', badge.size, (0, 0, 0, 0))
+    
     draw = ImageDraw.Draw(styled_badge)
     
     # Check if we're dealing with a badge that might already have content
@@ -181,79 +199,79 @@ def _apply_badge_style(badge, background_color, border_color, border_width, bord
     if border_radius > 0:
         try:
             # Make the radius smaller if the badge is small
-            effective_radius = min(border_radius, badge.width // 4, badge.height // 4)
+            effective_radius = min(border_radius, styled_badge.width // 4, styled_badge.height // 4)
             
             # Create a mask for the rounded rectangle
-            mask = Image.new('L', badge.size, 0)
+            mask = Image.new('L', styled_badge.size, 0)
             mask_draw = ImageDraw.Draw(mask)
             
             # Draw rounded rectangle on the mask
             # Top left corner
             mask_draw.pieslice([0, 0, effective_radius * 2, effective_radius * 2], 180, 270, fill=255)
             # Top right corner
-            mask_draw.pieslice([badge.width - effective_radius * 2, 0, badge.width, effective_radius * 2], 270, 0, fill=255)
+            mask_draw.pieslice([styled_badge.width - effective_radius * 2, 0, styled_badge.width, effective_radius * 2], 270, 0, fill=255)
             # Bottom left corner
-            mask_draw.pieslice([0, badge.height - effective_radius * 2, effective_radius * 2, badge.height], 90, 180, fill=255)
+            mask_draw.pieslice([0, styled_badge.height - effective_radius * 2, effective_radius * 2, styled_badge.height], 90, 180, fill=255)
             # Bottom right corner
-            mask_draw.pieslice([badge.width - effective_radius * 2, badge.height - effective_radius * 2, badge.width, badge.height], 0, 90, fill=255)
+            mask_draw.pieslice([styled_badge.width - effective_radius * 2, styled_badge.height - effective_radius * 2, styled_badge.width, styled_badge.height], 0, 90, fill=255)
             
             # Fill in the center
-            mask_draw.rectangle([effective_radius, 0, badge.width - effective_radius, badge.height], fill=255)
-            mask_draw.rectangle([0, effective_radius, badge.width, badge.height - effective_radius], fill=255)
+            mask_draw.rectangle([effective_radius, 0, styled_badge.width - effective_radius, styled_badge.height], fill=255)
+            mask_draw.rectangle([0, effective_radius, styled_badge.width, styled_badge.height - effective_radius], fill=255)
             
             # Create a background rectangle
-            background = Image.new('RGBA', badge.size, background_color)
+            background = Image.new('RGBA', styled_badge.size, background_color)
             
             # Apply mask to background
             styled_badge = Image.composite(background, styled_badge, mask)
             
             # Draw border if needed
             if border_width > 0:
-                border_mask = Image.new('L', badge.size, 0)
+                border_mask = Image.new('L', styled_badge.size, 0)
                 border_draw = ImageDraw.Draw(border_mask)
                 
                 # Draw outer rounded rectangle
                 border_draw.pieslice([0, 0, effective_radius * 2, effective_radius * 2], 180, 270, fill=255)
-                border_draw.pieslice([badge.width - effective_radius * 2, 0, badge.width, effective_radius * 2], 270, 0, fill=255)
-                border_draw.pieslice([0, badge.height - effective_radius * 2, effective_radius * 2, badge.height], 90, 180, fill=255)
-                border_draw.pieslice([badge.width - effective_radius * 2, badge.height - effective_radius * 2, badge.width, badge.height], 0, 90, fill=255)
-                border_draw.rectangle([effective_radius, 0, badge.width - effective_radius, badge.height], fill=255)
-                border_draw.rectangle([0, effective_radius, badge.width, badge.height - effective_radius], fill=255)
+                border_draw.pieslice([styled_badge.width - effective_radius * 2, 0, styled_badge.width, effective_radius * 2], 270, 0, fill=255)
+                border_draw.pieslice([0, styled_badge.height - effective_radius * 2, effective_radius * 2, styled_badge.height], 90, 180, fill=255)
+                border_draw.pieslice([styled_badge.width - effective_radius * 2, styled_badge.height - effective_radius * 2, styled_badge.width, styled_badge.height], 0, 90, fill=255)
+                border_draw.rectangle([effective_radius, 0, styled_badge.width - effective_radius, styled_badge.height], fill=255)
+                border_draw.rectangle([0, effective_radius, styled_badge.width, styled_badge.height - effective_radius], fill=255)
                 
                 # Draw inner rounded rectangle (to cut out center)
                 inner_radius = max(0, effective_radius - border_width)
                 inner_padding = border_width
                 
                 # Only draw inner mask if border is thick enough
-                if inner_radius > 0 and badge.width > 2 * border_width and badge.height > 2 * border_width:
+                if inner_radius > 0 and styled_badge.width > 2 * border_width and styled_badge.height > 2 * border_width:
                     border_draw.pieslice([inner_padding, inner_padding, inner_padding + inner_radius * 2, inner_padding + inner_radius * 2], 180, 270, fill=0)
-                    border_draw.pieslice([badge.width - inner_padding - inner_radius * 2, inner_padding, badge.width - inner_padding, inner_padding + inner_radius * 2], 270, 0, fill=0)
-                    border_draw.pieslice([inner_padding, badge.height - inner_padding - inner_radius * 2, inner_padding + inner_radius * 2, badge.height - inner_padding], 90, 180, fill=0)
-                    border_draw.pieslice([badge.width - inner_padding - inner_radius * 2, badge.height - inner_padding - inner_radius * 2, badge.width - inner_padding, badge.height - inner_padding], 0, 90, fill=0)
-                    border_draw.rectangle([inner_padding + inner_radius, inner_padding, badge.width - inner_padding - inner_radius, badge.height - inner_padding], fill=0)
-                    border_draw.rectangle([inner_padding, inner_padding + inner_radius, badge.width - inner_padding, badge.height - inner_padding - inner_radius], fill=0)
+                    border_draw.pieslice([styled_badge.width - inner_padding - inner_radius * 2, inner_padding, styled_badge.width - inner_padding, inner_padding + inner_radius * 2], 270, 0, fill=0)
+                    border_draw.pieslice([inner_padding, styled_badge.height - inner_padding - inner_radius * 2, inner_padding + inner_radius * 2, styled_badge.height - inner_padding], 90, 180, fill=0)
+                    border_draw.pieslice([styled_badge.width - inner_padding - inner_radius * 2, styled_badge.height - inner_padding - inner_radius * 2, styled_badge.width - inner_padding, styled_badge.height - inner_padding], 0, 90, fill=0)
+                    border_draw.rectangle([inner_padding + inner_radius, inner_padding, styled_badge.width - inner_padding - inner_radius, styled_badge.height - inner_padding], fill=0)
+                    border_draw.rectangle([inner_padding, inner_padding + inner_radius, styled_badge.width - inner_padding, styled_badge.height - inner_padding - inner_radius], fill=0)
                 
                 # Create border overlay
-                border_overlay = Image.new('RGBA', badge.size, border_color)
+                border_overlay = Image.new('RGBA', styled_badge.size, border_color)
                 
                 # Apply border mask to overlay
                 styled_badge = Image.composite(border_overlay, styled_badge, border_mask)
         except Exception as e:
             # Fall back to simple rectangle if rounded corners fail
             print(f"⚠️ Warning: Error creating rounded corners: {e}, falling back to rectangle")
-            draw.rectangle([(0, 0), (badge.width, badge.height)], fill=background_color)
+            draw.rectangle([(0, 0), (styled_badge.width, styled_badge.height)], fill=background_color)
             draw.rectangle(
                 [(border_width//2, border_width//2), 
-                 (badge.width-border_width//2, badge.height-border_width//2)], 
+                 (styled_badge.width-border_width//2, styled_badge.height-border_width//2)], 
                 outline=border_color, 
                 width=border_width
             )
     else:
         # Simple rectangle without rounded corners
-        draw.rectangle([(0, 0), (badge.width, badge.height)], fill=background_color)
+        draw.rectangle([(0, 0), (styled_badge.width, styled_badge.height)], fill=background_color)
         draw.rectangle(
             [(border_width//2, border_width//2), 
-             (badge.width-border_width//2, badge.height-border_width//2)], 
+             (styled_badge.width-border_width//2, styled_badge.height-border_width//2)], 
             outline=border_color, 
             width=border_width
         )
@@ -268,8 +286,13 @@ def _apply_badge_style(badge, background_color, border_color, border_width, bord
         result = styled_badge.copy()
         
         # Calculate the center position to place the original content
-        x_offset = (styled_badge.width - badge.width) // 2
-        y_offset = (styled_badge.height - badge.height) // 2
+        # If padding was added, we need to consider it in the centering calculation
+        if padding > 0:
+            x_offset = padding
+            y_offset = padding
+        else:
+            x_offset = (styled_badge.width - badge.width) // 2
+            y_offset = (styled_badge.height - badge.height) // 2
         
         # Paste only the non-transparent parts of the original image
         # This prevents any black boxes or backgrounds from the original image
@@ -340,6 +363,8 @@ def _apply_shadow(badge, settings, border_radius):
             shadow_mask_draw.pieslice([badge.width - effective_radius * 2, 0, badge.width, effective_radius * 2], 270, 0, fill=255)
             shadow_mask_draw.pieslice([0, badge.height - effective_radius * 2, effective_radius * 2, badge.height], 90, 180, fill=255)
             shadow_mask_draw.pieslice([badge.width - effective_radius * 2, badge.height - effective_radius * 2, badge.width, badge.height], 0, 90, fill=255)
+            
+            # Fill in the center
             shadow_mask_draw.rectangle([effective_radius, 0, badge.width - effective_radius, badge.height], fill=255)
             shadow_mask_draw.rectangle([0, effective_radius, badge.width, badge.height - effective_radius], fill=255)
             
