@@ -1,0 +1,29 @@
+{
+  "item_id": "00ba4e022c0ef5f7849ac1119fd58f0d",
+  "created_at": "2025-05-15T09:36:06.506217",
+  "updated_at": "2025-05-15T09:36:06.736789",
+  "state": "failed",
+  "state_history": [
+    {
+      "state": "pending",
+      "timestamp": "2025-05-15T09:36:06.506255"
+    },
+    {
+      "state": "failed",
+      "timestamp": "2025-05-15T09:36:06.736799"
+    }
+  ],
+  "errors": [
+    {
+      "message": "Failed to retrieve media information",
+      "timestamp": "2025-05-15T09:36:06.724698",
+      "source": "media_info"
+    }
+  ],
+  "retry_count": 1,
+  "metadata": {
+    "failure_reason": "Failed to retrieve media information",
+    "failed_at_state": "pending",
+    "failure_source": "media_info"
+  }
+}

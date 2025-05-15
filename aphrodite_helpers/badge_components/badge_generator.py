@@ -14,11 +14,36 @@ def create_badge(settings, text=None, use_image=True):
             codec_image = load_codec_image(text, settings)
             
             if codec_image:
-                # Apply shadow if enabled and return the image
+                # Apply the same styling to image badges as we do to text badges
+                background_color_hex = settings.get('Background', {}).get('background-color')
+                if isinstance(background_color_hex, str):
+                    background_opacity = settings.get('Background', {}).get('background_opacity', 60)
+                else:
+                    background_opacity = settings.get('Background', {}).get('background-color', {}).get('background_opacity', 60)
+                    background_color_hex = '#fe019a'  # Default if not found
+                
+                border_color_hex = settings.get('Border', {}).get('border-color')
+                if isinstance(border_color_hex, str):
+                    border_width = settings.get('Border', {}).get('border_width', 1)
+                    border_radius = settings.get('Border', {}).get('border-radius', 10)
+                else:
+                    border_width = settings.get('Border', {}).get('border-color', {}).get('border_width', 1)
+                    border_radius = settings.get('Border', {}).get('border-color', {}).get('border-radius', 10)
+                    border_color_hex = '#000000'  # Default black if not found
+                
+                # Convert colors to RGBA
+                background_color = hex_to_rgba(background_color_hex, background_opacity)
+                border_color = hex_to_rgba(border_color_hex, 100)  # Full opacity for border
+                
+                # Apply styling to image badges
+                codec_image = _apply_badge_style(codec_image, background_color, border_color, border_width, border_radius)
+                
+                # Apply shadow if enabled
                 shadow_enabled = settings.get('Shadow', {}).get('shadow_enable', False)
                 if shadow_enabled:
                     print(f"📝 Applying shadow to codec image with blur: {settings.get('Shadow', {}).get('shadow_blur', 5)}")
-                    codec_image = _apply_shadow(codec_image, settings, 0)  # 0 for border radius as images have their own shape
+                    # Use the actual border radius from settings, not 0
+                    codec_image = _apply_shadow(codec_image, settings, border_radius)
                 
                 print(f"✅ Using image badge for codec: {text}")
                 return codec_image
@@ -144,7 +169,13 @@ def create_badge(settings, text=None, use_image=True):
 
 def _apply_badge_style(badge, background_color, border_color, border_width, border_radius):
     """Apply background and border styling to the badge."""
-    draw = ImageDraw.Draw(badge)
+    # Create a new transparent image for the background and border
+    styled_badge = Image.new('RGBA', badge.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(styled_badge)
+    
+    # Check if we're dealing with a badge that might already have content
+    # by checking if it has any non-transparent pixels
+    has_content = any(pixel[3] > 0 for pixel in badge.getdata())
     
     # Check if we should implement rounded corners
     if border_radius > 0:
@@ -174,7 +205,7 @@ def _apply_badge_style(badge, background_color, border_color, border_width, bord
             background = Image.new('RGBA', badge.size, background_color)
             
             # Apply mask to background
-            badge = Image.composite(background, badge, mask)
+            styled_badge = Image.composite(background, styled_badge, mask)
             
             # Draw border if needed
             if border_width > 0:
@@ -206,7 +237,7 @@ def _apply_badge_style(badge, background_color, border_color, border_width, bord
                 border_overlay = Image.new('RGBA', badge.size, border_color)
                 
                 # Apply border mask to overlay
-                badge = Image.composite(border_overlay, badge, border_mask)
+                styled_badge = Image.composite(border_overlay, styled_badge, border_mask)
         except Exception as e:
             # Fall back to simple rectangle if rounded corners fail
             print(f"⚠️ Warning: Error creating rounded corners: {e}, falling back to rectangle")
@@ -227,7 +258,26 @@ def _apply_badge_style(badge, background_color, border_color, border_width, bord
             width=border_width
         )
     
-    return badge
+    # Now composite the original image content over our styled background if it has content
+    if has_content:
+        # For image badges, we want to extract just the non-transparent parts of the original
+        # Create a mask from the alpha channel of the original image
+        orig_mask = badge.split()[3] if badge.mode == 'RGBA' else Image.new('L', badge.size, 255)
+        
+        # Create a result with just the styled background
+        result = styled_badge.copy()
+        
+        # Calculate the center position to place the original content
+        x_offset = (styled_badge.width - badge.width) // 2
+        y_offset = (styled_badge.height - badge.height) // 2
+        
+        # Paste only the non-transparent parts of the original image
+        # This prevents any black boxes or backgrounds from the original image
+        result.paste(badge, (x_offset, y_offset), orig_mask)
+        return result
+    else:
+        # If there's no content, just return the styled badge
+        return styled_badge
 
 def _add_text_to_badge(badge, text, font, settings):
     """Add text to the badge image."""

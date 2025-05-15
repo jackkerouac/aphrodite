@@ -14,7 +14,8 @@ from aphrodite_helpers.badge_components import (
     create_badge,
     apply_badge_to_poster,
     process_all_posters,
-    save_test_badge
+    save_test_badge,
+    color_utils
 )
 
 def main():

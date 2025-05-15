@@ -42,12 +42,12 @@ def display_banner() -> None:
     print(BANNER)
 
 
-def process_single_item(jellyfin_url: str, api_key: str, user_id: str,
+def process_single_item(jellyfin_url: str, api_key: str, user_id: str, 
                         item_id: str, max_retries: int = 3) -> bool:
     print(f"\n📋 Processing item {item_id}")
 
     # 1. Media info
-    info = get_media_stream_info(jellyfin_url, api_key, item_id)
+    info = get_media_stream_info(jellyfin_url, api_key, user_id, item_id)
     if not info:
         print("❌ Failed to retrieve media information")
         return False

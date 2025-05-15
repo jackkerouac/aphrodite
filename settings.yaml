@@ -1,7 +1,7 @@
 api_keys:
     Jellyfin:
         - url: "https://jellyfin.okaymedia.ca"
-          api_key: "d66524acc5d544d591e0cbbabff6053c"
+          api_key: "6c921b79ca694f04b86c6e15a104e469"
           user_id: "34b672a45581450dbb14bb6a0a2ae85b"
     OMDB:
         - api_key: "4b8ba0e1"
