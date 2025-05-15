@@ -7,6 +7,7 @@ import yaml
 import shutil
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
+import logging
 
 # Add the project root directory to the Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -26,9 +27,22 @@ def load_badge_settings(settings_file="badge_settings_audio.yml"):
         print(f"❌ Error parsing badge settings: {e}")
         return None
 
+def clean_hex_color(hex_color):
+    """Clean a hex color string from any wrapping characters (like backticks)."""
+    if not isinstance(hex_color, str):
+        return hex_color
+    
+    # Remove any backticks or quotes around the color
+    cleaned = hex_color.replace('`', '').replace('"', '').replace("'", '').strip()
+    return cleaned
+
 def hex_to_rgba(hex_color, opacity=100):
     """Convert hex color to RGBA tuple."""
-    if not hex_color.startswith('#'):
+    # Clean the hex color string
+    hex_color = clean_hex_color(hex_color)
+        
+    if not isinstance(hex_color, str) or not hex_color.startswith('#'):
+        print(f"⚠️ Warning: Invalid hex color format: {hex_color}, using default red")
         return (255, 0, 0, int(255 * opacity / 100))  # Default red with opacity
     
     hex_color = hex_color.lstrip('#')
@@ -39,10 +53,46 @@ def hex_to_rgba(hex_color, opacity=100):
         r, g, b = tuple(int(hex_color[i] + hex_color[i], 16) for i in range(3))
         return (r, g, b, int(255 * opacity / 100))
     else:
+        print(f"⚠️ Warning: Invalid hex color length: {hex_color}, using default red")
         return (255, 0, 0, int(255 * opacity / 100))  # Default red with opacity
+
+def load_font(font_family, fallback_font, font_size):
+    """Load a font with proper fallbacks and error handling."""
+    # Clean font strings
+    font_family = clean_hex_color(font_family)
+    fallback_font = clean_hex_color(fallback_font)
+    
+    # Look for fonts in the system and in the local directory
+    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    font_paths = [
+        font_family,  # Try direct path first
+        os.path.join(root_dir, font_family),  # Try in root directory
+        os.path.join(root_dir, 'fonts', font_family),  # Try in fonts subdirectory
+        fallback_font,  # Try direct path for fallback
+        os.path.join(root_dir, fallback_font),  # Try fallback in root
+        os.path.join(root_dir, 'fonts', fallback_font)  # Try fallback in fonts subdirectory
+    ]
+    
+    # Try all font paths in order
+    for font_path in font_paths:
+        try:
+            font = ImageFont.truetype(font_path, size=int(font_size))
+            print(f"✅ Successfully loaded font: {font_path} at size {font_size}")
+            return font
+        except Exception as e:
+            print(f"⚠️ Warning: Could not load font {font_path}: {e}")
+            continue
+    
+    # If all font paths fail, use default
+    print(f"⚠️ Warning: Could not load any specified fonts, using default")
+    return ImageFont.load_default()
 
 def create_badge(settings, text=None):
     """Create a badge based on the settings, optionally with text."""
+    if not settings:
+        print(f"❌ Error: No settings provided for badge creation.")
+        return None
+        
     # Default badge size from settings (used as fallback)
     default_badge_size = settings.get('General', {}).get('general_badge_size', 100)
     
@@ -68,24 +118,20 @@ def create_badge(settings, text=None):
     fallback_font = settings.get('Text', {}).get('fallback_font', "DejaVuSans.ttf")
     font_size = settings.get('Text', {}).get('text-size', 20)
     
+    # For debugging
+    print(f"📝 Font settings - Family: {font_family}, Fallback: {fallback_font}, Size: {font_size}")
+    
     # Check if we should use dynamic sizing or fixed size
     use_dynamic_sizing = settings.get('General', {}).get('use_dynamic_sizing', True)
     
     # Create initial dimensions based on text if provided
     if text and use_dynamic_sizing:
         try:
-            # Try to load a font
-            try:
-                # Try the specified font
-                font = ImageFont.truetype(font_family, size=font_size)
-            except IOError:
-                try:
-                    # Try fallback font
-                    font = ImageFont.truetype(fallback_font, size=font_size)
-                except IOError:
-                    # Default PIL font if specified fonts not found
-                    font = ImageFont.load_default()
-                    font_size = 12  # Smaller for default font
+            # Load font for text size calculation
+            font = load_font(font_family, fallback_font, font_size)
+            # If we got the default font, use a smaller size
+            if font == ImageFont.load_default():
+                font_size = 12  # Smaller for default font
             
             # Create temporary image for text measurement
             temp_img = Image.new('RGBA', (500, 100), (0, 0, 0, 0))
@@ -116,16 +162,8 @@ def create_badge(settings, text=None):
         
         # Try to load the font if we have text but aren't using dynamic sizing
         if text:
-            try:
-                # Try the specified font
-                font = ImageFont.truetype(font_family, size=font_size)
-            except IOError:
-                try:
-                    # Try fallback font
-                    font = ImageFont.truetype(fallback_font, size=font_size)
-                except IOError:
-                    # Default PIL font if specified fonts not found
-                    font = ImageFont.load_default()
+            # Load font
+            font = load_font(font_family, fallback_font, font_size)
     
     draw = ImageDraw.Draw(badge)
     
@@ -245,6 +283,7 @@ def create_badge(settings, text=None):
                 # Get text color from settings or default to white
                 text_color_hex = settings.get('Text', {}).get('text-color', '#FFFFFF')
                 text_color = hex_to_rgba(text_color_hex, 100)  # Full opacity for text
+                print(f"📝 Text color: {text_color_hex} -> {text_color}")
                 text_draw.text((text_x, text_y), text, fill=text_color, font=font)
                 badge = Image.alpha_composite(badge, text_overlay)
             else:
@@ -252,6 +291,7 @@ def create_badge(settings, text=None):
                 # Get text color from settings or default to white
                 text_color_hex = settings.get('Text', {}).get('text-color', '#FFFFFF')
                 text_color = hex_to_rgba(text_color_hex, 100)  # Full opacity for text
+                print(f"📝 Text color: {text_color_hex} -> {text_color}")
                 draw.text((text_x, text_y), text, fill=text_color, font=font)
         except Exception as e:
             print(f"⚠️ Warning: Could not add text to badge: {e}")
