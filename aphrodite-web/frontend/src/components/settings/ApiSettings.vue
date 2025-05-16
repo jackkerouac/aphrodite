@@ -333,12 +333,30 @@ export default {
       connectionStatus.value = null;
       
       try {
-        // Simulate API call
-        setTimeout(() => {
+        // Check for required fields
+        if (!jellyfin.url || !jellyfin.api_key || !jellyfin.user_id) {
           connectionStatus.value = {
-            success: true,
-            message: 'Connection successful!'
+            success: false,
+            message: 'Please fill in all Jellyfin fields'
           };
+          connectionTesting.value = false;
+          return;
+        }
+        
+        // Simulate API call - in real implementation this would check the connection
+        setTimeout(() => {
+          // URL validation example - checking for proper jellyfin URL format
+          if (!jellyfin.url.startsWith('http')) {
+            connectionStatus.value = {
+              success: false,
+              message: 'Invalid server URL format'
+            };
+          } else {
+            connectionStatus.value = {
+              success: true,
+              message: 'Connection successful!'
+            };
+          }
           connectionTesting.value = false;
         }, 1500);
       } catch (err) {

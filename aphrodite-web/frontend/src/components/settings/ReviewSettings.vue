@@ -508,17 +508,30 @@ export default {
       },
       ImageBadges: {
         enable_image_badges: true,
-        codec_image_directory: "images/rating",  // Different directory
+        codec_image_directory: "images/rating",
         fallback_to_text: true,
         image_padding: 5,
         image_mapping: {
-          // Sample review source mappings
-          "IMDb": "IMDb.png",
           "Trakt": "Trakt.png",
+          "AniDB": "AniDB.png",
+          "IMDb": "IMDb.png",
+          "IMDbTop": "IMDbTop.png",
+          "IMDbTop100": "IMDbTop100.png",
+          "IMDbTop250": "IMDbTop250.png",
+          "IMDbTop1000": "IMDbTop1000.png",
           "Letterboxd": "Letterboxd.png",
-          "TMDb": "TMDb.png",
+          "Metacritic": "metacritic_logo.png",
+          "MAL": "MAL.png",
+          "MDBList": "MDBList.png",
+          "MetacriticTop": "MetacriticTop.png",
+          "RT-Aud-Fresh": "RT-Aud-Fresh.png",
+          "RT-Aud-Rotten": "RT-Aud-Rotten.png",
+          "RT-Aud-Top": "RT-Aud-Top.png",
           "RT-Crit-Fresh": "RT-Crit-Fresh.png",
-          "RT-Aud-Fresh": "RT-Aud-Fresh.png"
+          "RT-Crit-Rotten": "RT-Crit-Rotten.png",
+          "RT-Crit-Top": "RT-Crit-Top.png",
+          "Star": "Star.png",
+          "TMDb": "TMDb.png"
         }
       }
     });

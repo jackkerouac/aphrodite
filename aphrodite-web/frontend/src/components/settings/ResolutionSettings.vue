@@ -466,17 +466,50 @@ export default {
       },
       ImageBadges: {
         enable_image_badges: true,
-        codec_image_directory: "images/resolution",  // Different directory
+        codec_image_directory: "images/resolution",
         fallback_to_text: true,
-        image_padding: 20,  // Different default padding
+        image_padding: 20,
         image_mapping: {
-          // Sample resolution mappings
+          "480": "480.png",
           "480p": "480p.png",
+          "480pdv": "480pdv.png",
+          "480pdvhdr": "480pdvhdr.png",
+          "480pdvhdrplus": "480pdvhdrplus.png",
+          "480phdr": "480phdr.png",
+          "480pplus": "480pplus.png",
+          "576p": "576p.png",
+          "576pdv": "576pdv.png",
+          "576pdvhdr": "576pdvhdr.png",
+          "576pdvhdrplus": "576pdvhdrplus.png",
+          "576phdr": "576phdr.png",
+          "576pplus": "576pplus.png",
+          "720": "720.png",
           "720p": "720p.png",
+          "720pdv": "720pdv.png",
+          "720pdvhdr": "720pdvhdr.png",
+          "720pdvhdrplus": "720pdvhdrplus.png",
+          "720phdr": "720phdr.png",
+          "720pplus": "720pplus.png",
+          "1080": "1080.png",
           "1080p": "1080p.png",
-          "4k": "4k.png",
+          "1080pdv": "1080pdv.png",
+          "1080pdvhdr": "1080pdvhdr.png",
+          "1080pdvhdrplus": "1080pdvhdrplus.png",
+          "1080phdr": "1080phdr.png",
+          "1080pplus": "1080pplus.png",
+          "2160": "2160.png",
+          "dv": "dv.png",
+          "dvhdr": "dvhdr.png",
+          "dvhdrplus": "dvhdrplus.png",
           "hdr": "hdr.png",
-          "dv": "dv.png"
+          "plus": "plus.png",
+          "4k": "4k.png",
+          "4kdv": "4kdv.png",
+          "4kdvhdr": "4kdvhdr.png",
+          "4kdvhdrplus": "4kdvhdrplus.png",
+          "4khdr": "4khdr.png",
+          "4kplus": "4kplus.png",
+          "4ksvg": "4k.svg"
         }
       }
     });

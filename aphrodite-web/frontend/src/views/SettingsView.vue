@@ -1,5 +1,5 @@
 <template>
-  <div class="settings p-4" style="background-color: #f5f5f5;">
+  <div class="settings p-4">
     <h1 class="text-2xl font-bold mb-6">Settings</h1>
     
     <!-- Settings Tabs -->
