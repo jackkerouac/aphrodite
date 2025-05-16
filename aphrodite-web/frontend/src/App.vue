@@ -1,32 +1,255 @@
 <template>
-  <div class="min-h-screen bg-gray-100">
-    <!-- Navigation -->
-    <nav class="bg-blue-600 text-white shadow-md">
-      <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-        <div class="text-xl font-bold">Aphrodite</div>
-        <div class="space-x-4">
-          <a href="#" class="hover:text-blue-200">Dashboard</a>
-          <a href="#" class="hover:text-blue-200">Settings</a>
-          <a href="#" class="hover:text-blue-200">Execute</a>
-          <a href="#" class="hover:text-blue-200">Preview</a>
+  <div class="min-h-screen bg-base-200 flex" data-theme="cupcake">
+    <!-- Left Side Navigation -->
+    <div class="drawer lg:drawer-open">
+      <input id="my-drawer" type="checkbox" class="drawer-toggle" />
+      <div class="drawer-content flex flex-col">
+        <!-- Top Navigation Bar (Mobile) -->
+        <div class="navbar bg-primary text-primary-content lg:hidden">
+          <div class="flex-none">
+            <label for="my-drawer" class="btn btn-square btn-ghost">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-5 h-5 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </label>
+          </div>
+          <div class="flex-1">
+            <span class="text-xl font-bold">Aphrodite</span>
+          </div>
+          <div class="flex-none">
+            <div class="dropdown dropdown-end">
+              <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+              </div>
+              <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                <li><a data-set-theme="light">Light</a></li>
+                <li><a data-set-theme="dark">Dark</a></li>
+                <li><a data-set-theme="cupcake">Cupcake</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="p-4 w-full min-h-screen max-w-screen-xl mx-auto overflow-y-auto">
+          <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold">Dashboard</h1>
+            <div class="dropdown dropdown-end hidden lg:block">
+              <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+              </div>
+              <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                <li><a data-set-theme="light">Light</a></li>
+                <li><a data-set-theme="dark">Dark</a></li>
+                <li><a data-set-theme="cupcake">Cupcake</a></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="alert alert-info mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>Welcome to the Aphrodite Web Wrapper. This application provides a user-friendly interface for managing the Aphrodite-Python script.</span>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="card bg-base-100 shadow-xl">
+              <div class="card-body">
+                <h2 class="card-title">Getting Started</h2>
+                <p>This is a placeholder dashboard for the Aphrodite Web Wrapper. Customize your media poster badges with ease!</p>
+                <div class="card-actions justify-end">
+                  <button class="btn btn-primary">Learn More</button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="card bg-base-100 shadow-xl">
+              <div class="card-body">
+                <h2 class="card-title">Quick Actions</h2>
+                <div class="flex flex-col gap-2">
+                  <button class="btn btn-primary">Check Connection</button>
+                  <button class="btn btn-secondary">Process Item</button>
+                  <button class="btn btn-accent">Process Library</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="stats shadow mb-8 w-full">
+            <div class="stat">
+              <div class="stat-figure text-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+              </div>
+              <div class="stat-title">Total Jobs</div>
+              <div class="stat-value text-primary">25</div>
+              <div class="stat-desc">21% more than last month</div>
+            </div>
+            
+            <div class="stat">
+              <div class="stat-figure text-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              </div>
+              <div class="stat-title">Success Rate</div>
+              <div class="stat-value text-secondary">93%</div>
+              <div class="stat-desc">3% more than last month</div>
+            </div>
+            
+            <div class="stat">
+              <div class="stat-figure text-secondary">
+                <div class="avatar">
+                  <div class="w-16 rounded-full">
+                    <img src="/api/placeholder/50/50" alt="Avatar" />
+                  </div>
+                </div>
+              </div>
+              <div class="stat-title">Tasks</div>
+              <div class="stat-value">3 pending</div>
+              <div class="stat-desc text-secondary">Processing now</div>
+            </div>
+          </div>
+
+          <h2 class="text-2xl font-bold mb-4">Recent Jobs</h2>
+          <div class="overflow-x-auto rounded-lg">
+            <table class="table table-zebra">
+              <thead class="bg-base-300">
+                <tr>
+                  <th>Type</th>
+                  <th>Item</th>
+                  <th>Status</th>
+                  <th>Time</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Library</td>
+                  <td>Movies</td>
+                  <td><span class="badge badge-success">Success</span></td>
+                  <td>10:30 AM</td>
+                  <td>
+                    <div class="flex gap-2">
+                      <button class="btn btn-xs btn-circle btn-primary">↻</button>
+                      <button class="btn btn-xs btn-circle btn-error">×</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Item</td>
+                  <td>Matrix</td>
+                  <td><span class="badge badge-success">Success</span></td>
+                  <td>10:15 AM</td>
+                  <td>
+                    <div class="flex gap-2">
+                      <button class="btn btn-xs btn-circle btn-primary">↻</button>
+                      <button class="btn btn-xs btn-circle btn-error">×</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Item</td>
+                  <td>Inception</td>
+                  <td><span class="badge badge-error">Failed</span></td>
+                  <td>10:00 AM</td>
+                  <td>
+                    <div class="flex gap-2">
+                      <button class="btn btn-xs btn-circle btn-primary">↻</button>
+                      <button class="btn btn-xs btn-circle btn-error">×</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Footer -->
+          <footer class="footer footer-center p-4 mt-8 text-base-content opacity-70">
+            <div>
+              <p>Aphrodite Web Wrapper © 2025</p>
+            </div>
+          </footer>
         </div>
       </div>
-    </nav>
-    
-    <!-- Main Content -->
-    <div class="container mx-auto px-4 py-6">
-      <h1 class="text-2xl font-bold mb-4">Aphrodite Web Wrapper</h1>
-      <p class="mb-4">Welcome to the Aphrodite Web Wrapper. This application provides a user-friendly interface for managing the Aphrodite-Python script.</p>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="bg-white p-4 rounded shadow">
-          <h2 class="text-lg font-semibold mb-2">Getting Started</h2>
-          <p>This is a placeholder dashboard for the Aphrodite Web Wrapper.</p>
-        </div>
-        
-        <div class="bg-white p-4 rounded shadow">
-          <h2 class="text-lg font-semibold mb-2">Quick Actions</h2>
-          <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Check Connection</button>
+
+      <!-- Sidebar Content -->
+      <div class="drawer-side z-10">
+        <label for="my-drawer" class="drawer-overlay"></label>
+        <div class="bg-base-100 w-80 min-h-screen">
+          <div class="navbar bg-primary text-primary-content">
+            <div class="flex-1 px-2 mx-2 text-xl font-bold">Aphrodite</div>
+          </div>
+          <div class="px-4 py-6">
+            <div class="flex flex-col items-center mb-6">
+              <div class="avatar">
+                <div class="w-24 mask mask-squircle">
+                  <img src="/api/placeholder/100/100" alt="Avatar" />
+                </div>
+              </div>
+              <h2 class="mt-2 text-xl font-bold">Jellyfin</h2>
+              <p class="text-sm opacity-70">Connected</p>
+            </div>
+            
+            <ul class="menu bg-base-100 menu-lg rounded-box">
+              <li class="menu-title">Main Menu</li>
+              <li><a class="active">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                Dashboard
+              </a></li>
+              <li><a>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                Settings
+              </a></li>
+              <li><a>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                Execute
+              </a></li>
+              <li><a>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                Preview
+              </a></li>
+              
+              <li class="menu-title mt-4">Badge Types</li>
+              <li>
+                <a>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15.536a5 5 0 001.414 1.414m2.828-9.9a9 9 0 012.728 2.728" /></svg>
+                  Audio Badges
+                </a>
+              </li>
+              <li>
+                <a>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                  Resolution Badges
+                </a>
+              </li>
+              <li>
+                <a>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                  Review Badges
+                </a>
+              </li>
+            </ul>
+            
+            <div class="divider"></div>
+            
+            <div class="rounded-lg bg-base-200 p-4 mt-4">
+              <h3 class="font-bold mb-2">System Status</h3>
+              <div class="flex flex-col gap-2">
+                <div class="flex justify-between">
+                  <span>CPU Usage</span>
+                  <span>23%</span>
+                </div>
+                <progress class="progress progress-primary" value="23" max="100"></progress>
+                
+                <div class="flex justify-between mt-2">
+                  <span>Memory Usage</span>
+                  <span>45%</span>
+                </div>
+                <progress class="progress progress-secondary" value="45" max="100"></progress>
+                
+                <div class="flex justify-between mt-2">
+                  <span>Disk Space</span>
+                  <span>78%</span>
+                </div>
+                <progress class="progress progress-accent" value="78" max="100"></progress>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -35,7 +258,27 @@
 
 <script>
 export default {
-  name: 'App'
+  name: 'App',
+  mounted() {
+    // Add event listeners for theme switching
+    document.querySelectorAll('[data-set-theme]').forEach(button => {
+      button.addEventListener('click', () => {
+        const theme = button.getAttribute('data-set-theme');
+        document.documentElement.setAttribute('data-theme', theme);
+        // Update the main container's data-theme attribute
+        document.querySelector('.min-h-screen').setAttribute('data-theme', theme);
+      });
+    });
+
+    // For mobile drawer: close drawer when an item is clicked
+    if (window.innerWidth < 1024) { // lg breakpoint
+      document.querySelectorAll('.drawer-side .menu a').forEach(menuItem => {
+        menuItem.addEventListener('click', () => {
+          document.getElementById('my-drawer').checked = false;
+        });
+      });
+    }
+  }
 }
 </script>
 

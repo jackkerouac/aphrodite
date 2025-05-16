@@ -1,0 +1,21 @@
+{
+  "name": "aphrodite-python",
+  "version": "1.0.0",
+  "description": "Aphrodite is a Python-based utility for enhancing Jellyfin media posters by adding informational badges (such as audio codec information) to them.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jackkerouac/aphrodite-python.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/jackkerouac/aphrodite-python/issues"
+  },
+  "homepage": "https://github.com/jackkerouac/aphrodite-python#readme"
+}
