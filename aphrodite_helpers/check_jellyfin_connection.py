@@ -30,12 +30,13 @@ def get_jellyfin_libraries(url, api_key, user_id):
         print(f"Error: Error connecting to Jellyfin: {e}")
         return []
 
-def get_library_item_count(url, api_key, user_id, view_id):
-    """Get the number of items in a specific Jellyfin library (view)."""
+def get_library_parent_items_count(url, api_key, user_id, view_id):
+    """Get the number of parent-level items in a library (not including child items like episodes)."""
     headers = {"X-Emby-Token": api_key}
     params = {
         "ParentId": view_id,
-        "Recursive": "true",
+        "Recursive": "false",  # Only get direct children of the library
+        "IncludeItemTypes": "Series,Movie,MusicAlbum",  # Only count parent-level items
         "StartIndex": 0,
         "Limit": 1
     }
@@ -44,7 +45,7 @@ def get_library_item_count(url, api_key, user_id, view_id):
         resp.raise_for_status()
         return resp.json().get("TotalRecordCount", 0)
     except requests.RequestException as e:
-        print(f"Error: Error getting item count: {e}")
+        print(f"Error: Error getting parent item count: {e}")
         return 0
 
 def get_library_items(url, api_key, user_id, view_id, limit=None):

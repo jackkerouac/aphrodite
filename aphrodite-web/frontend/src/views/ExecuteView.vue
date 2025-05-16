@@ -34,14 +34,9 @@
         <ItemForm @process-submitted="handleProcessSubmitted" />
       </div>
       
-      <!-- Library Processing Form (placeholder) -->
+      <!-- Library Processing Form -->
       <div v-else-if="activeTab === 'library'">
-        <div class="card bg-base-100 shadow-xl">
-          <div class="card-body">
-            <h2 class="card-title">Process Library</h2>
-            <p>Library processing form will be implemented soon.</p>
-          </div>
-        </div>
+        <LibraryForm @process-submitted="handleProcessSubmitted" />
       </div>
       
       <!-- Connection Check Form (placeholder) -->
@@ -113,11 +108,13 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import ItemForm from '@/components/execute/ItemForm.vue';
+import LibraryForm from '@/components/execute/LibraryForm.vue';
 
 export default {
   name: 'ExecuteView',
   components: {
-    ItemForm
+    ItemForm,
+    LibraryForm
   },
   setup() {
     const router = useRouter();

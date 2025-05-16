@@ -5,7 +5,7 @@ General:
   general_badge_size: 100
   general_edge_padding: 30
   general_text_padding: 20
-  max_badges_to_display: 5
+  max_badges_to_display: 3
   use_dynamic_sizing: true
 Text:
   fallback_font: DejaVuSans.ttf
