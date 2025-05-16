@@ -1,6 +1,6 @@
-echo "module.exports = {
+module.exports = {
   plugins: {
     tailwindcss: {},
     autoprefixer: {},
   }
-}" > postcss.config.js
+}
