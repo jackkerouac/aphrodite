@@ -1,7 +1,7 @@
 import axios from 'axios';
 import configApi from './config';
 
-const baseURL = process.env.VUE_APP_API_URL || 'http://localhost:5000/api';
+const baseURL = process.env.VUE_APP_API_URL || 'http://localhost:5000';
 
 // Create axios instance
 const axiosInstance = axios.create({
@@ -13,6 +13,24 @@ const axiosInstance = axios.create({
   timeout: 10000
 });
 
+// Debug interceptor
+axiosInstance.interceptors.request.use(request => {
+  console.log('Starting Request', {
+    url: request.url,
+    method: request.method,
+    data: request.data
+  });
+  return request;
+});
+
+axiosInstance.interceptors.response.use(response => {
+  console.log('Response:', response);
+  return response;
+}, error => {
+  console.error('API Error:', error.response || error);
+  return Promise.reject(error);
+});
+
 // Export API methods
 export default {
   config: configApi,
@@ -21,7 +39,6 @@ export default {
   post: (url, data, config) => axiosInstance.post(url, data, config),
   put: (url, data, config) => axiosInstance.put(url, data, config),
   delete: (url, config) => axiosInstance.delete(url, config),
-  // Add other API modules here
   // Process API methods
   processSingleItem: (data) => axiosInstance.post('/api/process/item', data),
   processLibrary: (data) => axiosInstance.post('/api/process/library', data)

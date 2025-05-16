@@ -99,7 +99,7 @@
 
 <script>
 import { ref, reactive } from 'vue';
-import api from '@/api';
+import axios from 'axios';
 
 export default {
   name: 'ItemForm',
@@ -158,22 +158,46 @@ export default {
         if (formData.badges.resolution) badgeTypes.push('resolution');
         if (formData.badges.review) badgeTypes.push('review');
         
-        // API call to process the item
-        const response = await api.processSingleItem({
+        console.log('Submitting process request:', {
           itemId: formData.itemId,
           badgeTypes,
           skipUpload: formData.skipUpload
         });
         
-        // Show success message or handle response
-        console.log('Process success:', response.data);
+        // Direct axios request to the API
+        const response = await axios.post('http://localhost:5000/api/process/item', {
+          itemId: formData.itemId,
+          badgeTypes,
+          skipUpload: formData.skipUpload
+        });
+        
+        console.log('Process response:', response.data);
         
         // Notify parent component of successful submission
         emit('process-submitted', response.data);
         
       } catch (error) {
         console.error('Processing error:', error);
-        // Handle error - could set a form error or show a notification
+        
+        let errorMessage = 'An error occurred while processing the request.';
+        
+        if (error.response) {
+          console.error('Error response:', error.response.data);
+          errorMessage = error.response.data.message || 
+                       `Server error: ${error.response.status}`;
+        } else if (error.request) {
+          console.error('Error request:', error.request);
+          errorMessage = 'No response from server. Please check if the server is running.';
+        } else {
+          console.error('Error message:', error.message);
+          errorMessage = error.message;
+        }
+        
+        // Notify parent of the error
+        emit('process-submitted', {
+          success: false,
+          message: errorMessage
+        });
       } finally {
         isSubmitting.value = false;
       }

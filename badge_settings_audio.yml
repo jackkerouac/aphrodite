@@ -10,7 +10,7 @@ Text:
   text-color: '#FFFFFF'
   text-size: 90
 Background:
-  background-color: '#ffffff'
+  background-color: '#000000'
   background_opacity: 40
 Border:
   border-color: '#000000'
