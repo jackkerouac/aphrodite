@@ -1,0 +1,38 @@
+[
+  {
+    "id": "866a0886-ce7a-4199-b214-ed8b231f25c9",
+    "type": "library",
+    "status": "Failed",
+    "options": {
+      "libraryIds": [
+        "f137a2dd21bbc1b99aa5c0f6bf02a805"
+      ],
+      "limit": 10,
+      "retries": 3,
+      "badgeTypes": [
+        "audio",
+        "resolution",
+        "review"
+      ],
+      "skipUpload": true,
+      "libraryName": "f137a2dd21bbc1b99aa5c0f6bf02a805"
+    },
+    "start_time": "2025-05-16T13:39:24.387742",
+    "items": [],
+    "end_time": "2025-05-16T13:39:25.279269",
+    "result": {
+      "success": false,
+      "results": [
+        {
+          "libraryId": "f137a2dd21bbc1b99aa5c0f6bf02a805",
+          "libraryName": "f137a2dd21bbc1b99aa5c0f6bf02a805",
+          "success": false,
+          "stdout": "",
+          "stderr": "Traceback (most recent call last):\n  File \"E:\\programming\\aphrodite-python\\aphrodite.py\", line 10, in <module>\n    from aphrodite_helpers.check_jellyfin_connection import (\n    ...<4 lines>...\n    )\nImportError: cannot import name 'get_library_item_count' from 'aphrodite_helpers.check_jellyfin_connection' (E:\\programming\\aphrodite-python\\aphrodite_helpers\\check_jellyfin_connection.py)\n",
+          "returnCode": 1
+        }
+      ],
+      "processed_count": 0
+    }
+  }
+]

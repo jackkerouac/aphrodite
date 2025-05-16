@@ -1,5 +1,6 @@
 import axios from 'axios';
 import configApi from './config';
+import jobsApi from './jobs';
 
 const baseURL = process.env.VUE_APP_API_URL || 'http://localhost:5000';
 
@@ -34,6 +35,7 @@ axiosInstance.interceptors.response.use(response => {
 // Export API methods
 export default {
   config: configApi,
+  jobs: jobsApi,
   // Base API methods
   get: (url, config) => axiosInstance.get(url, config),
   post: (url, data, config) => axiosInstance.post(url, data, config),

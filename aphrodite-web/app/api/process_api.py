@@ -56,11 +56,11 @@ def process_item():
         
         print(f"Executing command: {' '.join(cmd)}")
         
-        # Run the command synchronously for simplicity
         # Set environment variables to handle Unicode properly
         env = os.environ.copy()
         env['PYTHONIOENCODING'] = 'utf-8'
         
+        # Run the command synchronously for simplicity
         result = subprocess.run(
             cmd,
             stdout=subprocess.PIPE,
