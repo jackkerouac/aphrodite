@@ -1,18 +1,15 @@
 import { createApp } from 'vue'
 import App from './App.vue'
+import router from './router'
+import pinia from './store'
 import './assets/tailwind.css'
 
 // Create the app
 const app = createApp(App)
 
-// Configure and mount the app
-app.mount('#app')
-
-// Comment out router and store until they're installed
-// Will uncomment after you install the dependencies
-/*
-import router from './router'
-import store from './store'
+// Use plugins
 app.use(router)
-app.use(store)
-*/
+app.use(pinia)
+
+// Mount the app
+app.mount('#app')

@@ -6,10 +6,11 @@ def create_app():
     CORS(app)
     
     # Import and register blueprints
-    from app.api import config, jobs, libraries, images
+    from app.api import config, jobs, libraries, images, check
     app.register_blueprint(config.bp)
     app.register_blueprint(jobs.bp)
     app.register_blueprint(libraries.bp)
     app.register_blueprint(images.bp)
+    app.register_blueprint(check.bp)
     
     return app

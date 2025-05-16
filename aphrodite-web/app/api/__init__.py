@@ -1,2 +1,2 @@
 # Import blueprints to make them available for registration
-from . import config, jobs, libraries, images
+from . import config, jobs, libraries, images, check

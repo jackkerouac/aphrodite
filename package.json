@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/jackkerouac/aphrodite-python/issues"
   },
-  "homepage": "https://github.com/jackkerouac/aphrodite-python#readme"
+  "homepage": "https://github.com/jackkerouac/aphrodite-python#readme",
+  "dependencies": {
+    "yaml": "^2.8.0"
+  }
 }
