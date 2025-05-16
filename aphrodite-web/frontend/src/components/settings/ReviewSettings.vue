@@ -436,32 +436,52 @@
         </div>
       </div>
       
-      <!-- Preview (placeholder for future feature) -->
-      <div class="bg-white shadow rounded-lg p-4 border border-gray-200">
-        <h3 class="text-lg font-medium mb-3">Preview</h3>
-        <div class="flex justify-center items-center p-4 bg-gray-100 rounded-md">
-          <div class="text-center">
-            <p class="text-gray-500">Badge preview will be available in a future update</p>
-          </div>
-        </div>
-      </div>
-      
       <!-- Submit Button -->
       <div class="flex justify-end">
-        <button 
-          type="submit" 
-          class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        <button
+          @click="saveSettings"
           :disabled="saving"
+          class="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
         >
-          {{ saving ? 'Saving...' : 'Save Changes' }}
+          {{ saving ? 'Saving…' : 'Save Review Settings' }}
         </button>
+        <p v-if="error" class="mt-2 text-sm text-red-500">{{ error }}</p>
       </div>
+      <!-- Toast (appears top-right) -->
+        <div class="toast toast-top toast-end w-64" v-if="success">
+        <div class="alert alert-success shadow-lg w-64 flex items-center space-x-2">
+          <!-- icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" 
+              class="stroke-current h-6 w-6 flex-shrink-0" 
+              fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" 
+                  stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <!-- text -->
+          <span>Review settings saved!</span>
+        </div>
+      </div>
+      <div class="toast toast-top toast-end w-64" v-if="error">
+          <div class="alert alert-error shadow-lg w-64 flex items-center space-x-2">
+            <div>
+              <!-- icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" 
+                  class="stroke-current h-6 w-6 flex-shrink-0" 
+                  fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" 
+                      stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Review settings NOT saved!</span>
+            </div>
+          </div>
+        </div>
     </form>
   </div>
 </template>
 
 <script>
 import { ref, reactive, onMounted } from 'vue';
+import api from '@/api/config.js';
 
 export default {
   name: 'ReviewSettings',
@@ -470,6 +490,7 @@ export default {
     const loading = ref(false);
     const error = ref(null);
     const saving = ref(false);
+    const success = ref(false);
 
     // Settings data structure
     const settings = reactive({
@@ -561,47 +582,37 @@ export default {
       settings.ImageBadges.image_mapping = mapping;
     };
     
-    // Load settings
-    const loadSettings = async () => {
-      loading.value = true;
-      error.value = null;
-      
-      try {
-        // In a real implementation, this would fetch from an API
-        // We're using the predefined settings for now
-        
-        // Initialize tempMapping
-        Object.keys(settings.ImageBadges.image_mapping).forEach(key => {
-          tempMapping[key] = key;
-        });
-        
-        loading.value = false;
-      } catch (err) {
-        error.value = 'Failed to load review badge settings';
-        loading.value = false;
-      }
-    };
-    
-    // Save settings
-    const saveSettings = async () => {
-      saving.value = true;
-      error.value = null;
-      
-      try {
-        // Simulate API call
-        setTimeout(() => {
-          saving.value = false;
-          alert('Review badge settings saved successfully!');
-        }, 1000);
-      } catch (err) {
-        error.value = 'Failed to save review badge settings';
-        saving.value = false;
-      }
-    };
-    
-    onMounted(() => {
-      loadSettings();
-    });
+  // ──────── LOAD from disk ────────
+  const loadSettings = async () => {
+    loading.value = true;
+    error.value   = null;
+    try {
+      const res = await api.getConfig('badge_settings_review.yml');
+      Object.assign(settings, res.data.config);
+    } catch (err) {
+      error.value = err.response?.data?.error || err.message;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  onMounted(loadSettings);
+
+  // ──────── SAVE to disk ────────
+  const saveSettings = async () => {
+    saving.value = true;
+    error.value  = null;
+    try {
+      await api.updateConfig('badge_settings_review.yml', settings);
+      success.value = true;
+      // clear after 3 seconds
+      setTimeout(() => success.value = false, 3000);
+    } catch (err) {
+      error.value = err.response?.data?.error || err.message;
+    } finally {
+      saving.value = false;
+    }
+  };
     
     return {
       loading,
@@ -611,6 +622,7 @@ export default {
       tempMapping,
       newMapping,
       addMapping,
+      success,
       removeMapping,
       saveSettings
     };

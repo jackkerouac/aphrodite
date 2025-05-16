@@ -229,6 +229,33 @@
         >
           {{ saving ? 'Saving...' : 'Save Changes' }}
         </button>
+        <div class="toast toast-top toast-end w-64" v-if="success">
+        <div class="alert alert-success shadow-lg w-64 flex items-center space-x-2">
+          <!-- icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" 
+              class="stroke-current h-6 w-6 flex-shrink-0" 
+              fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" 
+                  stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <!-- text -->
+          <span>API settings saved!</span>
+        </div>
+      </div>
+      <div class="toast toast-top toast-end w-64" v-if="error">
+          <div class="alert alert-error shadow-lg w-64 flex items-center space-x-2">
+            <div>
+              <!-- icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" 
+                  class="stroke-current h-6 w-6 flex-shrink-0" 
+                  fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" 
+                      stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span>API settings NOT saved!</span>
+            </div>
+          </div>
+        </div>
       </div>
     </form>
   </div>
@@ -236,6 +263,7 @@
 
 <script>
 import { ref, reactive, onMounted } from 'vue';
+import api from '@/api/config.js';
 
 export default {
   name: 'ApiSettings',
@@ -243,10 +271,13 @@ export default {
   setup() {
     const loading = ref(false);
     const error = ref(null);
+    const success = ref(false);
     const saving = ref(false);
     const connectionTesting = ref(false);
     const connectionStatus = ref(null);
     const showPassword = ref(false); // For password visibility toggle
+    
+    // For API integration
     
     // Form data
     const jellyfin = reactive({
@@ -281,31 +312,54 @@ export default {
       error.value = null;
       
       try {
-        // For now, let's just use dummy data until we connect to the backend
-        setTimeout(() => {
-          jellyfin.url = 'https://jellyfin.okaymedia.ca';
-          jellyfin.api_key = '6c921b79ca694f04b86c6e15a104e469';
-          jellyfin.user_id = '34b672a45581450dbb14bb6a0a2ae85b';
+        const res = await api.getConfig('settings.yaml');
+        const config = res.data.config;
+        
+        if (config && config.api_keys) {
+          // Load Jellyfin settings (first item in array)
+          if (config.api_keys.Jellyfin && config.api_keys.Jellyfin.length > 0) {
+            const jellyfinConfig = config.api_keys.Jellyfin[0];
+            jellyfin.url = jellyfinConfig.url || '';
+            jellyfin.api_key = jellyfinConfig.api_key || '';
+            jellyfin.user_id = jellyfinConfig.user_id || '';
+          }
           
-          omdb.api_key = '4b8ba0e1';
-          omdb.cache_expiration = 60;
+          // Load OMDB settings (first item in array)
+          if (config.api_keys.OMDB && config.api_keys.OMDB.length > 0) {
+            const omdbConfig = config.api_keys.OMDB[0];
+            omdb.api_key = omdbConfig.api_key || '';
+            omdb.cache_expiration = omdbConfig.cache_expiration || 60;
+          }
           
-          tmdb.api_key = '0b2dc1bbbed569c9f97b2c54c7d167d2';
-          tmdb.cache_expiration = 60;
-          tmdb.language = 'en';
+          // Load TMDB settings (first item in array)
+          if (config.api_keys.TMDB && config.api_keys.TMDB.length > 0) {
+            const tmdbConfig = config.api_keys.TMDB[0];
+            tmdb.api_key = tmdbConfig.api_key || '';
+            tmdb.cache_expiration = tmdbConfig.cache_expiration || 60;
+            tmdb.language = tmdbConfig.language || 'en';
+            tmdb.region = tmdbConfig.region || '';
+          }
           
-          // AniDB has a special structure in the YAML with username in the first array item
-          // and password/client/etc. in the second array item
-          anidb.username = 'jackkerouac4657';
-          anidb.password = 'Paradise4657';
-          anidb.client = 1;
-          anidb.language = 'en';
-          anidb.cache_expiration = 60;
-          
-          loading.value = false;
-        }, 500); // Simulate loading delay
+          // Load AniDB settings (has special structure with data across two array items)
+          if (config.api_keys.aniDB && config.api_keys.aniDB.length > 0) {
+            // Username is in first array item
+            if (config.api_keys.aniDB[0]) {
+              anidb.username = config.api_keys.aniDB[0].username || '';
+            }
+            
+            // Password and other settings are in the second array item
+            if (config.api_keys.aniDB.length > 1 && config.api_keys.aniDB[1]) {
+              const aniDbConfig = config.api_keys.aniDB[1];
+              anidb.password = aniDbConfig.password || '';
+              anidb.client = aniDbConfig.client || 1;
+              anidb.language = aniDbConfig.language || 'en';
+              anidb.cache_expiration = aniDbConfig.cache_expiration || 60;
+            }
+          }
+        }
       } catch (err) {
-        error.value = 'Failed to load API settings';
+        error.value = err.response?.data?.error || err.message || 'Failed to load API settings';
+      } finally {
         loading.value = false;
       }
     };
@@ -314,15 +368,54 @@ export default {
     const saveSettings = async () => {
       saving.value = true;
       error.value = null;
+      success.value = false;
       
       try {
-        // Simulate API call
-        setTimeout(() => {
-          saving.value = false;
-          alert('API settings saved successfully!');
-        }, 1000);
+        // Construct the settings object in the format expected by the backend
+        const settingsObj = {
+          api_keys: {
+            Jellyfin: [
+              {
+                url: jellyfin.url,
+                api_key: jellyfin.api_key,
+                user_id: jellyfin.user_id
+              }
+            ],
+            OMDB: [
+              {
+                api_key: omdb.api_key,
+                cache_expiration: omdb.cache_expiration
+              }
+            ],
+            TMDB: [
+              {
+                api_key: tmdb.api_key,
+                cache_expiration: tmdb.cache_expiration,
+                language: tmdb.language,
+                region: tmdb.region || null
+              }
+            ],
+            aniDB: [
+              {
+                username: anidb.username
+              },
+              {
+                password: anidb.password,
+                client: anidb.client,
+                language: anidb.language,
+                cache_expiration: anidb.cache_expiration
+              }
+            ]
+          }
+        };
+        
+        // Save settings to the backend
+        await api.updateConfig('settings.yaml', settingsObj);
+        success.value = true;
+        setTimeout(() => success.value = false, 3000);
       } catch (err) {
-        error.value = 'Failed to save API settings';
+        error.value = err.response?.data?.error || err.message || 'Failed to save API settings';
+      } finally {
         saving.value = false;
       }
     };
@@ -343,37 +436,25 @@ export default {
           return;
         }
         
-        // Make API call to backend to test connection
-        const response = await fetch('/api/check/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            url: jellyfin.url,
-            api_key: jellyfin.api_key,
-            user_id: jellyfin.user_id
-          })
+        // Make API call to backend to test connection using the api client
+        const response = await api.testJellyfinConnection({
+          url: jellyfin.url,
+          api_key: jellyfin.api_key,
+          user_id: jellyfin.user_id
         });
 
-        const data = await response.json();
+        // Access the data directly from the response
+        const data = response.data;
 
-        if (response.ok) {
-          connectionStatus.value = {
-            success: true,
-            message: data.message || 'Connection successful!'
-          };
-        } else {
-          connectionStatus.value = {
-            success: false,
-            message: data.error || 'Connection failed'
-          };
-        }
+        connectionStatus.value = {
+          success: true,
+          message: data.message || 'Connection successful!'
+        };
         connectionTesting.value = false;
       } catch (err) {
         connectionStatus.value = {
           success: false,
-          message: 'Connection failed'
+          message: err.response?.data?.error || 'Connection failed'
         };
         connectionTesting.value = false;
       }
@@ -393,6 +474,7 @@ export default {
       omdb,
       tmdb,
       anidb,
+      success,
       saveSettings,
       testJellyfinConnection,
       showPassword

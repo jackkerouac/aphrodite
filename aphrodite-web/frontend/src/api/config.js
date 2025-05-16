@@ -22,5 +22,9 @@ export default {
   
   updateConfig(fileName, config) {
     return apiClient.put(`/api/config/${fileName}`, { config })
+  },
+  
+  testJellyfinConnection(credentials) {
+    return apiClient.post('/api/check/', credentials)
   }
 }
