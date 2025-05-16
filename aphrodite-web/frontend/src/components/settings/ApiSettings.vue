@@ -343,22 +343,33 @@ export default {
           return;
         }
         
-        // Simulate API call - in real implementation this would check the connection
-        setTimeout(() => {
-          // URL validation example - checking for proper jellyfin URL format
-          if (!jellyfin.url.startsWith('http')) {
-            connectionStatus.value = {
-              success: false,
-              message: 'Invalid server URL format'
-            };
-          } else {
-            connectionStatus.value = {
-              success: true,
-              message: 'Connection successful!'
-            };
-          }
-          connectionTesting.value = false;
-        }, 1500);
+        // Make API call to backend to test connection
+        const response = await fetch('/api/check/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            url: jellyfin.url,
+            api_key: jellyfin.api_key,
+            user_id: jellyfin.user_id
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          connectionStatus.value = {
+            success: true,
+            message: data.message || 'Connection successful!'
+          };
+        } else {
+          connectionStatus.value = {
+            success: false,
+            message: data.error || 'Connection failed'
+          };
+        }
+        connectionTesting.value = false;
       } catch (err) {
         connectionStatus.value = {
           success: false,

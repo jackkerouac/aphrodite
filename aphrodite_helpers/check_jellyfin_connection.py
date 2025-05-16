@@ -13,10 +13,10 @@ def load_settings(path="settings.yaml"):
         with open(full_path, 'r') as f:
             return yaml.safe_load(f)
     except FileNotFoundError:
-        print(f"❌ Settings file not found: {path}")
+        print(f"Error: Settings file not found: {path}")
         return None
     except yaml.YAMLError as e:
-        print(f"❌ Error parsing settings: {e}")
+        print(f"Error: Error parsing settings: {e}")
         return None
 
 def get_jellyfin_libraries(url, api_key, user_id):
@@ -27,7 +27,7 @@ def get_jellyfin_libraries(url, api_key, user_id):
         resp.raise_for_status()
         return resp.json().get('Items', [])
     except requests.RequestException as e:
-        print(f"❌ Error connecting to Jellyfin: {e}")
+        print(f"Error: Error connecting to Jellyfin: {e}")
         return []
 
 def get_library_item_count(url, api_key, user_id, view_id):
@@ -44,7 +44,7 @@ def get_library_item_count(url, api_key, user_id, view_id):
         resp.raise_for_status()
         return resp.json().get("TotalRecordCount", 0)
     except requests.RequestException as e:
-        print(f"❌ Error getting item count: {e}")
+        print(f"Error: Error getting item count: {e}")
         return 0
 
 def get_library_items(url, api_key, user_id, view_id, limit=None):
@@ -86,7 +86,7 @@ def get_library_items(url, api_key, user_id, view_id, limit=None):
                 print(f"Fetched {items_fetched}/{total_count} items...")
             
         except requests.RequestException as e:
-            print(f"❌ Error fetching items (batch starting at {start_index}): {e}")
+            print(f"Error: Error fetching items (batch starting at {start_index}): {e}")
             continue
     
     return items
@@ -103,7 +103,7 @@ def check_jellyfin_connection(url, api_key, user_id=None):
         server_name = server_info.get('ServerName', 'Unknown')
         version = server_info.get('Version', 'Unknown')
         
-        print(f"✅ Connected to Jellyfin server: {server_name} (Version {version})")
+        print(f"Success: Connected to Jellyfin server: {server_name} (Version {version})")
         
         # If user_id is provided, check if we can access the user's data
         if user_id:
@@ -113,11 +113,11 @@ def check_jellyfin_connection(url, api_key, user_id=None):
             user_info = resp.json()
             user_name = user_info.get('Name', 'Unknown')
             
-            print(f"✅ Authenticated as user: {user_name}")
+            print(f"Success: Authenticated as user: {user_name}")
         
         return True
     except requests.RequestException as e:
-        print(f"❌ Error connecting to Jellyfin: {e}")
+        print(f"Error: Error connecting to Jellyfin: {e}")
         return False
 
 if __name__ == "__main__":
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     
     # Check connection
     if check_jellyfin_connection(url, api_key, user_id):
-        print("\n📚 Available libraries:")
+        print("\nAvailable libraries:")
         libraries = get_jellyfin_libraries(url, api_key, user_id)
         
         if not libraries:
