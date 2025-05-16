@@ -1,18 +1,10 @@
 <template>
-  <div class="settings-container">
+  <div class="api-settings">
     <h2 class="text-xl font-bold mb-4">API Settings</h2>
     
-    <div v-if="loading" class="flex justify-center items-center py-8">
-      <div class="loader"></div>
-    </div>
-    
-    <div v-else-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-      <p>{{ error }}</p>
-    </div>
-    
-    <form v-else @submit.prevent="saveSettings" class="space-y-6">
+    <form @submit.prevent="saveSettings" class="space-y-6">
       <!-- Jellyfin Settings -->
-      <div class="bg-white shadow rounded-lg p-4">
+      <div class="bg-white shadow rounded-lg p-4 border border-gray-200">
         <h3 class="text-lg font-medium mb-3">Jellyfin Connection</h3>
         
         <div class="grid grid-cols-1 gap-4">
@@ -66,7 +58,7 @@
       </div>
       
       <!-- OMDB Settings -->
-      <div class="bg-white shadow rounded-lg p-4">
+      <div class="bg-white shadow rounded-lg p-4 border border-gray-200">
         <h3 class="text-lg font-medium mb-3">OMDB API</h3>
         
         <div class="grid grid-cols-1 gap-4">
@@ -96,7 +88,7 @@
       </div>
       
       <!-- TMDB Settings -->
-      <div class="bg-white shadow rounded-lg p-4">
+      <div class="bg-white shadow rounded-lg p-4 border border-gray-200">
         <h3 class="text-lg font-medium mb-3">TMDB API</h3>
         
         <div class="grid grid-cols-1 gap-4">
@@ -148,7 +140,7 @@
       </div>
       
       <!-- AniDB Settings -->
-      <div class="bg-white shadow rounded-lg p-4">
+      <div class="bg-white shadow rounded-lg p-4 border border-gray-200">
         <h3 class="text-lg font-medium mb-3">AniDB API</h3>
         
         <div class="grid grid-cols-1 gap-4">
@@ -165,13 +157,30 @@
           
           <div class="form-group">
             <label for="anidb-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input 
-              id="anidb-password" 
-              v-model="anidb.password" 
-              type="password" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Your AniDB password"
-            />
+            <div class="relative">
+              <input 
+                id="anidb-password" 
+                :type="showPassword ? 'text' : 'password'" 
+                v-model="anidb.password" 
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Your AniDB password"
+              />
+              <button 
+                type="button" 
+                @click="showPassword = !showPassword" 
+                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 focus:outline-none"
+              >
+                <!-- Eye Icon (when password is hidden) -->
+                <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <!-- Eye Slash Icon (when password is visible) -->
+                <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                </svg>
+              </button>
+            </div>
           </div>
           
           <div class="form-group">
@@ -232,14 +241,14 @@ export default {
   name: 'ApiSettings',
   
   setup() {
-    // Local state
     const loading = ref(false);
     const error = ref(null);
     const saving = ref(false);
     const connectionTesting = ref(false);
     const connectionStatus = ref(null);
+    const showPassword = ref(false); // For password visibility toggle
     
-    // Form data - prefilled with defaults
+    // Form data
     const jellyfin = reactive({
       url: 'https://jellyfin.example.com',
       api_key: '',
@@ -285,7 +294,10 @@ export default {
           tmdb.cache_expiration = 60;
           tmdb.language = 'en';
           
-          anidb.username = 'username';
+          // AniDB has a special structure in the YAML with username in the first array item
+          // and password/client/etc. in the second array item
+          anidb.username = 'jackkerouac4657';
+          anidb.password = 'Paradise4657';
           anidb.client = 1;
           anidb.language = 'en';
           anidb.cache_expiration = 60;
@@ -307,7 +319,7 @@ export default {
         // Simulate API call
         setTimeout(() => {
           saving.value = false;
-          alert('Settings saved successfully!');
+          alert('API settings saved successfully!');
         }, 1000);
       } catch (err) {
         error.value = 'Failed to save API settings';
@@ -338,7 +350,6 @@ export default {
       }
     };
     
-    // Load settings on component mount
     onMounted(() => {
       loadSettings();
     });
@@ -354,24 +365,9 @@ export default {
       tmdb,
       anidb,
       saveSettings,
-      testJellyfinConnection
+      testJellyfinConnection,
+      showPassword
     };
   }
 };
 </script>
-
-<style scoped>
-.loader {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-</style>
