@@ -22,4 +22,7 @@ export default {
   put: (url, data, config) => axiosInstance.put(url, data, config),
   delete: (url, config) => axiosInstance.delete(url, config),
   // Add other API modules here
+  // Process API methods
+  processSingleItem: (data) => axiosInstance.post('/api/process/item', data),
+  processLibrary: (data) => axiosInstance.post('/api/process/library', data)
 };
