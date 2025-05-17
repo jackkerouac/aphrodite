@@ -1,26 +1,60 @@
+version: '3.8'
+
+# Use .env file for configuration
+# Copy .env.template to .env and customize as needed
+
 services:
   aphrodite:
+    env_file: .env
     build: .
     image: aphrodite:latest
     container_name: aphrodite-app
-    hostname: aphrodite
     ports:
-      - "4116:5000"  # Map container port 5000 to host port 5000
+      - "${WEB_PORT:-5000}:5000"  # Map container port 5000 to configurable host port (default: 5000)
     volumes:
-      # Configuration files - uncomment these for persistent configuration
-      # (You can edit these files directly on your host system)
-      #- ./settings.yaml:/app/settings.yaml
-      #- ./badge_settings_audio.yml:/app/badge_settings_audio.yml
-      #- ./badge_settings_resolution.yml:/app/badge_settings_resolution.yml
-      #- ./badge_settings_review.yml:/app/badge_settings_review.yml
+      # Configuration files with read/write access
+      - ./settings.yaml:/app/settings.yaml:rw
+      - ./badge_settings_audio.yml:/app/badge_settings_audio.yml:rw
+      - ./badge_settings_resolution.yml:/app/badge_settings_resolution.yml:rw
+      - ./badge_settings_review.yml:/app/badge_settings_review.yml:rw
       
-      # These mounts are recommended for persistence
-      - ./posters:/app/posters
-      - ./data:/app/data  # For SQLite database and writable configs
-    networks:
-      - aphrodite-net
-    restart: unless-stopped
+      # Persistent storage for posters and database
+      - ./posters/original:/app/posters/original:rw
+      - ./posters/working:/app/posters/working:rw
+      - ./posters/modified:/app/posters/modified:rw
+      - ./data:/app/data:rw  # For SQLite database
+      
+      # Optional: fonts and images
+      - ./fonts:/app/fonts:ro  # Read-only access to fonts
+      - ./images:/app/images:ro  # Read-only access to badge images
 
-networks:
-  aphrodite-net:
-    driver: bridge
+    environment:
+      # Optional environment variables that can be used to configure the app
+      - TZ=${TZ:-UTC}
+      # User and group ID to run the container
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      # Application mode (web or cli)
+      - APHRODITE_MODE=${APHRODITE_MODE:-web}
+      # Web interface settings
+      - WEB_HOST=${WEB_HOST:-0.0.0.0}
+      - WEB_PORT=${WEB_PORT:-5000}
+      - FLASK_DEBUG=${FLASK_DEBUG:-0}
+      
+    restart: unless-stopped
+    
+    # Health check to ensure the application is running
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+# Docker named volumes - created and managed by Docker
+volumes:
+  # These are only used if you don't mount host directories
+  posters-original:
+  posters-working:
+  posters-modified:
+  app-data:

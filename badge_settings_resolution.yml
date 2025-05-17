@@ -1,69 +1,46 @@
 General:
-  general_badge_position: top-right
-  general_badge_size: 100
-  general_edge_padding: 30
-  general_text_padding: 12
-  use_dynamic_sizing: true
+  # General badge settings
+  general_badge_position: "top-right" # Position of the badge (top-left, top-right, bottom-left, bottom-right)
+  general_badge_size: 100             # Base size of the badge in pixels
+  general_edge_padding: 30            # Padding from the edge of the poster in pixels
+  general_text_padding: 12            # Padding around text inside the badge
+  use_dynamic_sizing: true            # Automatically adjust badge size based on content
+
 Text:
-  fallback_font: DejaVuSans.ttf
-  font: AvenirNextLTProBold.otf
-  text-color: '#FFFFFF'
-  text-size: 90
+  # Text appearance settings
+  fallback_font: "DejaVuSans.ttf"     # Fallback font if primary font is not available
+  font: ""                            # Primary font file to use (place in fonts directory)
+  text-color: "#FFFFFF"               # Text color (hex code)
+  text-size: 90                       # Text size relative to badge size
+
 Background:
-  background-color: '#000000'
-  background_opacity: 40
+  # Badge background settings
+  background-color: "#000000"         # Background color (hex code)
+  background_opacity: 40              # Background opacity (0-100)
+
 Border:
-  border-color: '#000000'
-  border-radius: 10
-  border_width: 1
+  # Badge border settings
+  border-color: "#000000"             # Border color (hex code)
+  border-radius: 10                   # Border corner radius in pixels
+  border_width: 1                     # Border width in pixels
+
 Shadow:
-  shadow_blur: 8
-  shadow_enable: false
-  shadow_offset_x: 2
-  shadow_offset_y: 2
+  # Shadow effect settings
+  shadow_blur: 8                      # Shadow blur amount
+  shadow_enable: false                # Enable/disable shadow
+  shadow_offset_x: 2                  # Horizontal shadow offset
+  shadow_offset_y: 2                  # Vertical shadow offset
+
 ImageBadges:
-  codec_image_directory: images/resolution
-  enable_image_badges: true
-  fallback_to_text: true
-  image_mapping:
-    '480': 480.png
-    '720': 720.png
-    '1080': 1080.png
-    '2160': 2160.png
-    1080p: 1080p.png
-    1080pdv: 1080pdv.png
-    1080pdvhdr: 1080pdvhdr.png
-    1080pdvhdrplus: 1080pdvhdrplus.png
-    1080phdr: 1080phdr.png
-    1080pplus: 1080pplus.png
-    480p: 480p.png
-    480pdv: 480pdv.png
-    480pdvhdr: 480pdvhdr.png
-    480pdvhdrplus: 480pdvhdrplus.png
-    480phdr: 480phdr.png
-    480pplus: 480pplus.png
-    4k: 4k.png
-    4kdv: 4kdv.png
-    4kdvhdr: 4kdvhdr.png
-    4kdvhdrplus: 4kdvhdrplus.png
-    4khdr: 4khdr.png
-    4kplus: 4kplus.png
-    4ksvg: 4k.svg
-    576p: 576p.png
-    576pdv: 576pdv.png
-    576pdvhdr: 576pdvhdr.png
-    576pdvhdrplus: 576pdvhdrplus.png
-    576phdr: 576phdr.png
-    576pplus: 576pplus.png
-    720p: 720p.png
-    720pdv: 720pdv.png
-    720pdvhdr: 720pdvhdr.png
-    720pdvhdrplus: 720pdvhdrplus.png
-    720phdr: 720phdr.png
-    720pplus: 720pplus.png
-    dv: dv.png
-    dvhdr: dvhdr.png
-    dvhdrplus: dvhdrplus.png
-    hdr: hdr.png
-    plus: plus.png
-  image_padding: 20
+  # Image badge settings
+  codec_image_directory: "images/resolution"  # Directory containing resolution images
+  enable_image_badges: true                   # Use images instead of text when available
+  fallback_to_text: true                      # Use text if image not found
+  image_mapping:                              # Map resolution names to image filenames
+    # Examples (uncomment and modify as needed):
+    # "480": "480.png"
+    # "720": "720.png" 
+    # "1080": "1080.png"
+    # "2160": "2160.png"
+    # "4k": "4k.png"
+  image_padding: 20                           # Padding around image badges
