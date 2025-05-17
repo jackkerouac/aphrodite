@@ -1,0 +1,7 @@
+# Docker-specific requirements for Aphrodite
+python-magic==0.4.27
+waitress==2.1.2
+flask-cors==4.0.0
+requests>=2.25.0
+pyyaml>=6.0
+pillow>=9.0.0

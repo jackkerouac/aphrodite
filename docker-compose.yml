@@ -1,0 +1,26 @@
+services:
+  aphrodite:
+    build: .
+    image: aphrodite:latest
+    container_name: aphrodite-app
+    hostname: aphrodite
+    ports:
+      - "4116:5000"  # Map container port 5000 to host port 5000
+    volumes:
+      # Configuration files - uncomment these for persistent configuration
+      # (You can edit these files directly on your host system)
+      #- ./settings.yaml:/app/settings.yaml
+      #- ./badge_settings_audio.yml:/app/badge_settings_audio.yml
+      #- ./badge_settings_resolution.yml:/app/badge_settings_resolution.yml
+      #- ./badge_settings_review.yml:/app/badge_settings_review.yml
+      
+      # These mounts are recommended for persistence
+      - ./posters:/app/posters
+      - ./data:/app/data  # For SQLite database and writable configs
+    networks:
+      - aphrodite-net
+    restart: unless-stopped
+
+networks:
+  aphrodite-net:
+    driver: bridge

@@ -1,0 +1,70 @@
+# Build stage for the Vue frontend
+FROM node:16-alpine AS frontend-builder
+WORKDIR /app
+COPY aphrodite-web/frontend/package*.json ./
+RUN npm install
+COPY aphrodite-web/frontend/ ./
+RUN npm run build
+
+# Final image
+FROM python:3.10-slim
+WORKDIR /app
+
+# Create a non-root user to run the application
+RUN groupadd -r aphrodite && useradd -r -g aphrodite aphrodite
+
+# Install system dependencies for image processing
+RUN apt-get update && apt-get install -y \
+    libmagic1 \
+    libpng-dev \
+    libjpeg-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create necessary directories
+RUN mkdir -p posters/original posters/working posters/modified data default_configs app/static
+
+# Copy the Python application
+COPY aphrodite.py .
+COPY aphrodite_helpers/ ./aphrodite_helpers/
+
+# Copy default configuration files to the default_configs directory
+COPY settings.yaml ./default_configs/
+COPY badge_settings_*.yml ./default_configs/
+
+# Also copy them to the root for use when not mounted
+COPY settings.yaml .
+COPY badge_settings_*.yml ./
+
+# Copy the web application (Flask backend)
+COPY aphrodite-web/app/ ./app/
+
+# Copy our Docker-specific files
+COPY docker-main.py ./main.py
+COPY docker-config-service.py ./app/services/config.py
+COPY docker-config-api.py ./app/api/config.py
+COPY docker-app-init.py ./app/__init__.py
+
+# Install Python dependencies - first core requirements, then web app requirements
+COPY requirements.txt core-requirements.txt
+COPY aphrodite-web/requirements.txt web-requirements.txt
+RUN pip install --no-cache-dir -r core-requirements.txt && \
+    pip install --no-cache-dir -r web-requirements.txt && \
+    pip install python-magic waitress
+
+# Copy the built frontend from the builder stage
+COPY --from=frontend-builder /app/dist/ ./app/static/
+
+# Set permissions for the non-root user
+RUN chown -R aphrodite:aphrodite /app && \
+    chmod -R 755 /app && \
+    chmod 666 /app/*.yaml /app/*.yml && \
+    chmod 777 /app/data /app/posters /app/posters/original /app/posters/working /app/posters/modified
+
+# Switch to the non-root user
+USER aphrodite
+
+# Expose the web interface port
+EXPOSE 5000
+
+# Command to run the web application
+CMD ["python", "main.py"]
