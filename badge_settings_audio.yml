@@ -1,7 +1,7 @@
 General:
   # General badge settings
   general_badge_position: "top-left"  # Position of the badge (top-left, top-right, bottom-left, bottom-right)
-  general_badge_size: 100             # Base size of the badge in pixels
+  general_badge_size: 500             # Base size of the badge in pixels
   general_edge_padding: 30            # Padding from the edge of the poster in pixels
   general_text_padding: 12            # Padding around text inside the badge
   use_dynamic_sizing: true            # Automatically adjust badge size based on content

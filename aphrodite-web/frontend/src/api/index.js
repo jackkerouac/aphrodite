@@ -2,7 +2,21 @@ import axios from 'axios';
 import configApi from './config';
 import jobsApi from './jobs';
 
-const baseURL = process.env.VUE_APP_API_URL || 'http://localhost:5000';
+// Get the base URL from the window object if available (injected by Flask),
+// fallback to environment variable, or relative URL if neither is available
+const getBaseURL = () => {
+  if (window.APHRODITE_BASE_URL) {
+    return window.APHRODITE_BASE_URL;
+  }
+  if (process.env.VUE_APP_API_URL) {
+    return process.env.VUE_APP_API_URL;
+  }
+  // If neither is available, use a relative URL (empty string)
+  // This works because axios will use the current host
+  return '';
+};
+
+const baseURL = getBaseURL();
 
 // Create axios instance
 const axiosInstance = axios.create({

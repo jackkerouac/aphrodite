@@ -17,12 +17,39 @@ def get_all_configs():
 @bp.route('/<file>', methods=['GET'])
 def get_config(file):
     """Get the content of a specific configuration file."""
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    logger.info(f"DEBUG: API received request for config file: {file}")
+    
+    # Extract request information for debugging
+    headers = dict(request.headers)
+    logger.info(f"DEBUG: Request headers: {headers}")
+    logger.info(f"DEBUG: Request host: {request.host}")
+    logger.info(f"DEBUG: Request remote addr: {request.remote_addr}")
+    
+    # Get config file content
     config = config_service.get_config(file)
     
     if config is None:
+        logger.error(f"DEBUG: Configuration file '{file}' not found")
         return jsonify({"error": f"Configuration file '{file}' not found"}), 404
     
-    return jsonify({"config": config})
+    # Log the config structure for debugging
+    logger.info(f"DEBUG: Config structure: {type(config)}")
+    if isinstance(config, dict) and 'api_keys' in config:
+        logger.info(f"DEBUG: API keys present: {list(config['api_keys'].keys())}")
+        for key in config['api_keys']:
+            logger.info(f"DEBUG: API key '{key}' structure: {type(config['api_keys'][key])}")
+    
+    logger.info(f"DEBUG: Returning config for {file}")
+    response = jsonify({"config": config})
+    
+    # Log the response for debugging
+    logger.info(f"DEBUG: Response status: {response.status_code}")
+    logger.info(f"DEBUG: Response headers: {dict(response.headers)}")
+    
+    return response
 
 @bp.route('/<file>', methods=['PUT'])
 def update_config(file):

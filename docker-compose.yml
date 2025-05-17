@@ -1,22 +1,25 @@
-version: '3.8'
-
 # Use .env file for configuration
 # Copy .env.template to .env and customize as needed
 
 services:
   aphrodite:
     env_file: .env
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: aphrodite:latest
     container_name: aphrodite-app
     ports:
-      - "${WEB_PORT:-5000}:5000"  # Map container port 5000 to configurable host port (default: 5000)
+      - "2125:${WEB_PORT:-5000}"  # Map host port to container port (same port for simplicity)
     volumes:
       # Configuration files with read/write access
       - ./settings.yaml:/app/settings.yaml:rw
       - ./badge_settings_audio.yml:/app/badge_settings_audio.yml:rw
       - ./badge_settings_resolution.yml:/app/badge_settings_resolution.yml:rw
       - ./badge_settings_review.yml:/app/badge_settings_review.yml:rw
+      
+      # Mount frontend source for development
+      - ./aphrodite-web:/app/aphrodite-web:rw
       
       # Persistent storage for posters and database
       - ./posters/original:/app/posters/original:rw
@@ -45,7 +48,7 @@ services:
     
     # Health check to ensure the application is running
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:${WEB_PORT:-5000}/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3

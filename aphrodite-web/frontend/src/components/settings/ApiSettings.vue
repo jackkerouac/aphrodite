@@ -323,47 +323,71 @@ export default {
     loading.value = true;
     error.value = null;
     
+    console.log('DEBUG: Starting to load settings');
+    
     try {
+      console.log('DEBUG: Making API request to get settings.yaml');
       const res = await api.getConfig('settings.yaml');
+      console.log('DEBUG: Got API response:', res);
       const config = res.data.config;
+      console.log('DEBUG: Extracted config data:', config);
       
       if (config && config.api_keys) {
+        console.log('DEBUG: API keys found in config:', Object.keys(config.api_keys));
+        
         // Load Jellyfin settings (first item in array)
         if (config.api_keys.Jellyfin && config.api_keys.Jellyfin.length > 0) {
+          console.log('DEBUG: Loading Jellyfin settings:', config.api_keys.Jellyfin);
           const jellyfinConfig = config.api_keys.Jellyfin[0];
           jellyfin.url = jellyfinConfig.url || '';
           jellyfin.api_key = jellyfinConfig.api_key || '';
           jellyfin.user_id = jellyfinConfig.user_id || '';
+          console.log('DEBUG: Jellyfin settings loaded:', jellyfin);
+        } else {
+          console.log('DEBUG: No Jellyfin settings found in config');
         }
         
         // Load OMDB settings (first item in array)
         if (config.api_keys.OMDB && config.api_keys.OMDB.length > 0) {
+          console.log('DEBUG: Loading OMDB settings:', config.api_keys.OMDB);
           const omdbConfig = config.api_keys.OMDB[0];
           omdb.api_key = omdbConfig.api_key || '';
           omdb.cache_expiration = omdbConfig.cache_expiration || 60;
+          console.log('DEBUG: OMDB settings loaded:', omdb);
+        } else {
+          console.log('DEBUG: No OMDB settings found in config');
         }
         
         // Load TMDB settings (first item in array)
         if (config.api_keys.TMDB && config.api_keys.TMDB.length > 0) {
+          console.log('DEBUG: Loading TMDB settings:', config.api_keys.TMDB);
           const tmdbConfig = config.api_keys.TMDB[0];
           tmdb.api_key = tmdbConfig.api_key || '';
           tmdb.cache_expiration = tmdbConfig.cache_expiration || 60;
           tmdb.language = tmdbConfig.language || 'en';
           tmdb.region = tmdbConfig.region || '';
+          console.log('DEBUG: TMDB settings loaded:', tmdb);
+        } else {
+          console.log('DEBUG: No TMDB settings found in config');
         }
         
-        // Load AniDB settings - THE FIX IS HERE
+        // Load AniDB settings
         if (config.api_keys.aniDB) {
+          console.log('DEBUG: Loading AniDB settings:', config.api_keys.aniDB);
           const anidbConfig = config.api_keys.aniDB;
+          console.log('DEBUG: AniDB config type:', typeof anidbConfig, Array.isArray(anidbConfig));
           
           // Handle both array and object formats to ensure compatibility
           if (Array.isArray(anidbConfig)) {
+            console.log('DEBUG: AniDB config is an array with length:', anidbConfig.length);
             // Array format - extract from both items
             if (anidbConfig.length > 0 && anidbConfig[0]) {
+              console.log('DEBUG: Loading AniDB username from first item:', anidbConfig[0]);
               anidb.username = anidbConfig[0].username || '';
             }
             
             if (anidbConfig.length > 1 && anidbConfig[1]) {
+              console.log('DEBUG: Loading AniDB other settings from second item:', anidbConfig[1]);
               const secondItem = anidbConfig[1];
               anidb.password = secondItem.password || '';
               anidb.version = secondItem.version || 1;
@@ -372,6 +396,7 @@ export default {
               anidb.cache_expiration = secondItem.cache_expiration || 60;
             }
           } else if (typeof anidbConfig === 'object') {
+            console.log('DEBUG: AniDB config is an object');
             // Object format - backend already combined the values
             anidb.username = anidbConfig.username || '';
             anidb.password = anidbConfig.password || '';
@@ -380,12 +405,21 @@ export default {
             anidb.language = anidbConfig.language || 'en';
             anidb.cache_expiration = anidbConfig.cache_expiration || 60;
           }
+          console.log('DEBUG: AniDB settings loaded:', anidb);
+        } else {
+          console.log('DEBUG: No AniDB settings found in config');
         }
+      } else {
+        console.log('DEBUG: No API keys found in config');
       }
     } catch (err) {
+      console.error('DEBUG: Error loading settings:', err);
+      console.error('DEBUG: Error response:', err.response?.data);
+      console.error('DEBUG: Error status:', err.response?.status);
       error.value = err.response?.data?.error || err.message || 'Failed to load API settings';
     } finally {
       loading.value = false;
+      console.log('DEBUG: Finished loading settings');
     }
   };
     

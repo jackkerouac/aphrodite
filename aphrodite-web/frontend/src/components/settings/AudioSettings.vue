@@ -537,7 +537,7 @@ export default {
       }
     });
 
-        // ──────── LOAD from disk ────────
+    // ──────── LOAD from disk ────────
     const loadSettings = async () => {
       loading.value = true;
       error.value   = null;
@@ -545,6 +545,10 @@ export default {
         const res = await api.getConfig('badge_settings_audio.yml');
         // backend returns { config: { … } }
         Object.assign(settings, res.data.config);
+        
+        // Update image URLs to use absolute paths
+        updateImageUrls();
+        
         // rebuild your tempMapping if needed
         Object.keys(settings.ImageBadges.image_mapping)
               .forEach(k => tempMapping[k] = k);
@@ -554,7 +558,6 @@ export default {
         loading.value = false;
       }
     };
-
 
     onMounted(loadSettings);
     
@@ -566,6 +569,34 @@ export default {
       codec: '',
       image: ''
     });
+    
+    // Function to convert relative image paths to absolute URLs
+    const getBaseUrl = () => {
+      if (window.APHRODITE_BASE_URL) {
+        return window.APHRODITE_BASE_URL;
+      }
+      if (process.env.VUE_APP_API_URL) {
+        return process.env.VUE_APP_API_URL;
+      }
+      return '';
+    };
+    
+    // Update image mappings to use absolute URLs
+    const updateImageUrls = () => {
+      const baseUrl = getBaseUrl();
+      if (settings.ImageBadges && settings.ImageBadges.codec_image_directory) {
+        // Keep track of the original directory for saving back to the settings file
+        settings._originalImageDir = settings.ImageBadges.codec_image_directory;
+        
+        // Make sure directory path works with URLs (replace backslashes with forward slashes)
+        settings.ImageBadges.codec_image_directory = settings.ImageBadges.codec_image_directory.replace(/\\/g, '/');
+        
+        // If not starting with a slash, add one
+        if (!settings.ImageBadges.codec_image_directory.startsWith('/')) {
+          settings.ImageBadges.codec_image_directory = '/' + settings.ImageBadges.codec_image_directory;
+        }
+      }
+    };
     
     // Add new mapping
     const addMapping = () => {
@@ -590,10 +621,19 @@ export default {
       saving.value = true;
       error.value  = null;
       try {
+        // If we have an original image directory path, restore it before saving
+        if (settings._originalImageDir) {
+          settings.ImageBadges.codec_image_directory = settings._originalImageDir;
+          delete settings._originalImageDir;
+        }
+        
         await api.updateConfig('badge_settings_audio.yml', settings);
         success.value = true;
         // clear after 3 seconds
         setTimeout(() => success.value = false, 3000);
+        
+        // Update image URLs again after saving
+        updateImageUrls();
       } catch (err) {
         error.value = err.response?.data?.error || err.message;
       } finally {
@@ -611,7 +651,9 @@ export default {
       newMapping,
       addMapping,
       removeMapping,
-      saveSettings
+      saveSettings,
+      updateImageUrls,
+      getBaseUrl
     };
   }
 };

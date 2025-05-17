@@ -3,7 +3,7 @@ General:
   badge_orientation: "vertical"       # Badge orientation (vertical, horizontal)
   badge_spacing: 15                   # Spacing between multiple badges
   general_badge_position: "bottom-left" # Position of the badge (top-left, top-right, bottom-left, bottom-right)
-  general_badge_size: 100             # Base size of the badge in pixels
+  general_badge_size: 500             # Base size of the badge in pixels
   general_edge_padding: 30            # Padding from the edge of the poster in pixels
   general_text_padding: 20            # Padding around text inside the badge
   max_badges_to_display: 4            # Maximum number of review badges to display

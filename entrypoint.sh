@@ -8,6 +8,12 @@ log_msg() {
 
 log_msg "Starting Aphrodite container initialization..."
 
+# Make HTTP_HOST available from host:port configuration
+if [ -n "${WEB_HOST}" ] && [ -n "${WEB_PORT}" ]; then
+    export HTTP_HOST="${WEB_HOST}:${WEB_PORT}"
+    log_msg "Setting HTTP_HOST to ${HTTP_HOST}"
+fi
+
 # Handle the user/group IDs if running as root
 if [ "$(id -u)" = "0" ]; then
     log_msg "Running as root, checking for custom user configuration..."
@@ -57,14 +63,27 @@ log_msg "Validating configuration files..."
 config_files_valid=true
 for config_file in /app/settings.yaml /app/badge_settings_audio.yml /app/badge_settings_resolution.yml /app/badge_settings_review.yml; do
     if [ -f "$config_file" ]; then
+        if [ -r "$config_file" ]; then
+            log_msg "DEBUG: Successfully read $config_file"
+            log_msg "DEBUG: Contents of $config_file:"
+            cat "$config_file" | sed 's/^/    /'
+        else
+            log_msg "ERROR: $config_file exists but is not readable"
+            ls -la "$config_file"
+            config_files_valid=false
+        fi
+        
         if [ -w "$config_file" ]; then
             chmod 664 "$config_file" 2>/dev/null || log_msg "Notice: Running as non-root, file permission changes may be limited"
+            log_msg "DEBUG: $config_file is writable"
         else
             log_msg "Warning: $config_file exists but is not writable"
+            ls -la "$config_file"
             config_files_valid=false
         fi
     else
         log_msg "Error: $config_file does not exist"
+        ls -la "$(dirname $config_file)/"
         config_files_valid=false
     fi
 done
@@ -134,8 +153,32 @@ if [ "$MODE" = "web" ]; then
     WEB_HOST=${WEB_HOST:-0.0.0.0}
     WEB_PORT=${WEB_PORT:-5000}
     FLASK_DEBUG=${FLASK_DEBUG:-0}
+    DOCKER_EXPOSED_PORT=${DOCKER_EXPOSED_PORT:-2125}
     
-    log_msg "Starting web application on $WEB_HOST:$WEB_PORT (debug: $FLASK_DEBUG)"
+    log_msg "DEBUG: Starting web application on $WEB_HOST:$WEB_PORT (debug: $FLASK_DEBUG)"
+    log_msg "DEBUG: Frontend will be accessible at http://${WEB_HOST}:$DOCKER_EXPOSED_PORT"
+    log_msg "DEBUG: Docker mapped port is $DOCKER_EXPOSED_PORT"
+    
+    # Set environment variables for the Flask app
+    export FLASK_APP_HOST="$WEB_HOST"
+    export FLASK_APP_PORT="$WEB_PORT"
+    export FLASK_APP_DEBUG="$FLASK_DEBUG"
+    export DOCKER_EXPOSED_PORT="$DOCKER_EXPOSED_PORT"
+    export APHRODITE_BASE_URL="http://${WEB_HOST}:$DOCKER_EXPOSED_PORT"
+    
+    log_msg "Setting APHRODITE_BASE_URL to http://${WEB_HOST}:$DOCKER_EXPOSED_PORT"
+    
+    # In development mode, rebuild the frontend
+    if [ "$FLASK_DEBUG" = "1" ] && [ -d "/app/aphrodite-web/frontend" ]; then
+        log_msg "Development mode detected. Rebuilding frontend..."
+        cd /app/aphrodite-web/frontend && npm install && npm run build
+        if [ $? -eq 0 ]; then
+            log_msg "Frontend rebuilt successfully."
+        else
+            log_msg "WARNING: Frontend rebuild failed. Using existing build if available."
+        fi
+    fi
+    
     cd /app && export PYTHONPATH=$PYTHONPATH:/app && cd /app/aphrodite-web && python -c "from app import create_app; app = create_app(); app.run(host='$WEB_HOST', port=$WEB_PORT, debug=bool($FLASK_DEBUG))"
 elif [ "$MODE" = "cli" ]; then
     # Execute the provided command line arguments for CLI mode
