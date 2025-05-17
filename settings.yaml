@@ -10,10 +10,11 @@ api_keys:
   - api_key: 0b2dc1bbbed569c9f97b2c54c7d167d2
     cache_expiration: 60
     language: en
-    region: null
+    region: CA
   aniDB:
-  - username: ''
-  - password: ''
-    client: 1
+  - username: jackkerouac
+  - password: Paradise4657
+    version: 5
+    client_name: kometamoore
     language: en
     cache_expiration: 60

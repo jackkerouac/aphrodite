@@ -46,24 +46,29 @@ class ConfigService:
         try:
             with open(file_path, 'r') as file:
                 config = yaml.safe_load(file)
+                logger.info(f"Raw config loaded from {file_name}: {config}")
                 
                 # Special handling for settings.yaml and aniDB structure
                 if file_name == 'settings.yaml' and config and 'api_keys' in config and 'aniDB' in config['api_keys']:
                     anidb_settings = config['api_keys']['aniDB']
-                    if isinstance(anidb_settings, list) and len(anidb_settings) >= 2:
-                        # Combine the two array items into a single object
+                    logger.info(f"Original aniDB settings: {anidb_settings}, type: {type(anidb_settings)}")
+                    
+                    if isinstance(anidb_settings, list):
+                        # Combine the items into a single object
                         combined = {}
                         
-                        # Get username from first item
-                        if isinstance(anidb_settings[0], dict):
-                            combined.update(anidb_settings[0])
-                            
-                        # Get other settings from second item
-                        if len(anidb_settings) > 1 and isinstance(anidb_settings[1], dict):
-                            combined.update(anidb_settings[1])
-                            
+                        # Process each item in the array
+                        for i, item in enumerate(anidb_settings):
+                            logger.info(f"Processing aniDB item {i}: {item}")
+                            if isinstance(item, dict):
+                                combined.update(item)
+                        
+                        logger.info(f"Combined aniDB settings: {combined}")
+                                
+                        # Replace the array with the combined object
                         config['api_keys']['aniDB'] = combined
                 
+                logger.info(f"Final processed config: {config}")
                 return config
         except Exception as e:
             logger.error(f"Error reading config file {file_path}: {e}")
@@ -81,12 +86,21 @@ class ConfigService:
             # Convert a single object structure to the array structure expected in the YAML
             anidb_settings = content['api_keys']['aniDB']
             if isinstance(anidb_settings, dict):
-                # Extract the username into first array item
-                username = anidb_settings.pop('username', None)
-                content['api_keys']['aniDB'] = [
-                    {'username': username} if username else {},
-                    anidb_settings
-                ]
+                # Create array structure - first element contains username, second element contains everything else
+                first_item = {}
+                second_item = {}
+                
+                # Extract username for the first item
+                if 'username' in anidb_settings:
+                    first_item['username'] = anidb_settings['username']
+                
+                # Everything else goes in the second item
+                for key, value in anidb_settings.items():
+                    if key != 'username':
+                        second_item[key] = value
+                
+                # Update the structure in the content
+                content['api_keys']['aniDB'] = [first_item, second_item]
                 
         try:
             with open(file_path, 'w') as file:

@@ -184,14 +184,25 @@
           </div>
           
           <div class="form-group">
-            <label for="anidb-client" class="block text-sm font-medium text-gray-700 mb-1">Client ID</label>
+            <label for="anidb-version" class="block text-sm font-medium text-gray-700 mb-1">Version</label>
             <input 
-              id="anidb-client" 
-              v-model.number="anidb.client" 
+              id="anidb-version" 
+              v-model.number="anidb.version" 
               type="number" 
               min="1"
               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder="1"
+            />
+          </div>
+          
+          <div class="form-group">
+            <label for="anidb-client-name" class="block text-sm font-medium text-gray-700 mb-1">Client Name</label>
+            <input 
+              id="anidb-client-name" 
+              v-model="anidb.client_name" 
+              type="text" 
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              placeholder="MyClientName"
             />
           </div>
           
@@ -301,68 +312,82 @@ export default {
     const anidb = reactive({
       username: '',
       password: '',
-      client: 1,
+      version: 1,
+      client_name: '',
       language: 'en',
       cache_expiration: 60
     });
     
     // Load settings
     const loadSettings = async () => {
-      loading.value = true;
-      error.value = null;
+    loading.value = true;
+    error.value = null;
+    
+    try {
+      const res = await api.getConfig('settings.yaml');
+      const config = res.data.config;
       
-      try {
-        const res = await api.getConfig('settings.yaml');
-        const config = res.data.config;
+      if (config && config.api_keys) {
+        // Load Jellyfin settings (first item in array)
+        if (config.api_keys.Jellyfin && config.api_keys.Jellyfin.length > 0) {
+          const jellyfinConfig = config.api_keys.Jellyfin[0];
+          jellyfin.url = jellyfinConfig.url || '';
+          jellyfin.api_key = jellyfinConfig.api_key || '';
+          jellyfin.user_id = jellyfinConfig.user_id || '';
+        }
         
-        if (config && config.api_keys) {
-          // Load Jellyfin settings (first item in array)
-          if (config.api_keys.Jellyfin && config.api_keys.Jellyfin.length > 0) {
-            const jellyfinConfig = config.api_keys.Jellyfin[0];
-            jellyfin.url = jellyfinConfig.url || '';
-            jellyfin.api_key = jellyfinConfig.api_key || '';
-            jellyfin.user_id = jellyfinConfig.user_id || '';
-          }
+        // Load OMDB settings (first item in array)
+        if (config.api_keys.OMDB && config.api_keys.OMDB.length > 0) {
+          const omdbConfig = config.api_keys.OMDB[0];
+          omdb.api_key = omdbConfig.api_key || '';
+          omdb.cache_expiration = omdbConfig.cache_expiration || 60;
+        }
+        
+        // Load TMDB settings (first item in array)
+        if (config.api_keys.TMDB && config.api_keys.TMDB.length > 0) {
+          const tmdbConfig = config.api_keys.TMDB[0];
+          tmdb.api_key = tmdbConfig.api_key || '';
+          tmdb.cache_expiration = tmdbConfig.cache_expiration || 60;
+          tmdb.language = tmdbConfig.language || 'en';
+          tmdb.region = tmdbConfig.region || '';
+        }
+        
+        // Load AniDB settings - THE FIX IS HERE
+        if (config.api_keys.aniDB) {
+          const anidbConfig = config.api_keys.aniDB;
           
-          // Load OMDB settings (first item in array)
-          if (config.api_keys.OMDB && config.api_keys.OMDB.length > 0) {
-            const omdbConfig = config.api_keys.OMDB[0];
-            omdb.api_key = omdbConfig.api_key || '';
-            omdb.cache_expiration = omdbConfig.cache_expiration || 60;
-          }
-          
-          // Load TMDB settings (first item in array)
-          if (config.api_keys.TMDB && config.api_keys.TMDB.length > 0) {
-            const tmdbConfig = config.api_keys.TMDB[0];
-            tmdb.api_key = tmdbConfig.api_key || '';
-            tmdb.cache_expiration = tmdbConfig.cache_expiration || 60;
-            tmdb.language = tmdbConfig.language || 'en';
-            tmdb.region = tmdbConfig.region || '';
-          }
-          
-          // Load AniDB settings (has special structure with data across two array items)
-          if (config.api_keys.aniDB && config.api_keys.aniDB.length > 0) {
-            // Username is in first array item
-            if (config.api_keys.aniDB[0]) {
-              anidb.username = config.api_keys.aniDB[0].username || '';
+          // Handle both array and object formats to ensure compatibility
+          if (Array.isArray(anidbConfig)) {
+            // Array format - extract from both items
+            if (anidbConfig.length > 0 && anidbConfig[0]) {
+              anidb.username = anidbConfig[0].username || '';
             }
             
-            // Password and other settings are in the second array item
-            if (config.api_keys.aniDB.length > 1 && config.api_keys.aniDB[1]) {
-              const aniDbConfig = config.api_keys.aniDB[1];
-              anidb.password = aniDbConfig.password || '';
-              anidb.client = aniDbConfig.client || 1;
-              anidb.language = aniDbConfig.language || 'en';
-              anidb.cache_expiration = aniDbConfig.cache_expiration || 60;
+            if (anidbConfig.length > 1 && anidbConfig[1]) {
+              const secondItem = anidbConfig[1];
+              anidb.password = secondItem.password || '';
+              anidb.version = secondItem.version || 1;
+              anidb.client_name = secondItem.client_name || '';
+              anidb.language = secondItem.language || 'en';
+              anidb.cache_expiration = secondItem.cache_expiration || 60;
             }
+          } else if (typeof anidbConfig === 'object') {
+            // Object format - backend already combined the values
+            anidb.username = anidbConfig.username || '';
+            anidb.password = anidbConfig.password || '';
+            anidb.version = anidbConfig.version || 1;
+            anidb.client_name = anidbConfig.client_name || '';
+            anidb.language = anidbConfig.language || 'en';
+            anidb.cache_expiration = anidbConfig.cache_expiration || 60;
           }
         }
-      } catch (err) {
-        error.value = err.response?.data?.error || err.message || 'Failed to load API settings';
-      } finally {
-        loading.value = false;
       }
-    };
+    } catch (err) {
+      error.value = err.response?.data?.error || err.message || 'Failed to load API settings';
+    } finally {
+      loading.value = false;
+    }
+  };
     
     // Save settings
     const saveSettings = async () => {
@@ -401,7 +426,8 @@ export default {
               },
               {
                 password: anidb.password,
-                client: anidb.client,
+                version: anidb.version,
+                client_name: anidb.client_name,
                 language: anidb.language,
                 cache_expiration: anidb.cache_expiration
               }

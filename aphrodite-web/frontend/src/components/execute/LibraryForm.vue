@@ -155,6 +155,7 @@
 <script>
 import { ref, reactive, onMounted } from 'vue';
 import axios from 'axios';
+import { useWorkflowStore } from '@/store/workflow';
 
 export default {
   name: 'LibraryForm',
@@ -163,6 +164,7 @@ export default {
     const libraries = ref([]);
     const isLoadingLibraries = ref(true);
     const isSubmitting = ref(false);
+    const workflowStore = useWorkflowStore();
     
     const formData = reactive({
       libraryIds: [],
@@ -239,7 +241,7 @@ export default {
         if (formData.badges.resolution) badgeTypes.push('resolution');
         if (formData.badges.review) badgeTypes.push('review');
         
-        console.log('Submitting library process request:', {
+        console.log('Creating workflow for library batch processing:', {
           libraryIds: formData.libraryIds,
           limit: formData.limit,
           retries: formData.retries,
@@ -247,8 +249,8 @@ export default {
           skipUpload: formData.skipUpload
         });
         
-        // Direct axios request to the API
-        const response = await axios.post('http://localhost:5000/api/process/library', {
+        // Use workflow store to create a library batch workflow
+        const response = await workflowStore.createLibraryBatchWorkflow({
           libraryIds: formData.libraryIds,
           limit: formData.limit,
           retries: formData.retries,
@@ -256,15 +258,19 @@ export default {
           skipUpload: formData.skipUpload
         });
         
-        console.log('Process response:', response.data);
+        console.log('Workflow creation response:', response);
         
         // Notify parent component of successful submission
-        emit('process-submitted', response.data);
+        emit('process-submitted', {
+          success: response.success,
+          message: response.message || (response.success ? 'Workflow added to queue' : 'Failed to create workflow'),
+          workflowId: response.workflowId
+        });
         
       } catch (error) {
-        console.error('Processing error:', error);
+        console.error('Workflow creation error:', error);
         
-        let errorMessage = 'An error occurred while processing the request.';
+        let errorMessage = 'An error occurred while creating the workflow.';
         
         if (error.response) {
           console.error('Error response:', error.response.data);

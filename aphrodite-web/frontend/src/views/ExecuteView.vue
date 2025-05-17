@@ -36,17 +36,13 @@
       
       <!-- Library Processing Form -->
       <div v-else-if="activeTab === 'library'">
+        <WorkflowManager class="mb-6" />
         <LibraryForm @process-submitted="handleProcessSubmitted" />
       </div>
       
-      <!-- Connection Check Form (placeholder) -->
+      <!-- Connection Check Form -->
       <div v-else-if="activeTab === 'check'">
-        <div class="card bg-base-100 shadow-xl">
-          <div class="card-body">
-            <h2 class="card-title">Connection Check</h2>
-            <p>Jellyfin connection check form will be implemented soon.</p>
-          </div>
-        </div>
+        <ConnectionCheck />
       </div>
     </div>
     
@@ -109,19 +105,32 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import ItemForm from '@/components/execute/ItemForm.vue';
 import LibraryForm from '@/components/execute/LibraryForm.vue';
+import WorkflowManager from '@/components/execute/WorkflowManager.vue';
+import ConnectionCheck from '@/components/execute/ConnectionCheck.vue';
 
 export default {
   name: 'ExecuteView',
   components: {
     ItemForm,
-    LibraryForm
+    LibraryForm,
+    WorkflowManager,
+    ConnectionCheck
   },
   setup() {
     const router = useRouter();
+    const route = useRouter().currentRoute.value;
     const activeTab = ref('item');
     const isLoading = ref(false);
     const processResult = ref(null);
     const showResults = ref(false);
+    
+    // Handle route query parameters
+    if (route.query.tab) {
+      const validTabs = ['item', 'library', 'check'];
+      if (validTabs.includes(route.query.tab)) {
+        activeTab.value = route.query.tab;
+      }
+    }
     
     const handleProcessSubmitted = (result) => {
       processResult.value = result;

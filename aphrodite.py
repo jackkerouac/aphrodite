@@ -106,19 +106,23 @@ def process_single_item(jellyfin_url: str, api_key: str, user_id: str,
 
         codec = get_primary_audio_codec(audio_info)
         print(f"📢 Found audio codec: {codec} for {item_name}")
-
-        # Create audio badge
-        audio_settings = load_badge_settings("badge_settings_audio.yml")
-        audio_badge = create_badge(audio_settings, codec)
         
-        # Apply audio badge to poster
-        output_path = apply_badge_to_poster(working_poster_path, audio_badge, audio_settings)
-        if not output_path:
-            print("❌ Failed to apply audio badge to poster")
-            return False
-        
-        # Update working_poster_path to point to the poster with audio badge
-        working_poster_path = output_path
+        # Skip adding audio badge if codec is UNKNOWN
+        if codec.upper() == "UNKNOWN":
+            print("⚠️ Skipping audio badge as codec is unknown")
+        else:
+            # Create audio badge
+            audio_settings = load_badge_settings("badge_settings_audio.yml")
+            audio_badge = create_badge(audio_settings, codec)
+            
+            # Apply audio badge to poster
+            output_path = apply_badge_to_poster(working_poster_path, audio_badge, audio_settings)
+            if not output_path:
+                print("❌ Failed to apply audio badge to poster")
+                return False
+            
+            # Update working_poster_path to point to the poster with audio badge
+            working_poster_path = output_path
 
     # 3. Process Resolution Badge if requested
     if add_resolution:
@@ -131,18 +135,22 @@ def process_single_item(jellyfin_url: str, api_key: str, user_id: str,
         resolution_text = get_resolution_badge_text(resolution_info)
         print(f"📏 Found resolution: {resolution_text} for {item_name}")
 
-        # Create resolution badge
-        resolution_settings = load_badge_settings("badge_settings_resolution.yml")
-        resolution_badge = create_badge(resolution_settings, resolution_text)
-        
-        # Apply resolution badge to poster (which may already have an audio badge)
-        output_path = apply_badge_to_poster(working_poster_path, resolution_badge, resolution_settings)
-        if not output_path:
-            print("❌ Failed to apply resolution badge to poster")
-            return False
+        # Skip adding resolution badge if it's UNKNOWN
+        if resolution_text.upper() == "UNKNOWN":
+            print("⚠️ Skipping resolution badge as resolution is unknown")
+        else:
+            # Create resolution badge
+            resolution_settings = load_badge_settings("badge_settings_resolution.yml")
+            resolution_badge = create_badge(resolution_settings, resolution_text)
             
-        # Update working_poster_path to point to the poster with resolution badge
-        working_poster_path = output_path
+            # Apply resolution badge to poster (which may already have an audio badge)
+            output_path = apply_badge_to_poster(working_poster_path, resolution_badge, resolution_settings)
+            if not output_path:
+                print("❌ Failed to apply resolution badge to poster")
+                return False
+                
+            # Update working_poster_path to point to the poster with resolution badge
+            working_poster_path = output_path
     
     # 4. Process Review Badges if requested
     if add_reviews:

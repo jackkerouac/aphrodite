@@ -95,10 +95,10 @@
                 </div>
               </div>
               <div class="flex gap-4">
-                <a href="https://github.com/Subletic/Aphrodite" target="_blank" rel="noopener noreferrer">
+                <a href="https://github.com/jackkerouac" target="_blank" rel="noopener noreferrer">
                   <img src="/images/github.webp" alt="GitHub" class="w-8 h-8" />
                 </a>
-                <a href="https://ko-fi.com/Subletic" target="_blank" rel="noopener noreferrer">
+                <a href="https://ko-fi.com/jackkerouac" target="_blank" rel="noopener noreferrer">
                   <img src="/images/kofi.png" alt="Ko-fi" class="w-8 h-8" />
                 </a>
               </div>

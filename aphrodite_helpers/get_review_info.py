@@ -167,6 +167,8 @@ class ReviewFetcher:
             return None
             
         print(f"ℹ️ AniDB API integration is only a placeholder - proper implementation needed")
+        print(f"ℹ️ aniDB client name: {self.anidb_settings.get('client_name', 'Not set')}")
+        print(f"ℹ️ aniDB version: {self.anidb_settings.get('version', 'Not set')}")
         return {"placeholder": True, "rating": "7.5"}  # Placeholder
     
     def format_review_data(self, review_data, show_details=False):

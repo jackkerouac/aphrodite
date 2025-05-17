@@ -17,7 +17,17 @@ export default {
   },
   
   getConfig(fileName) {
-    return apiClient.get(`/api/config/${fileName}`)
+    return new Promise((resolve, reject) => {
+      apiClient.get(`/api/config/${fileName}`)
+        .then(response => {
+          console.log('Raw API response:', JSON.stringify(response.data, null, 2));
+          resolve(response);
+        })
+        .catch(error => {
+          console.error('API error:', error);
+          reject(error);
+        });
+    });
   },
   
   updateConfig(fileName, config) {

@@ -22,12 +22,13 @@ def create_app():
         return jsonify({'message': 'API is working!'})
     
     # Import and register blueprints
-    from app.api import config, jobs, libraries, images, check
+    from app.api import config, jobs, libraries, images, check, workflow
     app.register_blueprint(config.bp)
     app.register_blueprint(jobs.bp)
     app.register_blueprint(libraries.bp)
     app.register_blueprint(images.bp)
     app.register_blueprint(check.bp)
+    app.register_blueprint(workflow.bp)
     
     # Register the simplified process API
     from app.api import process_api

@@ -18,7 +18,11 @@ const routes = [
     name: 'execute',
     component: () => import('../views/ExecuteView.vue')
   },
-  // Preview route removed
+  {
+    path: '/preview',
+    name: 'preview',
+    component: () => import('../views/PreviewView.vue')
+  }
 ]
 
 const router = createRouter({

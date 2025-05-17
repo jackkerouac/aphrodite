@@ -68,7 +68,8 @@ def check_jellyfin_connection():
             cmd,
             capture_output=True,
             text=True,
-            check=False  # Don't raise exception on non-zero exit code
+            check=False,  # Don't raise exception on non-zero exit code
+            encoding='utf-8'  # Explicitly set UTF-8 encoding
         )
 
         # Log the script output and return code

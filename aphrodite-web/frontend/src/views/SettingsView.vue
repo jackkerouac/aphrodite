@@ -3,19 +3,16 @@
     <h1 class="text-2xl font-bold mb-6">Settings</h1>
     
     <!-- Settings Tabs -->
-    <div class="mb-6 border-b border-gray-200">
-      <ul class="flex flex-wrap -mb-px">
-        <li class="mr-2" v-for="tab in tabs" :key="tab.id">
-          <a 
-            href="#"
-            @click.prevent="activeTab = tab.id"
-            :class="['inline-block py-2 px-4 border-b-2 font-medium text-sm', 
-                   activeTab === tab.id ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-600 hover:border-gray-300']"
-          >
-            {{ tab.name }}
-          </a>
-        </li>
-      </ul>
+    <div class="tabs tabs-boxed mb-6">
+      <a 
+        v-for="tab in tabs" 
+        :key="tab.id"
+        class="tab" 
+        :class="{ 'tab-active': activeTab === tab.id }"
+        @click="activeTab = tab.id"
+      >
+        {{ tab.name }}
+      </a>
     </div>
     
     <!-- Tab Content -->
