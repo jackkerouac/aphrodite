@@ -68,8 +68,7 @@ def create_library_batch_workflow():
             'badgeTypes': data.get('badgeTypes'),
             'limit': data.get('limit'),
             'retries': data.get('retries', 3),
-            'skipUpload': data.get('skipUpload', False),
-            'cleanup': data.get('cleanup', False)
+            'skipUpload': data.get('skipUpload', False)
         })
         
         return jsonify({

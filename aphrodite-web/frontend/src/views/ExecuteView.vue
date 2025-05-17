@@ -96,14 +96,6 @@
               <div class="mt-4">
                 <p v-if="processResult.success" class="font-bold">Processing completed successfully!</p>
                 <p v-else class="font-bold">Processing failed with code: {{ processResult.returnCode }}</p>
-                
-                <div class="divider"></div>
-                
-                <div class="flex justify-end mt-4">
-                  <button v-if="processResult.success" class="btn btn-primary" @click="goToPreview">
-                    Go to Preview
-                  </button>
-                </div>
               </div>
             </div>
         </div>
@@ -131,7 +123,6 @@ export default {
     CleanupForm
   },
   setup() {
-    const router = useRouter();
     const route = useRouter().currentRoute.value;
     const activeTab = ref('item');
     const isLoading = ref(false);
@@ -152,17 +143,12 @@ export default {
       isLoading.value = false;
     };
     
-    const goToPreview = () => {
-      router.push('/preview');
-    };
-    
     return {
       activeTab,
       isLoading,
       processResult,
       showResults,
-      handleProcessSubmitted,
-      goToPreview
+      handleProcessSubmitted
     };
   }
 }

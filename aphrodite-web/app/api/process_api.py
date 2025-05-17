@@ -60,10 +60,6 @@ def process_item():
         # Add skip upload flag if requested
         if data.get('skipUpload'):
             cmd.append('--no-upload')
-            
-        # Add cleanup flag if requested
-        if data.get('cleanup'):
-            cmd.append('--cleanup')
         
         print(f"Executing command: {' '.join(cmd)}")
         

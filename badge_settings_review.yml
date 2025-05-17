@@ -1,17 +1,17 @@
 General:
   badge_orientation: vertical
-  badge_spacing: 10
+  badge_spacing: 15
   general_badge_position: bottom-left
   general_badge_size: 100
   general_edge_padding: 30
   general_text_padding: 20
-  max_badges_to_display: 3
+  max_badges_to_display: 4
   use_dynamic_sizing: true
 Text:
   fallback_font: DejaVuSans.ttf
   font: AvenirNextLTProBold.otf
   text-color: '#FFFFFF'
-  text-size: 42
+  text-size: 60
 Background:
   background-color: '#2C2C2C'
   background_opacity: 60
@@ -21,7 +21,7 @@ Border:
   border_width: 1
 Shadow:
   shadow_blur: 5
-  shadow_enable: true
+  shadow_enable: false
   shadow_offset_x: 2
   shadow_offset_y: 2
 ImageBadges:

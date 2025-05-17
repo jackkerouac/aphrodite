@@ -67,7 +67,7 @@
         </div>
         
         <!-- Upload Option -->
-        <div class="form-control mb-4">
+        <div class="form-control mb-6">
           <label class="flex items-center gap-2 cursor-pointer">
             <input 
               type="checkbox" 
@@ -75,21 +75,6 @@
               v-model="formData.skipUpload"
             />
             <span>Skip upload to Jellyfin</span>
-          </label>
-        </div>
-        
-        <!-- Cleanup Option -->
-        <div class="form-control mb-6">
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input 
-              type="checkbox" 
-              class="checkbox checkbox-primary" 
-              v-model="formData.cleanup"
-            />
-            <span>Clean up poster directories after processing</span>
-          </label>
-          <label class="label">
-            <span class="label-text-alt">Removes all posters from the original, working, and modified directories</span>
           </label>
         </div>
         
@@ -127,8 +112,7 @@ export default {
         resolution: false,
         review: false
       },
-      skipUpload: false,
-      cleanup: false
+      skipUpload: false
     });
     
     const errors = reactive({
@@ -177,16 +161,14 @@ export default {
         console.log('Submitting process request:', {
           itemId: formData.itemId,
           badgeTypes,
-          skipUpload: formData.skipUpload,
-          cleanup: formData.cleanup
+          skipUpload: formData.skipUpload
         });
         
         // Direct axios request to the API
         const response = await axios.post('http://localhost:5000/api/process/item', {
           itemId: formData.itemId,
           badgeTypes,
-          skipUpload: formData.skipUpload,
-          cleanup: formData.cleanup
+          skipUpload: formData.skipUpload
         });
         
         console.log('Process response:', response.data);
