@@ -27,6 +27,13 @@
         >
           Connection Check
         </a>
+        <a 
+          class="tab" 
+          :class="{ 'tab-active': activeTab === 'cleanup' }"
+          @click="activeTab = 'cleanup'"
+        >
+          Clean Up Posters
+        </a>
       </div>
       
       <!-- Single Item Processing Form -->
@@ -43,6 +50,11 @@
       <!-- Connection Check Form -->
       <div v-else-if="activeTab === 'check'">
         <ConnectionCheck />
+      </div>
+      
+      <!-- Cleanup Form -->
+      <div v-else-if="activeTab === 'cleanup'">
+        <CleanupForm @cleanup-submitted="handleProcessSubmitted" />
       </div>
     </div>
     
@@ -107,6 +119,7 @@ import ItemForm from '@/components/execute/ItemForm.vue';
 import LibraryForm from '@/components/execute/LibraryForm.vue';
 import WorkflowManager from '@/components/execute/WorkflowManager.vue';
 import ConnectionCheck from '@/components/execute/ConnectionCheck.vue';
+import CleanupForm from '@/components/execute/CleanupForm.vue';
 
 export default {
   name: 'ExecuteView',
@@ -114,7 +127,8 @@ export default {
     ItemForm,
     LibraryForm,
     WorkflowManager,
-    ConnectionCheck
+    ConnectionCheck,
+    CleanupForm
   },
   setup() {
     const router = useRouter();

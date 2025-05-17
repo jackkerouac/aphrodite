@@ -99,32 +99,41 @@ def get_primary_audio_codec(media_info):
 # MODIFIED: Added user_id as a parameter and pass it to get_media_stream_info
 def fetch_item_and_create_badge(jellyfin_url, api_key, user_id, item_id, output_dir="posters/modified"):
     """Fetch item information and create a badge with the audio codec."""
-    # Import here to avoid circular imports
-    from aphrodite_helpers.apply_badge import download_and_badge_poster # Assuming this doesn't need user_id directly or gets it another way
-    
-    # Pass user_id to get_media_stream_info
-    media_info = get_media_stream_info(jellyfin_url, api_key, user_id, item_id)
-    if not media_info:
-        print(f"❌ Could not retrieve media information for item {item_id}")
+    try:
+        # Import here to avoid circular imports
+        from aphrodite_helpers.apply_badge import download_and_badge_poster
+        
+        # Pass user_id to get_media_stream_info
+        media_info = get_media_stream_info(jellyfin_url, api_key, user_id, item_id)
+        if not media_info:
+            print(f"❌ Could not retrieve media information for item {item_id}")
+            return False
+        
+        # Get the primary audio codec
+        audio_codec = get_primary_audio_codec(media_info)
+        print(f"📢 Found audio codec: {audio_codec} for {media_info['name']}")
+        
+        # Skip if audio codec is UNKNOWN
+        if audio_codec.upper() == "UNKNOWN":
+            print(f"⚠️ Skipping audio badge as codec is unknown")
+            return False
+        
+        # Create badge and apply to poster
+        success = download_and_badge_poster(
+            jellyfin_url=jellyfin_url,
+            api_key=api_key,
+            item_id=item_id, 
+            badge_text=audio_codec,
+            output_dir=output_dir,
+            use_image=True  # Enable image-based badges
+        )
+        
+        return success
+    except Exception as e:
+        print(f"❌ Error creating audio badge: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
         return False
-    
-    # Get the primary audio codec
-    audio_codec = get_primary_audio_codec(media_info)
-    print(f"📢 Found audio codec: {audio_codec} for {media_info['name']}")
-    
-    # Create badge and apply to poster
-    # If download_and_badge_poster needs user_id, you might need to pass it here too.
-    # For now, assuming it primarily uses item_id for poster fetching as per its name.
-    success = download_and_badge_poster(
-        jellyfin_url=jellyfin_url,
-        api_key=api_key,
-        item_id=item_id, 
-        badge_text=audio_codec,
-        output_dir=output_dir,
-        use_image=True  # Enable image-based badges
-    )
-    
-    return success
 
 if __name__ == "__main__":
     import argparse

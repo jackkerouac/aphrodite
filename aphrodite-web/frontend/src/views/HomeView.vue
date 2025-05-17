@@ -4,7 +4,16 @@
     <p class="mb-6 text-gray-600">
       Welcome to Aphrodite - a tool for enhancing Jellyfin media posters with informational badges for audio codecs, resolution, and review scores.
     </p>
-    
+
+    <h2 class="text-x1 font-bold mb-2">Latest Updates</h2>
+    <p class="mb-6 text-gray-600">
+      • Added checks to ensure output paths exist before attempting poster uploads<br />
+      • Enhanced error handling in library batch processing to catch exceptions and continue<br />
+      • Added success/failure tracking and a summary report at the end
+    </p>
+
+    <p>&nbsp;</p>
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <!-- Quick Stats Card -->
       <div class="card bg-base-100 shadow-xl">

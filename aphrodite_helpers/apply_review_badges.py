@@ -408,78 +408,103 @@ def process_item_reviews(
     input_poster=None  # New parameter to accept an already processed poster
 ):
     """Process reviews for a Jellyfin item, create badges, and apply to poster."""
-    # Load badge settings
-    badge_settings = load_badge_settings(settings_file)
-    if not badge_settings:
-        print(f"❌ Failed to load badge settings from {settings_file}")
-        return False
-    
-    # Create review fetcher
-    settings = load_settings()
-    review_fetcher = ReviewFetcher(settings)
-    
-    # Get reviews
-    reviews = review_fetcher.get_reviews(item_id)
-    if not reviews:
-        print(f"❌ No reviews found for item ID: {item_id}")
-        return False
-    
-    print(f"✅ Found {len(reviews)} reviews")
-    
-    # Create container with all review badges
-    container_badge = create_review_container(reviews, badge_settings)
-    if not container_badge:
-        print(f"❌ Failed to create review container")
-        return False
-    
-    # Use the provided poster if available, otherwise download from Jellyfin
-    poster_path = input_poster
-    if not poster_path or not os.path.exists(poster_path):
-        # Download poster
-        poster_path = download_poster(jellyfin_url, api_key, item_id)
-        if not poster_path:
-            print(f"❌ Failed to download poster for item ID: {item_id}")
+    try:
+        # Load badge settings
+        badge_settings = load_badge_settings(settings_file)
+        if not badge_settings:
+            print(f"❌ Failed to load badge settings from {settings_file}")
             return False
         
-        # If we downloaded a new poster (not using the input one), resize it
-        # Create a path for the resized poster
-        resized_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "posters", "working",
-            os.path.basename(poster_path)
+        # Create review fetcher
+        settings = load_settings()
+        if not settings:
+            print(f"❌ Failed to load main settings")
+            return False
+            
+        review_fetcher = ReviewFetcher(settings)
+        
+        # Get reviews
+        reviews = review_fetcher.get_reviews(item_id)
+        if not reviews:
+            print(f"❌ No reviews found for item ID: {item_id}")
+            return False
+        
+        print(f"✅ Found {len(reviews)} reviews")
+    except Exception as e:
+        print(f"❌ Error during review setup: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return False
+    
+    try:
+        # Create container with all review badges
+        container_badge = create_review_container(reviews, badge_settings)
+        if not container_badge:
+            print(f"❌ Failed to create review container")
+            return False
+        
+        # Use the provided poster if available, otherwise download from Jellyfin
+        poster_path = input_poster
+        if not poster_path or not os.path.exists(poster_path):
+            # Download poster
+            poster_path = download_poster(jellyfin_url, api_key, item_id)
+            if not poster_path:
+                print(f"❌ Failed to download poster for item ID: {item_id}")
+                return False
+            
+            # If we downloaded a new poster (not using the input one), resize it
+            try:
+                # Create a path for the resized poster
+                resized_path = os.path.join(
+                    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                    "posters", "working",
+                    os.path.basename(poster_path)
+                )
+                
+                # Import resize function only when needed to avoid circular imports
+                from aphrodite_helpers.resize_posters import resize_image
+                
+                # Resize the poster for consistent badge sizing
+                resize_success = resize_image(poster_path, resized_path, target_width=1000)
+                if resize_success:
+                    print(f"✅ Resized downloaded poster to 1000px width")
+                    poster_path = resized_path
+            except Exception as e:
+                print(f"⚠️ Error resizing poster: {str(e)}. Continuing with original size.")
+                # Continue with original poster path
+        
+        # Verify we have a valid poster path before proceeding
+        if not poster_path or not os.path.exists(poster_path):
+            print(f"❌ Invalid or missing poster path")
+            return False
+        
+        # Apply container badge to poster
+        result = apply_badge_to_poster(
+            poster_path=poster_path,
+            badge=container_badge,
+            settings=badge_settings,
+            working_dir="posters/working",  # Explicitly set working directory
+            output_dir=output_dir           # Use output dir from parameters
         )
         
-        # Import resize function only when needed to avoid circular imports
-        from aphrodite_helpers.resize_posters import resize_image
+        print(f"\nReview badge output path: {result}")
         
-        # Resize the poster for consistent badge sizing
-        resize_success = resize_image(poster_path, resized_path, target_width=1000)
-        if resize_success:
-            print(f"✅ Resized downloaded poster to 1000px width")
-            poster_path = resized_path
-    
-    # Apply container badge to poster
-    result = apply_badge_to_poster(
-        poster_path=poster_path,
-        badge=container_badge,
-        settings=badge_settings,
-        working_dir="posters/working",  # Explicitly set working directory
-        output_dir=output_dir           # Use output dir from parameters
-    )
-    
-    print(f"\nReview badge output path: {result}")
-    
-    # Check if the result is None, which indicates an error
-    if result is None:
-        print(f"❌ Error applying review badge to poster")
-        return False
-    else:
-        # Ensure the output file exists
-        if os.path.exists(result):
-            return True
-        else:
-            print(f"❌ Review badge was created but the output file doesn't exist: {result}")
+        # Check if the result is None, which indicates an error
+        if result is None:
+            print(f"❌ Error applying review badge to poster")
             return False
+        else:
+            # Ensure the output file exists
+            if os.path.exists(result):
+                return True
+            else:
+                print(f"❌ Review badge was created but the output file doesn't exist: {result}")
+                return False
+    except Exception as e:
+        print(f"❌ Unexpected error during review badge processing: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return False
 
 def main():
     parser = argparse.ArgumentParser(description="Apply review badges to Jellyfin media posters")

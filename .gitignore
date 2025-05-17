@@ -41,3 +41,6 @@ yarn-error.log
 # OS
 .DS_Store
 Thumbs.db
+
+# Directories
+posters/

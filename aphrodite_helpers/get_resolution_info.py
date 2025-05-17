@@ -131,30 +131,41 @@ def get_resolution_badge_text(media_info):
 
 def fetch_item_and_create_resolution_badge(jellyfin_url, api_key, user_id, item_id, output_dir="posters/modified"):
     """Fetch item information and create a badge with the resolution."""
-    # Import here to avoid circular imports
-    from aphrodite_helpers.apply_resolution_badge import download_and_badge_poster
-    
-    # Get resolution info
-    media_info = get_media_resolution_info(jellyfin_url, api_key, user_id, item_id)
-    if not media_info:
-        print(f"❌ Could not retrieve media information for item {item_id}")
+    try:
+        # Import here to avoid circular imports
+        from aphrodite_helpers.apply_resolution_badge import download_and_badge_poster
+        
+        # Get resolution info
+        media_info = get_media_resolution_info(jellyfin_url, api_key, user_id, item_id)
+        if not media_info:
+            print(f"❌ Could not retrieve media information for item {item_id}")
+            return False
+        
+        # Get the resolution badge text
+        resolution_text = get_resolution_badge_text(media_info)
+        print(f"📏 Found resolution: {resolution_text} for {media_info['name']}")
+        
+        # Skip if resolution is UNKNOWN
+        if resolution_text.upper() == "UNKNOWN":
+            print(f"⚠️ Skipping resolution badge as resolution is unknown")
+            return False
+        
+        # Create badge and apply to poster
+        success = download_and_badge_poster(
+            jellyfin_url=jellyfin_url,
+            api_key=api_key,
+            item_id=item_id, 
+            badge_text=resolution_text,
+            output_dir=output_dir,
+            use_image=True  # Enable image-based badges
+        )
+        
+        return success
+    except Exception as e:
+        print(f"❌ Error creating resolution badge: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
         return False
-    
-    # Get the resolution badge text
-    resolution_text = get_resolution_badge_text(media_info)
-    print(f"📏 Found resolution: {resolution_text} for {media_info['name']}")
-    
-    # Create badge and apply to poster
-    success = download_and_badge_poster(
-        jellyfin_url=jellyfin_url,
-        api_key=api_key,
-        item_id=item_id, 
-        badge_text=resolution_text,
-        output_dir=output_dir,
-        use_image=True  # Enable image-based badges
-    )
-    
-    return success
 
 if __name__ == "__main__":
     import argparse

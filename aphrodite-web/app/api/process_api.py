@@ -1,6 +1,13 @@
 from flask import Blueprint, jsonify, request
 import subprocess
 import os
+import sys
+
+# Add the parent directory to sys.path for imports
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+
+# Import the cleanup function from aphrodite_helpers
+from aphrodite_helpers.cleanup.poster_cleanup import clean_poster_directories
 
 # Create blueprint for process endpoint
 bp = Blueprint('process_api', __name__, url_prefix='/api/process')
@@ -53,6 +60,10 @@ def process_item():
         # Add skip upload flag if requested
         if data.get('skipUpload'):
             cmd.append('--no-upload')
+            
+        # Add cleanup flag if requested
+        if data.get('cleanup'):
+            cmd.append('--cleanup')
         
         print(f"Executing command: {' '.join(cmd)}")
         
@@ -211,3 +222,38 @@ def process_libraries_synchronously(data):
         'message': 'All libraries processed successfully' if all_success else 'Some libraries failed to process',
         'results': results
     })
+
+
+@bp.route('/cleanup', methods=['POST'])
+def cleanup_posters():
+    """Clean up poster directories"""
+    print("Cleanup endpoint called with POST")
+    
+    try:
+        # Get the request data
+        data = request.get_json() or {}
+        
+        # Default is to clean all directories unless specified not to
+        clean_modified = not data.get('skipModified', False)
+        clean_working = not data.get('skipWorking', False)
+        clean_original = not data.get('skipOriginal', False)
+        
+        # Call the cleanup function
+        success, message = clean_poster_directories(
+            clean_modified=clean_modified,
+            clean_working=clean_working,
+            clean_original=clean_original,
+            verbose=True
+        )
+        
+        return jsonify({
+            'success': success,
+            'message': message
+        })
+        
+    except Exception as e:
+        print(f"Error during cleanup: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }), 500
