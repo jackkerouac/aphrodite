@@ -1,15 +1,22 @@
-import os
 from flask import Flask, send_from_directory, jsonify, request
+import os
 import logging
+from waitress import serve
 
-# Set up logging
-logging.basicConfig(level=logging.DEBUG)
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
+
 logger = logging.getLogger(__name__)
 
 def create_app():
     """Create and configure the Flask application"""
-    # In Docker, the static folder is at ./app/static
-    app = Flask(__name__, static_folder='static', static_url_path='/')
+    app = Flask(__name__, static_folder='../static', static_url_path='/')
     
     # Enable CORS for all domains and routes
     from flask_cors import CORS
@@ -62,16 +69,13 @@ def create_app():
     
     # Import and register blueprints
     try:
-        from app.api import config, jobs, libraries, images, check, workflow
+        from app.api import config, jobs, libraries, images, check, workflow, process_api
         app.register_blueprint(config.bp)
         app.register_blueprint(jobs.bp)
         app.register_blueprint(libraries.bp)
         app.register_blueprint(images.bp)
         app.register_blueprint(check.bp)
         app.register_blueprint(workflow.bp)
-        
-        # Register the simplified process API
-        from app.api import process_api
         app.register_blueprint(process_api.bp)
     except Exception as e:
         logger.error(f"Error registering blueprints: {e}")
@@ -95,3 +99,18 @@ def create_app():
                 return f"Frontend not found. Static folder: {app.static_folder}, Path requested: {path}"
     
     return app
+
+if __name__ == '__main__':
+    # Print startup information
+    print("=" * 50)
+    print("Aphrodite Web Wrapper")
+    print("=" * 50)
+    print(f"Working directory: {os.getcwd()}")
+    print("Starting server on http://0.0.0.0:5000")
+    print("=" * 50)
+    
+    app = create_app()
+    
+    # Use Waitress instead of Flask's development server
+    logger.info("Starting Waitress production server...")
+    serve(app, host='0.0.0.0', port=5000)
