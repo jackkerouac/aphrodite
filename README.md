@@ -21,17 +21,30 @@ The easiest way to get started is using the pre-built Docker image:
 # Create a directory for Aphrodite
 mkdir aphrodite && cd aphrodite
 
-# Download docker-compose.yml
-curl -O https://raw.githubusercontent.com/jackkerouac/aphrodite/main/docker-compose.yml
+# Download docker-compose.yml and configuration files
+# For PowerShell:
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/jackkerouac/aphrodite/main/docker-compose.yml -OutFile docker-compose.yml
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/jackkerouac/aphrodite/main/settings.yaml.template -OutFile settings.yaml.template
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/jackkerouac/aphrodite/main/badge_settings_audio.yml -OutFile badge_settings_audio.yml
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/jackkerouac/aphrodite/main/badge_settings_resolution.yml -OutFile badge_settings_resolution.yml
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/jackkerouac/aphrodite/main/badge_settings_review.yml -OutFile badge_settings_review.yml
+
+# For Bash/Linux/Mac:
+# curl -O https://raw.githubusercontent.com/jackkerouac/aphrodite/main/docker-compose.yml
+# curl -O https://raw.githubusercontent.com/jackkerouac/aphrodite/main/settings.yaml.template
+# curl -O https://raw.githubusercontent.com/jackkerouac/aphrodite/main/badge_settings_audio.yml
+# curl -O https://raw.githubusercontent.com/jackkerouac/aphrodite/main/badge_settings_resolution.yml
+# curl -O https://raw.githubusercontent.com/jackkerouac/aphrodite/main/badge_settings_review.yml
 
 # Create required directories
-mkdir -p ./data ./posters/original ./posters/working ./posters/modified
+# For PowerShell:
+New-Item -ItemType Directory -Force -Path .\data
+New-Item -ItemType Directory -Force -Path .\posters\original
+New-Item -ItemType Directory -Force -Path .\posters\working
+New-Item -ItemType Directory -Force -Path .\posters\modified
 
-# Download configuration template
-curl -O https://raw.githubusercontent.com/jackkerouac/aphrodite/main/settings.yaml.template
-curl -O https://raw.githubusercontent.com/jackkerouac/aphrodite/main/badge_settings_audio.yml
-curl -O https://raw.githubusercontent.com/jackkerouac/aphrodite/main/badge_settings_resolution.yml
-curl -O https://raw.githubusercontent.com/jackkerouac/aphrodite/main/badge_settings_review.yml
+# For Bash/Linux/Mac:
+# mkdir -p ./data ./posters/original ./posters/working ./posters/modified
 
 # Create your configuration file
 cp settings.yaml.template settings.yaml
