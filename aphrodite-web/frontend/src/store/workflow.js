@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import api from '@/api';
 
 export const useWorkflowStore = defineStore('workflow', {
   state: () => ({
@@ -25,7 +25,7 @@ export const useWorkflowStore = defineStore('workflow', {
       this.error = null;
       
       try {
-        const response = await axios.get('http://localhost:5000/api/workflow/');
+        const response = await api.get('/api/workflow/');
         
         if (response.data.success) {
           this.activeWorkflows = response.data.active;
@@ -47,7 +47,7 @@ export const useWorkflowStore = defineStore('workflow', {
       this.error = null;
       
       try {
-        const response = await axios.post('http://localhost:5000/api/workflow/library-batch', options);
+        const response = await api.post('/api/workflow/library-batch', options);
         
         if (response.data.success) {
           await this.fetchWorkflows();
@@ -70,7 +70,7 @@ export const useWorkflowStore = defineStore('workflow', {
       this.error = null;
       
       try {
-        const response = await axios.post(`http://localhost:5000/api/workflow/${workflowId}/cancel`);
+        const response = await api.post(`/api/workflow/${workflowId}/cancel`);
         
         if (response.data.success) {
           await this.fetchWorkflows();
@@ -93,7 +93,7 @@ export const useWorkflowStore = defineStore('workflow', {
       this.error = null;
       
       try {
-        const response = await axios.delete(`http://localhost:5000/api/workflow/${workflowId}`);
+        const response = await api.delete(`/api/workflow/${workflowId}`);
         
         if (response.data.success) {
           await this.fetchWorkflows();

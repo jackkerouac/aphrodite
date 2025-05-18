@@ -99,7 +99,7 @@
 
 <script>
 import { ref, reactive } from 'vue';
-import axios from 'axios';
+import api from '@/api';
 
 export default {
   name: 'ItemForm',
@@ -164,8 +164,8 @@ export default {
           skipUpload: formData.skipUpload
         });
         
-        // Direct axios request to the API
-        const response = await axios.post('http://localhost:5000/api/process/item', {
+        // Use the shared API client
+        const response = await api.post('/api/process/item', {
           itemId: formData.itemId,
           badgeTypes,
           skipUpload: formData.skipUpload

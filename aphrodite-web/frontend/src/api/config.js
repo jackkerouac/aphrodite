@@ -48,14 +48,44 @@ const normalizeImageURL = (imagePath) => {
   return `${baseURL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
 };
 
-const apiClient = axios.create({
-  baseURL,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  },
-  timeout: 10000
-})
+// Function to configure API client
+const configureApiClient = (useProxy = false) => {
+  // Get the base URL from the window object or current location
+  const baseURL = getBaseURL();
+  console.log('DEBUG: Configuring API client with baseURL:', baseURL);
+  console.log('DEBUG: Using proxy:', useProxy);
+  
+  // Create a new Axios instance
+  const client = axios.create({
+    baseURL,
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    timeout: 10000
+  });
+  
+  // Add interceptor to log all requests for debugging
+  client.interceptors.request.use(config => {
+    // If using proxy, modify the URL to use the proxy endpoint
+    if (useProxy && config.url && config.url.startsWith('/api/')) {
+      config.url = config.url.replace('/api/', '/api-proxy/');
+      console.log('DEBUG: Using proxy, modified URL:', config.url);
+    }
+    
+    console.log('DEBUG: Making API request to:', config.url);
+    return config;
+  });
+  
+  return client;
+};
+
+// Create the API client
+const apiClient = configureApiClient(window.USE_API_PROXY || false);
+
+// Store the configuration function in window for access by the proxy script
+window.configureApiClient = configureApiClient;
+window.API_CLIENT_CONFIGURED = true;
 
 export default {
   getConfigFiles() {

@@ -44,3 +44,7 @@ Thumbs.db
 
 # Directories
 posters/
+
+# Settings
+settings.yaml
+data/config/settings.yaml.bak

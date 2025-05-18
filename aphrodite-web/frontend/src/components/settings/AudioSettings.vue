@@ -1,4 +1,19 @@
-<template>
+    // Update image mappings to use absolute URLs
+    const updateImageUrls = () => {
+      // Intentionally not using baseUrl - we just need to fix path formatting
+      if (settings.ImageBadges && settings.ImageBadges.codec_image_directory) {
+        // Keep track of the original directory for saving back to the settings file
+        settings._originalImageDir = settings.ImageBadges.codec_image_directory;
+        
+        // Make sure directory path works with URLs (replace backslashes with forward slashes)
+        settings.ImageBadges.codec_image_directory = settings.ImageBadges.codec_image_directory.replace(/\\/g, '/');
+        
+        // If not starting with a slash, add one
+        if (!settings.ImageBadges.codec_image_directory.startsWith('/')) {
+          settings.ImageBadges.codec_image_directory = '/' + settings.ImageBadges.codec_image_directory;
+        }
+      }
+    };<template>
   <div class="audio-settings">
     <h2 class="text-xl font-bold mb-4">Audio Badge Settings</h2>
     
@@ -581,9 +596,18 @@ export default {
       return '';
     };
     
+    // Add new mapping
+    const addMapping = () => {
+      if (newMapping.codec && newMapping.image) {
+        settings.ImageBadges.image_mapping[newMapping.codec] = newMapping.image;
+        newMapping.codec = '';
+        newMapping.image = '';
+      }
+    };
+    
     // Update image mappings to use absolute URLs
     const updateImageUrls = () => {
-      const baseUrl = getBaseUrl();
+      // Intentionally not using baseUrl to fix ESLint error
       if (settings.ImageBadges && settings.ImageBadges.codec_image_directory) {
         // Keep track of the original directory for saving back to the settings file
         settings._originalImageDir = settings.ImageBadges.codec_image_directory;
@@ -595,15 +619,6 @@ export default {
         if (!settings.ImageBadges.codec_image_directory.startsWith('/')) {
           settings.ImageBadges.codec_image_directory = '/' + settings.ImageBadges.codec_image_directory;
         }
-      }
-    };
-    
-    // Add new mapping
-    const addMapping = () => {
-      if (newMapping.codec && newMapping.image) {
-        settings.ImageBadges.image_mapping[newMapping.codec] = newMapping.image;
-        newMapping.codec = '';
-        newMapping.image = '';
       }
     };
     

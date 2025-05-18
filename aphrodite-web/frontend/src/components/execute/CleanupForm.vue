@@ -68,7 +68,7 @@
 
 <script>
 import { ref, reactive, computed } from 'vue';
-import axios from 'axios';
+import api from '@/api';
 
 export default {
   name: 'CleanupForm',
@@ -100,8 +100,8 @@ export default {
           skipOriginal: !formData.cleanOriginal
         });
         
-        // Direct axios request to the API
-        const response = await axios.post('http://localhost:5000/api/process/cleanup', {
+        // Use the shared API client
+        const response = await api.post('/api/process/cleanup', {
           skipModified: !formData.cleanModified,
           skipWorking: !formData.cleanWorking,
           skipOriginal: !formData.cleanOriginal

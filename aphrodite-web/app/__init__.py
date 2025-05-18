@@ -1,24 +1,26 @@
 import os
 import re
 import datetime
-from flask import Flask, send_from_directory, jsonify, request, url_for
+from flask import Flask, send_from_directory, jsonify, request, url_for, Response, stream_with_context
 from pathlib import Path
+import logging
+import urllib.parse
+import requests
+import yaml
+from flask_cors import CORS
 
 def create_app():
     """Create and configure the Flask application"""
     # Set up logging to be more verbose
-    from flask.logging import create_logger
-    import logging
-    import sys
-    import os
-    import yaml
-    
     app = Flask(__name__, static_folder='../frontend/dist', static_url_path='/')
+    
+    # Configure logging
+    from flask.logging import create_logger
     logger = create_logger(app)
-    # Set higher log level for more details
     app.logger.setLevel(logging.DEBUG)
+    
     # Add a stream handler to ensure logs are visible
-    handler = logging.StreamHandler(sys.stdout)
+    handler = logging.StreamHandler()
     handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
@@ -63,7 +65,6 @@ def create_app():
             app.logger.error(f"DEBUG: Error accessing {file_path}: {str(e)}")
     
     # Enable CORS
-    from flask_cors import CORS
     CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
     
     # Simple test route
@@ -81,6 +82,79 @@ def create_app():
             'config_files': os.listdir('/app') if os.path.exists('/app') else [],
             'current_time': str(datetime.datetime.now())
         })
+    
+    # Add a proxy route to fix CORS issues for frontend
+    @app.route('/api-proxy/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE'])
+    def proxy_api(path):
+        """Proxy API requests to avoid CORS issues"""
+        app.logger.info(f"DEBUG: Proxying request to path: {path}")
+        
+        # Get the host from the request
+        host = request.headers.get('Host', 'localhost:5000')
+        app.logger.info(f"DEBUG: Request host: {host}")
+        
+        # Extract internal port for Docker
+        internal_port = os.environ.get('WEB_PORT', '5000')
+        app.logger.info(f"DEBUG: Internal port: {internal_port}")
+        
+        # Build the internal URL
+        internal_url = f"http://localhost:{internal_port}/api/{path}"
+        app.logger.info(f"DEBUG: Proxying to internal URL: {internal_url}")
+        
+        # Copy the request headers
+        headers = {key: value for key, value in request.headers if key != 'Host'}
+        
+        # Forward the request to the internal API
+        try:
+            if request.method == 'GET':
+                resp = requests.get(
+                    internal_url, 
+                    params=request.args,
+                    headers=headers,
+                    stream=True
+                )
+            elif request.method == 'POST':
+                resp = requests.post(
+                    internal_url, 
+                    json=request.get_json() if request.is_json else None,
+                    data=request.form if not request.is_json else None,
+                    headers=headers,
+                    stream=True
+                )
+            elif request.method == 'PUT':
+                resp = requests.put(
+                    internal_url, 
+                    json=request.get_json() if request.is_json else None,
+                    data=request.form if not request.is_json else None,
+                    headers=headers,
+                    stream=True
+                )
+            elif request.method == 'DELETE':
+                resp = requests.delete(
+                    internal_url, 
+                    headers=headers,
+                    stream=True
+                )
+            else:
+                return jsonify({"error": "Method not supported"}), 405
+            
+            app.logger.info(f"DEBUG: Proxy response status: {resp.status_code}")
+            
+            # Create a generator function for the response content
+            def generate():
+                for chunk in resp.iter_content(chunk_size=1024):
+                    yield chunk
+            
+            # Stream the response back to the client without stream_with_context
+            return Response(
+                generate(),
+                status=resp.status_code,
+                headers=dict(resp.headers)
+            )
+            
+        except Exception as e:
+            app.logger.error(f"DEBUG: Proxy error: {str(e)}")
+            return jsonify({"error": f"Proxy error: {str(e)}"}), 500
     
     # Add a simple debug endpoint to check config reading
     @app.route('/api/debug/config')
@@ -115,7 +189,7 @@ def create_app():
                 'host': request.host
             }), 500
     
-    # Import and register blueprints
+    # Import and register blueprints - including our proxy blueprint
     from app.api import config, jobs, libraries, images, check, workflow
     app.register_blueprint(config.bp)
     app.register_blueprint(jobs.bp)
@@ -123,6 +197,14 @@ def create_app():
     app.register_blueprint(images.bp)
     app.register_blueprint(check.bp)
     app.register_blueprint(workflow.bp)
+    
+    # Try to register the proxy blueprint if it exists
+    try:
+        from app.api import proxy
+        app.register_blueprint(proxy.bp)
+        app.logger.info("DEBUG: Registered proxy blueprint")
+    except ImportError:
+        app.logger.warning("DEBUG: Proxy blueprint not found, skipping")
     
     # Register the simplified process API
     from app.api import process_api

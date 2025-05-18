@@ -154,7 +154,7 @@
 
 <script>
 import { ref, reactive, onMounted } from 'vue';
-import axios from 'axios';
+import api from '@/api';
 import { useWorkflowStore } from '@/store/workflow';
 
 export default {
@@ -189,7 +189,7 @@ export default {
       
       try {
         // Call the API to get libraries
-        const response = await axios.get('http://localhost:5000/api/libraries/');
+        const response = await api.get('/api/libraries/');
         
         if (response.data.success && response.data.libraries) {
           libraries.value = response.data.libraries;
