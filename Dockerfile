@@ -8,11 +8,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 
-# Install system dependencies
+# Install system dependencies including Node.js for frontend build
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libffi-dev \
     curl \
+    nodejs \
+    npm \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first to leverage Docker cache
@@ -24,7 +26,17 @@ RUN pip install --upgrade pip && \
     pip install -r requirements.txt && \
     pip install -r web-requirements.txt
 
-# Copy config processor script first (rarely changes)
+# Copy frontend files first to build separately
+COPY aphrodite-web/frontend /app/aphrodite-web/frontend
+
+# Build the frontend
+WORKDIR /app/aphrodite-web/frontend
+RUN npm install && npm run build
+
+# Return to app directory
+WORKDIR /app
+
+# Copy config processor script
 COPY config_from_env.py /app/
 
 # Copy application code

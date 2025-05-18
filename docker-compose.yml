@@ -6,6 +6,7 @@ services:
     container_name: aphrodite
     ports:
       - "2125:5000"
+# The frontend will be built into the Docker image, so you don't need to mount it
     volumes:
       # Configuration files with read/write access
       - ./settings.yaml:/app/settings.yaml:rw
