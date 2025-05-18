@@ -60,7 +60,7 @@ New-Item -ItemType Directory -Force -Path .\images
 cp settings.yaml.template settings.yaml
 # Edit settings.yaml with your preferred text editor
 
-# Run the container
+# Run the container (no .env file needed)
 docker-compose up -d
 ```
 
