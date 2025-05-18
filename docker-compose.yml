@@ -1,25 +1,17 @@
-# Use .env file for configuration
-# Copy .env.template to .env and customize as needed
+version: '3'
 
 services:
   aphrodite:
-    env_file: .env
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: aphrodite:latest
-    container_name: aphrodite-app
+    image: ghcr.io/jackkerouac/aphrodite:latest
+    container_name: aphrodite
     ports:
-      - "2125:${WEB_PORT:-5000}"  # Map host port to container port (same port for simplicity)
+      - "2125:5000"
     volumes:
       # Configuration files with read/write access
       - ./settings.yaml:/app/settings.yaml:rw
       - ./badge_settings_audio.yml:/app/badge_settings_audio.yml:rw
       - ./badge_settings_resolution.yml:/app/badge_settings_resolution.yml:rw
       - ./badge_settings_review.yml:/app/badge_settings_review.yml:rw
-      
-      # Mount frontend source for development
-      - ./aphrodite-web:/app/aphrodite-web:rw
       
       # Persistent storage for posters and database
       - ./posters/original:/app/posters/original:rw
@@ -30,34 +22,9 @@ services:
       # Optional: fonts and images
       - ./fonts:/app/fonts:ro  # Read-only access to fonts
       - ./images:/app/images:ro  # Read-only access to badge images
-
+    
     environment:
-      # Optional environment variables that can be used to configure the app
-      - TZ=${TZ:-UTC}
-      # User and group ID to run the container
-      - PUID=${PUID:-1000}
-      - PGID=${PGID:-1000}
-      # Application mode (web or cli)
-      - APHRODITE_MODE=${APHRODITE_MODE:-web}
-      # Web interface settings
-      - WEB_HOST=${WEB_HOST:-0.0.0.0}
-      - WEB_PORT=${WEB_PORT:-5000}
-      - FLASK_DEBUG=${FLASK_DEBUG:-0}
+      # Optional environment variables
+      - TZ=UTC
       
     restart: unless-stopped
-    
-    # Health check to ensure the application is running
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${WEB_PORT:-5000}/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-
-# Docker named volumes - created and managed by Docker
-volumes:
-  # These are only used if you don't mount host directories
-  posters-original:
-  posters-working:
-  posters-modified:
-  app-data:

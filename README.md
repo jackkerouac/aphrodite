@@ -44,7 +44,17 @@ New-Item -ItemType Directory -Force -Path .\posters\working
 New-Item -ItemType Directory -Force -Path .\posters\modified
 
 # For Bash/Linux/Mac:
-# mkdir -p ./data ./posters/original ./posters/working ./posters/modified
+# mkdir -p ./data ./posters/original ./posters/working ./posters/modified ./fonts ./images
+
+# Download fonts and images
+# For PowerShell:
+New-Item -ItemType Directory -Force -Path .\fonts
+New-Item -ItemType Directory -Force -Path .\images
+
+# You need to download badge images and fonts from the repository release page
+# Visit: https://github.com/jackkerouac/aphrodite/releases
+# Download fonts.zip and images.zip
+# Extract these files to the respective directories
 
 # Create your configuration file
 cp settings.yaml.template settings.yaml
