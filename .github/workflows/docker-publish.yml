@@ -1,14 +1,21 @@
-name: Build and Publish Docker Image
+# Create directories if they don't exist
+New-Item -Path .github/workflows -ItemType Directory -Force
 
-on:
-  release:
-    types: [published]
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version tag (without v)'
-        required: true
-        default: '0.1.0'
+# Create the workflow file
+# Copy the content from our docker-publish.yml artifact into this file
+Set-Content -Path .github/workflows/docker-publish.yml -Value @'
+name: Docker Package
+
+on: 
+  push: 
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request: 
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push:
@@ -18,16 +25,13 @@ jobs:
       packages: write
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Log in to GitHub Container Registry
+      - name: Log in to the Container registry
         uses: docker/login-action@v2
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -35,40 +39,23 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
             type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
-
-      - name: Get version
-        id: get_version
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
-          else
-            VERSION=$(grep -oP 'VERSION\s*=\s*["\']v\K[^"]*' aphrodite.py || echo "0.1.0")
-            echo "VERSION=${VERSION}" >> $GITHUB_ENV
-          fi
+            type=ref,event=branch
+            type=sha,format=short
+            latest
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
           context: .
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ env.VERSION }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+'@
 
-      - name: Update Docker Hub Description
-        if: github.event_name == 'release'
-        uses: peter-evans/dockerhub-description@v3
-        with:
-          repository: ${{ github.repository }}
-          readme-filepath: ./README-docker.md
-          short-description: "Aphrodite enhances Jellyfin media posters by adding informational badges"
+# Add, commit, and push
+git add .github/workflows/docker-publish.yml
+git commit -m "Add GitHub Actions workflow"
+git push aphrodite main
