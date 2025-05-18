@@ -301,6 +301,71 @@
         </div>
       </div>
       
+      <!-- Image Mappings -->
+      <div class="bg-white shadow rounded-lg p-4 border border-gray-200">
+        <h3 class="text-lg font-medium mb-3">Image Mappings</h3>
+        <p class="text-sm text-gray-600 mb-4">Map resolution names to image filenames</p>
+        
+        <div class="space-y-2 max-h-80 overflow-y-auto p-2">
+          <div v-for="(imageName, resolutionName) in settings.ImageBadges.image_mapping" :key="resolutionName" class="grid grid-cols-12 gap-2 items-center">
+            <input 
+              v-model="tempMapping[resolutionName]" 
+              type="text" 
+              class="col-span-5 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" 
+              :placeholder="resolutionName"
+              :disabled="!settings.ImageBadges.enable_image_badges"
+            />
+            <span class="col-span-1 text-center">→</span>
+            <input 
+              v-model="settings.ImageBadges.image_mapping[resolutionName]" 
+              type="text" 
+              class="col-span-5 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" 
+              :placeholder="imageName"
+              :disabled="!settings.ImageBadges.enable_image_badges"
+            />
+            <button 
+              @click="removeMapping(resolutionName)" 
+              type="button" 
+              class="col-span-1 text-red-500 hover:text-red-700 focus:outline-none"
+              :disabled="!settings.ImageBadges.enable_image_badges"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+              </svg>
+            </button>
+          </div>
+          
+          <!-- Add new mapping -->
+          <div class="grid grid-cols-12 gap-2 items-center mt-4">
+            <input 
+              v-model="newMapping.codec" 
+              type="text" 
+              class="col-span-5 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" 
+              placeholder="Resolution Name"
+              :disabled="!settings.ImageBadges.enable_image_badges"
+            />
+            <span class="col-span-1 text-center">→</span>
+            <input 
+              v-model="newMapping.image" 
+              type="text" 
+              class="col-span-5 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" 
+              placeholder="Image Name"
+              :disabled="!settings.ImageBadges.enable_image_badges"
+            />
+            <button 
+              @click="addMapping" 
+              type="button" 
+              class="col-span-1 text-green-500 hover:text-green-700 focus:outline-none"
+              :disabled="!settings.ImageBadges.enable_image_badges || !newMapping.codec || !newMapping.image"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      
       <!-- Submit Button -->
       <div class="flex justify-end">
         <button
@@ -355,6 +420,15 @@ export default {
     const error = ref(null);
     const saving = ref(false);
     const success = ref(false);
+    
+    // For handling image mappings
+    const tempMapping = reactive({});
+    
+    // For adding new mappings
+    const newMapping = reactive({
+      codec: '',
+      image: ''
+    });
 
     // Initialize all sections with default values
     const settings = reactive({
@@ -428,6 +502,15 @@ export default {
         if (res.data.config) {
           deepMerge(settings, res.data.config);
         }
+        
+        // Update image URLs to use absolute paths
+        updateImageUrls();
+        
+        // Initialize tempMapping with existing keys
+        if (settings.ImageBadges.image_mapping) {
+          Object.keys(settings.ImageBadges.image_mapping)
+                .forEach(k => tempMapping[k] = k);
+        }
       } catch (err) {
         console.error('DEBUG: Error loading resolution settings:', err);
         error.value = err.response?.data?.error || err.message;
@@ -436,15 +519,61 @@ export default {
       }
     };
 
+    // Function to update image URLs to use absolute paths
+    const updateImageUrls = () => {
+      if (settings.ImageBadges && settings.ImageBadges.codec_image_directory) {
+        // Keep track of the original directory for saving back to the settings file
+        settings._originalImageDir = settings.ImageBadges.codec_image_directory;
+        
+        // Make sure directory path works with URLs (replace backslashes with forward slashes)
+        settings.ImageBadges.codec_image_directory = settings.ImageBadges.codec_image_directory.replace(/\\/g, '/');
+        
+        // If not starting with a slash, add one
+        if (!settings.ImageBadges.codec_image_directory.startsWith('/')) {
+          settings.ImageBadges.codec_image_directory = '/' + settings.ImageBadges.codec_image_directory;
+        }
+      }
+    };
+    
+    // Add new mapping
+    const addMapping = () => {
+      if (newMapping.codec && newMapping.image) {
+        if (!settings.ImageBadges.image_mapping) {
+          settings.ImageBadges.image_mapping = {};
+        }
+        settings.ImageBadges.image_mapping[newMapping.codec] = newMapping.image;
+        tempMapping[newMapping.codec] = newMapping.codec;
+        newMapping.codec = '';
+        newMapping.image = '';
+      }
+    };
+    
+    // Remove mapping
+    const removeMapping = (key) => {
+      const mapping = { ...settings.ImageBadges.image_mapping };
+      delete mapping[key];
+      delete tempMapping[key];
+      settings.ImageBadges.image_mapping = mapping;
+    };
+    
     // Save settings
     const saveSettings = async () => {
       saving.value = true;
       error.value = null;
       
       try {
+        // If we have an original image directory path, restore it before saving
+        if (settings._originalImageDir) {
+          settings.ImageBadges.codec_image_directory = settings._originalImageDir;
+          delete settings._originalImageDir;
+        }
+        
         await api.updateConfig('badge_settings_resolution.yml', settings);
         success.value = true;
         setTimeout(() => success.value = false, 3000);
+        
+        // Update image URLs again after saving
+        updateImageUrls();
       } catch (err) {
         console.error('DEBUG: Error saving resolution settings:', err);
         error.value = err.response?.data?.error || err.message;
@@ -461,7 +590,12 @@ export default {
       saving,
       success,
       settings,
-      saveSettings
+      saveSettings,
+      tempMapping,
+      newMapping,
+      addMapping,
+      removeMapping,
+      updateImageUrls
     };
   }
 };

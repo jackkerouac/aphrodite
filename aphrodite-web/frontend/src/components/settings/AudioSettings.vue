@@ -308,19 +308,7 @@
               <label for="enable-image-badges" class="ml-2 block text-sm text-gray-700">Enable Image Badges</label>
             </div>
           </div>
-          
-          <div class="form-group col-span-full">
-            <label for="codec-image-directory" class="block text-sm font-medium text-gray-700 mb-1">Codec Image Directory</label>
-            <input 
-              id="codec-image-directory" 
-              v-model="settings.ImageBadges.codec_image_directory" 
-              type="text" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="images/codec"
-              :disabled="!settings.ImageBadges.enable_image_badges"
-            />
-          </div>
-          
+
           <div class="form-group">
             <div class="flex items-center">
               <input 
@@ -332,6 +320,18 @@
               />
               <label for="fallback-to-text" class="ml-2 block text-sm text-gray-700">Fallback to Text</label>
             </div>
+          </div>
+          
+          <div class="form-group col-span-full">
+            <label for="codec-image-directory" class="block text-sm font-medium text-gray-700 mb-1">Codec Image Directory</label>
+            <input 
+              id="codec-image-directory" 
+              v-model="settings.ImageBadges.codec_image_directory" 
+              type="text" 
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              placeholder="images/codec"
+              :disabled="!settings.ImageBadges.enable_image_badges"
+            />
           </div>
           
           <div class="form-group">

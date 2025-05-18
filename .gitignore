@@ -44,7 +44,13 @@ Thumbs.db
 
 # Directories
 posters/
+data/cache/
 
-# Settings
+# Settings - Exclude actual settings files with credentials
 settings.yaml
 data/config/settings.yaml.bak
+data/config/*.bak
+
+# Keep template files
+!settings.yaml.template
+!badge_settings_*.yml.template

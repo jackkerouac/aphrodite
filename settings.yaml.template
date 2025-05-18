@@ -1,0 +1,20 @@
+api_keys:
+  Jellyfin:
+  - url: https://your-jellyfin-server.com
+    api_key: YOUR_JELLYFIN_API_KEY
+    user_id: YOUR_JELLYFIN_USER_ID
+  OMDB:
+  - api_key: YOUR_OMDB_API_KEY
+    cache_expiration: 60
+  TMDB:
+  - api_key: YOUR_TMDB_API_KEY
+    cache_expiration: 60
+    language: en
+    region: US
+  aniDB:
+  - username: YOUR_ANIDB_USERNAME
+  - password: YOUR_ANIDB_PASSWORD
+    version: 5
+    client_name: YOUR_CLIENT_NAME
+    language: en
+    cache_expiration: 60
