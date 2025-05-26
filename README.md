@@ -2,7 +2,7 @@
 
 A Python-based application that adds badges and other visual elements to media posters. Aphrodite enhances your media library posters with quality indicators like resolution, audio codec, and review ratings.
 
-![Example Image](https://github.com/jackkerouac/aphrodite-python/blob/main/example01.png)
+![Example Image](https://github.com/jackkerouac/aphrodite/blob/main/example01.png)
 
 ## Features
 
