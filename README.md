@@ -6,12 +6,12 @@ A Python-based application that adds badges and other visual elements to media p
 
 ## Features
 
+- Integration with your Jellyfin server
 - Add resolution badges (4K, 1080p, etc.)
 - Add audio codec badges (Atmos, DTS, etc.)
 - Add review/rating badges (IMDb, RT, etc.)
 - Web-based configuration interface
 - Docker support for easy deployment
-- Integration with media servers like Jellyfin
 
 ## Quick Start (Docker)
 
@@ -71,7 +71,7 @@ The docker-compose.yml file is configured to pull the image directly from GitHub
 Once the container is running, you can access the web interface at:
 
 ```
-http://localhost:2125
+http://localhost:2125 (or whatever port you have specified in the Docker Compose file)
 ```
 
 ## Configuration
@@ -81,13 +81,14 @@ http://localhost:2125
 For full functionality, you'll need:
 - OMDB API key (for IMDb ratings)
 - TMDB API key (for movie metadata)
-- Jellyfin credentials (if using Jellyfin integration)
+- aniDB API key (for 'extra' anime metadata)
+- Jellyfin API Key and User ID (if using Jellyfin integration)
 
 Update your `settings.yaml` with these credentials.
 
 ## Directory Structure
 
-- `/posters/original` - Place your original posters here
+- `/posters/original` - Original posters stored here
 - `/posters/working` - Temporary working directory
 - `/posters/modified` - Final posters with badges will appear here
 
@@ -95,11 +96,11 @@ Update your `settings.yaml` with these credentials.
 
 ### Processing Posters
 
-1. Place your original poster images in the `/posters/original` directory
-2. Access the web interface at http://localhost:2125
+1. Access the web interface at http://localhost:2125
+2. Configure you Jellyfin and Metadata Providers' settings
 3. Configure your badge settings
 4. Click "Process Posters"
-5. Processed posters will be available in the `/posters/modified` directory
+5. Processed posters will be automatically sent to Jellyfin, and also available in the `/posters/modified` directory
 
 ### API Endpoints
 
@@ -113,7 +114,7 @@ Aphrodite provides a RESTful API for integration with other applications:
 
 ## Advanced: Installation from Source
 
-If you prefer to build from source:
+If you prefer to build from source (why in the name of Neptune would you want to do this?):
 
 ```bash
 # Clone the repository
