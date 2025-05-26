@@ -2,7 +2,7 @@
 
 A Python-based application that adds badges and other visual elements to media posters. Aphrodite enhances your media library posters with quality indicators like resolution, audio codec, and review ratings.
 
-![Example Image](https://github.com/jackkerouac/aphrodite-python/blob/main/example01.png)
+![Example Image](https://github.com/jackkerouac/aphrodite/blob/main/example01.png)
 
 ## Features
 
@@ -15,7 +15,7 @@ A Python-based application that adds badges and other visual elements to media p
 
 ## Quick Start (Docker)
 
-The easiest way to get started is using the pre-built Docker image:
+The easiest way to get started is using the pre-built Docker image from GitHub Container Registry:
 
 ```bash
 # Create a directory for Aphrodite
@@ -60,11 +60,11 @@ Extract these files to the respective directories
 cp settings.yaml.template settings.yaml
 # Edit settings.yaml with your preferred text editor
 
-# Run the container (no .env file needed)
+# Run the container
 docker-compose up -d
 ```
 
-The docker-compose.yml file is configured to pull the image directly from GitHub Packages, so you don't need to clone the repository or build the image yourself.
+The docker-compose.yml file is configured to pull the image directly from GitHub Container Registry (`ghcr.io/jackkerouac/aphrodite:latest`), so you don't need to clone the repository or build the image yourself.
 
 ## Accessing the Web Interface
 
