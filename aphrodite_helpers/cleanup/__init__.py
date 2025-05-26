@@ -1,0 +1,1 @@
+from .poster_cleanup import clean_poster_directories
