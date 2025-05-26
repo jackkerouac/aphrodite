@@ -1,6 +1,8 @@
 services:
   aphrodite:
-    image: ghcr.io/jackkerouac/aphrodite:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: aphrodite
     ports:
       - "2125:5000"
@@ -19,11 +21,3 @@ services:
       - ./data:/app/data:rw  # For SQLite database
       
       # Optional: fonts and images
-      - ./fonts:/app/fonts:ro  # Read-only access to fonts
-      - ./images:/app/images:ro  # Read-only access to badge images
-    
-    environment:
-      # Basic environment variables - no need for .env file
-      - TZ=UTC
-      
-    restart: unless-stopped
