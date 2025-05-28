@@ -11,31 +11,21 @@
       <input type="radio" name="my-accordion-2" checked="checked" />
       <div class="collapse-title font-semibold">Additions</div>
       <div class="collapse-content text-sm">
-        <p>&nbsp;&nbsp;&nbsp;&middot; Added checks to ensure output paths exist before attempting poster uploads</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Added success/failure tracking and a summary report at the end</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Added a badge image endpoint to the backend</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Added badge image utilities for the frontend</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Added a helper function in the config.js API to normalize image URLs.</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Added functionality to all three settings components (audio, resolution, review) to:</p>
-        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&middot; Convert relative image paths to absolute URLs</p>
-        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&middot; Store the original path before modification and restore it when saving</p>
-        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&middot; Update the URLs when settings are loaded or saved</p>
+        <p>&nbsp;&nbsp;&nbsp;&middot; Sorting through user requests</p>
       </div>
     </div>
     <div class="collapse collapse-arrow bg-base-100 border border-base-300">
       <input type="radio" name="my-accordion-2" />
       <div class="collapse-title font-semibold">Fixes</div>
       <div class="collapse-content text-sm">
-        <p>Fixed the config service to better detect when it's running in Docker vs a local development environment.</p>
+        <p>&nbsp;&nbsp;&nbsp;&middot; Added new favicon (like you care or anyone actually reads this)</p>
       </div>
     </div>
     <div class="collapse collapse-arrow bg-base-100 border border-base-300">
       <input type="radio" name="my-accordion-2" />
       <div class="collapse-title font-semibold">Updates</div>
       <div class="collapse-content text-sm">
-        <p>Updated the Flask application to serve images from either the Docker container path (/app/images) or the development path (relative to the codebase).</p>
-        <p>Enhanced error handling in library batch processing to catch exceptions and continue</p>
-        <p>Updated the API layer to use dynamic URLs</p>
+        <p>&nbsp;&nbsp;&nbsp;&middot; Updated the API layer to use dynamic URLs</p>
       </div>
     </div>
 
