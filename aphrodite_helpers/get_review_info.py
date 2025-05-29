@@ -22,7 +22,8 @@ class ReviewFetcher:
         self.jellyfin_settings = settings.get("api_keys", {}).get("Jellyfin", [{}])[0]
         self.omdb_settings = settings.get("api_keys", {}).get("OMDB", [{}])[0]
         self.tmdb_settings = settings.get("api_keys", {}).get("TMDB", [{}])[0]
-        self.anidb_settings = settings.get("api_keys", {}).get("aniDB", [{}])[0]
+        anidb_list = settings.get("api_keys", {}).get("aniDB", [{}])
+        self.anidb_settings = anidb_list[0] if anidb_list else {}
         
         # Setup headers for Jellyfin API calls
         self.jellyfin_headers = {"X-Emby-Token": self.jellyfin_settings.get("api_key", "")}
@@ -81,11 +82,14 @@ class ReviewFetcher:
     def get_anidb_id(self, item_data):
         """Extract AniDB ID from Jellyfin item data"""
         if not item_data:
+            print(f"🔍 No item data provided to get_anidb_id")
             return None
         
         # Try to get AniDB ID from provider IDs
         provider_ids = item_data.get("ProviderIds", {})
+        print(f"🔍 Provider IDs available: {list(provider_ids.keys())}")
         anidb_id = provider_ids.get("AniDb")
+        print(f"🔍 AniDB ID found: {anidb_id}")
         
         return anidb_id
     
@@ -155,21 +159,240 @@ class ReviewFetcher:
             print(f"❌ Error fetching TMDB data: {e}")
             return None
     
-    def fetch_anidb_ratings(self, anidb_id):
+    def fetch_anidb_ratings(self, anidb_id=None, item_name=None):
         """Fetch ratings from AniDB
         
-        Note: This is a placeholder as AniDB has complex API requirements.
-        For production use, you'd need to implement proper AniDB API handling.
+        This implementation searches AniDB by title if no ID is provided,
+        then fetches the rating information.
         """
-        # AniDB API is complex and requires proper handling with client, etc.
-        # This is a placeholder - you would need to implement proper AniDB API interaction
-        if not anidb_id or not self.anidb_settings:
+        print(f"🔍 fetch_anidb_ratings called with anidb_id: {anidb_id}, item_name: {item_name}")
+        print(f"🔍 anidb_settings available: {bool(self.anidb_settings)}")
+        
+        if not self.anidb_settings:
+            print(f"❌ No AniDB settings found")
             return None
             
-        print(f"ℹ️ AniDB API integration is only a placeholder - proper implementation needed")
-        print(f"ℹ️ aniDB client name: {self.anidb_settings.get('client_name', 'Not set')}")
-        print(f"ℹ️ aniDB version: {self.anidb_settings.get('version', 'Not set')}")
-        return {"placeholder": True, "rating": "7.5"}  # Placeholder
+        # If we don't have an AniDB ID, try to search by title
+        if not anidb_id and item_name:
+            print(f"🔍 No AniDB ID provided, searching by title: {item_name}")
+            anidb_id = self.search_anidb_by_title(item_name)
+            if not anidb_id:
+                print(f"❌ Could not find AniDB ID for title: {item_name}")
+                return None
+        elif not anidb_id:
+            print(f"❌ No AniDB ID or title provided")
+            return None
+            
+        print(f"🔍 Fetching AniDB rating for ID: {anidb_id}")
+        
+        # Check cache first
+        cache_key = f"anidb_{anidb_id}"
+        if cache_key in self.cache:
+            cache_entry = self.cache[cache_key]
+            if time.time() - cache_entry["timestamp"] < self.cache_expiration:
+                print(f"✅ Using cached AniDB data for ID: {anidb_id}")
+                return cache_entry["data"]
+        
+        # Fetch rating from AniDB
+        rating_data = self.fetch_anidb_anime_info(anidb_id)
+        
+        if rating_data:
+            # Store in cache
+            self.cache[cache_key] = {
+                "timestamp": time.time(),
+                "data": rating_data
+            }
+            print(f"✅ Successfully fetched AniDB rating: {rating_data.get('rating', 'N/A')}")
+            return rating_data
+        else:
+            print(f"❌ Failed to fetch AniDB rating for ID: {anidb_id}")
+            return None
+    
+    def search_anidb_by_title(self, title):
+        """Search AniDB for an anime by title and return the AniDB ID"""
+        if not title:
+            return None
+            
+        print(f"🔍 Searching AniDB for title: {title}")
+        
+        # Clean up the title for search
+        search_title = self.clean_title_for_search(title)
+        print(f"🔍 Cleaned search title: {search_title}")
+        
+        # Check cache first
+        cache_key = f"anidb_search_{search_title.lower()}"
+        if cache_key in self.cache:
+            cache_entry = self.cache[cache_key]
+            if time.time() - cache_entry["timestamp"] < self.cache_expiration:
+                print(f"✅ Using cached AniDB search result for: {search_title}")
+                return cache_entry["data"]
+        
+        try:
+            # AniDB HTTP API for search
+            # Note: This uses the unofficial HTTP API, not the UDP API
+            # Add rate limiting to be respectful to AniDB
+            time.sleep(1)  # Wait 1 second between requests
+            
+            search_url = "https://anidb.net/perl-bin/animedb.pl"
+            params = {
+                "show": "animelist",
+                "adb.search": search_title,
+                "do.search": "Search"
+            }
+            
+            headers = {
+                "User-Agent": f"{self.anidb_settings.get('client_name', 'aphrodite')}/{self.anidb_settings.get('version', '1')}"
+            }
+            
+            print(f"🌐 Making AniDB search request...")
+            response = requests.get(search_url, params=params, headers=headers, timeout=15)
+            response.raise_for_status()
+            
+            # Parse the HTML response to extract anime ID
+            anidb_id = self.parse_anidb_search_response(response.text, search_title)
+            
+            # Cache the result (even if None to avoid repeated failed searches)
+            self.cache[cache_key] = {
+                "timestamp": time.time(),
+                "data": anidb_id
+            }
+            
+            if anidb_id:
+                print(f"✅ Found AniDB ID: {anidb_id} for title: {search_title}")
+            else:
+                print(f"❌ No AniDB ID found for title: {search_title}")
+                
+            return anidb_id
+            
+        except Exception as e:
+            print(f"❌ Error searching AniDB: {e}")
+            return None
+    
+    def clean_title_for_search(self, title):
+        """Clean up the title for better AniDB search results"""
+        import re
+        
+        # Remove common suffixes and prefixes that might interfere with search
+        title = re.sub(r'\s*\(\d{4}\)\s*', '', title)  # Remove year in parentheses
+        title = re.sub(r'\s*Season\s+\d+', '', title, flags=re.IGNORECASE)  # Remove "Season X"
+        title = re.sub(r'\s*S\d+', '', title)  # Remove "S1", "S2", etc.
+        title = re.sub(r'\s*Part\s+\d+', '', title, flags=re.IGNORECASE)  # Remove "Part X"
+        title = re.sub(r'\s*Vol\.?\s*\d+', '', title, flags=re.IGNORECASE)  # Remove "Vol X"
+        
+        # Clean up extra whitespace
+        title = re.sub(r'\s+', ' ', title).strip()
+        
+        return title
+    
+    def parse_anidb_search_response(self, html_content, search_title):
+        """Parse AniDB search response HTML to extract the anime ID"""
+        try:
+            from bs4 import BeautifulSoup
+            soup = BeautifulSoup(html_content, 'html.parser')
+            
+            # Look for anime links in the search results
+            # AniDB anime links have the pattern: /anime/[id]
+            import re
+            anime_links = soup.find_all('a', href=re.compile(r'/anime/\d+'))
+            
+            if not anime_links:
+                print(f"❌ No anime links found in search results")
+                return None
+            
+            # Get the first result (most likely match)
+            first_link = anime_links[0]
+            href = first_link.get('href')
+            
+            # Extract ID from href like "/anime/12345"
+            match = re.search(r'/anime/(\d+)', href)
+            if match:
+                anidb_id = match.group(1)
+                print(f"✅ Extracted AniDB ID: {anidb_id} from search results")
+                return anidb_id
+            else:
+                print(f"❌ Could not extract ID from href: {href}")
+                return None
+                
+        except Exception as e:
+            print(f"❌ Error parsing AniDB search response: {e}")
+            return None
+    
+    def fetch_anidb_anime_info(self, anidb_id):
+        """Fetch anime information including rating from AniDB"""
+        try:
+            # Add rate limiting to be respectful to AniDB
+            time.sleep(1)  # Wait 1 second between requests
+            
+            # Fetch the anime page
+            anime_url = f"https://anidb.net/anime/{anidb_id}"
+            headers = {
+                "User-Agent": f"{self.anidb_settings.get('client_name', 'aphrodite')}/{self.anidb_settings.get('version', '1')}"
+            }
+            
+            print(f"🌐 Fetching AniDB anime info from: {anime_url}")
+            response = requests.get(anime_url, headers=headers, timeout=15)
+            response.raise_for_status()
+            
+            # Parse the rating from the HTML
+            rating = self.parse_anidb_rating(response.text)
+            
+            if rating:
+                return {
+                    "anidb_id": anidb_id,
+                    "rating": rating,
+                    "source_url": anime_url
+                }
+            else:
+                print(f"❌ Could not extract rating from AniDB page")
+                return None
+                
+        except Exception as e:
+            print(f"❌ Error fetching AniDB anime info: {e}")
+            return None
+    
+    def parse_anidb_rating(self, html_content):
+        """Parse the rating from AniDB anime page HTML"""
+        import re
+        
+        try:
+            from bs4 import BeautifulSoup
+            soup = BeautifulSoup(html_content, 'html.parser')
+            
+            # Look for rating information - AniDB typically shows ratings in specific elements
+            # Try multiple selectors as AniDB's HTML structure can vary
+            
+            # Method 1: Look for rating in data tables
+            rating_element = soup.find('span', class_='rating')
+            if rating_element:
+                rating_text = rating_element.get_text().strip()
+                rating_match = re.search(r'(\d+\.\d+)', rating_text)
+                if rating_match:
+                    rating = float(rating_match.group(1))
+                    print(f"✅ Found rating (method 1): {rating}")
+                    return rating
+            
+            # Method 2: Look for rating in stats section
+            rating_pattern = r'Rating:\s*(\d+\.\d+)'
+            rating_match = re.search(rating_pattern, html_content, re.IGNORECASE)
+            if rating_match:
+                rating = float(rating_match.group(1))
+                print(f"✅ Found rating (method 2): {rating}")
+                return rating
+            
+            # Method 3: Look for average rating in any context
+            avg_pattern = r'Average:\s*(\d+\.\d+)'
+            avg_match = re.search(avg_pattern, html_content, re.IGNORECASE)
+            if avg_match:
+                rating = float(avg_match.group(1))
+                print(f"✅ Found rating (method 3): {rating}")
+                return rating
+            
+            print(f"❌ Could not find rating in AniDB page HTML")
+            return None
+            
+        except Exception as e:
+            print(f"❌ Error parsing AniDB rating: {e}")
+            return None
     
     def format_review_data(self, review_data, show_details=False):
         """Format the review data from various sources into a structured format"""
@@ -364,9 +587,15 @@ class ReviewFetcher:
         if tmdb_id and self.tmdb_settings.get("api_key"):
             review_data["tmdb"] = self.fetch_tmdb_ratings(tmdb_id, media_type)
         
-        # AniDB (placeholder)
-        if anidb_id and self.anidb_settings:
-            review_data["anidb"] = self.fetch_anidb_ratings(anidb_id)
+        # AniDB (with title search fallback)
+        print(f"🔍 Checking AniDB: anidb_id={anidb_id}, settings_available={bool(self.anidb_settings)}")
+        if self.anidb_settings:
+            # Try with AniDB ID first, fall back to title search
+            item_name = item_data.get('Name') if not anidb_id else None
+            print(f"🔍 Fetching AniDB ratings (ID: {anidb_id}, Name: {item_name})")
+            review_data["anidb"] = self.fetch_anidb_ratings(anidb_id, item_name)
+        else:
+            print(f"🔍 Skipping AniDB - no settings available")
         
         # Format the collected review data
         return self.format_review_data(review_data, show_details)
