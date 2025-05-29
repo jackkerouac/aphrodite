@@ -32,7 +32,7 @@
           :class="{ 'tab-active': activeTab === 'cleanup' }"
           @click="activeTab = 'cleanup'"
         >
-          Clean Up Posters
+          Poster Management
         </a>
       </div>
       
@@ -52,7 +52,7 @@
         <ConnectionCheck />
       </div>
       
-      <!-- Cleanup Form -->
+      <!-- Poster Management Form -->
       <div v-else-if="activeTab === 'cleanup'">
         <CleanupForm @cleanup-submitted="handleProcessSubmitted" />
       </div>
@@ -93,7 +93,62 @@
                 </div>
               </div>
               
-              <div class="mt-4">
+              <!-- Restore-specific results -->
+              <div v-if="processResult.restored_count !== undefined" class="mt-4">
+                <div class="stats shadow">
+                  <div class="stat">
+                    <div class="stat-title">Posters Restored</div>
+                    <div class="stat-value text-primary">{{ processResult.restored_count }}</div>
+                  </div>
+                  <div class="stat" v-if="processResult.total_processed">
+                    <div class="stat-title">Total Processed</div>
+                    <div class="stat-value">{{ processResult.total_processed }}</div>
+                  </div>
+                  <div class="stat" v-if="processResult.errors && processResult.errors.length > 0">
+                    <div class="stat-title">Errors</div>
+                    <div class="stat-value text-error">{{ processResult.errors.length }}</div>
+                  </div>
+                </div>
+                
+                <div v-if="processResult.errors && processResult.errors.length > 0" class="mt-4">
+                  <h3 class="font-bold">Errors:</h3>
+                  <div class="bg-base-200 p-2 mt-1 rounded-md">
+                    <ul class="list-disc list-inside text-error">
+                      <li v-for="error in processResult.errors" :key="error">{{ error }}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Cleanup-specific results -->
+              <div v-else-if="processResult.cleaned_count !== undefined" class="mt-4">
+                <div class="stats shadow">
+                  <div class="stat">
+                    <div class="stat-title">Files Cleaned</div>
+                    <div class="stat-value text-primary">{{ processResult.cleaned_count }}</div>
+                  </div>
+                  <div class="stat" v-if="processResult.directories_processed">
+                    <div class="stat-title">Directories Processed</div>
+                    <div class="stat-value">{{ processResult.directories_processed }}</div>
+                  </div>
+                  <div class="stat" v-if="processResult.errors && processResult.errors.length > 0">
+                    <div class="stat-title">Errors</div>
+                    <div class="stat-value text-error">{{ processResult.errors.length }}</div>
+                  </div>
+                </div>
+                
+                <div v-if="processResult.errors && processResult.errors.length > 0" class="mt-4">
+                  <h3 class="font-bold">Errors:</h3>
+                  <div class="bg-base-200 p-2 mt-1 rounded-md">
+                    <ul class="list-disc list-inside text-error">
+                      <li v-for="error in processResult.errors" :key="error">{{ error }}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- General results -->
+              <div v-else class="mt-4">
                 <p v-if="processResult.success" class="font-bold">Processing completed successfully!</p>
                 <p v-else class="font-bold">Processing failed with code: {{ processResult.returnCode }}</p>
               </div>

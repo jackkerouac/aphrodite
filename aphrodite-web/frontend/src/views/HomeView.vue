@@ -11,7 +11,7 @@
       <input type="radio" name="my-accordion-2" checked="checked" />
       <div class="collapse-title font-semibold">Additions</div>
       <div class="collapse-content text-sm">
-        <p>&nbsp;&nbsp;&nbsp;&middot; Sorting through user requests</p>
+        <p>&nbsp;&nbsp;&nbsp;&middot; Added Restore Original Posters feature, under Execute -> Poster Management</p>
       </div>
     </div>
     <div class="collapse collapse-arrow bg-base-100 border border-base-300">
