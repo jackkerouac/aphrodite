@@ -2,6 +2,8 @@ from flask import Blueprint, jsonify, request
 import subprocess
 import os
 import sys
+import shutil
+from pathlib import Path
 
 # Add the parent directory to sys.path for imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
@@ -252,4 +254,77 @@ def cleanup_posters():
         return jsonify({
             'success': False,
             'message': f'Error: {str(e)}'
+        }), 500
+
+
+@bp.route('/restore-originals', methods=['POST'])
+def restore_originals():
+    """Restore all modified posters to their original versions"""
+    print("Restore originals endpoint called!")
+    
+    try:
+        # Get poster directories (Docker-aware path detection)
+        if os.path.exists('/app/posters'):
+            # Running in Docker
+            original_dir = Path('/app/posters/original')
+            modified_dir = Path('/app/posters/modified')
+        else:
+            # Running in development
+            root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+            original_dir = Path(root_dir) / 'posters' / 'original'
+            modified_dir = Path(root_dir) / 'posters' / 'modified'
+        
+        print(f"Original directory: {original_dir}")
+        print(f"Modified directory: {modified_dir}")
+        
+        restored_count = 0
+        errors = []
+        
+        # Check if directories exist
+        if not original_dir.exists():
+            return jsonify({
+                'success': False,
+                'message': f'Original posters directory not found: {original_dir}'
+            }), 400
+        
+        if not modified_dir.exists():
+            return jsonify({
+                'success': False,
+                'message': f'Modified posters directory not found: {modified_dir}'
+            }), 400
+        
+        # Iterate through original posters
+        for original_file in original_dir.glob('*'):
+            if original_file.is_file():
+                modified_file = modified_dir / original_file.name
+                
+                # If a modified version exists, replace it with the original
+                if modified_file.exists():
+                    try:
+                        shutil.copy2(original_file, modified_file)
+                        restored_count += 1
+                        print(f"Restored: {original_file.name}")
+                    except Exception as e:
+                        error_msg = f"Failed to restore {original_file.name}: {str(e)}"
+                        errors.append(error_msg)
+                        print(error_msg)
+        
+        success = len(errors) == 0
+        
+        return jsonify({
+            'success': success,
+            'message': f'Restore completed. Restored {restored_count} posters.' + (f' {len(errors)} errors occurred.' if errors else ''),
+            'restored_count': restored_count,
+            'total_processed': restored_count + len(errors),
+            'errors': errors
+        })
+        
+    except Exception as e:
+        print(f"Error during restore process: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Error: {str(e)}',
+            'restored_count': 0,
+            'total_processed': 0,
+            'errors': [str(e)]
         }), 500
