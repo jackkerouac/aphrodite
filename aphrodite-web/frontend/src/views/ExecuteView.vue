@@ -97,16 +97,45 @@
               <div v-if="processResult.restored_count !== undefined" class="mt-4">
                 <div class="stats shadow">
                   <div class="stat">
-                    <div class="stat-title">Posters Restored</div>
+                    <div class="stat-title">Files Restored</div>
                     <div class="stat-value text-primary">{{ processResult.restored_count }}</div>
                   </div>
-                  <div class="stat" v-if="processResult.total_processed">
-                    <div class="stat-title">Total Processed</div>
-                    <div class="stat-value">{{ processResult.total_processed }}</div>
+                  <div class="stat" v-if="processResult.uploaded_count !== undefined">
+                    <div class="stat-title">Uploaded to Jellyfin</div>
+                    <div class="stat-value text-success">{{ processResult.uploaded_count }}</div>
                   </div>
                   <div class="stat" v-if="processResult.errors && processResult.errors.length > 0">
                     <div class="stat-title">Errors</div>
                     <div class="stat-value text-error">{{ processResult.errors.length }}</div>
+                  </div>
+                </div>
+                
+                <!-- Success message for restore operations -->
+                <div v-if="processResult.uploaded_count > 0 && processResult.errors.length === 0" class="alert alert-success mt-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <h3 class="font-bold">Restore Complete!</h3>
+                    <p class="text-sm mt-1">
+                      Original posters have been restored and are now visible in Jellyfin. 
+                      All badge modifications have been removed.
+                    </p>
+                  </div>
+                </div>
+                
+                <!-- Re-upload warning for restore operations (legacy - should not appear anymore) -->
+                <div v-if="processResult.requires_reupload" class="alert alert-warning mt-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  <div>
+                    <h3 class="font-bold">Re-upload Required</h3>
+                    <p class="text-sm mt-1">
+                      The poster files have been restored on disk, but Jellyfin still shows the old versions. 
+                      To complete the restore process, you need to re-run the normal Aphrodite processing 
+                      for each item to upload the restored posters back to Jellyfin.
+                    </p>
                   </div>
                 </div>
                 

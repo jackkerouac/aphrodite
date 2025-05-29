@@ -10,37 +10,35 @@ class ConfigService:
     
     def __init__(self, base_dir=None):
         """Initialize the config service with a base directory."""
+        # Initialize base_dir first
+        self.base_dir = None
+        
         # If no base directory is provided, use the parent directory of the web app
         if base_dir is None:
-            # In Docker, settings will be in the /app directory
-            if os.path.exists('/app'):
-                logger.info("DEBUG: /app directory exists, checking for settings.yaml")
-                if os.path.exists('/app/settings.yaml'):
-                    logger.info("DEBUG: Found /app/settings.yaml, using Docker paths")
-                    self.base_dir = Path('/app')
-                    # Check permissions
-                    try:
-                        logger.info("DEBUG: Checking permissions on /app/settings.yaml")
-                        st_mode = os.stat('/app/settings.yaml').st_mode
-                        logger.info(f"DEBUG: File mode: {st_mode:o}")
-                        # Test if we can actually read the file
-                        with open('/app/settings.yaml', 'r') as f:
-                            first_line = f.readline()
-                            logger.info(f"DEBUG: Successfully read first line: {first_line[:50]}...")
-                    except Exception as e:
-                        logger.error(f"DEBUG: Error accessing /app/settings.yaml: {e}")
-                else:
-                    logger.error("DEBUG: /app directory exists but settings.yaml not found!")
-                    # List directory contents
-                    try:
-                        logger.info("DEBUG: Listing /app directory contents:")
-                        for entry in os.listdir('/app'):
-                            logger.info(f"DEBUG: /app/{entry}")
-                    except Exception as e:
-                        logger.error(f"DEBUG: Error listing /app directory: {e}")
-            # For local development, use parents[3] to find the root directory
+            # Check for Docker environment more reliably
+            is_docker = (
+                os.path.exists('/app') and 
+                os.path.exists('/app/settings.yaml') and 
+                os.path.exists('/.dockerenv')  # Docker creates this file
+            )
+            
+            if is_docker:
+                logger.info("DEBUG: Found Docker environment, using /app paths")
+                self.base_dir = Path('/app')
+                # Check permissions
+                try:
+                    logger.info("DEBUG: Checking permissions on /app/settings.yaml")
+                    st_mode = os.stat('/app/settings.yaml').st_mode
+                    logger.info(f"DEBUG: File mode: {st_mode:o}")
+                    # Test if we can actually read the file
+                    with open('/app/settings.yaml', 'r') as f:
+                        first_line = f.readline()
+                        logger.info(f"DEBUG: Successfully read first line: {first_line[:50]}...")
+                except Exception as e:
+                    logger.error(f"DEBUG: Error accessing /app/settings.yaml: {e}")
             else:
-                logger.info("DEBUG: No /app directory, using development paths")
+                # For local development, use parents[3] to find the root directory
+                logger.info("DEBUG: Using development paths")
                 self.base_dir = Path(os.path.abspath(__file__)).parents[3]
         else:
             self.base_dir = Path(base_dir)

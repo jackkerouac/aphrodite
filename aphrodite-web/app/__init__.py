@@ -39,7 +39,14 @@ def create_app():
     ]
     
     # Determine base directory (Docker vs. development)
-    if os.path.exists('/app'):
+    # Check for Docker environment more reliably
+    is_docker = (
+        os.path.exists('/app') and 
+        os.path.exists('/app/settings.yaml') and 
+        os.path.exists('/.dockerenv')  # Docker creates this file
+    )
+    
+    if is_docker:
         base_dir = '/app'
         app.logger.info("DEBUG: Running in Docker environment, base dir: /app")
     else:

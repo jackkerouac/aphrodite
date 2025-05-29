@@ -10,6 +10,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../.
 
 # Import the cleanup function from aphrodite_helpers
 from aphrodite_helpers.cleanup.poster_cleanup import clean_poster_directories
+from aphrodite_helpers.check_jellyfin_connection import load_settings
+from aphrodite_helpers.poster_uploader import PosterUploader
 
 # Create blueprint for process endpoint
 bp = Blueprint('process_api', __name__, url_prefix='/api/process')
@@ -259,10 +261,27 @@ def cleanup_posters():
 
 @bp.route('/restore-originals', methods=['POST'])
 def restore_originals():
-    """Restore all modified posters to their original versions"""
+    """Restore all modified posters to their original versions and upload to Jellyfin"""
     print("Restore originals endpoint called!")
     
     try:
+        # Load Jellyfin settings
+        settings = load_settings()
+        if not settings:
+            return jsonify({
+                'success': False,
+                'message': 'Failed to load settings.yaml',
+                'restored_count': 0,
+                'total_processed': 0,
+                'errors': ['Failed to load settings.yaml']
+            }), 500
+        
+        jf = settings["api_keys"]["Jellyfin"][0]
+        jellyfin_url, api_key, user_id = jf["url"], jf["api_key"], jf["user_id"]
+        
+        # Initialize the uploader
+        uploader = PosterUploader(jellyfin_url, api_key, user_id)
+        
         # Get poster directories (Docker-aware path detection)
         if os.path.exists('/app/posters'):
             # Running in Docker
@@ -278,6 +297,7 @@ def restore_originals():
         print(f"Modified directory: {modified_dir}")
         
         restored_count = 0
+        uploaded_count = 0
         errors = []
         
         # Check if directories exist
@@ -298,25 +318,47 @@ def restore_originals():
             if original_file.is_file():
                 modified_file = modified_dir / original_file.name
                 
-                # If a modified version exists, replace it with the original
-                if modified_file.exists():
-                    try:
-                        shutil.copy2(original_file, modified_file)
-                        restored_count += 1
-                        print(f"Restored: {original_file.name}")
-                    except Exception as e:
-                        error_msg = f"Failed to restore {original_file.name}: {str(e)}"
+                # Extract item ID from filename (remove extension)
+                item_id = original_file.stem
+                print(f"Processing item ID: {item_id}")
+                
+                # Step 1: Copy original to modified directory
+                try:
+                    shutil.copy2(original_file, modified_file)
+                    restored_count += 1
+                    print(f"✅ Restored file: {original_file.name}")
+                    
+                    # Step 2: Upload the restored poster to Jellyfin
+                    upload_success = uploader.upload_poster(item_id, modified_file, max_retries=3)
+                    if upload_success:
+                        uploaded_count += 1
+                        print(f"✅ Uploaded to Jellyfin: {item_id}")
+                    else:
+                        error_msg = f"Failed to upload {original_file.name} to Jellyfin (item ID: {item_id})"
                         errors.append(error_msg)
-                        print(error_msg)
+                        print(f"❌ {error_msg}")
+                        
+                except Exception as e:
+                    error_msg = f"Failed to restore {original_file.name}: {str(e)}"
+                    errors.append(error_msg)
+                    print(f"❌ {error_msg}")
         
         success = len(errors) == 0
         
+        # Create detailed message
+        if success:
+            message = f'✅ Restore completed successfully! Restored {restored_count} poster files and uploaded {uploaded_count} to Jellyfin. Original posters are now visible in Jellyfin.'
+        else:
+            message = f'⚠️ Restore completed with some issues. Restored {restored_count} files, uploaded {uploaded_count} to Jellyfin. {len(errors)} errors occurred.'
+        
         return jsonify({
             'success': success,
-            'message': f'Restore completed. Restored {restored_count} posters.' + (f' {len(errors)} errors occurred.' if errors else ''),
+            'message': message,
             'restored_count': restored_count,
+            'uploaded_count': uploaded_count,
             'total_processed': restored_count + len(errors),
-            'errors': errors
+            'errors': errors,
+            'requires_reupload': False  # No longer needed!
         })
         
     except Exception as e:
@@ -325,6 +367,7 @@ def restore_originals():
             'success': False,
             'message': f'Error: {str(e)}',
             'restored_count': 0,
+            'uploaded_count': 0,
             'total_processed': 0,
             'errors': [str(e)]
         }), 500
