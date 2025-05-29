@@ -18,3 +18,9 @@ api_keys:
     client_name: YOUR_CLIENT_NAME
     language: en
     cache_expiration: 60
+
+# TV Series Badge Settings
+tv_series:
+  show_dominant_badges: true  # Show badges for most common codec/resolution across episodes
+  max_episodes_to_analyze: 50  # Limit analysis to first N episodes for performance
+  episode_timeout: 15  # Timeout in seconds for individual episode analysis

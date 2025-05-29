@@ -10,6 +10,7 @@ A Python-based application that adds badges and other visual elements to media p
 - Add resolution badges (4K, 1080p, etc.)
 - Add audio codec badges (Atmos, DTS, etc.)
 - Add review/rating badges (IMDb, RT, etc.)
+- **TV Series Support**: Automatic dominant badge detection for TV series based on most common codec/resolution across episodes
 - Web-based configuration interface
 - Docker support for easy deployment
 
@@ -85,6 +86,20 @@ For full functionality, you'll need:
 - Jellyfin API Key and User ID (if using Jellyfin integration)
 
 Update your `settings.yaml` with these credentials.
+
+### TV Series Badge Configuration
+
+Aphrodite can automatically add audio codec and resolution badges to TV series by analyzing all episodes and using the most common (dominant) values. To enable this feature:
+
+```yaml
+# TV Series Badge Settings
+tv_series:
+  show_dominant_badges: true  # Show badges for most common codec/resolution across episodes
+```
+
+For example, if a TV series has 7 episodes with 1080p and 3 episodes with 4K, the badge will show "1080p" as it's the dominant resolution.
+
+See [TV_SERIES_DOMINANT_BADGES.md](TV_SERIES_DOMINANT_BADGES.md) for detailed information about this feature.
 
 ## Directory Structure
 

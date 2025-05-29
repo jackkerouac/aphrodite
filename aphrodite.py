@@ -32,6 +32,7 @@ from aphrodite_helpers.apply_badge import (
     apply_badge_to_poster
 )
 from aphrodite_helpers.poster_uploader import PosterUploader
+from aphrodite_helpers.tv_series_aggregator import get_series_dominant_badge_info
 
 
 BANNER = r"""
@@ -61,6 +62,9 @@ def process_single_item(jellyfin_url: str, api_key: str, user_id: str,
         print("⚠️ No badge types selected. At least one badge type must be enabled.")
         return False
 
+    # Check if this is a TV series and get dominant badge info if applicable
+    series_badge_info = get_series_dominant_badge_info(jellyfin_url, api_key, user_id, item_id)
+    
     # 1. Download poster (we'll need this for any badge type)
     poster_path = download_poster(jellyfin_url, api_key, item_id)
     if not poster_path:
@@ -68,11 +72,15 @@ def process_single_item(jellyfin_url: str, api_key: str, user_id: str,
         return False
 
     # Get item name for display purposes
-    item_info = get_media_stream_info(jellyfin_url, api_key, user_id, item_id)
-    if not item_info:
-        item_name = "Unknown Item"
+    if series_badge_info:
+        item_name = series_badge_info['name']
+        print(f"📺 Processing TV series: {item_name}")
     else:
-        item_name = item_info.get('name', 'Unknown Item')
+        item_info = get_media_stream_info(jellyfin_url, api_key, user_id, item_id)
+        if not item_info:
+            item_name = "Unknown Item"
+        else:
+            item_name = item_info.get('name', 'Unknown Item')
 
     # 1.5. Resize the poster for consistent badge placement
     os.makedirs(os.path.join(os.path.dirname(os.path.abspath(__file__)), "posters", "working"), exist_ok=True)
@@ -100,14 +108,19 @@ def process_single_item(jellyfin_url: str, api_key: str, user_id: str,
 
     # 2. Process Audio Badge if requested
     if add_audio:
-        # Media info
-        audio_info = get_media_stream_info(jellyfin_url, api_key, user_id, item_id)
-        if not audio_info:
-            print("❌ Failed to retrieve audio information")
-            return False
+        # Use series dominant codec if available, otherwise get individual item codec
+        if series_badge_info:
+            codec = series_badge_info['audio_codec']
+            print(f"📢 Using dominant audio codec: {codec} for TV series {item_name}")
+        else:
+            # Media info for non-series items
+            audio_info = get_media_stream_info(jellyfin_url, api_key, user_id, item_id)
+            if not audio_info:
+                print("❌ Failed to retrieve audio information")
+                return False
 
-        codec = get_primary_audio_codec(audio_info)
-        print(f"📢 Found audio codec: {codec} for {item_name}")
+            codec = get_primary_audio_codec(audio_info)
+            print(f"📢 Found audio codec: {codec} for {item_name}")
         
         # Skip adding audio badge if codec is UNKNOWN
         if codec.upper() == "UNKNOWN":
@@ -128,14 +141,19 @@ def process_single_item(jellyfin_url: str, api_key: str, user_id: str,
 
     # 3. Process Resolution Badge if requested
     if add_resolution:
-        # Get resolution info
-        resolution_info = get_media_resolution_info(jellyfin_url, api_key, user_id, item_id)
-        if not resolution_info:
-            print("❌ Failed to retrieve resolution information")
-            return False
+        # Use series dominant resolution if available, otherwise get individual item resolution
+        if series_badge_info:
+            resolution_text = series_badge_info['resolution']
+            print(f"📏 Using dominant resolution: {resolution_text} for TV series {item_name}")
+        else:
+            # Get resolution info for non-series items
+            resolution_info = get_media_resolution_info(jellyfin_url, api_key, user_id, item_id)
+            if not resolution_info:
+                print("❌ Failed to retrieve resolution information")
+                return False
 
-        resolution_text = get_resolution_badge_text(resolution_info)
-        print(f"📏 Found resolution: {resolution_text} for {item_name}")
+            resolution_text = get_resolution_badge_text(resolution_info)
+            print(f"📏 Found resolution: {resolution_text} for {item_name}")
 
         # Skip adding resolution badge if it's UNKNOWN
         if resolution_text.upper() == "UNKNOWN":
