@@ -22,8 +22,8 @@ api_keys:
 # TV Series Badge Settings
 tv_series:
   show_dominant_badges: true  # Show badges for most common codec/resolution across episodes
-  max_episodes_to_analyze: 50  # Limit analysis to first N episodes for performance
-  episode_timeout: 15  # Timeout in seconds for individual episode analysis
+  max_episodes_to_analyze: 5  # Limit analysis to first N episodes for performance
+  episode_timeout: 25  # Timeout in seconds for individual episode analysis
 
 # Metadata Tagging Settings
 metadata_tagging:
