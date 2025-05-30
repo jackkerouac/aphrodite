@@ -11,6 +11,7 @@ A Python-based application that adds badges and other visual elements to media p
 - Add audio codec badges (Atmos, DTS, etc.)
 - Add review/rating badges (IMDb, RT, etc.)
 - **TV Series Support**: Automatic dominant badge detection for TV series based on most common codec/resolution across episodes
+- **Metadata Tagging**: Track which items have been processed with automatic metadata tags
 - Web-based configuration interface
 - Docker support for easy deployment
 
@@ -100,6 +101,15 @@ tv_series:
 For example, if a TV series has 7 episodes with 1080p and 3 episodes with 4K, the badge will show "1080p" as it's the dominant resolution.
 
 See [TV_SERIES_DOMINANT_BADGES.md](TV_SERIES_DOMINANT_BADGES.md) for detailed information about this feature.
+
+### Metadata Tagging
+
+Aphrodite can automatically add metadata tags to track which items have been processed. This helps you:
+- See which items have already been processed
+- Avoid reprocessing the same items
+- Monitor progress through large libraries
+
+See [METADATA_TAGGING.md](METADATA_TAGGING.md) for detailed information about this feature.
 
 ## Directory Structure
 

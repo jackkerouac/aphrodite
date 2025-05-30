@@ -33,6 +33,7 @@ from aphrodite_helpers.apply_badge import (
 )
 from aphrodite_helpers.poster_uploader import PosterUploader
 from aphrodite_helpers.tv_series_aggregator import get_series_dominant_badge_info
+from aphrodite_helpers.metadata_tagger import add_aphrodite_tag
 
 
 BANNER = r"""
@@ -55,7 +56,8 @@ def display_banner() -> None:
 def process_single_item(jellyfin_url: str, api_key: str, user_id: str, 
                         item_id: str, max_retries: int = 3,
                         add_audio: bool = True, add_resolution: bool = True,
-                        add_reviews: bool = True, skip_upload: bool = False) -> bool:
+                        add_reviews: bool = True, skip_upload: bool = False,
+                        add_metadata_tag: bool = True) -> bool:
     print(f"\n📋 Processing item {item_id}")
 
     if not add_audio and not add_resolution and not add_reviews:
@@ -222,6 +224,19 @@ def process_single_item(jellyfin_url: str, api_key: str, user_id: str,
         else:
             print("⚠️ No modified poster was created, nothing to upload")
 
+    # 6. Add metadata tag to mark this item as processed by Aphrodite
+    if output_path and add_metadata_tag:  # Only tag if we actually processed something and tagging is enabled
+        print(f"🏷️ Adding Aphrodite metadata tag...")
+        tag_success = add_aphrodite_tag(jellyfin_url, api_key, user_id, item_id)  # Uses settings for tag name
+        if tag_success:
+            print(f"✅ Added metadata tag to track processing")
+        else:
+            print(f"⚠️ Failed to add metadata tag (processing was still successful)")
+    elif output_path and not add_metadata_tag:
+        print(f"🏷️ Skipping metadata tag (disabled via command line)")
+    elif not output_path:
+        print(f"🏷️ Skipping metadata tag (no processing occurred)")
+    
     print(f"✅ Success: {item_name}")
     return True
 
@@ -230,7 +245,7 @@ def process_library_items(jellyfin_url: str, api_key: str, user_id: str,
                           library_id: str, limit: int | None,
                           max_retries: int, add_audio: bool = True, 
                           add_resolution: bool = True, add_reviews: bool = True,
-                          skip_upload: bool = False) -> None:
+                          skip_upload: bool = False, add_metadata_tag: bool = True) -> None:
     items = get_library_items(jellyfin_url, api_key, user_id, library_id)
     if not items:
         print("⚠️  No items found in library")
@@ -251,7 +266,7 @@ def process_library_items(jellyfin_url: str, api_key: str, user_id: str,
             
             success = process_single_item(jellyfin_url, api_key, user_id,
                                 item_id, max_retries, add_audio, add_resolution, 
-                                add_reviews, skip_upload)
+                                add_reviews, skip_upload, add_metadata_tag)
             
             if success:
                 successful_items += 1
@@ -283,6 +298,11 @@ def main() -> int:
     sub = parser.add_subparsers(dest="cmd")
 
     sub.add_parser("check", help="Validate settings and Jellyfin connection")
+    
+    status_p = sub.add_parser("status", help="Check processing status of items in a library")
+    status_p.add_argument("library_id", help="Library ID to check")
+    status_p.add_argument("--tag", help="Metadata tag to check for (default: from settings)")
+    status_p.add_argument("--unprocessed-only", action="store_true", help="Only show items that haven't been processed")
 
     cleanup_p = sub.add_parser("cleanup", help="Clean up poster directories")
     cleanup_p.add_argument("--no-modified", action="store_true", help="Don't clean the modified posters directory")
@@ -297,6 +317,7 @@ def main() -> int:
     item_p.add_argument("--no-resolution", action="store_true", help="Don't add resolution badge")
     item_p.add_argument("--no-reviews", action="store_true", help="Don't add review badges")
     item_p.add_argument("--no-upload", action="store_true", help="Don't upload posters to Jellyfin, only save locally")
+    item_p.add_argument("--no-metadata-tag", action="store_true", help="Don't add metadata tag to track processing")
     item_p.add_argument("--cleanup", action="store_true", help="Clean up poster directories after processing")
 
     lib_p = sub.add_parser("library", help="Process every item in a library")
@@ -307,6 +328,7 @@ def main() -> int:
     lib_p.add_argument("--no-resolution", action="store_true", help="Don't add resolution badge")
     lib_p.add_argument("--no-reviews", action="store_true", help="Don't add review badges")
     lib_p.add_argument("--no-upload", action="store_true", help="Don't upload posters to Jellyfin, only save locally")
+    lib_p.add_argument("--no-metadata-tag", action="store_true", help="Don't add metadata tag to track processing")
     lib_p.add_argument("--cleanup", action="store_true", help="Clean up poster directories after processing")
 
     args = parser.parse_args()
@@ -336,6 +358,53 @@ def main() -> int:
             )
             
         return 0
+    
+    if args.cmd == "status":
+        from aphrodite_helpers.metadata_tagger import MetadataTagger, get_tagging_settings
+        
+        print(f"📊 Checking processing status for library {args.library_id}")
+        
+        # Get tag from settings if not specified
+        tag_to_check = args.tag
+        if tag_to_check is None:
+            tagging_settings = get_tagging_settings()
+            tag_to_check = tagging_settings.get('tag_name', 'aphrodite-overlay')
+        
+        # Get all items in the library
+        items = get_library_items(url, api_key, user_id, args.library_id)
+        if not items:
+            print("⚠️  No items found in library")
+            return 1
+        
+        tagger = MetadataTagger(url, api_key, user_id)
+        processed_count = 0
+        unprocessed_count = 0
+        
+        print(f"\nProcessing status for {len(items)} items:")
+        print(f"Tag: '{tag_to_check}'\n")
+        
+        for item in items:
+            item_id = item.get('Id')
+            item_name = item.get('Name', 'Unknown')
+            
+            if not item_id:
+                continue
+                
+            has_tag = tagger.check_aphrodite_tag(item_id, tag_to_check)
+            
+            if has_tag:
+                processed_count += 1
+                if not args.unprocessed_only:
+                    print(f"✅ {item_name} (Processed)")
+            else:
+                unprocessed_count += 1
+                print(f"⚪ {item_name} (Not processed)")
+        
+        print(f"\n📈 Summary:")
+        print(f"  Processed: {processed_count}/{len(items)} ({processed_count/len(items)*100:.1f}%)")
+        print(f"  Unprocessed: {unprocessed_count}/{len(items)} ({unprocessed_count/len(items)*100:.1f}%)")
+        
+        return 0
         
     if args.cmd == "cleanup":
         # Invert the no-* arguments for the clean_* parameters
@@ -358,11 +427,13 @@ def main() -> int:
         add_resolution = not (hasattr(args, 'no_resolution') and args.no_resolution)
         add_reviews = not (hasattr(args, 'no_reviews') and args.no_reviews)
         skip_upload = hasattr(args, 'no_upload') and args.no_upload
+        add_metadata_tag = not (hasattr(args, 'no_metadata_tag') and args.no_metadata_tag)
         
         ok = process_single_item(
             url, api_key, user_id, args.item_id, args.retries,
             add_audio=add_audio, add_resolution=add_resolution,
-            add_reviews=add_reviews, skip_upload=skip_upload
+            add_reviews=add_reviews, skip_upload=skip_upload,
+            add_metadata_tag=add_metadata_tag
         )
         # Clean up posters if requested
         if hasattr(args, 'cleanup') and args.cleanup:
@@ -382,11 +453,13 @@ def main() -> int:
         add_resolution = not (hasattr(args, 'no_resolution') and args.no_resolution)
         add_reviews = not (hasattr(args, 'no_reviews') and args.no_reviews)
         skip_upload = hasattr(args, 'no_upload') and args.no_upload
+        add_metadata_tag = not (hasattr(args, 'no_metadata_tag') and args.no_metadata_tag)
         
         process_library_items(
             url, api_key, user_id, args.library_id, args.limit, args.retries,
             add_audio=add_audio, add_resolution=add_resolution,
-            add_reviews=add_reviews, skip_upload=skip_upload
+            add_reviews=add_reviews, skip_upload=skip_upload,
+            add_metadata_tag=add_metadata_tag
         )
         return 0
 

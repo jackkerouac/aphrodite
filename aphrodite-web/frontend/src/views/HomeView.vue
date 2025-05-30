@@ -11,6 +11,7 @@
       <input type="radio" name="my-accordion-2" checked="checked" />
       <div class="collapse-title font-semibold">Additions</div>
       <div class="collapse-content text-sm">
+        <p>&nbsp;&nbsp;&nbsp;&middot; Added aphrodite-overlay metadata tag to successfully processed items for future feature tracking</p>
         <p>&nbsp;&nbsp;&nbsp;&middot; Added Restore Original Posters feature, under Execute -> Poster Management</p>
         <p>&nbsp;&nbsp;&nbsp;&middot; Added episode_timeout setting (default: 15 seconds)</p>
         <p>&nbsp;&nbsp;&nbsp;&middot; Specific timeout handling for individual episodes</p>

@@ -24,3 +24,9 @@ tv_series:
   show_dominant_badges: true  # Show badges for most common codec/resolution across episodes
   max_episodes_to_analyze: 50  # Limit analysis to first N episodes for performance
   episode_timeout: 15  # Timeout in seconds for individual episode analysis
+
+# Metadata Tagging Settings
+metadata_tagging:
+  enabled: true  # Enable/disable metadata tagging globally
+  tag_name: "aphrodite-overlay"  # Tag name to add to processed items
+  tag_on_success_only: true  # Only tag items that were successfully processed
