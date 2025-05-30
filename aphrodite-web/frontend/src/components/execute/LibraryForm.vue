@@ -121,15 +121,27 @@
           </label>
         </div>
         
-        <!-- Upload Option -->
+        <!-- Processing Options -->
         <div class="form-control mb-6">
-          <label class="flex items-center gap-2 cursor-pointer">
+          <label class="flex items-center gap-2 cursor-pointer mb-2">
             <input 
               type="checkbox" 
               class="checkbox checkbox-primary" 
               v-model="formData.skipUpload"
             />
             <span>Skip upload to Jellyfin</span>
+          </label>
+          
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input 
+              type="checkbox" 
+              class="checkbox checkbox-primary" 
+              v-model="formData.skipProcessed"
+            />
+            <span>Skip items already processed by Aphrodite</span>
+          </label>
+          <label class="label">
+            <span class="label-text-alt">Items with the aphrodite-overlay tag will be skipped</span>
           </label>
         </div>
         
@@ -175,7 +187,8 @@ export default {
         resolution: true,
         review: true
       },
-      skipUpload: false
+      skipUpload: false,
+      skipProcessed: false
     });
     
     const errors = reactive({
@@ -255,7 +268,8 @@ export default {
           limit: formData.limit,
           retries: formData.retries,
           badgeTypes,
-          skipUpload: formData.skipUpload
+          skipUpload: formData.skipUpload,
+          skipProcessed: formData.skipProcessed
         });
         
         console.log('Workflow creation response:', response);

@@ -11,14 +11,14 @@
       <input type="radio" name="my-accordion-2" checked="checked" />
       <div class="collapse-title font-semibold">Additions</div>
       <div class="collapse-content text-sm">
+        <p>&nbsp;&nbsp;&nbsp;&middot; Add option to skip already processed items in library processing</p>
+        <p>&nbsp;&nbsp;&nbsp;&middot; Added Restore Original Posters feature, under Execute -> Poster Management</p>
         <p>&nbsp;&nbsp;&nbsp;&middot; Added aphrodite-overlay metadata tag to successfully processed items for future feature tracking</p>
         <p>&nbsp;&nbsp;&nbsp;&middot; Added Restore Original Posters feature, under Execute -> Poster Management</p>
         <p>&nbsp;&nbsp;&nbsp;&middot; Added episode_timeout setting (default: 15 seconds)</p>
         <p>&nbsp;&nbsp;&nbsp;&middot; Specific timeout handling for individual episodes</p>
         <p>&nbsp;&nbsp;&nbsp;&middot; Graceful failure handling with proper error messages</p>
         <p>&nbsp;&nbsp;&nbsp;&middot; Added max_episodes_to_analyze setting (default: 50)</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Smart sampling - analyzes first N episodes for large series</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Prevents overwhelming API calls for very long series</p>
       </div>
     </div>
     <div class="collapse collapse-arrow bg-base-100 border border-base-300">

@@ -33,7 +33,7 @@ from aphrodite_helpers.apply_badge import (
 )
 from aphrodite_helpers.poster_uploader import PosterUploader
 from aphrodite_helpers.tv_series_aggregator import get_series_dominant_badge_info
-from aphrodite_helpers.metadata_tagger import add_aphrodite_tag
+from aphrodite_helpers.metadata_tagger import add_aphrodite_tag, MetadataTagger, get_tagging_settings
 
 
 BANNER = r"""
@@ -245,15 +245,40 @@ def process_library_items(jellyfin_url: str, api_key: str, user_id: str,
                           library_id: str, limit: int | None,
                           max_retries: int, add_audio: bool = True, 
                           add_resolution: bool = True, add_reviews: bool = True,
-                          skip_upload: bool = False, add_metadata_tag: bool = True) -> None:
+                          skip_upload: bool = False, add_metadata_tag: bool = True,
+                          skip_processed: bool = False) -> None:
     items = get_library_items(jellyfin_url, api_key, user_id, library_id)
     if not items:
         print("⚠️  No items found in library")
         return
 
+    # Filter out already processed items if skip_processed is enabled
+    if skip_processed:
+        print(f"🔍 Checking for already processed items...")
+        tagging_settings = get_tagging_settings()
+        tag_name = tagging_settings.get('tag_name', 'aphrodite-overlay')
+        tagger = MetadataTagger(jellyfin_url, api_key, user_id)
+        
+        original_count = len(items)
+        unprocessed_items = []
+        
+        for item in items:
+            item_id = item.get('Id')
+            if not item_id:
+                unprocessed_items.append(item)
+                continue
+                
+            has_tag = tagger.check_aphrodite_tag(item_id, tag_name)
+            if not has_tag:
+                unprocessed_items.append(item)
+        
+        skipped_count = original_count - len(unprocessed_items)
+        print(f"📊 Skipped {skipped_count} already processed items, {len(unprocessed_items)} remaining")
+        items = unprocessed_items
+
     if limit:
         items = items[:limit]
-    print(f"Found {len(items)} items in library")
+    print(f"Found {len(items)} items to process in library")
 
     successful_items = 0
     failed_items = 0
@@ -329,6 +354,7 @@ def main() -> int:
     lib_p.add_argument("--no-reviews", action="store_true", help="Don't add review badges")
     lib_p.add_argument("--no-upload", action="store_true", help="Don't upload posters to Jellyfin, only save locally")
     lib_p.add_argument("--no-metadata-tag", action="store_true", help="Don't add metadata tag to track processing")
+    lib_p.add_argument("--skip-processed", action="store_true", help="Skip items that already have the aphrodite-overlay tag")
     lib_p.add_argument("--cleanup", action="store_true", help="Clean up poster directories after processing")
 
     args = parser.parse_args()
@@ -454,12 +480,13 @@ def main() -> int:
         add_reviews = not (hasattr(args, 'no_reviews') and args.no_reviews)
         skip_upload = hasattr(args, 'no_upload') and args.no_upload
         add_metadata_tag = not (hasattr(args, 'no_metadata_tag') and args.no_metadata_tag)
+        skip_processed = hasattr(args, 'skip_processed') and args.skip_processed
         
         process_library_items(
             url, api_key, user_id, args.library_id, args.limit, args.retries,
             add_audio=add_audio, add_resolution=add_resolution,
             add_reviews=add_reviews, skip_upload=skip_upload,
-            add_metadata_tag=add_metadata_tag
+            add_metadata_tag=add_metadata_tag, skip_processed=skip_processed
         )
         return 0
 

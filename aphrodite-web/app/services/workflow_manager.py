@@ -128,7 +128,8 @@ def process_library_item(workflow_id, library_id, options):
             'workflow_id': workflow_id,
             'badgeTypes': options.get('badgeTypes', []),
             'limit': options.get('limit'),
-            'skipUpload': options.get('skipUpload', False)
+            'skipUpload': options.get('skipUpload', False),
+            'skipProcessed': options.get('skipProcessed', False)
         })
         
         # Get the root directory - this should be the directory that contains aphrodite.py
@@ -171,6 +172,10 @@ def process_library_item(workflow_id, library_id, options):
         # Add skip upload flag if requested
         if options.get('skipUpload'):
             cmd.append('--no-upload')
+        
+        # Add skip processed flag if requested
+        if options.get('skipProcessed'):
+            cmd.append('--skip-processed')
         
         # Set environment variables for Unicode
         env = os.environ.copy()
