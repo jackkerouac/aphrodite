@@ -159,11 +159,11 @@ class ReviewFetcher:
             print(f"❌ Error fetching TMDB data: {e}")
             return None
     
-    def fetch_anidb_ratings(self, anidb_id=None, item_name=None):
-        """Fetch ratings from AniDB
+    def fetch_anidb_ratings(self, anidb_id=None, item_name=None, item_data=None):
+        """Fetch ratings from AniDB HTTP API
         
-        This implementation searches AniDB by title if no ID is provided,
-        then fetches the rating information.
+        This implementation uses the official AniDB HTTP API to fetch ratings.
+        If no AniDB ID is provided, it tries to find one using Kometa's Anime-IDs mapping.
         """
         print(f"🔍 fetch_anidb_ratings called with anidb_id: {anidb_id}, item_name: {item_name}")
         print(f"🔍 anidb_settings available: {bool(self.anidb_settings)}")
@@ -172,15 +172,18 @@ class ReviewFetcher:
             print(f"❌ No AniDB settings found")
             return None
             
-        # If we don't have an AniDB ID, try to search by title
-        if not anidb_id and item_name:
-            print(f"🔍 No AniDB ID provided, searching by title: {item_name}")
-            anidb_id = self.search_anidb_by_title(item_name)
+        # If we don't have an AniDB ID, try to find one using auto-discovery
+        if not anidb_id and item_data:
+            print(f"🔍 No AniDB ID provided, trying auto-discovery for: {item_name}")
+            
+            # Try auto-discovery using other provider IDs
+            anidb_id = self.discover_anidb_id_from_providers(item_data)
+            
             if not anidb_id:
-                print(f"❌ Could not find AniDB ID for title: {item_name}")
+                print(f"❌ Could not discover AniDB ID for title: {item_name}")
                 return None
         elif not anidb_id:
-            print(f"❌ No AniDB ID or title provided")
+            print(f"❌ No AniDB ID or item data provided")
             return None
             
         print(f"🔍 Fetching AniDB rating for ID: {anidb_id}")
@@ -193,8 +196,8 @@ class ReviewFetcher:
                 print(f"✅ Using cached AniDB data for ID: {anidb_id}")
                 return cache_entry["data"]
         
-        # Fetch rating from AniDB
-        rating_data = self.fetch_anidb_anime_info(anidb_id)
+        # Fetch rating from AniDB HTTP API
+        rating_data = self.fetch_anidb_anime_info_http(anidb_id)
         
         if rating_data:
             # Store in cache
@@ -208,65 +211,241 @@ class ReviewFetcher:
             print(f"❌ Failed to fetch AniDB rating for ID: {anidb_id}")
             return None
     
-    def search_anidb_by_title(self, title):
-        """Search AniDB for an anime by title and return the AniDB ID"""
-        if not title:
+    def discover_anidb_id_from_providers(self, item_data):
+        """Discover AniDB ID using other provider IDs via Kometa's Anime-IDs mapping"""
+        if not item_data:
             return None
             
-        print(f"🔍 Searching AniDB for title: {title}")
+        provider_ids = item_data.get("ProviderIds", {})
+        print(f"🔍 Available provider IDs: {list(provider_ids.keys())}")
         
-        # Clean up the title for search
-        search_title = self.clean_title_for_search(title)
-        print(f"🔍 Cleaned search title: {search_title}")
+        # Load Kometa's Anime-IDs mapping
+        anime_mapping = self.load_kometa_anime_ids()
+        if not anime_mapping:
+            print(f"❌ Could not load Kometa Anime-IDs mapping")
+            return None
+            
+        # Try different provider IDs to find AniDB mapping
+        # Check TMDB TV ID first (most common for anime series)
+        tmdb_id = provider_ids.get("Tmdb")
+        if tmdb_id:
+            anidb_id = self.find_anidb_in_mapping(anime_mapping, "tmdb_show_id", tmdb_id)
+            if anidb_id:
+                print(f"✅ Found AniDB ID {anidb_id} via TMDB Show ID {tmdb_id}")
+                return anidb_id
+                
+        # Check IMDB ID
+        imdb_id = provider_ids.get("Imdb")
+        if imdb_id:
+            anidb_id = self.find_anidb_in_mapping(anime_mapping, "imdb_id", imdb_id)
+            if anidb_id:
+                print(f"✅ Found AniDB ID {anidb_id} via IMDB ID {imdb_id}")
+                return anidb_id
+                
+        # Check TVDB ID
+        tvdb_id = provider_ids.get("Tvdb")
+        if tvdb_id:
+            anidb_id = self.find_anidb_in_mapping(anime_mapping, "tvdb_id", tvdb_id)
+            if anidb_id:
+                print(f"✅ Found AniDB ID {anidb_id} via TVDB ID {tvdb_id}")
+                return anidb_id
+                
+        # Check AniList ID
+        anilist_id = provider_ids.get("AniList")
+        if anilist_id:
+            anidb_id = self.find_anidb_in_mapping(anime_mapping, "anilist_id", anilist_id)
+            if anidb_id:
+                print(f"✅ Found AniDB ID {anidb_id} via AniList ID {anilist_id}")
+                return anidb_id
+                
+        print(f"❌ Could not find AniDB mapping for any available provider IDs")
+        return None
+        
+    def load_kometa_anime_ids(self):
+        """Load Kometa's Anime-IDs mapping from GitHub"""
+        cache_key = "kometa_anime_ids"
+        cache_expiration = 60 * 60 * 24  # Cache for 24 hours
         
         # Check cache first
-        cache_key = f"anidb_search_{search_title.lower()}"
         if cache_key in self.cache:
             cache_entry = self.cache[cache_key]
-            if time.time() - cache_entry["timestamp"] < self.cache_expiration:
-                print(f"✅ Using cached AniDB search result for: {search_title}")
+            if time.time() - cache_entry["timestamp"] < cache_expiration:
+                print(f"✅ Using cached Kometa Anime-IDs mapping")
                 return cache_entry["data"]
+                
+        # Fetch from GitHub
+        url = "https://raw.githubusercontent.com/Kometa-Team/Anime-IDs/master/anime_ids.json"
         
         try:
-            # AniDB HTTP API for search
-            # Note: This uses the unofficial HTTP API, not the UDP API
-            # Add rate limiting to be respectful to AniDB
-            time.sleep(1)  # Wait 1 second between requests
-            
-            search_url = "https://anidb.net/perl-bin/animedb.pl"
-            params = {
-                "show": "animelist",
-                "adb.search": search_title,
-                "do.search": "Search"
-            }
-            
-            headers = {
-                "User-Agent": f"{self.anidb_settings.get('client_name', 'aphrodite')}/{self.anidb_settings.get('version', '1')}"
-            }
-            
-            print(f"🌐 Making AniDB search request...")
-            response = requests.get(search_url, params=params, headers=headers, timeout=15)
+            print(f"🌐 Fetching Kometa Anime-IDs mapping from GitHub...")
+            response = requests.get(url, timeout=30)
             response.raise_for_status()
             
-            # Parse the HTML response to extract anime ID
-            anidb_id = self.parse_anidb_search_response(response.text, search_title)
+            anime_mapping = response.json()
+            print(f"✅ Successfully loaded {len(anime_mapping)} anime mappings")
             
-            # Cache the result (even if None to avoid repeated failed searches)
+            # Store in cache
             self.cache[cache_key] = {
                 "timestamp": time.time(),
-                "data": anidb_id
+                "data": anime_mapping
             }
             
-            if anidb_id:
-                print(f"✅ Found AniDB ID: {anidb_id} for title: {search_title}")
-            else:
-                print(f"❌ No AniDB ID found for title: {search_title}")
-                
-            return anidb_id
+            return anime_mapping
             
         except Exception as e:
-            print(f"❌ Error searching AniDB: {e}")
+            print(f"❌ Error loading Kometa Anime-IDs mapping: {e}")
             return None
+            
+    def find_anidb_in_mapping(self, anime_mapping, provider_key, provider_id):
+        """Find AniDB ID in the mapping using a specific provider ID
+        
+        The Kometa mapping format has AniDB IDs as keys, like:
+        {
+          "15441": {
+            "tmdb_show_id": 115036,
+            "imdb_id": "tt13266248",
+            "tvdb_id": 394243
+          }
+        }
+        """
+        try:
+            # Convert provider_id to appropriate type for comparison
+            provider_id_str = str(provider_id)
+            
+            # Search through the mapping where AniDB IDs are the keys
+            for anidb_id, anime_data in anime_mapping.items():
+                if provider_key in anime_data:
+                    mapped_id = anime_data[provider_key]
+                    # Handle both string and integer comparisons
+                    if str(mapped_id) == provider_id_str:
+                        print(f"✅ Found match: {provider_key}={provider_id} -> AniDB ID {anidb_id}")
+                        return str(anidb_id)
+                        
+            return None
+            
+        except Exception as e:
+            print(f"❌ Error searching mapping for {provider_key}={provider_id}: {e}")
+            return None
+    
+    def search_anidb_id_via_web_search(self, title):
+        """Legacy method - now deprecated in favor of Kometa mapping
+        
+        Kept for reference but no longer used in the main flow.
+        """
+        print(f"⚠️ search_anidb_id_via_web_search is deprecated - use discover_anidb_id_from_providers instead")
+        return None
+
+    
+    def extract_anidb_id_from_search_results_legacy(self, html_content, search_title):
+        """Extract AniDB ID from search engine results HTML (legacy method)"""
+        import re
+        
+        try:
+            # Look for AniDB URLs in the search results
+            # Pattern: anidb.net/anime/12345 or anidb.net/perl-bin/animedb.pl?show=anime&aid=12345
+            anidb_patterns = [
+                r'anidb\.net/anime/(\d+)',  # Modern URL format
+                r'anidb\.net/perl-bin/animedb\.pl\?[^"]*aid=(\d+)',  # Legacy URL format
+            ]
+            
+            found_ids = set()
+            
+            for pattern in anidb_patterns:
+                matches = re.findall(pattern, html_content, re.IGNORECASE)
+                for match in matches:
+                    found_ids.add(match)
+                    print(f"🔍 Found potential AniDB ID: {match}")
+            
+            if found_ids:
+                # Return the first ID found (most likely to be relevant)
+                anidb_id = list(found_ids)[0]
+                print(f"✅ Selected AniDB ID: {anidb_id} from search results")
+                return anidb_id
+            else:
+                print(f"❌ No AniDB IDs found in search results")
+                return None
+                
+        except Exception as e:
+            print(f"❌ Error extracting AniDB ID from search results: {e}")
+            return None
+    
+    def get_known_anidb_mapping(self, title):
+        """Get AniDB ID from known title mappings
+        
+        Since we need AniDB IDs to use the HTTP API, we maintain a mapping of known titles.
+        This can be expanded as needed by manually looking up anime on AniDB.
+        """
+        # Clean up the title for search
+        search_title = self.clean_title_for_search(title)
+        
+        # Known title to AniDB ID mappings
+        # These can be found by manually searching AniDB and noting the IDs from the URLs
+        known_mappings = {
+            "the apothecary diaries": "17870",
+            "kusuriya no hitorigoto": "17870",
+            "apothecary diaries": "17870",
+            "aesthetica of a rogue hero": "9015",
+            "hagure yuusha no aesthetica": "9015",
+            "hagure yuusha no estetica": "9015",
+            "demon slayer": "14107",
+            "kimetsu no yaiba": "14107",
+            "attack on titan": "9541",
+            "shingeki no kyojin": "9541",
+            "spirited away": "112",
+            "sen to chihiro no kamikakushi": "112",
+            "your name": "11614",
+            "kimi no na wa": "11614",
+            "weathering with you": "14827",
+            "tenki no ko": "14827",
+            "princess mononoke": "7",
+            "mononoke hime": "7",
+            "my neighbor totoro": "320",
+            "tonari no totoro": "320",
+            "akira": "28",
+            "ghost in the shell": "61",
+            "kokaku kidotai": "61",
+            "cowboy bebop": "23",
+            "neon genesis evangelion": "22",
+            "shinseiki evangelion": "22",
+            "one piece": "69",
+            "naruto": "239",
+            "dragon ball z": "12",
+            "dragon ball": "231",
+            "fullmetal alchemist brotherhood": "6107",
+            "hagane no renkinjutsushi fullmetal alchemist": "6107",
+            "death note": "4563",
+            "jujutsu kaisen": "15532",
+            "chainsaw man": "16701",
+            "spy x family": "16405",
+            "mob psycho 100": "12557",
+            "one punch man": "11123",
+            "86 eighty-six": "15441",
+            "86 eighty six": "15441",
+            "eighty six": "15441",
+            "86": "15441"
+        }
+        
+        # Normalize the search title for lookup
+        normalized_title = search_title.lower().strip()
+        
+        # Handle special characters and alternative formats
+        normalized_title = normalized_title.replace('-', ' ').replace('_', ' ')
+        # Normalize multiple spaces to single space
+        import re
+        normalized_title = re.sub(r'\s+', ' ', normalized_title).strip()
+        
+        # Try exact match first
+        if normalized_title in known_mappings:
+            return known_mappings[normalized_title]
+        
+        # Try partial matches (useful for series with different naming)
+        for known_title, anidb_id in known_mappings.items():
+            if known_title in normalized_title or normalized_title in known_title:
+                # Check if it's a reasonable partial match (avoid too short matches)
+                if len(known_title) >= 3 and len(normalized_title) >= 3:
+                    return anidb_id
+        
+        return None
     
     def clean_title_for_search(self, title):
         """Clean up the title for better AniDB search results"""
@@ -285,113 +464,115 @@ class ReviewFetcher:
         return title
     
     def parse_anidb_search_response(self, html_content, search_title):
-        """Parse AniDB search response HTML to extract the anime ID"""
-        try:
-            from bs4 import BeautifulSoup
-            soup = BeautifulSoup(html_content, 'html.parser')
-            
-            # Look for anime links in the search results
-            # AniDB anime links have the pattern: /anime/[id]
-            import re
-            anime_links = soup.find_all('a', href=re.compile(r'/anime/\d+'))
-            
-            if not anime_links:
-                print(f"❌ No anime links found in search results")
-                return None
-            
-            # Get the first result (most likely match)
-            first_link = anime_links[0]
-            href = first_link.get('href')
-            
-            # Extract ID from href like "/anime/12345"
-            match = re.search(r'/anime/(\d+)', href)
-            if match:
-                anidb_id = match.group(1)
-                print(f"✅ Extracted AniDB ID: {anidb_id} from search results")
-                return anidb_id
-            else:
-                print(f"❌ Could not extract ID from href: {href}")
-                return None
-                
-        except Exception as e:
-            print(f"❌ Error parsing AniDB search response: {e}")
-            return None
+        """Parse AniDB search response HTML to extract the anime ID
+        
+        Note: This method is deprecated due to AniDB's robots.txt restrictions.
+        Kept for reference only.
+        """
+        print(f"⚠️ AniDB web scraping is blocked. Using known mappings instead.")
+        return None
     
-    def fetch_anidb_anime_info(self, anidb_id):
-        """Fetch anime information including rating from AniDB"""
+    def fetch_anidb_anime_info_http(self, anidb_id):
+        """Fetch anime information including rating from AniDB HTTP API"""
         try:
             # Add rate limiting to be respectful to AniDB
-            time.sleep(1)  # Wait 1 second between requests
+            time.sleep(2)  # Wait 2 seconds between requests as per API documentation
             
-            # Fetch the anime page
-            anime_url = f"https://anidb.net/anime/{anidb_id}"
+            # Construct the API URL
+            base_url = "http://api.anidb.net:9001/httpapi"
+            params = {
+                "request": "anime",
+                "client": self.anidb_settings.get('client_name', 'aphrodite'),
+                "clientver": self.anidb_settings.get('version', '1'),
+                "protover": "1",
+                "aid": anidb_id
+            }
+            
             headers = {
                 "User-Agent": f"{self.anidb_settings.get('client_name', 'aphrodite')}/{self.anidb_settings.get('version', '1')}"
             }
             
-            print(f"🌐 Fetching AniDB anime info from: {anime_url}")
-            response = requests.get(anime_url, headers=headers, timeout=15)
+            print(f"🌐 Fetching AniDB anime info via HTTP API for ID: {anidb_id}")
+            response = requests.get(base_url, params=params, headers=headers, timeout=15)
             response.raise_for_status()
             
-            # Parse the rating from the HTML
-            rating = self.parse_anidb_rating(response.text)
+            # Parse the XML response
+            rating_data = self.parse_anidb_http_response(response.text, anidb_id)
             
-            if rating:
-                return {
-                    "anidb_id": anidb_id,
-                    "rating": rating,
-                    "source_url": anime_url
-                }
+            if rating_data:
+                return rating_data
             else:
-                print(f"❌ Could not extract rating from AniDB page")
+                print(f"❌ Could not extract rating from AniDB HTTP API response")
                 return None
                 
         except Exception as e:
-            print(f"❌ Error fetching AniDB anime info: {e}")
+            print(f"❌ Error fetching AniDB anime info via HTTP API: {e}")
             return None
     
-    def parse_anidb_rating(self, html_content):
-        """Parse the rating from AniDB anime page HTML"""
-        import re
-        
+    def parse_anidb_http_response(self, xml_content, anidb_id):
+        """Parse the AniDB HTTP API XML response to extract rating information"""
         try:
-            from bs4 import BeautifulSoup
-            soup = BeautifulSoup(html_content, 'html.parser')
+            import xml.etree.ElementTree as ET
+            root = ET.fromstring(xml_content)
             
-            # Look for rating information - AniDB typically shows ratings in specific elements
-            # Try multiple selectors as AniDB's HTML structure can vary
+            # Check if there's an error
+            if root.tag == 'error':
+                print(f"❌ AniDB API error: {root.text}")
+                return None
             
-            # Method 1: Look for rating in data tables
-            rating_element = soup.find('span', class_='rating')
-            if rating_element:
-                rating_text = rating_element.get_text().strip()
-                rating_match = re.search(r'(\d+\.\d+)', rating_text)
-                if rating_match:
-                    rating = float(rating_match.group(1))
-                    print(f"✅ Found rating (method 1): {rating}")
-                    return rating
+            # Look for ratings in the XML response
+            ratings_element = root.find('.//ratings')
+            if ratings_element is not None:
+                # Try to get permanent rating first (most reliable)
+                permanent_element = ratings_element.find('permanent')
+                if permanent_element is not None and permanent_element.text:
+                    try:
+                        rating = float(permanent_element.text)
+                        print(f"✅ Found AniDB permanent rating: {rating}")
+                        return {
+                            "anidb_id": anidb_id,
+                            "rating": rating,
+                            "rating_type": "permanent",
+                            "source_url": f"https://anidb.net/anime/{anidb_id}"
+                        }
+                    except ValueError:
+                        pass
+                
+                # Fallback to temporary rating
+                temporary_element = ratings_element.find('temporary')
+                if temporary_element is not None and temporary_element.text:
+                    try:
+                        rating = float(temporary_element.text)
+                        print(f"✅ Found AniDB temporary rating: {rating}")
+                        return {
+                            "anidb_id": anidb_id,
+                            "rating": rating,
+                            "rating_type": "temporary",
+                            "source_url": f"https://anidb.net/anime/{anidb_id}"
+                        }
+                    except ValueError:
+                        pass
+                
+                # Fallback to review rating
+                review_element = ratings_element.find('review')
+                if review_element is not None and review_element.text:
+                    try:
+                        rating = float(review_element.text)
+                        print(f"✅ Found AniDB review rating: {rating}")
+                        return {
+                            "anidb_id": anidb_id,
+                            "rating": rating,
+                            "rating_type": "review",
+                            "source_url": f"https://anidb.net/anime/{anidb_id}"
+                        }
+                    except ValueError:
+                        pass
             
-            # Method 2: Look for rating in stats section
-            rating_pattern = r'Rating:\s*(\d+\.\d+)'
-            rating_match = re.search(rating_pattern, html_content, re.IGNORECASE)
-            if rating_match:
-                rating = float(rating_match.group(1))
-                print(f"✅ Found rating (method 2): {rating}")
-                return rating
-            
-            # Method 3: Look for average rating in any context
-            avg_pattern = r'Average:\s*(\d+\.\d+)'
-            avg_match = re.search(avg_pattern, html_content, re.IGNORECASE)
-            if avg_match:
-                rating = float(avg_match.group(1))
-                print(f"✅ Found rating (method 3): {rating}")
-                return rating
-            
-            print(f"❌ Could not find rating in AniDB page HTML")
+            print(f"❌ Could not find valid rating in AniDB HTTP API response")
             return None
             
         except Exception as e:
-            print(f"❌ Error parsing AniDB rating: {e}")
+            print(f"❌ Error parsing AniDB HTTP API response: {e}")
             return None
     
     def format_review_data(self, review_data, show_details=False):
@@ -587,13 +768,13 @@ class ReviewFetcher:
         if tmdb_id and self.tmdb_settings.get("api_key"):
             review_data["tmdb"] = self.fetch_tmdb_ratings(tmdb_id, media_type)
         
-        # AniDB (with title search fallback)
+        # AniDB (with auto-discovery fallback)
         print(f"🔍 Checking AniDB: anidb_id={anidb_id}, settings_available={bool(self.anidb_settings)}")
         if self.anidb_settings:
-            # Try with AniDB ID first, fall back to title search
-            item_name = item_data.get('Name') if not anidb_id else None
+            # Try with AniDB ID first, fall back to auto-discovery
+            item_name = item_data.get('Name')
             print(f"🔍 Fetching AniDB ratings (ID: {anidb_id}, Name: {item_name})")
-            review_data["anidb"] = self.fetch_anidb_ratings(anidb_id, item_name)
+            review_data["anidb"] = self.fetch_anidb_ratings(anidb_id, item_name, item_data)
         else:
             print(f"🔍 Skipping AniDB - no settings available")
         

@@ -20,6 +20,7 @@
       <input type="radio" name="my-accordion-2" />
       <div class="collapse-title font-semibold">Fixes</div>
       <div class="collapse-content text-sm">
+        <p>&nbsp;&nbsp;&nbsp;&middot; Fixed aniDB review functionality</p>
         <p>&nbsp;&nbsp;&nbsp;&middot; Fixed title (like you care or anyone actually reads this)</p>
         <p>&nbsp;&nbsp;&nbsp;&middot; Continue processing even if some episodes fail</p>
         <p>&nbsp;&nbsp;&nbsp;&middot; Track and report failed episodes</p>

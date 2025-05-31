@@ -36,7 +36,7 @@
           <!-- Footer -->
           <footer class="footer footer-center p-4 mt-8 text-base-content opacity-70">
             <div>
-              <p>Aphrodite Web Wrapper © 2025</p>
+              <p>Aphrodite © 2025</p>
             </div>
           </footer>
         </div>
@@ -55,7 +55,7 @@
                 </div>
               </div>
               <h2 class="mt-2 text-xl font-bold">Aphrodite</h2>
-              <p class="text-sm opacity-70">v1.3.0</p>
+              <p class="text-sm opacity-70">v1.3.1</p>
             </div>
             
             <ul class="menu bg-base-100 menu-lg rounded-box">

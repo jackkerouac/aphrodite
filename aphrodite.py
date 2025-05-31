@@ -46,7 +46,7 @@ BANNER = r"""
        | |                                    
        |_|                                    
 
-                    v0.2.1       
+                    v1.3.0       
 """
 
 def display_banner() -> None:
