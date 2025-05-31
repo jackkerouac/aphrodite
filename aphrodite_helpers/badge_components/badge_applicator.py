@@ -5,6 +5,44 @@ import os
 import shutil
 from PIL import Image
 
+def calculate_dynamic_padding(poster_width, poster_height, base_padding, reference_aspect_ratio=2/3):
+    """
+    Calculate dynamic padding based on poster aspect ratio.
+    
+    Args:
+        poster_width (int): Width of the poster
+        poster_height (int): Height of the poster
+        base_padding (int): Base padding from settings (for reference aspect ratio)
+        reference_aspect_ratio (float): Reference aspect ratio (default: 2:3 = 0.67)
+    
+    Returns:
+        int: Calculated dynamic padding
+    """
+    # Calculate current aspect ratio
+    current_aspect_ratio = poster_width / poster_height
+    
+    # Calculate padding as a percentage of the reference dimension
+    # For the reference aspect ratio, use base_padding as-is
+    # For other ratios, scale the padding to maintain visual consistency
+    
+    # Use height as the scaling dimension since that's what varies most
+    # Calculate what the height would be for reference ratio at current width
+    reference_height = poster_width / reference_aspect_ratio
+    
+    # Calculate the padding as a percentage of the reference height
+    padding_percentage = base_padding / reference_height
+    
+    # Apply this percentage to the actual poster height
+    dynamic_padding = int(padding_percentage * poster_height)
+    
+    # Ensure minimum and maximum padding bounds
+    min_padding = max(10, base_padding // 3)  # At least 10px, or 1/3 of base
+    max_padding = base_padding * 2  # At most 2x the base padding
+    
+    dynamic_padding = max(min_padding, min(max_padding, dynamic_padding))
+    
+    return dynamic_padding
+
 def apply_badge_to_poster(
     poster_path, 
     badge, 
@@ -41,7 +79,14 @@ def apply_badge_to_poster(
         
         # Get badge position from settings
         position = settings.get('General', {}).get('general_badge_position', 'top-left')
-        edge_padding = settings.get('General', {}).get('general_edge_padding', 30)
+        base_edge_padding = settings.get('General', {}).get('general_edge_padding', 30)
+        
+        # Calculate dynamic padding based on aspect ratio
+        edge_padding = calculate_dynamic_padding(poster.width, poster.height, base_edge_padding)
+        
+        # Debug info
+        aspect_ratio = poster.width / poster.height
+        print(f"ℹ️ Poster: {poster.width}x{poster.height} (ratio: {aspect_ratio:.2f}), Base padding: {base_edge_padding}px, Dynamic padding: {edge_padding}px")
         
         # Calculate position coordinates
         if position == 'top-left':

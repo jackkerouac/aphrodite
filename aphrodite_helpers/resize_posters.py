@@ -10,7 +10,7 @@ from PIL import Image
 # Add the project root directory to the Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-def resize_image(input_path, output_path, target_width=1000, maintain_aspect=True):
+def resize_image(input_path, output_path, target_width=680, maintain_aspect=True):
     """
     Resize an image to the specified width while maintaining aspect ratio.
     
