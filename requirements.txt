@@ -3,3 +3,4 @@ PyYAML>=6.0
 Pillow>=11.0.0
 Flask>=3.0.0
 Flask-CORS>=5.0.0
+beautifulsoup4>=4.12.0
