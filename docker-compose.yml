@@ -16,7 +16,7 @@ services:
       - ./posters/original:/app/posters/original:rw
       - ./posters/working:/app/posters/working:rw
       - ./posters/modified:/app/posters/modified:rw
-      - ./data:/app/data:rw  # For SQLite database
+      - ./data:/app/data:rw  # For SQLite database and scheduler data
       
       # Optional: fonts and images
       - ./fonts:/app/fonts:ro  # Read-only access to fonts

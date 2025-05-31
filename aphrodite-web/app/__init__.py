@@ -197,13 +197,14 @@ def create_app():
             }), 500
     
     # Import and register blueprints - including our proxy blueprint
-    from app.api import config, jobs, libraries, images, check, workflow
+    from app.api import config, jobs, libraries, images, check, workflow, schedules
     app.register_blueprint(config.bp)
     app.register_blueprint(jobs.bp)
     app.register_blueprint(libraries.bp)
     app.register_blueprint(images.bp)
     app.register_blueprint(check.bp)
     app.register_blueprint(workflow.bp)
+    app.register_blueprint(schedules.bp)
     
     # Try to register the proxy blueprint if it exists
     try:
@@ -216,6 +217,19 @@ def create_app():
     # Register the simplified process API
     from app.api import process_api
     app.register_blueprint(process_api.bp)
+    
+    # Initialize scheduler service
+    try:
+        from app.api.schedules import init_scheduler_service, shutdown_scheduler
+        init_scheduler_service()
+        app.logger.info("DEBUG: Scheduler service initialized")
+        
+        # Register shutdown handler
+        import atexit
+        atexit.register(shutdown_scheduler)
+        
+    except Exception as e:
+        app.logger.error(f"DEBUG: Failed to initialize scheduler: {e}")
     
     # Health check endpoint
     @app.route('/api/health')

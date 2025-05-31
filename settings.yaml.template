@@ -30,3 +30,10 @@ metadata_tagging:
   enabled: true  # Enable/disable metadata tagging globally
   tag_name: "aphrodite-overlay"  # Tag name to add to processed items
   tag_on_success_only: true  # Only tag items that were successfully processed
+
+# Scheduler Settings
+scheduler:
+  enabled: true  # Enable/disable the scheduler
+  timezone: "UTC"  # Timezone for schedule calculations
+  max_concurrent_jobs: 1  # Maximum number of concurrent scheduled jobs
+  job_history_limit: 50  # Number of job execution records to keep

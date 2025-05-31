@@ -22,6 +22,11 @@ const routes = [
     path: '/preview',
     name: 'preview',
     component: () => import('../views/PreviewView.vue')
+  },
+  {
+    path: '/schedules',
+    name: 'schedules',
+    component: () => import('../views/SchedulesView.vue')
   }
 ]
 
