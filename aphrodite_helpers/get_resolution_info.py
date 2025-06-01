@@ -68,40 +68,78 @@ def get_media_resolution_info(url, api_key, user_id, item_id):
             result['height'] = height
             result['width'] = width
             
-            # Check for HDR and Dolby Vision in tags or profiles
+            # PRIMARY: Use Jellyfin's pre-computed DisplayTitle if available
+            display_title = stream.get('DisplayTitle', '')
+            if display_title:
+                # Extract resolution from DisplayTitle (e.g., "1080p H264 SDR")
+                display_lower = display_title.lower()
+                if '4k' in display_lower or '2160p' in display_lower:
+                    result['resolution'] = '4k'
+                elif '1080p' in display_lower:
+                    result['resolution'] = '1080p'
+                elif '720p' in display_lower:
+                    result['resolution'] = '720p'
+                elif '576p' in display_lower:
+                    result['resolution'] = '576p'
+                elif '480p' in display_lower:
+                    result['resolution'] = '480p'
+                else:
+                    # Fall back to manual calculation if DisplayTitle doesn't contain standard resolution
+                    result['resolution'] = _calculate_resolution_from_dimensions(height, width)
+            else:
+                # FALLBACK: Manual calculation if DisplayTitle not available
+                result['resolution'] = _calculate_resolution_from_dimensions(height, width)
+            
+            # Check for HDR and Dolby Vision indicators
             tags = stream.get('Tags', [])
             codec_tag = stream.get('CodecTag', '').lower()
             codec_profile = stream.get('Profile', '').lower()
+            video_range = stream.get('VideoRange', '').lower()
+            video_range_type = stream.get('VideoRangeType', '').lower()
             
-            # Special case for 4K resolution
-            if height >= 2160 or width >= 3840:
-                result['resolution'] = '4k'
-            elif height >= 1080 or width >= 1920:
-                result['resolution'] = '1080p'
-            elif height >= 720 or width >= 1280:
-                result['resolution'] = '720p'
-            elif height >= 576 or width >= 720:
-                result['resolution'] = '576p'
-            elif height >= 480 or width >= 640:
-                result['resolution'] = '480p'
-            else:
-                result['resolution'] = f"{height}p"
+            # Check DisplayTitle and VideoRange fields for HDR/DV
+            if display_title:
+                display_lower = display_title.lower()
+                if 'dolby vision' in display_lower or ' dv ' in display_lower:
+                    result['dv'] = True
+                if 'hdr' in display_lower and 'sdr' not in display_lower:
+                    result['hdr'] = True
             
-            # Check for HDR and Dolby Vision
+            # Also check dedicated VideoRange fields
+            if 'hdr' in video_range or 'hdr' in video_range_type:
+                result['hdr'] = True
+            if 'dolby vision' in video_range or 'dolby vision' in video_range_type:
+                result['dv'] = True
+                
+            # Check legacy tag-based detection
             if any(tag.lower() in ['dolby vision', 'dv', 'dolbyvision'] for tag in tags) or 'dolby vision' in codec_profile:
                 result['dv'] = True
             
             if any(tag.lower() in ['hdr', 'hdr10', 'hdr10+'] for tag in tags) or 'hdr' in codec_profile:
                 result['hdr'] = True
             
-            # Check for "plus" version (could be customized based on your needs)
-            # For example, high bitrate or enhanced audio might trigger this
-            if stream.get('BitRate', 0) > 15000000:  # Example: Bitrate > 15Mbps
+            # Check for "plus" version (high bitrate indicator)
+            if stream.get('BitRate', 0) > 15000000:  # Bitrate > 15Mbps
                 result['has_plus'] = True
             
             break  # Stop after processing the first video stream
     
     return result
+
+def _calculate_resolution_from_dimensions(height, width):
+    """Fallback function to calculate resolution from pixel dimensions."""
+    if height >= 2160 or width >= 3840:
+        return '4k'
+    elif height >= 1080 or width >= 1920:
+        return '1080p'
+    elif height >= 720 or width >= 1280:
+        return '720p'
+    elif height >= 576 or width >= 720:
+        return '576p'
+    elif height >= 480 or width >= 640:
+        return '480p'
+    else:
+        return f"{height}p"
 
 def get_resolution_badge_text(media_info):
     """Generate the appropriate badge text based on resolution info."""

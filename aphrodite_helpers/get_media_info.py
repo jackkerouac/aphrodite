@@ -11,6 +11,74 @@ from pathlib import Path # Path is imported but not used. Could be removed.
 # Add the project root directory to the Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+def _extract_audio_codec_from_display_title(display_title):
+    """Extract clean audio codec name from Jellyfin's DisplayTitle.
+    
+    Examples:
+    'AAC - Stereo - Default' -> 'AAC'
+    'DTS-HD MA 7.1 - Default' -> 'DTS-HD MA'
+    'TrueHD Atmos 7.1' -> 'TrueHD Atmos'
+    'AC3 5.1' -> 'AC3'
+    """
+    if not display_title:
+        return 'UNKNOWN'
+    
+    # Remove common suffixes
+    clean_title = display_title.replace(' - Default', '').replace(' - External', '')
+    
+    # Handle specific codec patterns
+    title_lower = clean_title.lower()
+    
+    # DTS variants (order matters - check specific variants first)
+    if 'dts-x' in title_lower or 'dtsx' in title_lower:
+        return 'DTS-X'
+    elif 'dts-hd ma' in title_lower or 'dts-hd master' in title_lower:
+        return 'DTS-HD MA'
+    elif 'dts-hd hr' in title_lower or 'dts-hd high' in title_lower:
+        return 'DTS-HD HR'
+    elif 'dts-hd' in title_lower:
+        return 'DTS-HD'
+    elif 'dts' in title_lower:
+        return 'DTS'
+    
+    # TrueHD and Atmos
+    if 'truehd' in title_lower and 'atmos' in title_lower:
+        return 'TrueHD Atmos'
+    elif 'truehd' in title_lower:
+        return 'TrueHD'
+    elif 'atmos' in title_lower:
+        return 'Atmos'
+    
+    # Common codecs
+    if 'aac' in title_lower:
+        return 'AAC'
+    elif 'ac3' in title_lower or 'ac-3' in title_lower:
+        return 'AC3'
+    elif 'eac3' in title_lower or 'e-ac3' in title_lower or 'eac-3' in title_lower:
+        return 'EAC3'
+    elif 'flac' in title_lower:
+        return 'FLAC'
+    elif 'pcm' in title_lower:
+        return 'PCM'
+    elif 'mp3' in title_lower:
+        return 'MP3'
+    elif 'opus' in title_lower:
+        return 'Opus'
+    elif 'vorbis' in title_lower:
+        return 'Vorbis'
+    
+    # If no specific codec found, try to extract the first word/segment
+    # Split by common delimiters and take the first meaningful part
+    parts = clean_title.replace(' - ', ' ').split()
+    if parts:
+        first_part = parts[0].strip()
+        # Return first part if it looks like a codec name (contains letters)
+        if any(c.isalpha() for c in first_part):
+            return first_part.upper()
+    
+    # Last resort: return the whole cleaned title
+    return clean_title.strip()
+
 def load_settings(path="settings.yaml"):
     """Load settings from the settings file."""
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -66,12 +134,23 @@ def get_media_stream_info(url, api_key, user_id, item_id):
         stream_type = stream.get('Type', '').lower()
         
         if stream_type == 'audio':
-            codec = stream.get('Codec', 'Unknown')
-            channels = stream.get('Channels', 0)
+            # PRIMARY: Use Jellyfin's pre-computed DisplayTitle if available
+            display_title = stream.get('DisplayTitle', '')
+            
+            if display_title:
+                # Use Jellyfin's human-readable audio description
+                display_name = _extract_audio_codec_from_display_title(display_title)
+            else:
+                # FALLBACK: Manual construction from individual fields
+                codec = stream.get('Codec', 'Unknown')
+                channels = stream.get('Channels', 0)
+                display_name = f"{codec.upper()} {channels}.0" if channels else codec.upper()
+            
             result['audio_codecs'].append({
-                'codec': codec,
-                'channels': channels,
-                'display_name': f"{codec.upper()} {channels}.0" if channels else codec.upper()
+                'codec': stream.get('Codec', 'Unknown'),
+                'channels': stream.get('Channels', 0),
+                'display_title': display_title,
+                'display_name': display_name
             })
         
         elif stream_type == 'video':
