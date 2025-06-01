@@ -108,6 +108,9 @@ def apply_badge_to_poster(
             coords = (poster.width - badge.width - edge_padding, (poster.height - badge.height) // 2)
         elif position == 'bottom-center':
             coords = ((poster.width - badge.width) // 2, poster.height - badge.height - edge_padding)
+        elif position == 'bottom-right-flush':
+            # Flush positioning ignores edge padding and places badge at exact corner
+            coords = (poster.width - badge.width, poster.height - badge.height)
         else:
             # Default to top-left
             coords = (edge_padding, edge_padding)

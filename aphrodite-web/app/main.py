@@ -84,6 +84,39 @@ def create_app():
         def error_info():
             return f"Error loading application components: {str(e)}"
     
+    # Serve static images (for badges, etc.)
+    @app.route('/images/<path:filename>')
+    def serve_images(filename):
+        """Serve badge images and other static assets"""
+        # Determine the base directory (same logic as ConfigService)
+        is_docker = (
+            os.path.exists('/app') and 
+            os.path.exists('/app/settings.yaml') and 
+            os.path.exists('/.dockerenv')
+        )
+        
+        if is_docker:
+            base_dir = '/app'
+        else:
+            # For local development
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+        
+        images_dir = os.path.join(base_dir, 'images')
+        file_path = os.path.join(images_dir, filename)
+        
+        # Security check: ensure path is within images directory
+        if not os.path.abspath(file_path).startswith(os.path.abspath(images_dir)):
+            logger.warning(f"Attempted to access file outside images directory: {filename}")
+            return jsonify({'error': 'Invalid path'}), 403
+        
+        if os.path.exists(file_path):
+            directory = os.path.dirname(file_path)
+            basename = os.path.basename(file_path)
+            return send_from_directory(directory, basename)
+        else:
+            logger.warning(f"Image not found: {file_path}")
+            return jsonify({'error': 'Image not found'}), 404
+    
     # Serve the frontend's index.html for all other routes
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')

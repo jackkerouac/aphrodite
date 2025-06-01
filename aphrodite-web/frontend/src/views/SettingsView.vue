@@ -28,6 +28,9 @@
       
       <!-- Review Badge Settings Tab -->
       <ReviewSettings v-if="activeTab === 'review'" />
+      
+      <!-- Awards Badge Settings Tab -->
+      <AwardsSettings v-if="activeTab === 'awards'" />
     </div>
   </div>
 </template>
@@ -39,6 +42,7 @@ import ApiSettings from '../components/settings/ApiSettings.vue';
 import AudioSettings from '../components/settings/AudioSettings.vue';
 import ResolutionSettings from '../components/settings/ResolutionSettings.vue';
 import ReviewSettings from '../components/settings/ReviewSettings.vue';
+import AwardsSettings from '../components/settings/AwardsSettings.vue';
 
 export default {
   name: 'SettingsView',
@@ -46,7 +50,8 @@ export default {
     ApiSettings,
     AudioSettings,
     ResolutionSettings,
-    ReviewSettings
+    ReviewSettings,
+    AwardsSettings
   },
   
   setup() {
@@ -57,7 +62,8 @@ export default {
       { id: 'api', name: 'API' },
       { id: 'audio', name: 'Audio' },
       { id: 'resolution', name: 'Resolution' },
-      { id: 'review', name: 'Review' }
+      { id: 'review', name: 'Review' },
+      { id: 'awards', name: 'Awards' }
     ];
     
     const activeTab = ref('api');

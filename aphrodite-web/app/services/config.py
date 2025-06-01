@@ -47,7 +47,7 @@ class ConfigService:
         
         # List all config files in the base directory
         logger.info("DEBUG: Checking for all config files in base directory")
-        for config_file in ['settings.yaml', 'badge_settings_audio.yml', 'badge_settings_resolution.yml', 'badge_settings_review.yml']:
+        for config_file in ['settings.yaml', 'badge_settings_audio.yml', 'badge_settings_resolution.yml', 'badge_settings_review.yml', 'badge_settings_awards.yml']:
             file_path = self.base_dir / config_file
             if file_path.exists():
                 logger.info(f"DEBUG: Found {config_file} at {file_path}")
@@ -77,7 +77,7 @@ class ConfigService:
             yaml_files.append('settings.yaml')
         
         # Look for badge settings files in the root directory
-        for badge_file in ['badge_settings_audio.yml', 'badge_settings_resolution.yml', 'badge_settings_review.yml']:
+        for badge_file in ['badge_settings_audio.yml', 'badge_settings_resolution.yml', 'badge_settings_review.yml', 'badge_settings_awards.yml']:
             file_path = self.base_dir / badge_file
             if file_path.exists():
                 yaml_files.append(badge_file)

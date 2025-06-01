@@ -56,11 +56,11 @@ def display_banner() -> None:
 def process_single_item(jellyfin_url: str, api_key: str, user_id: str, 
                         item_id: str, max_retries: int = 3,
                         add_audio: bool = True, add_resolution: bool = True,
-                        add_reviews: bool = True, skip_upload: bool = False,
-                        add_metadata_tag: bool = True) -> bool:
+                        add_reviews: bool = True, add_awards: bool = True,
+                        skip_upload: bool = False, add_metadata_tag: bool = True) -> bool:
     print(f"\n📋 Processing item {item_id}")
 
-    if not add_audio and not add_resolution and not add_reviews:
+    if not add_audio and not add_resolution and not add_reviews and not add_awards:
         print("⚠️ No badge types selected. At least one badge type must be enabled.")
         return False
 
@@ -174,6 +174,41 @@ def process_single_item(jellyfin_url: str, api_key: str, user_id: str,
             # Update working_poster_path to point to the poster with resolution badge
             working_poster_path = output_path
     
+    # 3.5. Process Awards Badge if requested
+    if add_awards:
+        print(f"🏆 Checking for awards badges for {item_name}")
+        from aphrodite_helpers.get_awards_info import AwardsFetcher
+        
+        try:
+            # Load settings and check for awards
+            settings = load_settings()
+            awards_fetcher = AwardsFetcher(settings)
+            awards_info = awards_fetcher.get_media_awards_info(jellyfin_url, api_key, user_id, item_id)
+            
+            if awards_info:
+                award_type = awards_info['award_type']
+                print(f"🏆 Found award: {award_type} for {item_name}")
+                
+                # Create awards badge
+                awards_settings = load_badge_settings("badge_settings_awards.yml")
+                awards_badge = create_badge(awards_settings, award_type)
+                
+                # Apply awards badge to poster
+                output_path = apply_badge_to_poster(working_poster_path, awards_badge, awards_settings)
+                if not output_path:
+                    print("❌ Failed to apply awards badge to poster")
+                    # Don't return False here - awards are optional
+                else:
+                    # Update working_poster_path to point to the poster with awards badge
+                    working_poster_path = output_path
+                    print(f"✅ Added {award_type} award badge")
+            else:
+                print(f"ℹ️ No awards found for {item_name}")
+                
+        except Exception as e:
+            print(f"⚠️ Error processing awards badge: {e}")
+            # Don't fail the entire processing for awards errors
+    
     # 4. Process Review Badges if requested
     if add_reviews:
         print(f"📊 Adding review badges for {item_name}")
@@ -245,8 +280,8 @@ def process_library_items(jellyfin_url: str, api_key: str, user_id: str,
                           library_id: str, limit: int | None,
                           max_retries: int, add_audio: bool = True, 
                           add_resolution: bool = True, add_reviews: bool = True,
-                          skip_upload: bool = False, add_metadata_tag: bool = True,
-                          skip_processed: bool = False) -> None:
+                          add_awards: bool = True, skip_upload: bool = False,
+                          add_metadata_tag: bool = True, skip_processed: bool = False) -> None:
     items = get_library_items(jellyfin_url, api_key, user_id, library_id)
     if not items:
         print("⚠️  No items found in library")
@@ -291,7 +326,7 @@ def process_library_items(jellyfin_url: str, api_key: str, user_id: str,
             
             success = process_single_item(jellyfin_url, api_key, user_id,
                                 item_id, max_retries, add_audio, add_resolution, 
-                                add_reviews, skip_upload, add_metadata_tag)
+                                add_reviews, add_awards, skip_upload, add_metadata_tag)
             
             if success:
                 successful_items += 1
@@ -341,6 +376,7 @@ def main() -> int:
     item_p.add_argument("--no-audio", action="store_true", help="Don't add audio codec badge")
     item_p.add_argument("--no-resolution", action="store_true", help="Don't add resolution badge")
     item_p.add_argument("--no-reviews", action="store_true", help="Don't add review badges")
+    item_p.add_argument("--no-awards", action="store_true", help="Don't add awards badges")
     item_p.add_argument("--no-upload", action="store_true", help="Don't upload posters to Jellyfin, only save locally")
     item_p.add_argument("--no-metadata-tag", action="store_true", help="Don't add metadata tag to track processing")
     item_p.add_argument("--cleanup", action="store_true", help="Clean up poster directories after processing")
@@ -352,6 +388,7 @@ def main() -> int:
     lib_p.add_argument("--no-audio", action="store_true", help="Don't add audio codec badge")
     lib_p.add_argument("--no-resolution", action="store_true", help="Don't add resolution badge")
     lib_p.add_argument("--no-reviews", action="store_true", help="Don't add review badges")
+    lib_p.add_argument("--no-awards", action="store_true", help="Don't add awards badges")
     lib_p.add_argument("--no-upload", action="store_true", help="Don't upload posters to Jellyfin, only save locally")
     lib_p.add_argument("--no-metadata-tag", action="store_true", help="Don't add metadata tag to track processing")
     lib_p.add_argument("--skip-processed", action="store_true", help="Skip items that already have the aphrodite-overlay tag")
@@ -452,14 +489,15 @@ def main() -> int:
         add_audio = not (hasattr(args, 'no_audio') and args.no_audio)
         add_resolution = not (hasattr(args, 'no_resolution') and args.no_resolution)
         add_reviews = not (hasattr(args, 'no_reviews') and args.no_reviews)
+        add_awards = not (hasattr(args, 'no_awards') and args.no_awards)
         skip_upload = hasattr(args, 'no_upload') and args.no_upload
         add_metadata_tag = not (hasattr(args, 'no_metadata_tag') and args.no_metadata_tag)
         
         ok = process_single_item(
             url, api_key, user_id, args.item_id, args.retries,
             add_audio=add_audio, add_resolution=add_resolution,
-            add_reviews=add_reviews, skip_upload=skip_upload,
-            add_metadata_tag=add_metadata_tag
+            add_reviews=add_reviews, add_awards=add_awards,
+            skip_upload=skip_upload, add_metadata_tag=add_metadata_tag
         )
         # Clean up posters if requested
         if hasattr(args, 'cleanup') and args.cleanup:
@@ -478,6 +516,7 @@ def main() -> int:
         add_audio = not (hasattr(args, 'no_audio') and args.no_audio)
         add_resolution = not (hasattr(args, 'no_resolution') and args.no_resolution)
         add_reviews = not (hasattr(args, 'no_reviews') and args.no_reviews)
+        add_awards = not (hasattr(args, 'no_awards') and args.no_awards)
         skip_upload = hasattr(args, 'no_upload') and args.no_upload
         add_metadata_tag = not (hasattr(args, 'no_metadata_tag') and args.no_metadata_tag)
         skip_processed = hasattr(args, 'skip_processed') and args.skip_processed
@@ -485,8 +524,9 @@ def main() -> int:
         process_library_items(
             url, api_key, user_id, args.library_id, args.limit, args.retries,
             add_audio=add_audio, add_resolution=add_resolution,
-            add_reviews=add_reviews, skip_upload=skip_upload,
-            add_metadata_tag=add_metadata_tag, skip_processed=skip_processed
+            add_reviews=add_reviews, add_awards=add_awards,
+            skip_upload=skip_upload, add_metadata_tag=add_metadata_tag,
+            skip_processed=skip_processed
         )
         return 0
 
