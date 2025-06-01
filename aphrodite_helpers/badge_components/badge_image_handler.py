@@ -108,6 +108,10 @@ def load_codec_image(codec_text, settings):
     Returns:
         PIL.Image or None: The loaded image, or None if no suitable image found
     """
+    # Check if this is an awards badge (has color scheme)
+    if 'Awards' in settings and 'color_scheme' in settings['Awards']:
+        return load_awards_image(codec_text, settings)
+    
     image_path = get_codec_image_path(codec_text, settings)
     if not image_path:
         return None
@@ -119,4 +123,48 @@ def load_codec_image(codec_text, settings):
         return image
     except Exception as e:
         print(f"❌ Error loading codec image: {e}")
+        return None
+
+def load_awards_image(award_type, settings):
+    """
+    Load the appropriate awards image based on the award type and color scheme.
+    
+    Args:
+        award_type (str): The award type (e.g., "oscars")
+        settings (dict): The badge settings containing color scheme
+        
+    Returns:
+        PIL.Image or None: The loaded image, or None if no suitable image found
+    """
+    try:
+        # Get color scheme from settings
+        color_scheme = settings.get('Awards', {}).get('color_scheme', 'black')
+        
+        # Get the base directory
+        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        
+        # Build path to color-specific awards directory
+        awards_dir = os.path.join(root_dir, 'images', 'awards', color_scheme)
+        
+        # Get image mapping
+        image_mapping = settings.get('ImageBadges', {}).get('image_mapping', {})
+        
+        # Try to find the image file
+        if award_type in image_mapping:
+            image_filename = image_mapping[award_type]
+            image_path = os.path.join(awards_dir, image_filename)
+            
+            if os.path.exists(image_path):
+                print(f"✅ Found awards image: {color_scheme}/{image_filename} for {award_type}")
+                image = Image.open(image_path).convert("RGBA")
+                return image
+            else:
+                print(f"❌ Awards image file not found: {image_path}")
+        else:
+            print(f"❌ Award type '{award_type}' not found in image mapping")
+            
+        return None
+        
+    except Exception as e:
+        print(f"❌ Error loading awards image for '{award_type}': {e}")
         return None

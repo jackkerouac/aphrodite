@@ -30,6 +30,7 @@ Invoke-WebRequest -Uri https://raw.githubusercontent.com/jackkerouac/aphrodite/m
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/jackkerouac/aphrodite/main/badge_settings_audio.yml -OutFile badge_settings_audio.yml
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/jackkerouac/aphrodite/main/badge_settings_resolution.yml -OutFile badge_settings_resolution.yml
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/jackkerouac/aphrodite/main/badge_settings_review.yml -OutFile badge_settings_review.yml
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/jackkerouac/aphrodite/main/badge_settings_review.yml -OutFile badge_settings_awards.yml
 
 # For Command Prompt (DOS):
 curl -o docker-compose.yml https://raw.githubusercontent.com/jackkerouac/aphrodite/main/docker-compose.yml
@@ -37,6 +38,7 @@ curl -o settings.yaml.template https://raw.githubusercontent.com/jackkerouac/aph
 curl -o badge_settings_audio.yml https://raw.githubusercontent.com/jackkerouac/aphrodite/main/badge_settings_audio.yml
 curl -o badge_settings_resolution.yml https://raw.githubusercontent.com/jackkerouac/aphrodite/main/badge_settings_resolution.yml
 curl -o badge_settings_review.yml https://raw.githubusercontent.com/jackkerouac/aphrodite/main/badge_settings_review.yml
+curl -o badge_settings_review.yml https://raw.githubusercontent.com/jackkerouac/aphrodite/main/badge_settings_awards.yml
 
 # For Bash/Linux/Mac:
 curl -O https://raw.githubusercontent.com/jackkerouac/aphrodite/main/docker-compose.yml
@@ -44,6 +46,7 @@ curl -O https://raw.githubusercontent.com/jackkerouac/aphrodite/main/settings.ya
 curl -O https://raw.githubusercontent.com/jackkerouac/aphrodite/main/badge_settings_audio.yml
 curl -O https://raw.githubusercontent.com/jackkerouac/aphrodite/main/badge_settings_resolution.yml
 curl -O https://raw.githubusercontent.com/jackkerouac/aphrodite/main/badge_settings_review.yml
+curl -O https://raw.githubusercontent.com/jackkerouac/aphrodite/main/badge_settings_awards.yml
 
 # Create required directories
 # For PowerShell:
@@ -145,8 +148,6 @@ tv_series:
 ```
 
 For example, if a TV series has 7 episodes with 1080p and 3 episodes with 4K, the badge will show "1080p" as it's the dominant resolution.
-
-See [TV_SERIES_DOMINANT_BADGES.md](TV_SERIES_DOMINANT_BADGES.md) for detailed information about this feature.
 
 ### Metadata Tagging Settings
 

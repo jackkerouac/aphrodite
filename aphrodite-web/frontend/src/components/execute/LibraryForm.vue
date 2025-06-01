@@ -114,6 +114,15 @@
               />
               <span>Review Badge</span>
             </label>
+            
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input 
+                type="checkbox" 
+                class="checkbox checkbox-primary" 
+                v-model="formData.badges.awards"
+              />
+              <span>Awards Badge</span>
+            </label>
           </div>
           
           <label class="label" v-if="errors.badges">
@@ -185,7 +194,8 @@ export default {
       badges: {
         audio: true,
         resolution: true,
-        review: true
+        review: true,
+        awards: false
       },
       skipUpload: false,
       skipProcessed: false
@@ -232,7 +242,7 @@ export default {
       }
       
       // Validate at least one badge is selected
-      if (!formData.badges.audio && !formData.badges.resolution && !formData.badges.review) {
+      if (!formData.badges.audio && !formData.badges.resolution && !formData.badges.review && !formData.badges.awards) {
         errors.badges = 'At least one badge type must be selected';
         valid = false;
       }
@@ -253,6 +263,7 @@ export default {
         if (formData.badges.audio) badgeTypes.push('audio');
         if (formData.badges.resolution) badgeTypes.push('resolution');
         if (formData.badges.review) badgeTypes.push('review');
+        if (formData.badges.awards) badgeTypes.push('awards');
         
         console.log('Creating workflow for library batch processing:', {
           libraryIds: formData.libraryIds,

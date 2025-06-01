@@ -7,6 +7,9 @@ from .font_utils import load_font
 
 def create_badge(settings, text=None, use_image=True):
     """Create a badge based on the settings, optionally with text or image."""
+    # Check if this is an awards badge (special handling for transparency)
+    is_awards_badge = 'Awards' in settings and 'color_scheme' in settings.get('Awards', {})
+    
     # Try to use image badge if enabled and text is provided
     if use_image and text and settings.get('ImageBadges', {}).get('enable_image_badges', False):
         try:
@@ -14,7 +17,12 @@ def create_badge(settings, text=None, use_image=True):
             codec_image = load_codec_image(text, settings)
             
             if codec_image:
-                # Apply the same styling to image badges as we do to text badges
+                # For awards badges, return the image without any styling
+                if is_awards_badge:
+                    print(f"✅ Using transparent awards badge image for: {text}")
+                    return codec_image
+                
+                # Apply the same styling to image badges as we do to text badges (non-awards)
                 background_color_hex = settings.get('Background', {}).get('background-color')
                 if isinstance(background_color_hex, str):
                     background_opacity = settings.get('Background', {}).get('background_opacity', 60)

@@ -2,7 +2,7 @@
   <div class="home">
     <h1 class="text-2xl font-bold mb-2">Aphrodite Dashboard</h1>
     <p class="mb-6 text-gray-600">
-      Welcome to Aphrodite - a tool for enhancing Jellyfin media posters with informational badges for audio codecs, resolution, and review scores.
+      Welcome to Aphrodite - a tool for enhancing Jellyfin media posters with informational badges for audio codecs, resolution, review scores, and award recognition.
     </p>
 
     <h2 class="text-x1 font-bold mb-2">Latest Updates</h2>
@@ -11,9 +11,12 @@
       <input type="radio" name="my-accordion-2" checked="checked" />
       <div class="collapse-title font-semibold">Additions</div>
       <div class="collapse-content text-sm">
-        <p>&nbsp;&nbsp;&nbsp;&middot; Add scheduled processing functionality with complete frontend interface</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Add option to skip already processed items in library processing</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Added Restore Original Posters feature, under Execute -> Poster Management</p>
+        <p><strong>Awards Badge System</strong> - New badge type for award-winning media with ribbon-style badges</p>
+        <p>&nbsp;&nbsp;&nbsp;&middot; Detects Oscars, Emmys, Golden Globes, BAFTA, Cannes, and 13 more award types</p>
+        <p>&nbsp;&nbsp;&nbsp;&middot; Multi-source detection using static database + TMDb/OMDB APIs</p>
+        <p>&nbsp;&nbsp;&nbsp;&middot; 4 color schemes (black, gray, red, yellow) with web interface configuration</p>
+        <p>&nbsp;&nbsp;&nbsp;&middot; Flush positioning in bottom-right corner with transparent backgrounds</p>
+        <p>&nbsp;&nbsp;&nbsp;&middot; 140+ award-winning titles in database with priority-based selection</p>
       </div>
     </div>
     <div class="collapse collapse-arrow bg-base-100 border border-base-300">
