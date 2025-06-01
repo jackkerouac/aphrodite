@@ -137,6 +137,43 @@ For full functionality, you'll need:
 
 Update your `settings.yaml` with these credentials.
 
+### Awards Badge Setup (Existing Installations)
+
+If you're upgrading an existing Aphrodite installation to include Awards badge functionality, you'll need to complete these additional steps:
+
+1. **Download the awards mapping file:**
+   ```bash
+   # For PowerShell:
+   Invoke-WebRequest -Uri https://raw.githubusercontent.com/jackkerouac/aphrodite/main/data/awards_mapping.json -OutFile data/awards_mapping.json
+   
+   # For Command Prompt (DOS):
+   curl -o data/awards_mapping.json https://raw.githubusercontent.com/jackkerouac/aphrodite/main/data/awards_mapping.json
+   
+   # For Bash/Linux/Mac:
+   curl -O https://raw.githubusercontent.com/jackkerouac/aphrodite/main/data/awards_mapping.json
+   mv awards_mapping.json data/
+   ```
+
+2. **Reorganize award images directory:**
+   ```bash
+   # For PowerShell:
+   New-Item -ItemType Directory -Force -Path .\images\awards
+   Move-Item .\images\ribbon\* .\images\awards\
+   Remove-Item .\images\ribbon
+   
+   # For Command Prompt (DOS):
+   mkdir images\awards
+   move images\ribbon\* images\awards\
+   rmdir images\ribbon
+   
+   # For Bash/Linux/Mac:
+   mkdir -p ./images/awards
+   mv ./images/ribbon/* ./images/awards/
+   rmdir ./images/ribbon
+   ```
+
+**Note:** New installations automatically include these files and directory structure, so these steps are only necessary for existing users upgrading to Awards badge functionality.
+
 ### TV Series Badge Configuration
 
 Aphrodite can automatically add audio codec and resolution badges to TV series by analyzing all episodes and using the most common (dominant) values. To enable this feature:
