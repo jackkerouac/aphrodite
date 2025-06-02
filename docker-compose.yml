@@ -11,6 +11,7 @@ services:
       - ./badge_settings_audio.yml:/app/badge_settings_audio.yml:rw
       - ./badge_settings_resolution.yml:/app/badge_settings_resolution.yml:rw
       - ./badge_settings_review.yml:/app/badge_settings_review.yml:rw
+      - ./version.yml:/app/version.yml:ro  # Version configuration
       
       # Persistent storage for posters and database
       - ./posters/original:/app/posters/original:rw

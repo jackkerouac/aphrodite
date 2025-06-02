@@ -2,6 +2,7 @@ import requests
 import logging
 import json
 import os
+import yaml
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -13,9 +14,6 @@ class VersionService:
     # GitHub repository information
     GITHUB_REPO = "jackkerouac/aphrodite"
     GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
-    
-    # Current version - could be moved to config file later
-    CURRENT_VERSION = "1.4.3"
     
     # Cache settings
     CACHE_DURATION_HOURS = 24
@@ -38,11 +36,22 @@ class VersionService:
             self.base_dir = Path(base_dir)
             
         self.cache_file = self.base_dir / 'version_cache.json'
+        self.version_file = self.base_dir / 'version.yml'
         logger.info(f"VersionService initialized with base directory: {self.base_dir}")
     
     def get_current_version(self):
-        """Get the current version of Aphrodite."""
-        return self.CURRENT_VERSION
+        """Get the current version of Aphrodite from version.yml."""
+        try:
+            if self.version_file.exists():
+                with open(self.version_file, 'r') as f:
+                    version_data = yaml.safe_load(f)
+                    return version_data.get('version', '1.4.3')  # Fallback to 1.4.3
+            else:
+                logger.warning(f"Version file not found: {self.version_file}")
+                return '1.4.3'  # Fallback version
+        except Exception as e:
+            logger.error(f"Error reading version file: {e}")
+            return '1.4.3'  # Fallback version
     
     def _load_cache(self):
         """Load cached version check data."""
@@ -188,18 +197,21 @@ class VersionService:
                 if cached_data:
                     return cached_data['data']
             
+            # Get current version
+            current_version = self.get_current_version()
+            
             # Fetch fresh data from GitHub
             release_info = self._fetch_latest_release()
             
             if release_info['success'] and release_info['latest_version']:
                 # Check if update is available
                 update_available = self._compare_versions(
-                    self.CURRENT_VERSION, 
+                    current_version, 
                     release_info['latest_version']
                 )
                 
                 result = {
-                    'current_version': self.CURRENT_VERSION,
+                    'current_version': current_version,
                     'latest_version': release_info['latest_version'],
                     'update_available': update_available,
                     'release_notes': release_info['release_notes'],
@@ -216,7 +228,7 @@ class VersionService:
             else:
                 # GitHub API failed, return error state
                 result = {
-                    'current_version': self.CURRENT_VERSION,
+                    'current_version': current_version,
                     'latest_version': None,
                     'update_available': False,
                     'release_notes': None,
@@ -231,8 +243,9 @@ class VersionService:
             
         except Exception as e:
             logger.error(f"Unexpected error in check_for_updates: {e}")
+            current_version = self.get_current_version()
             return {
-                'current_version': self.CURRENT_VERSION,
+                'current_version': current_version,
                 'latest_version': None,
                 'update_available': False,
                 'release_notes': None,
