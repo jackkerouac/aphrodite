@@ -23,7 +23,7 @@ const axiosInstance = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   },
-  timeout: 10000
+  timeout: 30000  // Increased timeout for preview generation
 });
 
 export default {
@@ -31,8 +31,5 @@ export default {
   generatePreview: (data) => axiosInstance.post('/api/preview/generate', data),
   
   // Get available badge types
-  getBadgeTypes: () => axiosInstance.get('/api/preview/badge-types'),
-  
-  // Get available poster types
-  getPosterTypes: () => axiosInstance.get('/api/preview/poster-types')
+  getBadgeTypes: () => axiosInstance.get('/api/preview/badge-types')
 };

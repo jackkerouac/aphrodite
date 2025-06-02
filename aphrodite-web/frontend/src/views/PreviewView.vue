@@ -8,10 +8,10 @@
       <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
           <h2 class="card-title">Settings</h2>
-          <p class="text-base-content opacity-70 mb-4">Configure your preview settings here.</p>
+          <p class="text-base-content opacity-70 mb-4">Configure your preview settings here. Aphrodite will use a random poster from your Jellyfin library.</p>
           
           <!-- Badge Types Selection -->
-          <div class="form-control mb-4">
+          <div class="form-control mb-6">
             <label class="label">
               <span class="label-text font-semibold">Badge Types</span>
             </label>
@@ -27,30 +27,6 @@
                     :value="badgeType.id"
                     v-model="selectedBadgeTypes"
                     class="checkbox checkbox-primary" 
-                  />
-                </label>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Poster Type Selection -->
-          <div class="form-control mb-6">
-            <label class="label">
-              <span class="label-text font-semibold">Example Poster</span>
-            </label>
-            <div class="space-y-2">
-              <div v-for="posterType in availablePosterTypes" :key="posterType.id" class="form-control">
-                <label class="label cursor-pointer">
-                  <div class="flex-1">
-                    <span class="label-text">{{ posterType.name }}</span>
-                    <div class="text-xs text-base-content opacity-60">{{ posterType.description }}</div>
-                  </div>
-                  <input 
-                    type="radio" 
-                    :value="posterType.id"
-                    v-model="selectedPosterType"
-                    name="posterType"
-                    class="radio radio-primary" 
                   />
                 </label>
               </div>
@@ -100,6 +76,7 @@
             />
             <p class="text-sm text-base-content opacity-70 text-center">
               Preview generated with {{ selectedBadgeTypes.join(', ') }} badges
+              <span v-if="sourcePosterName">using "{{ sourcePosterName }}"</span>
             </p>
           </div>
           
@@ -125,12 +102,11 @@ export default {
   name: 'PreviewView',
   setup() {
     const selectedBadgeTypes = ref(['audio', 'resolution']);
-    const selectedPosterType = ref('light');
     const availableBadgeTypes = ref([]);
-    const availablePosterTypes = ref([]);
     const isGenerating = ref(false);
     const error = ref(null);
     const previewImageUrl = ref(null);
+    const sourcePosterName = ref(null);
     const currentJobId = ref(null);
     
     // Load available options on mount
@@ -145,7 +121,6 @@ export default {
       }
       
       await loadBadgeTypes();
-      await loadPosterTypes();
     });
     
     // Load available badge types
@@ -171,29 +146,6 @@ export default {
       }
     };
     
-    // Load available poster types
-    const loadPosterTypes = async () => {
-      try {
-        console.log('Loading poster types...');
-        const response = await api.preview.getPosterTypes();
-        console.log('Poster types response:', response);
-        console.log('Response data:', response.data);
-        console.log('Response success:', response.data.success);
-        console.log('Poster types array:', response.data.posterTypes);
-        
-        if (response.data.success && response.data.posterTypes) {
-          availablePosterTypes.value = response.data.posterTypes;
-          console.log('Poster types loaded successfully:', availablePosterTypes.value);
-        } else {
-          throw new Error('Invalid response format or success=false');
-        }
-      } catch (err) {
-        console.error('Error loading poster types:', err);
-        console.error('Full error details:', err.response || err.message);
-        error.value = `Failed to load poster types: ${err.response?.data?.message || err.message}`;
-      }
-    };
-    
     // Generate preview
     const generatePreview = async () => {
       if (selectedBadgeTypes.value.length === 0) {
@@ -204,11 +156,11 @@ export default {
       isGenerating.value = true;
       error.value = null;
       previewImageUrl.value = null;
+      sourcePosterName.value = null;
       
       try {
         const response = await api.preview.generatePreview({
-          badgeTypes: selectedBadgeTypes.value,
-          posterType: selectedPosterType.value
+          badgeTypes: selectedBadgeTypes.value
         });
         
         if (response.data.success) {
@@ -238,6 +190,7 @@ export default {
           // Job completed successfully
           if (job.result && job.result.poster_url) {
             previewImageUrl.value = job.result.poster_url;
+            sourcePosterName.value = job.result.source_poster || 'Unknown';
           } else {
             error.value = 'Preview generated but image not found';
           }
@@ -259,12 +212,11 @@ export default {
     
     return {
       selectedBadgeTypes,
-      selectedPosterType,
       availableBadgeTypes,
-      availablePosterTypes,
       isGenerating,
       error,
       previewImageUrl,
+      sourcePosterName,
       generatePreview
     };
   }

@@ -11,7 +11,7 @@
       <input type="radio" name="my-accordion-2" checked="checked" />
       <div class="collapse-title font-semibold">Additions</div>
       <div class="collapse-content text-sm">
-        <p><strong>Preview Poster System</strong> - Added a new Preview Poster system</p>
+        <p><strong>Preview Poster System</strong> - Added a new Preview Poster system (<em>work in progress!</em>)</p>
         <p>&nbsp;&nbsp;&nbsp;&middot; You can preview a premade poster (light and/or dark) with rudimentary badges</p>
         <p>&nbsp;&nbsp;&nbsp;&middot; I will eventually have it pick a random poster from Jellyfin to apply the badges to, so you can see real badges and how they would look.</p>
         <p>&nbsp;</p>
