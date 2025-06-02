@@ -1,12 +1,12 @@
 General:
-  general_badge_position: top-left
   general_badge_size: 100
   general_edge_padding: 30
+  general_badge_position: top-right
   general_text_padding: 12
   use_dynamic_sizing: true
 Text:
-  fallback_font: DejaVuSans.ttf
   font: AvenirNextLTProBold.otf
+  fallback_font: DejaVuSans.ttf
   text-color: '#FFFFFF'
   text-size: 90
 Background:
@@ -17,14 +17,15 @@ Border:
   border-radius: 10
   border_width: 1
 Shadow:
-  shadow_blur: 8
   shadow_enable: false
+  shadow_blur: 8
   shadow_offset_x: 2
   shadow_offset_y: 2
 ImageBadges:
-  codec_image_directory: images/codec
   enable_image_badges: true
+  codec_image_directory: images/codec
   fallback_to_text: true
+  image_padding: 0
   image_mapping:
     ATMOS: Atmos.png
     DOLBY DIGITAL PLUS: DigitalPlus.png
@@ -70,4 +71,3 @@ ImageBadges:
     Plus-TrueHD-Atmos: Plus-TrueHD-Atmos.png
     TRUEHD: TrueHD.png
     TRUEHD ATMOS: TrueHD-Atmos.png
-  image_padding: 0

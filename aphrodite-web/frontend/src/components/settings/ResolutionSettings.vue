@@ -469,26 +469,6 @@ export default {
       }
     });
 
-    // Deep merge function for nested objects
-    const deepMerge = (target, source) => {
-      for (const key in source) {
-        // Using Object.prototype.hasOwnProperty.call instead of source.hasOwnProperty
-        if (Object.prototype.hasOwnProperty.call(source, key)) {
-          if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-            // If we don't have this property yet, create it
-            if (!target[key]) Object.assign(target, { [key]: {} });
-            
-            // Recursively merge nested objects
-            deepMerge(target[key], source[key]);
-          } else {
-            // For primitives and arrays, simply copy the value
-            Object.assign(target, { [key]: source[key] });
-          }
-        }
-      }
-      return target;
-    };
-
     // Load settings
     const loadSettings = async () => {
       loading.value = true;
@@ -496,12 +476,24 @@ export default {
       
       try {
         const res = await api.getConfig('badge_settings_resolution.yml');
-        console.log('DEBUG: Resolution settings loaded:', res.data.config);
+        console.log('DEBUG: Resolution config loaded from file:', res.data.config);
+        console.log('DEBUG: Current settings before merge:', JSON.parse(JSON.stringify(settings)));
         
-        // Properly merge nested objects instead of using Object.assign
+        // Replace entire sections instead of deep merge to ensure reactivity
         if (res.data.config) {
-          deepMerge(settings, res.data.config);
+          Object.keys(res.data.config).forEach(sectionKey => {
+            if (settings[sectionKey] && typeof settings[sectionKey] === 'object') {
+              // Replace the entire section
+              Object.assign(settings[sectionKey], res.data.config[sectionKey]);
+            } else {
+              // Create new section if it doesn't exist
+              settings[sectionKey] = res.data.config[sectionKey];
+            }
+          });
         }
+        
+        console.log('DEBUG: Settings after merge:', JSON.parse(JSON.stringify(settings)));
+        console.log('DEBUG: Badge position after merge:', settings.General.general_badge_position);
         
         // Update image URLs to use absolute paths
         updateImageUrls();

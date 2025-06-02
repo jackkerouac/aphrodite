@@ -558,8 +558,24 @@ export default {
       error.value   = null;
       try {
         const res = await api.getConfig('badge_settings_audio.yml');
-        // backend returns { config: { … } }
-        Object.assign(settings, res.data.config);
+        console.log('DEBUG: Audio config loaded from file:', res.data.config);
+        console.log('DEBUG: Current settings before merge:', JSON.parse(JSON.stringify(settings)));
+        
+        // Replace entire sections instead of deep merge to ensure reactivity
+        if (res.data.config) {
+          Object.keys(res.data.config).forEach(sectionKey => {
+            if (settings[sectionKey] && typeof settings[sectionKey] === 'object') {
+              // Replace the entire section
+              Object.assign(settings[sectionKey], res.data.config[sectionKey]);
+            } else {
+              // Create new section if it doesn't exist
+              settings[sectionKey] = res.data.config[sectionKey];
+            }
+          });
+        }
+        
+        console.log('DEBUG: Settings after merge:', JSON.parse(JSON.stringify(settings)));
+        console.log('DEBUG: Badge position after merge:', settings.General.general_badge_position);
         
         // Update image URLs to use absolute paths
         updateImageUrls();

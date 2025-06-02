@@ -385,13 +385,28 @@ export default {
       return `/images/awards/${settings.Awards.color_scheme}/oscars.png`;
     });
 
+    // Helper function for deep merge
+    const deepMerge = (target, source) => {
+      Object.keys(source).forEach(key => {
+        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+          if (!target[key] || typeof target[key] !== 'object') {
+            target[key] = {};
+          }
+          deepMerge(target[key], source[key]);
+        } else {
+          target[key] = source[key];
+        }
+      });
+    };
+
     // Load settings from disk
     const loadSettings = async () => {
       loading.value = true;
       error.value = null;
       try {
         const res = await api.getConfig('badge_settings_awards.yml');
-        Object.assign(settings, res.data.config);
+        // Use deep merge instead of Object.assign to properly merge nested objects
+        deepMerge(settings, res.data.config);
       } catch (err) {
         console.warn('Could not load awards settings, using defaults:', err);
         error.value = err.response?.data?.error || err.message;

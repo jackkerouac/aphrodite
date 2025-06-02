@@ -197,7 +197,7 @@ def create_app():
             }), 500
     
     # Import and register blueprints - including our proxy blueprint
-    from app.api import config, jobs, libraries, images, check, workflow, schedules
+    from app.api import config, jobs, libraries, images, check, workflow, schedules, preview
     app.register_blueprint(config.bp)
     app.register_blueprint(jobs.bp)
     app.register_blueprint(libraries.bp)
@@ -205,6 +205,7 @@ def create_app():
     app.register_blueprint(check.bp)
     app.register_blueprint(workflow.bp)
     app.register_blueprint(schedules.bp)
+    app.register_blueprint(preview.bp)
     
     # Try to register the proxy blueprint if it exists
     try:
