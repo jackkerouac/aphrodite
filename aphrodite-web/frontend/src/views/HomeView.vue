@@ -11,6 +11,10 @@
       <input type="radio" name="my-accordion-2" checked="checked" />
       <div class="collapse-title font-semibold">Additions</div>
       <div class="collapse-content text-sm">
+        <p><strong>Preview Poster System</strong> - Added a new Preview Poster system</p>
+        <p>&nbsp;&nbsp;&nbsp;&middot; You can preview a premade poster (light and/or dark) with rudimentary badges</p>
+        <p>&nbsp;&nbsp;&nbsp;&middot; I will eventually have it pick a random poster from Jellyfin to apply the badges to, so you can see real badges and how they would look.</p>
+        <p>&nbsp;</p>
         <p><strong>Awards Badge System</strong> - New badge type for award-winning media with ribbon-style badges</p>
         <p>&nbsp;&nbsp;&nbsp;&middot; Detects Oscars, Emmys, Golden Globes, BAFTA, Cannes, and 13 more award types</p>
         <p>&nbsp;&nbsp;&nbsp;&middot; Multi-source detection using static database + TMDb/OMDB APIs</p>
@@ -23,11 +27,11 @@
       <input type="radio" name="my-accordion-2" />
       <div class="collapse-title font-semibold">Fixes</div>
       <div class="collapse-content text-sm">
-        <p>&nbsp;&nbsp;&nbsp;&middot; Fixed aniDB review functionality</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Fixed title (like you care or anyone actually reads this)</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Continue processing even if some episodes fail</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Track and report failed episodes</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Return results based on successfully analyzed episodes</p>
+        <p><strong>fix(frontend): badge position settings not persisting on reload</strong></p>
+        <p>&nbsp;&nbsp;&nbsp;&middot; Fix shallow merge issue preventing badge positions from loading correctly</p>
+        <p>&nbsp;&nbsp;&nbsp;&middot; Add loading spinner to Settings page with progress indicators</p>
+        <p>&nbsp;&nbsp;&nbsp;&middot; Remove unused deepMerge functions causing ESLint errors</p>
+        <p>&nbsp;&nbsp;&nbsp;&middot; Badge positions now properly persist from YAML configuration files</p>
       </div>
     </div>
     <div class="collapse collapse-arrow bg-base-100 border border-base-300">
@@ -35,8 +39,6 @@
       <div class="collapse-title font-semibold">Updates</div>
       <div class="collapse-content text-sm">
         <p>&nbsp;&nbsp;&nbsp;&middot; Updated the API layer to use dynamic URLs</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Shows episode-by-episode progress</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Indicates which episodes succeed/fail</p>
         <p>&nbsp;&nbsp;&nbsp;&middot; Displays final statistics and distributions</p>
         <p>&nbsp;&nbsp;&nbsp;&middot; Reduced batch sizes for better responsiveness</p>
         <p>&nbsp;&nbsp;&nbsp;&middot; Added delays between API calls</p>

@@ -55,7 +55,7 @@
                 </div>
               </div>
               <h2 class="mt-2 text-xl font-bold">Aphrodite</h2>
-              <p class="text-sm opacity-70">v1.3.2</p>
+              <p class="text-sm opacity-70">v1.4.0</p>
             </div>
             
             <ul class="menu bg-base-100 menu-lg rounded-box">
