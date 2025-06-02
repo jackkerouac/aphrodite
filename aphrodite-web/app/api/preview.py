@@ -38,9 +38,29 @@ def get_random_unmodified_poster():
         user_id = jellyfin_config["user_id"]
         
         # Get all libraries
-        libraries = get_jellyfin_libraries(url, api_key, user_id)
-        if not libraries:
+        all_libraries = get_jellyfin_libraries(url, api_key, user_id)
+        if not all_libraries:
             print("No libraries found")
+            return None
+        
+        # Filter to only include movie and TV libraries (exclude collections, playlists, etc.)
+        valid_collection_types = ['movies', 'tvshows', 'mixed']  # 'mixed' can contain both movies and TV
+        libraries = []
+        
+        for library in all_libraries:
+            collection_type = library.get('CollectionType', '').lower()
+            library_name = library.get('Name', 'Unknown')
+            
+            # Include libraries with valid collection types OR those without collection type but not playlists/collections
+            if (collection_type in valid_collection_types or 
+                (not collection_type and 'playlist' not in library_name.lower() and 'collection' not in library_name.lower())):
+                libraries.append(library)
+                print(f"Including library: {library_name} (type: {collection_type or 'unspecified'})")
+            else:
+                print(f"Excluding library: {library_name} (type: {collection_type or 'unspecified'})")
+        
+        if not libraries:
+            print("No valid movie/TV libraries found after filtering")
             return None
         
         # Initialize metadata tagger to check for processed items
@@ -145,10 +165,21 @@ def generate_preview():
     # Try to get a random poster from Jellyfin
     random_poster = get_random_unmodified_poster()
     
-    # Determine poster directories (Docker-aware path detection)
-    original_dir = Path('/app/posters/original') if os.path.exists('/app') else Path('posters/original')
-    modified_dir = Path('/app/posters/modified') if os.path.exists('/app') else Path('posters/modified')
-    working_dir = Path('/app/posters/working') if os.path.exists('/app') else Path('posters/working')
+    # Determine base directory using consistent Docker-aware path detection
+    def get_base_directory():
+        """Get the base directory using the same logic as ConfigService."""
+        is_docker = (
+            os.path.exists('/app') and 
+            os.path.exists('/app/settings.yaml') and 
+            os.path.exists('/.dockerenv')
+        )
+        return '/app' if is_docker else os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+    
+    base_dir = get_base_directory()
+    print(f"Using base directory: {base_dir}")
+    original_dir = Path(base_dir) / 'posters' / 'original'
+    modified_dir = Path(base_dir) / 'posters' / 'modified'
+    working_dir = Path(base_dir) / 'posters' / 'working'
     
     # Ensure directories exist
     original_dir.mkdir(parents=True, exist_ok=True)
@@ -168,8 +199,11 @@ def generate_preview():
         print(f"Using random Jellyfin poster: {jellyfin_item_name}")
     else:
         print("No random poster available, falling back to example_poster_light.png")
-        # Fall back to example poster
-        source_path = f"E:\\programming\\aphrodite\\images\\example_poster_light.png"
+        # Fall back to example poster using the same base directory logic
+        source_path = os.path.join(base_dir, 'images', 'example_poster_light.png')
+        print(f"Source path: {source_path}")
+        print(f"Destination path: {dest_path}")
+        print(f"Source exists: {os.path.exists(source_path)}")
         try:
             shutil.copy2(source_path, dest_path)
             print(f"Copied example poster from {source_path} to {dest_path}")
@@ -199,6 +233,7 @@ def generate_preview():
     
     # Define function to generate the preview
     def generate_preview_poster():
+        nonlocal base_dir  # Access the base_dir from the outer scope
         try:
             # Import Aphrodite modules directly
             from aphrodite_helpers.resize_posters import resize_image
@@ -220,8 +255,11 @@ def generate_preview():
                 downloaded_path = download_poster(url, api_key, jellyfin_item_id, str(original_dir))
                 if not downloaded_path:
                     print("Failed to download Jellyfin poster, using example poster")
-                    # Fall back to example poster
-                    source_path = f"E:\\programming\\aphrodite\\images\\example_poster_light.png"
+                    # Fall back to example poster using the same base directory logic
+                    source_path = os.path.join(base_dir, 'images', 'example_poster_light.png')
+                    print(f"Fallback - Source path: {source_path}")
+                    print(f"Fallback - Destination path: {dest_path}")
+                    print(f"Fallback - Source exists: {os.path.exists(source_path)}")
                     shutil.copy2(source_path, dest_path)
                 else:
                     # Rename downloaded poster to our expected filename

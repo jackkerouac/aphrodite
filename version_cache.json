@@ -1,0 +1,14 @@
+{
+  "timestamp": "2025-06-02T15:07:51.595308",
+  "data": {
+    "current_version": "1.4.1",
+    "latest_version": "1.4.2",
+    "update_available": true,
+    "release_notes": "I'm excited to announce support for Crunchyroll Anime Awards! This release adds automatic detection and badging for anime that have won Crunchyroll Anime Awards from 2017-2025.\r\n\r\n**What's New**\r\n\r\n**Crunchyroll Awards Detection:** Automatically detects anime winners using TMDb ID matching and title variants\r\n**Multi-Color Support:** Crunchyroll badges available in all color schemes (black, gray, red, yellow)\r\n**Settings Integration:** Fully integrated into the web interface with easy enable/disable\r\n**High Priority:** Crunchyroll awards have High priority in the award hierarchy\r\n**Test Coverage:** Comprehensive test suite included for validation\r\n\r\n**How to Use**\r\n\r\n**Enable in Settings:** Go to Settings \u2192 Awards \u2192 Award Sources\r\n**Select Crunchyroll:** Check \"Crunchyroll Anime Awards\"\r\n**Choose Color Scheme:** Pick your preferred badge color\r\n**Process Anime:** Awards will be automatically detected and applied\r\n\r\n**Technical Details**\r\n\r\n**Detection Method:** Primary TMDb ID matching with title fallback\r\n**Data Source:** Enhanced Crunchyroll awards database with TMDb integration\r\n**Badge Position:** Flush bottom-right corner positioning\r\n**Compatibility:** Fully backward compatible with existing awards\r\n\r\n**Installation**\r\n\r\nIf upgrading from a previous version:\r\n\r\n1. Pull the latest changes\r\n2. Restart the Aphrodite service\r\n3. Navigate to Settings \u2192 Awards to configure Crunchyroll\r\n\r\n**Testing**\r\n\r\nRun the integration test to verify everything is working:\r\n\r\n`python test_crunchyroll_integration.py`\r\n\r\n**Contributing**\r\n\r\nThe Crunchyroll awards database is based on the enhanced JSON format with TMDb integration. If you notice any missing anime or incorrect detections, **_please_** open an issue with the anime title and TMDb ID.",
+    "release_url": "https://github.com/jackkerouac/aphrodite/releases/tag/v1.4.2",
+    "published_at": "2025-06-02T15:41:37Z",
+    "check_successful": true,
+    "error": null,
+    "last_checked": "2025-06-02T15:07:51.595298"
+  }
+}

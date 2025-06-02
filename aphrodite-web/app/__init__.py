@@ -1,11 +1,10 @@
 import os
 import re
 import datetime
-from flask import Flask, send_from_directory, jsonify, request, url_for, Response, stream_with_context
+from flask import Flask, send_from_directory, jsonify, request, url_for
 from pathlib import Path
 import logging
 import urllib.parse
-import requests
 import yaml
 from flask_cors import CORS
 
@@ -90,78 +89,7 @@ def create_app():
             'current_time': str(datetime.datetime.now())
         })
     
-    # Add a proxy route to fix CORS issues for frontend
-    @app.route('/api-proxy/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE'])
-    def proxy_api(path):
-        """Proxy API requests to avoid CORS issues"""
-        app.logger.info(f"DEBUG: Proxying request to path: {path}")
-        
-        # Get the host from the request
-        host = request.headers.get('Host', 'localhost:5000')
-        app.logger.info(f"DEBUG: Request host: {host}")
-        
-        # Extract internal port for Docker
-        internal_port = os.environ.get('WEB_PORT', '5000')
-        app.logger.info(f"DEBUG: Internal port: {internal_port}")
-        
-        # Build the internal URL
-        internal_url = f"http://localhost:{internal_port}/api/{path}"
-        app.logger.info(f"DEBUG: Proxying to internal URL: {internal_url}")
-        
-        # Copy the request headers
-        headers = {key: value for key, value in request.headers if key != 'Host'}
-        
-        # Forward the request to the internal API
-        try:
-            if request.method == 'GET':
-                resp = requests.get(
-                    internal_url, 
-                    params=request.args,
-                    headers=headers,
-                    stream=True
-                )
-            elif request.method == 'POST':
-                resp = requests.post(
-                    internal_url, 
-                    json=request.get_json() if request.is_json else None,
-                    data=request.form if not request.is_json else None,
-                    headers=headers,
-                    stream=True
-                )
-            elif request.method == 'PUT':
-                resp = requests.put(
-                    internal_url, 
-                    json=request.get_json() if request.is_json else None,
-                    data=request.form if not request.is_json else None,
-                    headers=headers,
-                    stream=True
-                )
-            elif request.method == 'DELETE':
-                resp = requests.delete(
-                    internal_url, 
-                    headers=headers,
-                    stream=True
-                )
-            else:
-                return jsonify({"error": "Method not supported"}), 405
-            
-            app.logger.info(f"DEBUG: Proxy response status: {resp.status_code}")
-            
-            # Create a generator function for the response content
-            def generate():
-                for chunk in resp.iter_content(chunk_size=1024):
-                    yield chunk
-            
-            # Stream the response back to the client without stream_with_context
-            return Response(
-                generate(),
-                status=resp.status_code,
-                headers=dict(resp.headers)
-            )
-            
-        except Exception as e:
-            app.logger.error(f"DEBUG: Proxy error: {str(e)}")
-            return jsonify({"error": f"Proxy error: {str(e)}"}), 500
+
     
     # Add a simple debug endpoint to check config reading
     @app.route('/api/debug/config')
@@ -197,7 +125,7 @@ def create_app():
             }), 500
     
     # Import and register blueprints - including our proxy blueprint
-    from app.api import config, jobs, libraries, images, check, workflow, schedules, preview
+    from app.api import config, jobs, libraries, images, check, workflow, schedules, preview, version
     app.register_blueprint(config.bp)
     app.register_blueprint(jobs.bp)
     app.register_blueprint(libraries.bp)
@@ -206,14 +134,9 @@ def create_app():
     app.register_blueprint(workflow.bp)
     app.register_blueprint(schedules.bp)
     app.register_blueprint(preview.bp)
+    app.register_blueprint(version.bp)
     
-    # Try to register the proxy blueprint if it exists
-    try:
-        from app.api import proxy
-        app.register_blueprint(proxy.bp)
-        app.logger.info("DEBUG: Registered proxy blueprint")
-    except ImportError:
-        app.logger.warning("DEBUG: Proxy blueprint not found, skipping")
+    # Proxy blueprint removed - using direct API calls
     
     # Register the simplified process API
     from app.api import process_api
@@ -235,7 +158,12 @@ def create_app():
     # Health check endpoint
     @app.route('/api/health')
     def health_check():
-        return jsonify({'status': 'ok'})
+        return jsonify({
+            'status': 'ok',
+            'message': 'Aphrodite API is running',
+            'version': '1.0',
+            'proxy_removed': True
+        })
         
     # Serve static images from the images directory
     @app.route('/images/<path:path>')
@@ -246,7 +174,8 @@ def create_app():
             images_dir = '/app/images'
         else:
             # We're in development, use relative paths
-            base_dir = Path(os.path.abspath(__file__)).parents[3]
+            # From aphrodite-web/app/__init__.py, go up 2 levels to reach aphrodite/
+            base_dir = Path(os.path.abspath(__file__)).parents[2]
             images_dir = os.path.join(base_dir, 'images')
         
         app.logger.info(f"Looking for image {path} in {images_dir}")

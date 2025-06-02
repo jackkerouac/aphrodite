@@ -55,7 +55,7 @@
                 </div>
               </div>
               <h2 class="mt-2 text-xl font-bold">Aphrodite</h2>
-              <p class="text-sm opacity-70">v1.4.2</p>
+              <VersionChecker />
             </div>
             
             <ul class="menu bg-base-100 menu-lg rounded-box">
@@ -122,8 +122,13 @@
 </template>
 
 <script>
+import VersionChecker from './components/VersionChecker.vue';
+
 export default {
   name: 'App',
+  components: {
+    VersionChecker
+  },
   mounted() {
     // Add event listeners for theme switching
     document.querySelectorAll('[data-set-theme]').forEach(button => {

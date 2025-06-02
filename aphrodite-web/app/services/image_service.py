@@ -2,9 +2,25 @@ import os
 import base64
 from pathlib import Path
 
-# Default paths for images
-DEFAULT_ORIGINAL_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), 'posters', 'original')
-DEFAULT_MODIFIED_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), 'posters', 'modified')
+def get_base_directory():
+    """Get the base directory using the same logic as ConfigService."""
+    # Check for Docker environment
+    is_docker = (
+        os.path.exists('/app') and 
+        os.path.exists('/app/settings.yaml') and 
+        os.path.exists('/.dockerenv')
+    )
+    
+    if is_docker:
+        return '/app'
+    else:
+        # For local development, go up from the current file to the project root
+        return os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+
+# Get base directory dynamically
+BASE_DIR = get_base_directory()
+DEFAULT_ORIGINAL_PATH = os.path.join(BASE_DIR, 'posters', 'original')
+DEFAULT_MODIFIED_PATH = os.path.join(BASE_DIR, 'posters', 'modified')
 
 def get_image_path(image_type, filename):
     """Get the full path for an image"""
