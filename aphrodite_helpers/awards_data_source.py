@@ -31,6 +31,9 @@ class AwardsDataSource:
         
         # Load static awards mapping
         self.static_awards = self.load_static_awards_mapping()
+        
+        # Load Crunchyroll awards mapping
+        self.crunchyroll_awards = self.load_crunchyroll_awards_mapping()
     
     def load_static_awards_mapping(self) -> dict:
         """Load static awards mapping from JSON file"""
@@ -47,6 +50,22 @@ class AwardsDataSource:
         except Exception as e:
             print(f"⚠️ Warning: Could not load awards mapping: {e}")
             return self.get_default_awards_mapping()
+    
+    def load_crunchyroll_awards_mapping(self) -> dict:
+        """Load Crunchyroll anime awards mapping from JSON file"""
+        try:
+            root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            crunchyroll_file = os.path.join(root_dir, "crunchyroll_anime_awards_enhanced.json")
+            
+            if os.path.exists(crunchyroll_file):
+                with open(crunchyroll_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            else:
+                print(f"ℹ️ Crunchyroll awards mapping file not found: {crunchyroll_file}")
+                return {}
+        except Exception as e:
+            print(f"⚠️ Warning: Could not load Crunchyroll awards mapping: {e}")
+            return {}
     
     def get_default_awards_mapping(self) -> dict:
         """Return default awards mapping with expanded entries"""
@@ -299,6 +318,42 @@ class AwardsDataSource:
         
         return list(set(awards))  # Remove duplicates
     
+    def check_crunchyroll_awards(self, tmdb_id: str = None, title: str = None) -> bool:
+        """Check if an anime has won Crunchyroll awards based on TMDb ID or title"""
+        if not self.crunchyroll_awards:
+            return False
+        
+        anime_winners = self.crunchyroll_awards.get("anime_winners", {})
+        
+        # Check by TMDb ID first (most reliable)
+        if tmdb_id:
+            tmdb_id_int = int(tmdb_id) if str(tmdb_id).isdigit() else None
+            if tmdb_id_int:
+                for anime_name, anime_data in anime_winners.items():
+                    identifiers = anime_data.get("identifiers", {})
+                    if (identifiers.get("tmdb_tv_id") == tmdb_id_int or 
+                        identifiers.get("tmdb_movie_id") == tmdb_id_int):
+                        print(f"✅ Found Crunchyroll award winner by TMDb ID {tmdb_id}: {anime_name}")
+                        return True
+        
+        # Fallback to title matching if no TMDb ID match
+        if title:
+            title_lower = title.lower().strip()
+            for anime_name, anime_data in anime_winners.items():
+                # Check exact name match
+                if anime_name.lower() == title_lower:
+                    print(f"✅ Found Crunchyroll award winner by exact title match: {anime_name}")
+                    return True
+                
+                # Check search variants
+                search_variants = anime_data.get("search_variants", [])
+                for variant in search_variants:
+                    if variant.lower() == title_lower:
+                        print(f"✅ Found Crunchyroll award winner by variant match: {anime_name} (matched: {variant})")
+                        return True
+        
+        return False
+    
     def extract_awards_from_omdb_data(self, omdb_data: dict) -> List[str]:
         """Extract award types from OMDB data"""
         awards = []
@@ -329,7 +384,7 @@ class AwardsDataSource:
         
         return list(set(awards))  # Remove duplicates
     
-    def get_movie_awards(self, tmdb_id: str = None, imdb_id: str = None) -> List[str]:
+    def get_movie_awards(self, tmdb_id: str = None, imdb_id: str = None, title: str = None) -> List[str]:
         """Get awards for a movie from various sources"""
         all_awards = []
         
@@ -338,6 +393,11 @@ class AwardsDataSource:
             static_awards = self.static_awards["movies"][imdb_id].get("awards", [])
             all_awards.extend(static_awards)
             print(f"✅ Found static awards for {imdb_id}: {static_awards}")
+        
+        # Check Crunchyroll awards (for anime movies)
+        if self.check_crunchyroll_awards(tmdb_id=tmdb_id, title=title):
+            all_awards.append("crunchyroll")
+            print(f"✅ Found Crunchyroll award for TMDb ID {tmdb_id} / title {title}")
         
         # Check TMDb API
         if tmdb_id:
@@ -355,7 +415,7 @@ class AwardsDataSource:
         
         return list(set(all_awards))  # Remove duplicates
     
-    def get_tv_awards(self, tmdb_id: str = None, imdb_id: str = None) -> List[str]:
+    def get_tv_awards(self, tmdb_id: str = None, imdb_id: str = None, title: str = None) -> List[str]:
         """Get awards for a TV show from various sources"""
         all_awards = []
         
@@ -364,6 +424,11 @@ class AwardsDataSource:
             static_awards = self.static_awards["tv"][imdb_id].get("awards", [])
             all_awards.extend(static_awards)
             print(f"✅ Found static awards for {imdb_id}: {static_awards}")
+        
+        # Check Crunchyroll awards (for anime)
+        if self.check_crunchyroll_awards(tmdb_id=tmdb_id, title=title):
+            all_awards.append("crunchyroll")
+            print(f"✅ Found Crunchyroll award for TMDb ID {tmdb_id} / title {title}")
         
         # Check TMDb API
         if tmdb_id:

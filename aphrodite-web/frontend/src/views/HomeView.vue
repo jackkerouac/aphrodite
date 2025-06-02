@@ -11,6 +11,13 @@
       <input type="radio" name="my-accordion-2" checked="checked" />
       <div class="collapse-title font-semibold">Additions</div>
       <div class="collapse-content text-sm">
+        <p><strong>Crunchyroll Anime Awards Integration</strong> - Added support for Crunchyroll Anime Awards!</p>
+        <p>&nbsp;&nbsp;&nbsp;&middot; Automatic detection for 11 major anime winners (2017-2025)</p>
+        <p>&nbsp;&nbsp;&nbsp;&middot; Includes Solo Leveling, Demon Slayer, Attack on Titan, Jujutsu Kaisen, My Hero Academia</p>
+        <p>&nbsp;&nbsp;&nbsp;&middot; TMDb ID and title-based matching with search variants support</p>
+        <p>&nbsp;&nbsp;&nbsp;&middot; High priority in award hierarchy, fully integrated in Settings → Awards</p>
+        <p>&nbsp;&nbsp;&nbsp;&middot; Multi-color badge support (black, gray, red, yellow) with ribbon styling</p>
+        <p>&nbsp;</p>
         <p><strong>Preview Poster System</strong> - Added a new Preview Poster system (<em>work in progress!</em>)</p>
         <p>&nbsp;&nbsp;&nbsp;&middot; You can preview a premade poster (light and/or dark) with rudimentary badges</p>
         <p>&nbsp;&nbsp;&nbsp;&middot; I will eventually have it pick a random poster from Jellyfin to apply the badges to, so you can see real badges and how they would look.</p>

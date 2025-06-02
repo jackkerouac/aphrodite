@@ -54,3 +54,8 @@ data/config/*.bak
 # Keep template files
 !settings.yaml.template
 !badge_settings_*.yml.template
+
+# Helper scripts
+list_unprocessed.py
+create_enhanced_awards_data.py
+requirements_scraper.txt

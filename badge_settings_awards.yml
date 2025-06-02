@@ -12,6 +12,7 @@ Awards:
   - golden
   - bafta
   - cannes
+  - crunchyroll
   - berlinale
   - cesar
   - choice
@@ -53,6 +54,7 @@ ImageBadges:
     cannes: cannes.png
     cesar: cesar.png
     choice: choice.png
+    crunchyroll: crunchyroll.png
     emmys: emmys.png
     golden: golden.png
     imdb: imdb.png

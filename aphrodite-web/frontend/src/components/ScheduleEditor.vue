@@ -93,6 +93,16 @@
                     <span class="label-text">Review Badges</span>
                   </label>
                 </div>
+                <div class="form-control">
+                  <label class="cursor-pointer label justify-start gap-2">
+                    <input 
+                      v-model="schedule.processing_options.awards_badges" 
+                      type="checkbox" 
+                      class="checkbox checkbox-primary"
+                    />
+                    <span class="label-text">Awards Badges</span>
+                  </label>
+                </div>
               </div>
             </div>
             
@@ -282,6 +292,7 @@ export default {
         audio_badges: true,
         resolution_badges: true,
         review_badges: true,
+        awards_badges: false,
         force_refresh: false,
         target_directories: ['movies', 'tv']
       }
@@ -299,7 +310,8 @@ export default {
              cronValid.value &&
              (schedule.value.processing_options.audio_badges ||
               schedule.value.processing_options.resolution_badges ||
-              schedule.value.processing_options.review_badges)
+              schedule.value.processing_options.review_badges ||
+              schedule.value.processing_options.awards_badges)
     })
     
     // Watch for editSchedule prop changes
@@ -341,7 +353,8 @@ export default {
       
       if (!schedule.value.processing_options.audio_badges &&
           !schedule.value.processing_options.resolution_badges &&
-          !schedule.value.processing_options.review_badges) {
+          !schedule.value.processing_options.review_badges &&
+          !schedule.value.processing_options.awards_badges) {
         errors.value.badges = 'At least one badge type must be selected'
       }
       

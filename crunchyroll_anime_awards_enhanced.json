@@ -1,0 +1,526 @@
+{
+  "metadata": {
+    "source": "Crunchyroll Anime Awards with TMDb integration",
+    "created_date": "2025-06-02T10:36:15.821431",
+    "note": "Enhanced data with TMDb IDs for Aphrodite integration",
+    "total_ceremonies": 9,
+    "years_covered": "2017-2025",
+    "tmdb_api_used": true
+  },
+  "awards_by_year": {
+    "2025": {
+      "year": 2025,
+      "ceremony_date": "2025-05-25",
+      "location": "Grand Prince Hotel Shin Takanawa, Tokyo, Japan",
+      "ceremony_number": 9,
+      "vote_count": "51 million",
+      "categories": {
+        "Anime of the Year": "Solo Leveling",
+        "Film of the Year": "Look Back",
+        "Best New Series": "Solo Leveling",
+        "Best Action": "Solo Leveling",
+        "Best Continuing Series": "Demon Slayer: Kimetsu no Yaiba",
+        "Best Animation": "Demon Slayer: Kimetsu no Yaiba",
+        "Best Background Art": "Frieren: Beyond Journey's End",
+        "Best Slice of Life": "Makeine: Too Many Losing Heroines!",
+        "Best Opening Sequence": "DAN DA DAN",
+        "Best Anime Song": "DAN DA DAN",
+        "Best Score": "Solo Leveling",
+        "Best Ending Sequence": "Solo Leveling",
+        "Global Impact Award": "Attack on Titan"
+      }
+    },
+    "2024": {
+      "year": 2024,
+      "ceremony_number": 8,
+      "categories": {
+        "Anime of the Year": "Jujutsu Kaisen",
+        "Best Animation": "Demon Slayer: Kimetsu no Yaiba",
+        "Best Action": "Jujutsu Kaisen"
+      }
+    },
+    "2023": {
+      "year": 2023,
+      "ceremony_number": 7,
+      "location": "Grand Prince Hotel New Takanawa, Tokyo, Japan",
+      "categories": {
+        "Anime of the Year": "Cyberpunk: Edgerunners"
+      }
+    },
+    "2022": {
+      "year": 2022,
+      "ceremony_number": 6,
+      "categories": {
+        "Anime of the Year": "Demon Slayer: Kimetsu no Yaiba"
+      }
+    },
+    "2021": {
+      "year": 2021,
+      "ceremony_number": 5,
+      "categories": {
+        "Anime of the Year": "Jujutsu Kaisen"
+      }
+    },
+    "2020": {
+      "year": 2020,
+      "ceremony_number": 4,
+      "categories": {
+        "Anime of the Year": "Demon Slayer: Kimetsu no Yaiba"
+      }
+    },
+    "2019": {
+      "year": 2019,
+      "ceremony_number": 3,
+      "categories": {
+        "Anime of the Year": "Demon Slayer: Kimetsu no Yaiba"
+      }
+    },
+    "2018": {
+      "year": 2018,
+      "ceremony_number": 2,
+      "categories": {
+        "Anime of the Year": "My Hero Academia",
+        "Best Hero": "My Hero Academia",
+        "Best Villain": "My Hero Academia",
+        "Best Boy": "My Hero Academia",
+        "Best Girl": "My Hero Academia",
+        "Best Opening": "My Hero Academia",
+        "Best Animation": "My Hero Academia",
+        "Best Action": "My Hero Academia"
+      }
+    },
+    "2017": {
+      "year": 2017,
+      "ceremony_number": 1,
+      "location": "California, United States",
+      "categories": {
+        "Anime of the Year": "Yuri!!! on Ice",
+        "Best Boy": "Yuri!!! on Ice",
+        "Best Opening": "Yuri!!! on Ice",
+        "Best Ending": "Yuri!!! on Ice",
+        "Best Animation": "Yuri!!! on Ice",
+        "Best Couple": "Yuri!!! on Ice",
+        "Most Heartwarming Scene": "Yuri!!! on Ice"
+      }
+    }
+  },
+  "anime_winners": {
+    "Solo Leveling": {
+      "name": "Solo Leveling",
+      "awards": [
+        {
+          "year": 2025,
+          "category": "Anime of the Year",
+          "raw_winner_text": "Solo Leveling"
+        },
+        {
+          "year": 2025,
+          "category": "Best New Series",
+          "raw_winner_text": "Solo Leveling"
+        },
+        {
+          "year": 2025,
+          "category": "Best Action",
+          "raw_winner_text": "Solo Leveling"
+        },
+        {
+          "year": 2025,
+          "category": "Best Score",
+          "raw_winner_text": "Solo Leveling"
+        },
+        {
+          "year": 2025,
+          "category": "Best Ending Sequence",
+          "raw_winner_text": "Solo Leveling"
+        }
+      ],
+      "identifiers": {
+        "tmdb_tv_id": 127532,
+        "tmdb_movie_id": null,
+        "tmdb_tv_data": {
+          "tmdb_id": 127532,
+          "tmdb_name": "Solo Leveling",
+          "first_air_date": "2024-01-07",
+          "overview": "They say whatever doesn’t kill you makes you stronger, but that’s not the case for the world’s weakest hunter Sung Jinwoo. After being brutally slaughtered by monsters in a high-ranking dungeon, Jinwoo came back with the System, a program only he could see, that’s leveling him up in every way. Now, he’s inspired to discover the secrets behind his powers and the dungeon that spawned them."
+        },
+        "tmdb_movie_data": null
+      },
+      "search_variants": [
+        "Solo Leveling"
+      ]
+    },
+    "Look Back": {
+      "name": "Look Back",
+      "awards": [
+        {
+          "year": 2025,
+          "category": "Film of the Year",
+          "raw_winner_text": "Look Back"
+        }
+      ],
+      "identifiers": {
+        "tmdb_tv_id": 100136,
+        "tmdb_movie_id": 18897,
+        "tmdb_tv_data": {
+          "tmdb_id": 100136,
+          "tmdb_name": "Never Look Back",
+          "first_air_date": "2010-06-14",
+          "overview": ""
+        },
+        "tmdb_movie_data": {
+          "tmdb_id": 18897,
+          "tmdb_name": "Don't Look Back",
+          "release_date": "2009-06-03",
+          "overview": "Panic attacks and memory loss signal the plight of a writer whose body is inexplicably being taken over by another woman."
+        }
+      },
+      "search_variants": [
+        "Look Back"
+      ]
+    },
+    "Demon Slayer: Kimetsu no Yaiba": {
+      "name": "Demon Slayer: Kimetsu no Yaiba",
+      "awards": [
+        {
+          "year": 2025,
+          "category": "Best Continuing Series",
+          "raw_winner_text": "Demon Slayer: Kimetsu no Yaiba"
+        },
+        {
+          "year": 2025,
+          "category": "Best Animation",
+          "raw_winner_text": "Demon Slayer: Kimetsu no Yaiba"
+        },
+        {
+          "year": 2024,
+          "category": "Best Animation",
+          "raw_winner_text": "Demon Slayer: Kimetsu no Yaiba"
+        },
+        {
+          "year": 2022,
+          "category": "Anime of the Year",
+          "raw_winner_text": "Demon Slayer: Kimetsu no Yaiba"
+        },
+        {
+          "year": 2020,
+          "category": "Anime of the Year",
+          "raw_winner_text": "Demon Slayer: Kimetsu no Yaiba"
+        },
+        {
+          "year": 2019,
+          "category": "Anime of the Year",
+          "raw_winner_text": "Demon Slayer: Kimetsu no Yaiba"
+        }
+      ],
+      "identifiers": {
+        "tmdb_tv_id": 85937,
+        "tmdb_movie_id": null,
+        "tmdb_tv_data": {
+          "tmdb_id": 85937,
+          "tmdb_name": "Demon Slayer: Kimetsu no Yaiba",
+          "first_air_date": "2019-04-06",
+          "overview": "It is the Taisho Period in Japan. Tanjiro, a kindhearted boy who sells charcoal for a living, finds his family slaughtered by a demon. To make matters worse, his younger sister Nezuko, the sole survivor, has been transformed into a demon herself. Though devastated by this grim reality, Tanjiro resolves to become a “demon slayer” so that he can turn his sister back into a human, and kill the demon that massacred his family."
+        },
+        "tmdb_movie_data": null
+      },
+      "search_variants": [
+        "Demon Slayer",
+        "Demon Slayer  Kimetsu no Yaiba",
+        "Demon Slayer Kimetsu no Yaiba",
+        "Demon Slayer: Kimetsu no Yaiba",
+        "Kimetsu no Yaiba"
+      ]
+    },
+    "Frieren: Beyond Journey's End": {
+      "name": "Frieren: Beyond Journey's End",
+      "awards": [
+        {
+          "year": 2025,
+          "category": "Best Background Art",
+          "raw_winner_text": "Frieren: Beyond Journey's End"
+        }
+      ],
+      "identifiers": {
+        "tmdb_tv_id": 209867,
+        "tmdb_movie_id": null,
+        "tmdb_tv_data": {
+          "tmdb_id": 209867,
+          "tmdb_name": "Frieren: Beyond Journey's End",
+          "first_air_date": "2023-09-29",
+          "overview": "After the party of heroes defeated the Demon King, they restored peace to the land and returned to lives of solitude. Generations pass, and the elven mage Frieren comes face to face with humanity’s mortality. She takes on a new apprentice and promises to fulfill old friends’ dying wishes. Can an elven mind make peace with the nature of life and death? Frieren embarks on her quest to find out."
+        },
+        "tmdb_movie_data": null
+      },
+      "search_variants": [
+        "Frieren  Beyond Journey's End",
+        "Frieren: Beyond Journey's End",
+        "Frieren Beyond Journey's End"
+      ]
+    },
+    "Makeine: Too Many Losing Heroines!": {
+      "name": "Makeine: Too Many Losing Heroines!",
+      "awards": [
+        {
+          "year": 2025,
+          "category": "Best Slice of Life",
+          "raw_winner_text": "Makeine: Too Many Losing Heroines!"
+        }
+      ],
+      "identifiers": {
+        "tmdb_tv_id": 241535,
+        "tmdb_movie_id": null,
+        "tmdb_tv_data": {
+          "tmdb_id": 241535,
+          "tmdb_name": "Makeine: Too Many Losing Heroines!",
+          "first_air_date": "2024-07-14",
+          "overview": "Meet the girls on the losing side of romance! First is Anna Yanami, the girl-next-door type who can’t say no to delicious food. Then there’s Lemon Yakishio, a beautiful and spirited athlete. Last but not least is Chika Komari, the cute yet shy heroine with gentle charm. Together, they navigate awkward setbacks hoping to finally find love!"
+        },
+        "tmdb_movie_data": null
+      },
+      "search_variants": [
+        "Makeine Too Many Losing Heroines",
+        "Makeine: Too Many Losing Heroines!",
+        "Too Many Losing Heroines",
+        "Makeine  Too Many Losing Heroines",
+        "Makeine"
+      ]
+    },
+    "DAN DA DAN": {
+      "name": "DAN DA DAN",
+      "awards": [
+        {
+          "year": 2025,
+          "category": "Best Opening Sequence",
+          "raw_winner_text": "DAN DA DAN"
+        },
+        {
+          "year": 2025,
+          "category": "Best Anime Song",
+          "raw_winner_text": "DAN DA DAN"
+        }
+      ],
+      "identifiers": {
+        "tmdb_tv_id": 240411,
+        "tmdb_movie_id": null,
+        "tmdb_tv_data": {
+          "tmdb_id": 240411,
+          "tmdb_name": "Dan Da Dan",
+          "first_air_date": "2024-10-04",
+          "overview": "In a bet to prove whether ghosts or aliens exist, two high schoolers face terrifying paranormal threats, gain superpowers and maybe even fall in love?!"
+        },
+        "tmdb_movie_data": null
+      },
+      "search_variants": [
+        "DAN DA DAN",
+        "Dandadan"
+      ]
+    },
+    "Attack on Titan": {
+      "name": "Attack on Titan",
+      "awards": [
+        {
+          "year": 2025,
+          "category": "Global Impact Award",
+          "raw_winner_text": "Attack on Titan"
+        }
+      ],
+      "identifiers": {
+        "tmdb_tv_id": 1429,
+        "tmdb_movie_id": null,
+        "tmdb_tv_data": {
+          "tmdb_id": 1429,
+          "tmdb_name": "Attack on Titan",
+          "first_air_date": "2013-04-07",
+          "overview": "Many years ago, the last remnants of humanity were forced to retreat behind the towering walls of a fortified city to escape the massive, man-eating Titans that roamed the land outside their fortress. Only the heroic members of the Scouting Legion dared to stray beyond the safety of the walls – but even those brave warriors seldom returned alive. Those within the city clung to the illusion of a peaceful existence until the day that dream was shattered, and their slim chance at survival was reduced to one horrifying choice: kill – or be devoured!"
+        },
+        "tmdb_movie_data": null
+      },
+      "search_variants": [
+        "Attack on Titan",
+        "Shingeki no Kyojin"
+      ]
+    },
+    "Jujutsu Kaisen": {
+      "name": "Jujutsu Kaisen",
+      "awards": [
+        {
+          "year": 2024,
+          "category": "Anime of the Year",
+          "raw_winner_text": "Jujutsu Kaisen"
+        },
+        {
+          "year": 2024,
+          "category": "Best Action",
+          "raw_winner_text": "Jujutsu Kaisen"
+        },
+        {
+          "year": 2021,
+          "category": "Anime of the Year",
+          "raw_winner_text": "Jujutsu Kaisen"
+        }
+      ],
+      "identifiers": {
+        "tmdb_tv_id": 95479,
+        "tmdb_movie_id": null,
+        "tmdb_tv_data": {
+          "tmdb_id": 95479,
+          "tmdb_name": "JUJUTSU KAISEN",
+          "first_air_date": "2020-10-03",
+          "overview": "Yuji Itadori is a boy with tremendous physical strength, though he lives a completely ordinary high school life. One day, to save a classmate who has been attacked by curses, he eats the finger of Ryomen Sukuna, taking the curse into his own soul. From then on, he shares one body with Ryomen Sukuna. Guided by the most powerful of sorcerers, Satoru Gojo, Itadori is admitted to Tokyo Jujutsu High School, an organization that fights the curses... and thus begins the heroic tale of a boy who became a curse to exorcise a curse, a life from which he could never turn back."
+        },
+        "tmdb_movie_data": null
+      },
+      "search_variants": [
+        "Jujutsu Kaisen"
+      ]
+    },
+    "Cyberpunk: Edgerunners": {
+      "name": "Cyberpunk: Edgerunners",
+      "awards": [
+        {
+          "year": 2023,
+          "category": "Anime of the Year",
+          "raw_winner_text": "Cyberpunk: Edgerunners"
+        }
+      ],
+      "identifiers": {
+        "tmdb_tv_id": 105248,
+        "tmdb_movie_id": null,
+        "tmdb_tv_data": {
+          "tmdb_id": 105248,
+          "tmdb_name": "Cyberpunk: Edgerunners",
+          "first_air_date": "2022-09-13",
+          "overview": "In a dystopia riddled with corruption and cybernetic implants, a talented but reckless street kid strives to become a mercenary outlaw — an edgerunner."
+        },
+        "tmdb_movie_data": null
+      },
+      "search_variants": [
+        "Cyberpunk Edgerunners",
+        "Cyberpunk: Edgerunners",
+        "Cyberpunk  Edgerunners"
+      ]
+    },
+    "My Hero Academia": {
+      "name": "My Hero Academia",
+      "awards": [
+        {
+          "year": 2018,
+          "category": "Anime of the Year",
+          "raw_winner_text": "My Hero Academia"
+        },
+        {
+          "year": 2018,
+          "category": "Best Hero",
+          "raw_winner_text": "My Hero Academia"
+        },
+        {
+          "year": 2018,
+          "category": "Best Villain",
+          "raw_winner_text": "My Hero Academia"
+        },
+        {
+          "year": 2018,
+          "category": "Best Boy",
+          "raw_winner_text": "My Hero Academia"
+        },
+        {
+          "year": 2018,
+          "category": "Best Girl",
+          "raw_winner_text": "My Hero Academia"
+        },
+        {
+          "year": 2018,
+          "category": "Best Opening",
+          "raw_winner_text": "My Hero Academia"
+        },
+        {
+          "year": 2018,
+          "category": "Best Animation",
+          "raw_winner_text": "My Hero Academia"
+        },
+        {
+          "year": 2018,
+          "category": "Best Action",
+          "raw_winner_text": "My Hero Academia"
+        }
+      ],
+      "identifiers": {
+        "tmdb_tv_id": 65930,
+        "tmdb_movie_id": null,
+        "tmdb_tv_data": {
+          "tmdb_id": 65930,
+          "tmdb_name": "My Hero Academia",
+          "first_air_date": "2016-04-03",
+          "overview": "For his entire life, Izuku has dreamed of being a hero—an ambitious goal for anyone, but an especially challenging one for a boy without superpowers. That’s right: in a world where 80% of the population has some sort of special gift, Izuku was unlucky enough to be born completely normal. But that won’t stop him from enrolling in one of the most prestigious hero academies in the world to learn what it truly means to be a hero."
+        },
+        "tmdb_movie_data": null
+      },
+      "search_variants": [
+        "My Hero Academia",
+        "Boku no Hero Academia"
+      ]
+    },
+    "Yuri!!! on Ice": {
+      "name": "Yuri!!! on Ice",
+      "awards": [
+        {
+          "year": 2017,
+          "category": "Anime of the Year",
+          "raw_winner_text": "Yuri!!! on Ice"
+        },
+        {
+          "year": 2017,
+          "category": "Best Boy",
+          "raw_winner_text": "Yuri!!! on Ice"
+        },
+        {
+          "year": 2017,
+          "category": "Best Opening",
+          "raw_winner_text": "Yuri!!! on Ice"
+        },
+        {
+          "year": 2017,
+          "category": "Best Ending",
+          "raw_winner_text": "Yuri!!! on Ice"
+        },
+        {
+          "year": 2017,
+          "category": "Best Animation",
+          "raw_winner_text": "Yuri!!! on Ice"
+        },
+        {
+          "year": 2017,
+          "category": "Best Couple",
+          "raw_winner_text": "Yuri!!! on Ice"
+        },
+        {
+          "year": 2017,
+          "category": "Most Heartwarming Scene",
+          "raw_winner_text": "Yuri!!! on Ice"
+        }
+      ],
+      "identifiers": {
+        "tmdb_tv_id": 68129,
+        "tmdb_movie_id": null,
+        "tmdb_tv_data": {
+          "tmdb_id": 68129,
+          "tmdb_name": "Yuri!!! on Ice",
+          "first_air_date": "2016-10-06",
+          "overview": "Yuuri Katsuki carried all of Japan's hopes on his shoulders to win at the Gran Prix Finale ice skating competition, but suffered a crushing defeat. He returns home to Kyushu and half feels like he wants to retire, and half feels like he wants to continue ice skating. Suddenly the five-time consecutive world championship ice skater Victor Nikiforov appears before him with Yuri Plisetsky, a young Russian figure skater who is already defeating his seniors. Victor and both Yuris take up the challenge on an unprecedented Gran Prix series."
+        },
+        "tmdb_movie_data": null
+      },
+      "search_variants": [
+        "Yuri!!! on Ice",
+        "Yuri    on Ice",
+        "Yuri on Ice"
+      ]
+    }
+  },
+  "statistics": {
+    "total_unique_anime": 11,
+    "anime_with_tmdb_tv": 11,
+    "anime_with_tmdb_movie": 1,
+    "anime_without_tmdb": 0
+  }
+}

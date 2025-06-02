@@ -116,10 +116,13 @@ class AwardsFetcher:
         # Use AwardsDataSource for comprehensive award detection
         awards_data_source = AwardsDataSource(self.settings)
         
+        # Get the title for Crunchyroll matching
+        title = item_info.get("Name", "")
+        
         if media_type == "tv":
-            all_awards = awards_data_source.get_tv_awards(tmdb_id=tmdb_id, imdb_id=imdb_id)
+            all_awards = awards_data_source.get_tv_awards(tmdb_id=tmdb_id, imdb_id=imdb_id, title=title)
         else:
-            all_awards = awards_data_source.get_movie_awards(tmdb_id=tmdb_id, imdb_id=imdb_id)
+            all_awards = awards_data_source.get_movie_awards(tmdb_id=tmdb_id, imdb_id=imdb_id, title=title)
         
         if all_awards:
             # Return the most prestigious award that matches our configured sources
@@ -167,6 +170,7 @@ class AwardsFetcher:
             "golden",      # Golden Globes
             "bafta",       # BAFTA Awards
             "emmys",       # Emmy Awards
+            "crunchyroll", # Crunchyroll Anime Awards
             "berlinale",   # Berlin International Film Festival
             "venice",      # Venice Film Festival
             "sundance",    # Sundance Film Festival

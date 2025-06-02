@@ -299,6 +299,7 @@ export default {
       { value: 'golden', label: 'Golden Globe Awards', priority: 'High' },
       { value: 'bafta', label: 'BAFTA Awards', priority: 'High' },
       { value: 'emmys', label: 'Emmy Awards', priority: 'High' },
+      { value: 'crunchyroll', label: 'Crunchyroll Anime Awards', priority: 'High' },
       { value: 'berlinale', label: 'Berlin International Film Festival', priority: 'Medium' },
       { value: 'venice', label: 'Venice Film Festival', priority: 'Medium' },
       { value: 'sundance', label: 'Sundance Film Festival', priority: 'Medium' },
@@ -327,7 +328,7 @@ export default {
       Awards: {
         color_scheme: 'yellow',
         award_sources: [
-          'oscars', 'emmys', 'golden', 'bafta', 'cannes'
+          'oscars', 'emmys', 'golden', 'bafta', 'cannes', 'crunchyroll'
         ]
       },
       Text: {
@@ -362,6 +363,7 @@ export default {
           golden: "golden.png",
           bafta: "bafta.png",
           cannes: "cannes.png",
+          crunchyroll: "crunchyroll.png",
           berlinale: "berlinale.png",
           cesar: "cesar.png",
           choice: "choice.png",
