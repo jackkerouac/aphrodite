@@ -15,6 +15,8 @@ A Python-based application that adds badges and other visual elements to media p
 - Web-based configuration interface
 - Docker support for easy deployment
 
+![Example Image](https://github.com/jackkerouac/aphrodite/blob/main/example02.png)
+
 ## Quick Start (Docker)
 
 The easiest way to get started is using the pre-built Docker image from GitHub Container Registry:
