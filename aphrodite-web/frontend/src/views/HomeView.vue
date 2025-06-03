@@ -54,7 +54,7 @@
             </div>
           </div>
           <div class="card-actions justify-end mt-2">
-            <button class="btn btn-sm btn-primary" @click="goToPreview">View History</button>
+            <button class="btn btn-sm btn-primary" @click="goToHistory">View History</button>
           </div>
         </div>
       </div>
@@ -94,9 +94,12 @@ export default {
       router.push('/settings');
     };
 
-    // Navigate to Preview page
-    const goToPreview = () => {
-      router.push('/preview');
+    // Navigate to History page (schedules with history tab)
+    const goToHistory = () => {
+      router.push({
+        path: '/schedules',
+        query: { tab: 'history' }
+      });
     };
 
     // Navigate to Execute page with tab
@@ -151,7 +154,7 @@ export default {
       jobStats,
       changes,
       goToSettings,
-      goToPreview,
+      goToHistory,
       goToExecute
     };
   }
