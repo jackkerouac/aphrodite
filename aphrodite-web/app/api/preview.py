@@ -84,9 +84,68 @@ def generate_preview():
     print(f"Source path: {source_path}")
     print(f"Destination path: {dest_path}")
     print(f"Source exists: {os.path.exists(source_path)}")
+    
+    # Verify source file is readable
+    if not os.path.exists(source_path):
+        return jsonify({
+            'success': False,
+            'message': f'Example poster not found at {source_path}'
+        }), 500
+    
+    # Check source file size
     try:
+        source_size = os.path.getsize(source_path)
+        print(f"Source file size: {source_size} bytes")
+        if source_size == 0:
+            return jsonify({
+                'success': False,
+                'message': 'Example poster file is empty'
+            }), 500
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Failed to check source file: {str(e)}'
+        }), 500
+    
+    # Use more robust file copying with verification
+    try:
+        # First try with shutil.copy2
         shutil.copy2(source_path, dest_path)
         print(f"Copied example poster from {source_path} to {dest_path}")
+        
+        # Verify the copy was successful
+        if not dest_path.exists():
+            raise Exception("Destination file was not created")
+        
+        dest_size = dest_path.stat().st_size
+        print(f"Destination file size: {dest_size} bytes")
+        
+        if dest_size == 0:
+            raise Exception("Destination file is empty")
+        
+        if dest_size != source_size:
+            print(f"Warning: File sizes don't match (source: {source_size}, dest: {dest_size})")
+        
+        # Try to verify it's a valid image by opening it with PIL
+        try:
+            from PIL import Image
+            with Image.open(dest_path) as img:
+                print(f"Verified image format: {img.format}, size: {img.size}")
+        except Exception as img_error:
+            print(f"Warning: Image verification failed: {img_error}")
+            # Try copying with binary read/write as fallback
+            try:
+                with open(source_path, 'rb') as src_file:
+                    with open(dest_path, 'wb') as dst_file:
+                        dst_file.write(src_file.read())
+                print("Retried copy with binary mode")
+                
+                # Verify again
+                with Image.open(dest_path) as img:
+                    print(f"Verified image after binary copy: {img.format}, size: {img.size}")
+            except Exception as binary_error:
+                raise Exception(f"Failed to copy and verify image: {binary_error}")
+        
     except Exception as e:
         return jsonify({
             'success': False,
@@ -127,15 +186,38 @@ def generate_preview():
             if not dest_path.exists():
                 raise Exception(f"Example poster not found at {dest_path}")
             
+            # Verify the poster file is valid before processing
+            try:
+                from PIL import Image
+                with Image.open(dest_path) as img:
+                    print(f"Verified poster: {img.format}, size: {img.size}, mode: {img.mode}")
+            except Exception as verify_error:
+                raise Exception(f"Invalid poster file at {dest_path}: {verify_error}")
+            
             # Step 2: Resize the poster
             working_poster_path = working_dir / example_poster_filename
-            resize_success = resize_image(str(dest_path), str(working_poster_path), target_width=1000)
-            
-            if not resize_success:
-                print("Failed to resize poster, using original")
+            try:
+                resize_success = resize_image(str(dest_path), str(working_poster_path), target_width=1000)
+                
+                if not resize_success:
+                    print("Failed to resize poster, using original")
+                    working_poster_path = dest_path
+                else:
+                    print("✅ Resized poster to 1000px width")
+                    # Verify resized image
+                    if working_poster_path.exists():
+                        try:
+                            with Image.open(working_poster_path) as img:
+                                print(f"Verified resized poster: {img.format}, size: {img.size}")
+                        except Exception as resize_verify_error:
+                            print(f"Warning: Resized image verification failed: {resize_verify_error}")
+                            working_poster_path = dest_path
+                    else:
+                        print("Resized file not found, using original")
+                        working_poster_path = dest_path
+            except Exception as resize_error:
+                print(f"Error during resize: {resize_error}")
                 working_poster_path = dest_path
-            else:
-                print("✅ Resized poster to 1000px width")
             
             current_poster_path = str(working_poster_path)
             
@@ -157,8 +239,15 @@ def generate_preview():
                     audio_badge = create_badge(audio_settings, demo_codec)
                     result_path = apply_badge_to_poster(current_poster_path, audio_badge, audio_settings)
                     if result_path:
-                        current_poster_path = result_path
-                        print(f"✅ Applied audio badge: {demo_codec}")
+                        # Verify the result is a valid image
+                        try:
+                            with Image.open(result_path) as img:
+                                print(f"Verified audio badge result: {img.format}, size: {img.size}")
+                            current_poster_path = result_path
+                            print(f"✅ Applied audio badge: {demo_codec}")
+                        except Exception as verify_error:
+                            print(f"⚠️ Audio badge result verification failed: {verify_error}")
+                            print(f"⚠️ Keeping current path: {current_poster_path}")
                     else:
                         print(f"⚠️ Audio badge application returned None, keeping current path")
                 except Exception as e:
@@ -173,8 +262,15 @@ def generate_preview():
                     resolution_badge = create_badge(resolution_settings, demo_resolution)
                     result_path = apply_badge_to_poster(current_poster_path, resolution_badge, resolution_settings)
                     if result_path:
-                        current_poster_path = result_path
-                        print(f"✅ Applied resolution badge: {demo_resolution}")
+                        # Verify the result is a valid image
+                        try:
+                            with Image.open(result_path) as img:
+                                print(f"Verified resolution badge result: {img.format}, size: {img.size}")
+                            current_poster_path = result_path
+                            print(f"✅ Applied resolution badge: {demo_resolution}")
+                        except Exception as verify_error:
+                            print(f"⚠️ Resolution badge result verification failed: {verify_error}")
+                            print(f"⚠️ Keeping current path: {current_poster_path}")
                     else:
                         print(f"⚠️ Resolution badge application returned None, keeping current path")
                 except Exception as e:
@@ -187,8 +283,15 @@ def generate_preview():
                     awards_badge = create_badge(awards_settings, "oscars")  # Mock award
                     result_path = apply_badge_to_poster(current_poster_path, awards_badge, awards_settings)
                     if result_path:
-                        current_poster_path = result_path
-                        print("✅ Applied awards badge")
+                        # Verify the result is a valid image
+                        try:
+                            with Image.open(result_path) as img:
+                                print(f"Verified awards badge result: {img.format}, size: {img.size}")
+                            current_poster_path = result_path
+                            print("✅ Applied awards badge")
+                        except Exception as verify_error:
+                            print(f"⚠️ Awards badge result verification failed: {verify_error}")
+                            print(f"⚠️ Keeping current path: {current_poster_path}")
                     else:
                         print(f"⚠️ Awards badge application returned None, keeping current path")
                 except Exception as e:

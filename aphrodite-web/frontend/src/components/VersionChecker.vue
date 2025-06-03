@@ -93,7 +93,7 @@ export default {
   name: 'VersionChecker',
   data() {
     return {
-      currentVersion: '1.4.2',
+      currentVersion: '1.4.8',
       latestVersion: null,
       updateAvailable: false,
       isLoading: false,

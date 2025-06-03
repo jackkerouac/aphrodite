@@ -52,6 +52,55 @@ def create_app():
         base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
         app.logger.info(f"DEBUG: Running in development environment, base dir: {base_dir}")
     
+    # Log version information for debugging
+    app.logger.info("=" * 50)
+    app.logger.info("🚀 APHRODITE VERSION DEBUG INFO")
+    app.logger.info("=" * 50)
+    try:
+        version_file = os.path.join(base_dir, 'version.yml')
+        if os.path.exists(version_file):
+            with open(version_file, 'r') as f:
+                version_data = yaml.safe_load(f)
+                current_version = version_data.get('version', 'unknown')
+            app.logger.info(f"📋 Current version from version.yml: {current_version}")
+            app.logger.info(f"📁 Version file location: {version_file}")
+        else:
+            app.logger.info(f"❌ Version file not found at {version_file}")
+            current_version = 'unknown'
+        
+        # Check version cache
+        cache_file = os.path.join(base_dir, 'version_cache.json')
+        if os.path.exists(cache_file):
+            import json
+            try:
+                with open(cache_file, 'r') as f:
+                    cache_data = json.load(f)
+                if 'data' in cache_data and 'current_version' in cache_data['data']:
+                    cached_version = cache_data['data']['current_version']
+                    app.logger.info(f"💾 Cached version: {cached_version}")
+                else:
+                    app.logger.info("💾 Version cache exists but no version data found")
+            except Exception as e:
+                app.logger.info(f"⚠️ Failed to read version cache: {e}")
+        else:
+            app.logger.info("💾 No version cache found")
+            
+        # Test VersionService
+        try:
+            import sys
+            sys.path.append(base_dir)
+            from app.services.version_service import VersionService
+            vs = VersionService(base_dir)
+            service_version = vs.get_current_version()
+            app.logger.info(f"🔧 VersionService reports: {service_version}")
+        except Exception as e:
+            app.logger.info(f"⚠️ Failed to load VersionService: {e}")
+            
+    except Exception as e:
+        app.logger.error(f"❌ Error checking version: {e}")
+    
+    app.logger.info("=" * 50)
+    
     # Check each config file
     for config_file in config_files:
         file_path = os.path.join(base_dir, config_file)

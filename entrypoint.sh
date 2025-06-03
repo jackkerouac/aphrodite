@@ -103,6 +103,65 @@ fi
 log_msg "Applying configuration from environment variables..."
 python /app/config_from_env.py
 
+# Log current version information for debugging
+log_msg "Checking current version information..."
+python -c "
+try:
+    import yaml
+    import os
+    from pathlib import Path
+    
+    # Read version from version.yml
+    version_file = Path('/app/version.yml')
+    if version_file.exists():
+        with open(version_file, 'r') as f:
+            version_data = yaml.safe_load(f)
+            current_version = version_data.get('version', 'unknown')
+        print(f'📋 Current version from version.yml: {current_version}')
+        print(f'📁 Version file location: {version_file}')
+    else:
+        print('❌ Version file not found at /app/version.yml')
+        current_version = 'unknown'
+    
+    # Check if version cache exists
+    cache_file = Path('/app/version_cache.json')
+    if cache_file.exists():
+        import json
+        try:
+            with open(cache_file, 'r') as f:
+                cache_data = json.load(f)
+            if 'data' in cache_data and 'current_version' in cache_data['data']:
+                cached_version = cache_data['data']['current_version']
+                print(f'💾 Cached version: {cached_version}')
+            else:
+                print('💾 Version cache exists but no version data found')
+        except Exception as e:
+            print(f'⚠️  Failed to read version cache: {e}')
+    else:
+        print('💾 No version cache found')
+        
+    # Test the VersionService directly
+    import sys
+    sys.path.append('/app')
+    from aphrodite_helpers.settings_validator import run_settings_check
+    
+    # Add the web app path for imports
+    sys.path.append('/app/aphrodite-web')
+    
+    try:
+        from app.services.version_service import VersionService
+        vs = VersionService('/app')
+        service_version = vs.get_current_version()
+        print(f'🔧 VersionService reports: {service_version}')
+    except Exception as e:
+        print(f'⚠️  Failed to load VersionService: {e}')
+        
+except Exception as e:
+    print(f'❌ Error checking version: {e}')
+    import traceback
+    traceback.print_exc()
+" || log_msg "Version check encountered issues"
+
 # Run a quick validation of Jellyfin settings
 log_msg "Validating Jellyfin connection..."
 python -c "

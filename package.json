@@ -1,6 +1,6 @@
 {
   "name": "aphrodite-python",
-  "version": "1.4.7",
+  "version": "1.4.8",
   "description": "Aphrodite is a Python-based utility for enhancing Jellyfin media posters by adding informational badges (such as audio codec information) to them.",
   "main": "index.js",
   "scripts": {

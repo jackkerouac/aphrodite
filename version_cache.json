@@ -1,14 +1,14 @@
 {
-  "timestamp": "2025-06-03T07:43:45.340582",
+  "timestamp": "2025-06-03T09:59:09.099420",
   "data": {
-    "current_version": "1.4.6",
-    "latest_version": "1.4.5",
+    "current_version": "1.4.8",
+    "latest_version": "1.4.8",
     "update_available": false,
-    "release_notes": "fix: Use example poster for reliable preview generation\r\n\r\n- Replace random Jellyfin poster lookup with consistent example poster\r\n- Remove complex get_random_unmodified_poster() function that was timing out\r\n- Use demo data (DTS-HD MA, 4K HDR) for consistent preview experience\r\n- Update frontend text to reflect example poster usage\r\n- Improve preview reliability and speed by eliminating Jellyfin dependency\r\n\r\nFixes preview timeout issues when no unmodified posters are available.",
-    "release_url": "https://github.com/jackkerouac/aphrodite/releases/tag/v1.4.5",
-    "published_at": "2025-06-03T00:26:59Z",
+    "release_notes": "Bump to v.1.48",
+    "release_url": "https://github.com/jackkerouac/aphrodite/releases/tag/v1.4.8",
+    "published_at": "2025-06-03T13:08:00Z",
     "check_successful": true,
     "error": null,
-    "last_checked": "2025-06-03T07:43:45.340565"
+    "last_checked": "2025-06-03T09:59:09.099400"
   }
 }
