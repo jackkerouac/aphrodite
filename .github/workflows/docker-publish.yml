@@ -5,6 +5,13 @@ on:
     types: [published]
   pull_request: 
     branches: [ main ]
+  workflow_dispatch:  # Enable manual triggers from GitHub UI
+    inputs:
+      push_to_registry:
+        description: 'Push to container registry'
+        required: false
+        default: 'true'
+        type: boolean
 
 env:
   REGISTRY: ghcr.io
@@ -54,6 +61,6 @@ jobs:
         with:
           context: .
           platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.push_to_registry == 'true') }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
