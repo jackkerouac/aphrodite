@@ -70,16 +70,20 @@ def get_library_posters(library_id):
             if media_type and item.get('type', '').lower() != media_type.lower():
                 continue
                 
-            # Badge status filter (we'll determine this based on file existence)
+            # Badge status filter (using aphrodite-overlay metadata tag)
             if badge_status:
-                has_badges = check_item_has_badges(item['id'])
+                has_badges = item.get('has_badges', False)
                 if badge_status == 'badged' and not has_badges:
                     continue
                 elif badge_status == 'original' and has_badges:
                     continue
             
             # Add poster status information
-            item['poster_status'] = get_poster_status(item['id'])
+            item['poster_status'] = {
+                'has_original': item.get('has_original_poster', False),
+                'has_badges': item.get('has_badges', False),
+                'current_source': 'badged' if item.get('has_badges', False) else 'original'
+            }
             filtered_items.append(item)
         
         return jsonify({
@@ -110,11 +114,11 @@ def get_item_details(item_id):
         jf = settings["api_keys"]["Jellyfin"][0]
         url, api_key, user_id = jf["url"], jf["api_key"], jf["user_id"]
         
-        # Get item information from Jellyfin
+        # Get item information from Jellyfin (with metadata tags)
         item_info = get_jellyfin_item_details(url, api_key, user_id, item_id)
         
         # Get poster file information
-        poster_status = get_poster_status(item_id)
+        poster_status = get_enhanced_poster_status(item_id, item_info.get('tags', []))
         
         # Get badge history if available
         badge_history = get_badge_history(item_id)
@@ -138,7 +142,7 @@ def get_jellyfin_item_details(url, api_key, user_id, item_id):
     
     item_url = f"{url}/Users/{user_id}/Items/{item_id}"
     params = {
-        'Fields': 'PrimaryImageAspectRatio,ImageTags,Overview,ProductionYear,Genres',
+        'Fields': 'PrimaryImageAspectRatio,ImageTags,Overview,ProductionYear,Genres,Tags',
         'api_key': api_key
     }
     
@@ -157,29 +161,15 @@ def get_jellyfin_item_details(url, api_key, user_id, item_id):
         'poster_url': poster_url,
         'year': item.get('ProductionYear'),
         'overview': item.get('Overview', ''),
-        'genres': item.get('Genres', [])
+        'genres': item.get('Genres', []),
+        'tags': item.get('Tags', [])
     }
 
-def check_item_has_badges(item_id):
-    """Check if an item has badges applied (simplified check)"""
-    # Determine the base directory (same logic as ConfigService)
-    is_docker = (
-        os.path.exists('/app') and 
-        os.path.exists('/app/settings.yaml') and 
-        os.path.exists('/.dockerenv')
-    )
+def get_enhanced_poster_status(item_id, tags):
+    """Get poster status based on metadata tags and file existence"""
+    # Check if item has aphrodite-overlay metadata tag
+    has_badges = 'aphrodite-overlay' in tags
     
-    if is_docker:
-        base_dir = '/app'
-    else:
-        # For local development
-        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
-    
-    modified_path = os.path.join(base_dir, 'posters', 'modified', f"{item_id}.jpg")
-    return os.path.exists(modified_path)
-
-def get_poster_status(item_id):
-    """Get poster file status information"""
     # Determine the base directory
     is_docker = (
         os.path.exists('/app') and 
@@ -192,27 +182,52 @@ def get_poster_status(item_id):
     else:
         base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
     
-    original_path = os.path.join(base_dir, 'posters', 'original', f"{item_id}.jpg")
-    modified_path = os.path.join(base_dir, 'posters', 'modified', f"{item_id}.jpg")
+    # Check for original poster with multiple extensions
+    original_path = None
+    has_original = False
+    for ext in ['.jpg', '.jpeg', '.png', '.webp']:
+        test_path = os.path.join(base_dir, 'posters', 'original', f"{item_id}{ext}")
+        if os.path.exists(test_path):
+            original_path = test_path
+            has_original = True
+            break
+    
+    # Check for modified poster with multiple extensions
+    modified_path = None
+    has_modified = False
+    for ext in ['.jpg', '.jpeg', '.png', '.webp']:
+        test_path = os.path.join(base_dir, 'posters', 'modified', f"{item_id}{ext}")
+        if os.path.exists(test_path):
+            modified_path = test_path
+            has_modified = True
+            break
     
     status = {
-        'has_original': os.path.exists(original_path),
-        'has_modified': os.path.exists(modified_path),
-        'current_source': 'modified' if os.path.exists(modified_path) else 'jellyfin'
+        'has_original': has_original,
+        'has_modified': has_modified,
+        'has_badges': has_badges,  # Based on metadata tag
+        'current_source': 'badged' if has_badges else 'original',
+        'can_revert': has_original and has_badges  # Only allow revert if original exists and has badges
     }
     
     # Get file timestamps if they exist
-    if status['has_original']:
+    if status['has_original'] and original_path:
         status['original_modified'] = datetime.fromtimestamp(
             os.path.getmtime(original_path)
         ).isoformat()
     
-    if status['has_modified']:
+    if status['has_modified'] and modified_path:
         status['modified_created'] = datetime.fromtimestamp(
             os.path.getmtime(modified_path)
         ).isoformat()
     
     return status
+
+def get_poster_status(item_id):
+    """Legacy function - kept for backward compatibility"""
+    # This function is kept for any legacy code that might still call it
+    # New code should use get_enhanced_poster_status instead
+    return get_enhanced_poster_status(item_id, [])
 
 def get_badge_history(item_id):
     """Get badge application history for an item"""
