@@ -59,3 +59,4 @@ data/config/*.bak
 list_unprocessed.py
 create_enhanced_awards_data.py
 requirements_scraper.txt
+update_version.py

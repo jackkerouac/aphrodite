@@ -8,7 +8,7 @@
       <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
           <h2 class="card-title">Settings</h2>
-          <p class="text-base-content opacity-70 mb-4">Configure your preview settings here. Aphrodite will use a random poster from your Jellyfin library.</p>
+          <p class="text-base-content opacity-70 mb-4">Configure your preview settings here. Aphrodite will use an example poster to demonstrate how badges look.</p>
           
           <!-- Badge Types Selection -->
           <div class="form-control mb-6">

@@ -5,7 +5,7 @@ import time
 import os
 import threading
 import shutil
-import random
+# random import removed - no longer needed for preview
 from pathlib import Path
 from app.services.job import JobService
 
@@ -13,127 +13,12 @@ from app.services.job import JobService
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 
-from aphrodite_helpers.check_jellyfin_connection import load_settings, get_jellyfin_libraries, get_library_items
-from aphrodite_helpers.metadata_tagger import MetadataTagger
+from aphrodite_helpers.check_jellyfin_connection import load_settings
 
 # Create blueprint for preview endpoints
 bp = Blueprint('preview', __name__, url_prefix='/api/preview')
 
-def get_random_unmodified_poster():
-    """
-    Get a random poster from Jellyfin that hasn't been modified by Aphrodite.
-    Uses a more efficient approach by sampling random items instead of checking all.
-    Returns the item_id and item_name, or None if no suitable poster found.
-    """
-    try:
-        # Load Jellyfin settings
-        settings = load_settings()
-        if not settings:
-            print("Failed to load settings")
-            return None
-        
-        jellyfin_config = settings["api_keys"]["Jellyfin"][0]
-        url = jellyfin_config["url"]
-        api_key = jellyfin_config["api_key"]
-        user_id = jellyfin_config["user_id"]
-        
-        # Get all libraries
-        all_libraries = get_jellyfin_libraries(url, api_key, user_id)
-        if not all_libraries:
-            print("No libraries found")
-            return None
-        
-        # Filter to only include movie and TV libraries (exclude collections, playlists, etc.)
-        valid_collection_types = ['movies', 'tvshows', 'mixed']  # 'mixed' can contain both movies and TV
-        libraries = []
-        
-        for library in all_libraries:
-            collection_type = library.get('CollectionType', '').lower()
-            library_name = library.get('Name', 'Unknown')
-            
-            # Include libraries with valid collection types OR those without collection type but not playlists/collections
-            if (collection_type in valid_collection_types or 
-                (not collection_type and 'playlist' not in library_name.lower() and 'collection' not in library_name.lower())):
-                libraries.append(library)
-                print(f"Including library: {library_name} (type: {collection_type or 'unspecified'})")
-            else:
-                print(f"Excluding library: {library_name} (type: {collection_type or 'unspecified'})")
-        
-        if not libraries:
-            print("No valid movie/TV libraries found after filtering")
-            return None
-        
-        # Initialize metadata tagger to check for processed items
-        tagger = MetadataTagger(url, api_key, user_id)
-        tag_name = "aphrodite-overlay"  # Default tag name
-        
-        # Try up to 20 random attempts to find an unmodified item
-        max_attempts = 20
-        attempts = 0
-        
-        while attempts < max_attempts:
-            # Pick a random library
-            library = random.choice(libraries)
-            library_id = library.get('Id')
-            library_name = library.get('Name', 'Unknown')
-            
-            try:
-                # Get total count for this library
-                from aphrodite_helpers.check_jellyfin_connection import get_library_item_count
-                total_items = get_library_item_count(url, api_key, user_id, library_id)
-                
-                if total_items == 0:
-                    attempts += 1
-                    continue
-                
-                # Pick a random starting index
-                random_start = random.randint(0, max(0, total_items - 10))
-                
-                # Get a small batch of items starting from random position
-                import requests
-                headers = {"X-Emby-Token": api_key}
-                params = {
-                    "ParentId": library_id,
-                    "StartIndex": random_start,
-                    "Limit": 10,
-                    "Recursive": "true"
-                }
-                
-                # For TV libraries, only get series
-                library_type = library.get('CollectionType', '')
-                if library_type in ['tvshows', 'homevideos']:
-                    params["IncludeItemTypes"] = "Series"
-                
-                resp = requests.get(f"{url}/Users/{user_id}/Items", headers=headers, params=params, timeout=5)
-                resp.raise_for_status()
-                
-                items = resp.json().get('Items', [])
-                
-                # Check each item in this small batch
-                for item in items:
-                    item_id = item.get('Id')
-                    item_name = item.get('Name', 'Unknown')
-                    
-                    if item_id:
-                        # Check if this item has been processed by Aphrodite
-                        has_tag = tagger.check_aphrodite_tag(item_id, tag_name)
-                        if not has_tag:
-                            print(f"Found unmodified poster: {item_name} from {library_name} (attempt {attempts + 1})")
-                            return item_id, item_name
-                
-                attempts += 1
-                
-            except Exception as e:
-                print(f"Error checking library {library_name}: {e}")
-                attempts += 1
-                continue
-        
-        print(f"No unmodified items found after {max_attempts} attempts")
-        return None
-        
-    except Exception as e:
-        print(f"Error getting random unmodified poster: {e}")
-        return None
+# Function removed - previews now always use the example poster for consistency
 
 # Generate preview poster route
 @bp.route('/generate', methods=['POST'])
@@ -162,8 +47,8 @@ def generate_preview():
     # Generate a job ID
     job_id = str(uuid.uuid4())
     
-    # Try to get a random poster from Jellyfin
-    random_poster = get_random_unmodified_poster()
+    # Always use the example poster for previews for consistency and reliability
+    random_poster = None  # Skip Jellyfin poster lookup for previews
     
     # Determine base directory using consistent Docker-aware path detection
     def get_base_directory():
@@ -193,25 +78,20 @@ def generate_preview():
     jellyfin_item_id = None
     jellyfin_item_name = "Example Poster"
     
-    if random_poster:
-        jellyfin_item_id, jellyfin_item_name = random_poster
-        use_random_poster = True
-        print(f"Using random Jellyfin poster: {jellyfin_item_name}")
-    else:
-        print("No random poster available, falling back to example_poster_light.png")
-        # Fall back to example poster using the same base directory logic
-        source_path = os.path.join(base_dir, 'images', 'example_poster_light.png')
-        print(f"Source path: {source_path}")
-        print(f"Destination path: {dest_path}")
-        print(f"Source exists: {os.path.exists(source_path)}")
-        try:
-            shutil.copy2(source_path, dest_path)
-            print(f"Copied example poster from {source_path} to {dest_path}")
-        except Exception as e:
-            return jsonify({
-                'success': False,
-                'message': f'Failed to copy example poster: {str(e)}'
-            }), 500
+    # Always use example poster for previews
+    print("Using example_poster_light.png for consistent preview experience")
+    source_path = os.path.join(base_dir, 'images', 'example_poster_light.png')
+    print(f"Source path: {source_path}")
+    print(f"Destination path: {dest_path}")
+    print(f"Source exists: {os.path.exists(source_path)}")
+    try:
+        shutil.copy2(source_path, dest_path)
+        print(f"Copied example poster from {source_path} to {dest_path}")
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Failed to copy example poster: {str(e)}'
+        }), 500
     
     # Create job record
     job_details = {
@@ -242,31 +122,10 @@ def generate_preview():
             from aphrodite_helpers.get_media_info import get_media_stream_info, get_primary_audio_codec
             from aphrodite_helpers.get_resolution_info import get_media_resolution_info, get_resolution_badge_text
             
-            # Step 1: Get the poster
-            if use_random_poster and jellyfin_item_id:
-                # Download poster from Jellyfin
-                settings = load_settings()
-                jellyfin_config = settings["api_keys"]["Jellyfin"][0]
-                url = jellyfin_config["url"]
-                api_key = jellyfin_config["api_key"]
-                user_id = jellyfin_config["user_id"]
-                
-                # Download the poster
-                downloaded_path = download_poster(url, api_key, jellyfin_item_id, str(original_dir))
-                if not downloaded_path:
-                    print("Failed to download Jellyfin poster, using example poster")
-                    # Fall back to example poster using the same base directory logic
-                    source_path = os.path.join(base_dir, 'images', 'example_poster_light.png')
-                    print(f"Fallback - Source path: {source_path}")
-                    print(f"Fallback - Destination path: {dest_path}")
-                    print(f"Fallback - Source exists: {os.path.exists(source_path)}")
-                    shutil.copy2(source_path, dest_path)
-                else:
-                    # Rename downloaded poster to our expected filename
-                    downloaded_poster_path = Path(downloaded_path)
-                    if downloaded_poster_path.exists():
-                        downloaded_poster_path.rename(dest_path)
-                        print(f"Downloaded and renamed poster to {dest_path}")
+            # Step 1: Poster is already in place (example poster copied earlier)
+            print(f"Using example poster at {dest_path}")
+            if not dest_path.exists():
+                raise Exception(f"Example poster not found at {dest_path}")
             
             # Step 2: Resize the poster
             working_poster_path = working_dir / example_poster_filename
@@ -280,26 +139,8 @@ def generate_preview():
             
             current_poster_path = str(working_poster_path)
             
-            # Step 3: Get real media information if using Jellyfin poster
-            real_codec = None
-            real_resolution = None
-            
-            if use_random_poster and jellyfin_item_id:
-                try:
-                    # Get real audio codec
-                    audio_info = get_media_stream_info(url, api_key, user_id, jellyfin_item_id)
-                    if audio_info:
-                        real_codec = get_primary_audio_codec(audio_info)
-                        print(f"Found real audio codec: {real_codec}")
-                    
-                    # Get real resolution
-                    resolution_info = get_media_resolution_info(url, api_key, user_id, jellyfin_item_id)
-                    if resolution_info:
-                        real_resolution = get_resolution_badge_text(resolution_info)
-                        print(f"Found real resolution: {real_resolution}")
-                        
-                except Exception as e:
-                    print(f"Failed to get real media info: {e}")
+            # Step 3: Use realistic demo data for preview badges
+            print("Using demo data for consistent preview experience")
             
             # Step 4: Apply badges based on selection
             
@@ -307,11 +148,11 @@ def generate_preview():
             if 'audio' in badge_types:
                 try:
                     audio_settings = load_badge_settings("badge_settings_audio.yml")
-                    # Use real codec if available, otherwise mock
-                    codec_to_use = real_codec if real_codec and real_codec.upper() != "UNKNOWN" else "DTS-HD MA"
-                    audio_badge = create_badge(audio_settings, codec_to_use)
+                    # Use demo codec for consistent preview
+                    demo_codec = "DTS-HD MA"
+                    audio_badge = create_badge(audio_settings, demo_codec)
                     current_poster_path = apply_badge_to_poster(current_poster_path, audio_badge, audio_settings)
-                    print(f"✅ Applied audio badge: {codec_to_use}")
+                    print(f"✅ Applied audio badge: {demo_codec}")
                 except Exception as e:
                     print(f"⚠️ Failed to apply audio badge: {e}")
             
@@ -319,11 +160,11 @@ def generate_preview():
             if 'resolution' in badge_types:
                 try:
                     resolution_settings = load_badge_settings("badge_settings_resolution.yml")
-                    # Use real resolution if available, otherwise mock
-                    resolution_to_use = real_resolution if real_resolution and real_resolution.upper() != "UNKNOWN" else "1080p"
-                    resolution_badge = create_badge(resolution_settings, resolution_to_use)
+                    # Use demo resolution for consistent preview
+                    demo_resolution = "4K HDR"
+                    resolution_badge = create_badge(resolution_settings, demo_resolution)
                     current_poster_path = apply_badge_to_poster(current_poster_path, resolution_badge, resolution_settings)
-                    print(f"✅ Applied resolution badge: {resolution_to_use}")
+                    print(f"✅ Applied resolution badge: {demo_resolution}")
                 except Exception as e:
                     print(f"⚠️ Failed to apply resolution badge: {e}")
             
