@@ -125,7 +125,7 @@ def create_app():
             }), 500
     
     # Import and register blueprints - including our proxy blueprint
-    from app.api import config, jobs, libraries, images, check, workflow, schedules, preview, version
+    from app.api import config, jobs, libraries, images, check, workflow, schedules, preview, version, changes
     app.register_blueprint(config.bp)
     app.register_blueprint(jobs.bp)
     app.register_blueprint(libraries.bp)
@@ -135,6 +135,7 @@ def create_app():
     app.register_blueprint(schedules.bp)
     app.register_blueprint(preview.bp)
     app.register_blueprint(version.bp)
+    app.register_blueprint(changes.bp)
     
     # Proxy blueprint removed - using direct API calls
     

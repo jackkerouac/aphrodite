@@ -7,50 +7,33 @@
 
     <h2 class="text-x1 font-bold mb-2">Latest Updates</h2>
 
-    <div class="collapse collapse-arrow bg-base-100 border border-base-300">
-      <input type="radio" name="my-accordion-2" checked="checked" />
-      <div class="collapse-title font-semibold">Additions</div>
-      <div class="collapse-content text-sm">
-        <p><strong>Crunchyroll Anime Awards Integration</strong> - Added support for Crunchyroll Anime Awards!</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Automatic detection for 11 major anime winners (2017-2025)</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Includes Solo Leveling, Demon Slayer, Attack on Titan, Jujutsu Kaisen, My Hero Academia</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; TMDb ID and title-based matching with search variants support</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; High priority in award hierarchy, fully integrated in Settings → Awards</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Multi-color badge support (black, gray, red, yellow) with ribbon styling</p>
-        <p>&nbsp;</p>
-        <p><strong>Preview Poster System</strong> - Added a new Preview Poster system (<em>work in progress!</em>)</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; You can preview a premade poster (light and/or dark) with rudimentary badges</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; I will eventually have it pick a random poster from Jellyfin to apply the badges to, so you can see real badges and how they would look.</p>
-        <p>&nbsp;</p>
-        <p><strong>Awards Badge System</strong> - New badge type for award-winning media with ribbon-style badges</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Detects Oscars, Emmys, Golden Globes, BAFTA, Cannes, and 13 more award types</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Multi-source detection using static database + TMDb/OMDB APIs</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; 4 color schemes (black, gray, red, yellow) with web interface configuration</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Flush positioning in bottom-right corner with transparent backgrounds</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; 140+ award-winning titles in database with priority-based selection</p>
+    <!-- Dynamic changes from YAML file -->
+    <div v-if="changes.length > 0">
+      <div 
+        v-for="(change, index) in changes" 
+        :key="index"
+        class="collapse collapse-arrow bg-base-100 border border-base-300 mb-2"
+      >
+        <input type="radio" name="my-accordion-2" :checked="index === 0" />
+        <div class="collapse-title font-semibold">
+          <span class="capitalize">{{ change.category }}</span> - {{ change.title }}
+          <span class="text-xs text-gray-500 ml-2">({{ change.date }})</span>
+        </div>
+        <div class="collapse-content text-sm">
+          <p><strong>{{ change.title }}</strong> - {{ change.description }}</p>
+          <div v-if="change.details && change.details.length > 0">
+            <p v-for="(detail, detailIndex) in change.details" :key="detailIndex">
+              &nbsp;&nbsp;&nbsp;&middot; {{ detail }}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="collapse collapse-arrow bg-base-100 border border-base-300">
-      <input type="radio" name="my-accordion-2" />
-      <div class="collapse-title font-semibold">Fixes</div>
-      <div class="collapse-content text-sm">
-        <p><strong>fix(frontend): badge position settings not persisting on reload</strong></p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Fix shallow merge issue preventing badge positions from loading correctly</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Add loading spinner to Settings page with progress indicators</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Remove unused deepMerge functions causing ESLint errors</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Badge positions now properly persist from YAML configuration files</p>
-      </div>
-    </div>
-    <div class="collapse collapse-arrow bg-base-100 border border-base-300">
-      <input type="radio" name="my-accordion-2" />
-      <div class="collapse-title font-semibold">Updates</div>
-      <div class="collapse-content text-sm">
-        <p>&nbsp;&nbsp;&nbsp;&middot; Updated the API layer to use dynamic URLs</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Displays final statistics and distributions</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Reduced batch sizes for better responsiveness</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Added delays between API calls</p>
-        <p>&nbsp;&nbsp;&nbsp;&middot; Better memory management</p>
-      </div>
+    
+    <!-- Loading state -->
+    <div v-else class="text-center py-4">
+      <span class="loading loading-spinner loading-md"></span>
+      <p class="text-gray-500 mt-2">Loading latest updates...</p>
     </div>
 
     <p>&nbsp;</p>
@@ -92,7 +75,7 @@
 </template>
 
 <script>
-import { reactive, onMounted } from 'vue';
+import { reactive, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '@/api';
 
@@ -104,6 +87,7 @@ export default {
       total: 0,
       successRate: '0%'
     });
+    const changes = ref([]);
 
     // Navigate to Settings page
     const goToSettings = () => {
@@ -144,13 +128,28 @@ export default {
       }
     };
 
+    // Get changes from YAML file
+    const getChanges = async () => {
+      try {
+        console.log('Getting changes...');
+        const response = await api.changes.getChanges();
+        console.log('Changes response:', response.data);
+        changes.value = response.data.changes || [];
+      } catch (error) {
+        console.error('Failed to get changes:', error);
+        changes.value = [];
+      }
+    };
+
     // Load data on component mount
     onMounted(async () => {
       await getJobStats();
+      await getChanges();
     });
 
     return {
       jobStats,
+      changes,
       goToSettings,
       goToPreview,
       goToExecute
