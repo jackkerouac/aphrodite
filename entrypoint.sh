@@ -59,7 +59,70 @@ init_config() {
     
     # Copy default config files to mounted config directory if they don't exist
     log_msg "Checking for config files to copy..."
-    for config_file in settings.yaml badge_settings_audio.yml badge_settings_resolution.yml badge_settings_review.yml badge_settings_awards.yml version.yml; do
+    
+    # Handle settings.yaml specially - use template if main file doesn't exist
+    if [ ! -f "/app/config/settings.yaml" ]; then
+        if [ -f "/app/settings.yaml" ]; then
+            log_msg "Copying default settings.yaml to config directory"
+            cp "/app/settings.yaml" "/app/config/settings.yaml"
+        elif [ -f "/app/settings.yaml.template" ]; then
+            log_msg "Copying settings.yaml.template to config directory as settings.yaml"
+            cp "/app/settings.yaml.template" "/app/config/settings.yaml"
+        else
+            log_msg "WARNING: No settings.yaml or settings.yaml.template found to copy"
+            log_msg "Creating minimal default settings.yaml"
+            cat > "/app/config/settings.yaml" << 'EOF'
+api_keys:
+  Jellyfin:
+  - url: https://your-jellyfin-server.com
+    api_key: YOUR_JELLYFIN_API_KEY
+    user_id: YOUR_JELLYFIN_USER_ID
+  OMDB:
+  - api_key: YOUR_OMDB_API_KEY
+    cache_expiration: 60
+  TMDB:
+  - api_key: YOUR_TMDB_API_KEY
+    cache_expiration: 60
+    language: en
+    region: US
+  aniDB:
+  - username: YOUR_ANIDB_USERNAME
+    password: YOUR_ANIDB_PASSWORD
+    version: 5
+    client_name: aphrodite
+    language: en
+    cache_expiration: 60
+
+tv_series:
+  show_dominant_badges: true
+  max_episodes_to_analyze: 5
+  episode_timeout: 25
+
+metadata_tagging:
+  enabled: true
+  tag_name: "aphrodite-overlay"
+  tag_on_success_only: true
+
+scheduler:
+  enabled: true
+  timezone: "UTC"
+  max_concurrent_jobs: 1
+  job_history_limit: 50
+EOF
+        fi
+        if [ -f "/app/config/settings.yaml" ]; then
+            chown "${PUID}":"${PGID}" "/app/config/settings.yaml"
+            chmod 664 "/app/config/settings.yaml"
+            log_msg "Successfully created settings.yaml in config directory"
+        else
+            log_msg "ERROR: Failed to create settings.yaml"
+        fi
+    else
+        log_msg "Skipping settings.yaml (destination already exists)"
+    fi
+    
+    # Handle other config files
+    for config_file in badge_settings_audio.yml badge_settings_resolution.yml badge_settings_review.yml badge_settings_awards.yml version.yml; do
         if [ -f "/app/$config_file" ] && [ ! -f "/app/config/$config_file" ]; then
             log_msg "Copying default $config_file to config directory"
             cp "/app/$config_file" "/app/config/$config_file"

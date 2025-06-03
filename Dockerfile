@@ -43,6 +43,9 @@ COPY config_from_env.py /app/
 # Copy application code
 COPY . .
 
+# Ensure template files are present for config initialization
+COPY settings.yaml.template /app/settings.yaml.template
+
 # Create necessary directories with correct permissions
 RUN mkdir -p /app/posters/original /app/posters/working /app/posters/modified /app/data /app/config && \
     chmod -R 775 /app/posters /app/data /app/config

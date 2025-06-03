@@ -13,9 +13,9 @@ api_keys:
     region: US
   aniDB:
   - username: YOUR_ANIDB_USERNAME
-  - password: YOUR_ANIDB_PASSWORD
+    password: YOUR_ANIDB_PASSWORD
     version: 5
-    client_name: YOUR_CLIENT_NAME
+    client_name: aphrodite
     language: en
     cache_expiration: 60
 
