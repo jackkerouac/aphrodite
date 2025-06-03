@@ -8,44 +8,115 @@ log_msg() {
 
 log_msg "Starting Aphrodite container initialization..."
 
+# Set default PUID/PGID if not provided
+PUID=${PUID:-1000}
+PGID=${PGID:-1000}
+
+# Function to setup user and permissions
+setup_user() {
+    log_msg "Setting up user with PUID=$PUID and PGID=$PGID"
+    
+    # Create group with specified GID if it doesn't exist
+    if ! getent group aphrodite >/dev/null 2>&1; then
+        groupadd -g "${PGID}" aphrodite
+    else
+        # Update existing group
+        groupmod -o -g "${PGID}" aphrodite
+    fi
+    
+    # Create user with specified UID if it doesn't exist
+    if ! getent passwd aphrodite >/dev/null 2>&1; then
+        useradd -o -u "${PUID}" -g aphrodite -s /bin/bash -d /app aphrodite
+    else
+        # Update existing user
+        usermod -o -u "${PUID}" -g "${PGID}" aphrodite
+    fi
+    
+    # Create required directories
+    log_msg "Creating required directories..."
+    mkdir -p /app/posters/original /app/posters/working /app/posters/modified /app/data /app/config
+    
+    # Set ownership and permissions only for necessary directories (not the entire /app)
+    log_msg "Setting ownership for mounted directories..."
+    chown -R "${PUID}":"${PGID}" /app/posters /app/data /app/config
+    chmod -R 775 /app/posters /app/data /app/config
+    
+    # Only change ownership of essential app files, not everything
+    log_msg "Setting ownership for essential app files..."
+    chown "${PUID}":"${PGID}" /app/entrypoint.sh
+    
+    # Set ownership for config files that might exist
+    for config_file in settings.yaml badge_settings_audio.yml badge_settings_resolution.yml badge_settings_review.yml badge_settings_awards.yml version.yml; do
+        if [ -f "/app/$config_file" ]; then
+            chown "${PUID}":"${PGID}" "/app/$config_file"
+        fi
+    done
+}
+
+# Function to initialize configuration files
+init_config() {
+    log_msg "Initializing configuration files..."
+    
+    # Copy default config files to mounted config directory if they don't exist
+    log_msg "Checking for config files to copy..."
+    for config_file in settings.yaml badge_settings_audio.yml badge_settings_resolution.yml badge_settings_review.yml badge_settings_awards.yml version.yml; do
+        if [ -f "/app/$config_file" ] && [ ! -f "/app/config/$config_file" ]; then
+            log_msg "Copying default $config_file to config directory"
+            cp "/app/$config_file" "/app/config/$config_file"
+            chown "${PUID}":"${PGID}" "/app/config/$config_file"
+            chmod 664 "/app/config/$config_file"
+        else
+            log_msg "Skipping $config_file (source missing or destination exists)"
+        fi
+    done
+    
+    # Create symlinks from config directory to app directory for compatibility
+    log_msg "Creating symlinks for config files..."
+    for config_file in settings.yaml badge_settings_audio.yml badge_settings_resolution.yml badge_settings_review.yml badge_settings_awards.yml version.yml; do
+        if [ -f "/app/config/$config_file" ] && [ ! -L "/app/$config_file" ]; then
+            # Remove original file if it exists and isn't a symlink
+            if [ -f "/app/$config_file" ]; then
+                log_msg "Removing original $config_file to create symlink"
+                rm "/app/$config_file"
+            fi
+            # Create symlink
+            log_msg "Creating symlink for $config_file"
+            ln -s "/app/config/$config_file" "/app/$config_file"
+        else
+            log_msg "Skipping symlink for $config_file (config missing or symlink exists)"
+        fi
+    done
+    log_msg "Configuration file initialization completed"
+}
+
+# Only setup user if running as root
+if [ "$(id -u)" = "0" ]; then
+    log_msg "Running as root, setting up user..."
+    setup_user
+    log_msg "User setup completed"
+    
+    log_msg "Initializing configuration..."
+    init_config
+    log_msg "Configuration initialization completed"
+    
+    # Switch to the aphrodite user for the rest of the script
+    log_msg "Switching to user aphrodite (PUID=$PUID, PGID=$PGID)"
+    exec gosu aphrodite "$0" "$@"
+else
+    log_msg "Already running as non-root user: $(id -un)"
+fi
+
+# From here on, we're running as the aphrodite user
+
 # Make HTTP_HOST available from host:port configuration
 if [ -n "${WEB_HOST}" ] && [ -n "${WEB_PORT}" ]; then
     export HTTP_HOST="${WEB_HOST}:${WEB_PORT}"
     log_msg "Setting HTTP_HOST to ${HTTP_HOST}"
 fi
 
-# Handle the user/group IDs if running as root
-if [ "$(id -u)" = "0" ]; then
-    log_msg "Running as root, checking for custom user configuration..."
-    
-    # Check if custom PUID/PGID is set and different from current user
-    if [ -n "${PUID}" ] && [ -n "${PGID}" ] && [ "${PUID}" != "$(id -u aphrodite)" ]; then
-        log_msg "Updating user ID to ${PUID} and group ID to ${PGID}"
-        
-        # Recreate the aphrodite group with specified GID
-        groupmod -o -g "${PGID}" aphrodite
-        
-        # Update the aphrodite user with the specified UID
-        usermod -o -u "${PUID}" aphrodite
-        
-        # Update ownership of directories
-        chown -R "${PUID}":"${PGID}" /app
-    fi
-fi
-
-# Create required directories
-log_msg "Creating required directories..."
-for dir in /app/posters/original /app/posters/working /app/posters/modified /app/data /app/fonts /app/images; do
-    if [ ! -d "$dir" ]; then
-        mkdir -p "$dir"
-        log_msg "Created directory: $dir"
-    fi
-done
-
 # Validate directory permissions
 log_msg "Validating directory permissions..."
 if [ -w "/app/posters" ] && [ -w "/app/data" ]; then
-    chmod -R 775 /app/posters /app/data 2>/dev/null || log_msg "Notice: Running as non-root, permission changes may be limited"
     log_msg "Directory permissions validated"
 else
     log_msg "Warning: Missing write permissions for essential directories"
@@ -58,38 +129,26 @@ if [ ! -w "/app/data" ]; then
     exit 1
 fi
 
-# Ensure config files have correct permissions and exist
+# Ensure config files exist and are readable
 log_msg "Validating configuration files..."
 config_files_valid=true
 for config_file in /app/settings.yaml /app/badge_settings_audio.yml /app/badge_settings_resolution.yml /app/badge_settings_review.yml; do
-    if [ -f "$config_file" ]; then
+    if [ -f "$config_file" ] || [ -L "$config_file" ]; then
         if [ -r "$config_file" ]; then
-            log_msg "DEBUG: Successfully read $config_file"
-            log_msg "DEBUG: Contents of $config_file:"
-            cat "$config_file" | sed 's/^/    /'
+            log_msg "Successfully validated $config_file"
         else
             log_msg "ERROR: $config_file exists but is not readable"
             ls -la "$config_file"
             config_files_valid=false
         fi
-        
-        if [ -w "$config_file" ]; then
-            chmod 664 "$config_file" 2>/dev/null || log_msg "Notice: Running as non-root, file permission changes may be limited"
-            log_msg "DEBUG: $config_file is writable"
-        else
-            log_msg "Warning: $config_file exists but is not writable"
-            ls -la "$config_file"
-            config_files_valid=false
-        fi
     else
-        log_msg "Error: $config_file does not exist"
-        ls -la "$(dirname $config_file)/"
+        log_msg "Warning: $config_file does not exist"
         config_files_valid=false
     fi
 done
 
 if [ "$config_files_valid" = false ]; then
-    log_msg "Warning: Some configuration files are missing or not writable"
+    log_msg "Warning: Some configuration files are missing or not readable"
     log_msg "The application may not function correctly"
 fi
 

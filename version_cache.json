@@ -1,14 +1,14 @@
 {
-  "timestamp": "2025-06-03T09:59:09.099420",
+  "timestamp": "2025-06-03T13:21:48.499123",
   "data": {
-    "current_version": "1.4.8",
-    "latest_version": "1.4.8",
+    "current_version": "2.0.0",
+    "latest_version": "1.4.9",
     "update_available": false,
-    "release_notes": "Bump to v.1.48",
-    "release_url": "https://github.com/jackkerouac/aphrodite/releases/tag/v1.4.8",
-    "published_at": "2025-06-03T13:08:00Z",
+    "release_notes": "- Add robust file copying with PIL verification in preview.py\r\n- Add comprehensive version logging to entrypoint.sh and Flask app\r\n- Update VersionChecker fallback version to 1.4.8\r\n- Create docker-compose.dev.yml for local development\r\n- Add detailed error reporting for Docker image processing issues",
+    "release_url": "https://github.com/jackkerouac/aphrodite/releases/tag/v1.4.9",
+    "published_at": "2025-06-03T14:36:26Z",
     "check_successful": true,
     "error": null,
-    "last_checked": "2025-06-03T09:59:09.099400"
+    "last_checked": "2025-06-03T13:21:48.499095"
   }
 }

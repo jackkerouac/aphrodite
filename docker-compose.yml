@@ -4,27 +4,17 @@ services:
     container_name: aphrodite
     ports:
       - "2125:5000"
-# The frontend will be built into the Docker image, so you don't need to mount it
     volumes:
-      # Configuration files with read/write access
-      - ./settings.yaml:/app/settings.yaml:rw
-      - ./badge_settings_audio.yml:/app/badge_settings_audio.yml:rw
-      - ./badge_settings_resolution.yml:/app/badge_settings_resolution.yml:rw
-      - ./badge_settings_review.yml:/app/badge_settings_review.yml:rw
-      - ./version.yml:/app/version.yml:ro  # Version configuration
+      # Configuration files (auto-created if missing, fully customizable)
+      - ./config:/app/config:rw
       
       # Persistent storage for posters and database
-      - ./posters/original:/app/posters/original:rw
-      - ./posters/working:/app/posters/working:rw
-      - ./posters/modified:/app/posters/modified:rw
-      - ./data:/app/data:rw  # For SQLite database and scheduler data
+      - ./posters:/app/posters:rw
+      - ./data:/app/data:rw
       
-      # Optional: fonts and images
-      - ./fonts:/app/fonts:ro  # Read-only access to fonts
-      - ./images:/app/images:ro  # Read-only access to badge images
-    
     environment:
-      # Basic environment variables - no need for .env file
       - TZ=UTC
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
       
     restart: unless-stopped

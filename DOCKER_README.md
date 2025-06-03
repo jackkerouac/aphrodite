@@ -2,8 +2,6 @@
 
 This Docker container provides a ready-to-use deployment of Aphrodite, a powerful utility for enhancing Jellyfin media posters by adding informational badges such as audio codec, resolution, and review ratings.
 
-![Aphrodite Banner](https://raw.githubusercontent.com/yourusername/aphrodite-python/main/images/banner.png)
-
 ## Features
 
 - Add audio codec badges to media posters (Dolby Atmos, DTS-HD, TrueHD, etc.)
@@ -13,30 +11,35 @@ This Docker container provides a ready-to-use deployment of Aphrodite, a powerfu
 - Automatic batch processing of entire libraries
 - Customizable badge positioning, colors, and styles
 - Real-time job tracking and history
+- **NEW**: Simplified Docker setup with auto-configuration
+- **NEW**: PUID/PGID support for proper file permissions
+- **NEW**: Built-in fonts and images - no external downloads needed
 
-## Quick Start
+## Quick Start (New Simplified Method)
 
-```bash
-# Pull the Docker image
-docker pull yourusername/aphrodite:latest
+⚠️ **For the latest simplified setup, see [DOCKER_SETUP_GUIDE.md](DOCKER_SETUP_GUIDE.md)**
 
-# Create basic directories
-mkdir -p ./data ./posters/original ./posters/working ./posters/modified
+The new setup requires only a single `docker-compose.yml` file:
 
-# Run the container
-docker run -d \
-  --name aphrodite \
-  -p 5000:5000 \
-  -v $(pwd)/settings.yaml:/app/settings.yaml \
-  -v $(pwd)/posters:/app/posters \
-  -v $(pwd)/data:/app/data \
-  -e APHRODITE_JELLYFIN_URL=https://your-jellyfin-server.com \
-  -e APHRODITE_JELLYFIN_API_KEY=your-api-key-here \
-  -e APHRODITE_JELLYFIN_USER_ID=your-user-id-here \
-  yourusername/aphrodite:latest
+```yaml
+services:
+  aphrodite:
+    image: ghcr.io/jackkerouac/aphrodite:latest
+    container_name: aphrodite
+    ports:
+      - "2125:5000"
+    volumes:
+      - ./config:/app/config:rw
+      - ./posters:/app/posters:rw
+      - ./data:/app/data:rw
+    environment:
+      - TZ=UTC
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+    restart: unless-stopped
 ```
 
-Then access the web interface at http://localhost:5000
+Then simply run: `docker-compose up -d`
 
 ## Installation
 

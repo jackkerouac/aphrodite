@@ -1,6 +1,21 @@
 changes:
   - date: "2025-06-03"
     category: "improvement"
+    title: "Major Docker Setup Overhaul (Breaking Change)"
+    description: "Complete redesign of Docker deployment with simplified setup and critical bug fixes"
+    details:
+      - "BREAKING CHANGE: Simplified Docker volume structure from 8+ mounts to 3 consolidated mounts"
+      - "Fixed critical preview generation bug affecting GitHub Docker images (corrupted 14-byte asset files)"
+      - "Added PUID/PGID support for proper file permissions - no more permission issues"
+      - "Built-in fonts and images - no more external downloads of fonts.zip and images.zip required"
+      - "Auto-configuration system - default config files created automatically on first run"
+      - "One-command deployment: just 'docker-compose up -d' for complete setup"
+      - "Enhanced entrypoint script with better logging and user management"
+      - "Created comprehensive migration documentation (DOCKER_MIGRATION_GUIDE.md)"
+      - "New docker-compose.yml structure: ./config, ./posters, ./data volumes only"
+      - "Backward compatibility maintained for all configuration file formats"
+  - date: "2025-06-03"
+    category: "improvement"
     title: "Dynamic YAML-based Change Log System"
     description: "Replaced hardcoded Home Page accordion with dynamic YAML-driven content"
     details:

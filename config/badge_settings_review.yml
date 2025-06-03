@@ -1,0 +1,53 @@
+General:
+  general_badge_size: 100
+  general_edge_padding: 30
+  general_badge_position: bottom-left
+  general_text_padding: 20
+  use_dynamic_sizing: true
+  badge_orientation: vertical
+  badge_spacing: 15
+  max_badges_to_display: 4
+Text:
+  fallback_font: DejaVuSans.ttf
+  font: AvenirNextLTProBold.otf
+  text-color: '#FFFFFF'
+  text-size: 60
+Background:
+  background-color: '#2C2C2C'
+  background_opacity: 60
+Border:
+  border-color: '#2C2C2C'
+  border_radius: 10
+  border_width: 1
+  border-radius: 10
+Shadow:
+  shadow_blur: 5
+  shadow_enable: false
+  shadow_offset_x: 2
+  shadow_offset_y: 2
+ImageBadges:
+  codec_image_directory: images/rating
+  enable_image_badges: true
+  fallback_to_text: true
+  image_mapping:
+    AniDB: AniDB.png
+    IMDb: IMDb.png
+    IMDbTop: IMDbTop.png
+    IMDbTop100: IMDbTop100.png
+    IMDbTop1000: IMDbTop1000.png
+    IMDbTop250: IMDbTop250.png
+    Letterboxd: Letterboxd.png
+    MAL: MAL.png
+    MDBList: MDBList.png
+    Metacritic: metacritic_logo.png
+    MetacriticTop: MetacriticTop.png
+    RT-Aud-Fresh: RT-Aud-Fresh.png
+    RT-Aud-Rotten: RT-Aud-Rotten.png
+    RT-Aud-Top: RT-Aud-Top.png
+    RT-Crit-Fresh: RT-Crit-Fresh.png
+    RT-Crit-Rotten: RT-Crit-Rotten.png
+    RT-Crit-Top: RT-Crit-Top.png
+    Star: Star.png
+    TMDb: TMDb.png
+    Trakt: Trakt.png
+  image_padding: 5

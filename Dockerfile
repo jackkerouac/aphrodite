@@ -8,13 +8,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 
-# Install system dependencies including Node.js for frontend build
+# Install system dependencies including Node.js for frontend build and gosu for user switching
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libffi-dev \
     curl \
     nodejs \
     npm \
+    gosu \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first to leverage Docker cache
@@ -43,21 +44,19 @@ COPY config_from_env.py /app/
 COPY . .
 
 # Create necessary directories with correct permissions
-RUN mkdir -p /app/posters/original /app/posters/working /app/posters/modified /app/data && \
-    chmod -R 775 /app/posters /app/data
+RUN mkdir -p /app/posters/original /app/posters/working /app/posters/modified /app/data /app/config && \
+    chmod -R 775 /app/posters /app/data /app/config
 
-# Create a non-root user and set permissions
-RUN groupadd -r aphrodite && \
-    useradd -r -g aphrodite -s /bin/bash -d /app aphrodite && \
-    chown -R aphrodite:aphrodite /app && \
-    # Make config files writable by the aphrodite user
-    chmod 664 /app/settings.yaml /app/badge_settings_*.yml 2>/dev/null || true
+# Create a default user and group (will be modified at runtime if PUID/PGID specified)
+RUN groupadd -r -g 1000 aphrodite && \
+    useradd -r -u 1000 -g aphrodite -s /bin/bash -d /app aphrodite && \
+    chown -R aphrodite:aphrodite /app
 
-# Switch to non-root user
-USER aphrodite
+# Set default PUID and PGID
+ENV PUID=1000 PGID=1000
 
-# Set up entrypoint script
-COPY --chown=aphrodite:aphrodite entrypoint.sh /app/entrypoint.sh
+# Set up entrypoint script (copy as root, will be owned by correct user after runtime user setup)
+COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
 # Expose the default Flask port
