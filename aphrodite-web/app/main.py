@@ -69,7 +69,7 @@ def create_app():
     
     # Import and register blueprints
     try:
-        from app.api import config, jobs, libraries, images, check, workflow, process_api, preview, version
+        from app.api import config, jobs, libraries, images, check, workflow, process_api, preview, version, poster_manager
         app.register_blueprint(config.bp)
         app.register_blueprint(jobs.bp)
         app.register_blueprint(libraries.bp)
@@ -79,6 +79,7 @@ def create_app():
         app.register_blueprint(process_api.bp)
         app.register_blueprint(preview.bp)
         app.register_blueprint(version.bp)
+        app.register_blueprint(poster_manager.bp)
     except Exception as e:
         logger.error(f"Error registering blueprints: {e}")
         # Add a fallback route if blueprints fail to load

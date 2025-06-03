@@ -27,6 +27,11 @@ const routes = [
     path: '/schedules',
     name: 'schedules',
     component: () => import('../views/SchedulesView.vue')
+  },
+  {
+    path: '/poster-manager',
+    name: 'poster-manager',
+    component: () => import('../views/PosterManagerView.vue')
   }
 ]
 
