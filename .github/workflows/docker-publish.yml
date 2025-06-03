@@ -1,9 +1,8 @@
 name: Docker Package
 
-on: 
-  push: 
-    branches: [ main ]
-    tags: [ 'v*' ]
+on:
+  release:
+    types: [published]
   pull_request: 
     branches: [ main ]
 
