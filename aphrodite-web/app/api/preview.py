@@ -139,6 +139,10 @@ def generate_preview():
             
             current_poster_path = str(working_poster_path)
             
+            # Verify we have a valid poster path
+            if not current_poster_path or not os.path.exists(current_poster_path):
+                raise Exception(f"No valid poster available at path: {current_poster_path}")
+            
             # Step 3: Use realistic demo data for preview badges
             print("Using demo data for consistent preview experience")
             
@@ -151,8 +155,12 @@ def generate_preview():
                     # Use demo codec for consistent preview
                     demo_codec = "DTS-HD MA"
                     audio_badge = create_badge(audio_settings, demo_codec)
-                    current_poster_path = apply_badge_to_poster(current_poster_path, audio_badge, audio_settings)
-                    print(f"✅ Applied audio badge: {demo_codec}")
+                    result_path = apply_badge_to_poster(current_poster_path, audio_badge, audio_settings)
+                    if result_path:
+                        current_poster_path = result_path
+                        print(f"✅ Applied audio badge: {demo_codec}")
+                    else:
+                        print(f"⚠️ Audio badge application returned None, keeping current path")
                 except Exception as e:
                     print(f"⚠️ Failed to apply audio badge: {e}")
             
@@ -163,8 +171,12 @@ def generate_preview():
                     # Use demo resolution for consistent preview
                     demo_resolution = "4K HDR"
                     resolution_badge = create_badge(resolution_settings, demo_resolution)
-                    current_poster_path = apply_badge_to_poster(current_poster_path, resolution_badge, resolution_settings)
-                    print(f"✅ Applied resolution badge: {demo_resolution}")
+                    result_path = apply_badge_to_poster(current_poster_path, resolution_badge, resolution_settings)
+                    if result_path:
+                        current_poster_path = result_path
+                        print(f"✅ Applied resolution badge: {demo_resolution}")
+                    else:
+                        print(f"⚠️ Resolution badge application returned None, keeping current path")
                 except Exception as e:
                     print(f"⚠️ Failed to apply resolution badge: {e}")
             
@@ -173,8 +185,12 @@ def generate_preview():
                 try:
                     awards_settings = load_badge_settings("badge_settings_awards.yml")
                     awards_badge = create_badge(awards_settings, "oscars")  # Mock award
-                    current_poster_path = apply_badge_to_poster(current_poster_path, awards_badge, awards_settings)
-                    print("✅ Applied awards badge")
+                    result_path = apply_badge_to_poster(current_poster_path, awards_badge, awards_settings)
+                    if result_path:
+                        current_poster_path = result_path
+                        print("✅ Applied awards badge")
+                    else:
+                        print(f"⚠️ Awards badge application returned None, keeping current path")
                 except Exception as e:
                     print(f"⚠️ Failed to apply awards badge: {e}")
             
@@ -225,7 +241,7 @@ def generate_preview():
                         temp_current_path = current_poster_path
                         
                         # If current poster is a PNG, we need to convert it temporarily for the review function
-                        if current_poster_path.endswith('.png'):
+                        if current_poster_path and current_poster_path.endswith('.png'):
                             temp_jpg_path = current_poster_path.replace('.png', '.jpg')
                             try:
                                 from PIL import Image
@@ -277,7 +293,7 @@ def generate_preview():
             
             # Only copy if the current poster path is different from the final path
             # and the final path doesn't already exist (to avoid file locking issues)
-            if current_poster_path != str(final_path):
+            if current_poster_path and current_poster_path != str(final_path):
                 if not final_path.exists():
                     try:
                         shutil.copy2(current_poster_path, final_path)
@@ -295,7 +311,7 @@ def generate_preview():
                     current_poster_path = str(final_path)
             
             # Check if final poster exists - use the actual current path if it's already in modified directory
-            if str(modified_dir) in current_poster_path:
+            if current_poster_path and str(modified_dir) in current_poster_path:
                 final_poster_path = Path(current_poster_path)
             else:
                 final_poster_path = modified_dir / example_poster_filename
