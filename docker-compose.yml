@@ -16,5 +16,9 @@ services:
       - TZ=UTC
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}
+    # Production settings to reduce debug output
+      - FLASK_DEBUG=0                    # Disable Flask debug mode
+      - APHRODITE_MODE=web              # Explicit web mode (default)
+      - LOG_LEVEL=INFO                  # Set logging level (if supported)
       
     restart: unless-stopped
