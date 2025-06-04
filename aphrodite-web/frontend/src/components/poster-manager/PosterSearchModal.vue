@@ -164,9 +164,6 @@
     confirm-text="Replace Poster"
     type="warning"
     :is-processing="isProcessing"
-    :show-badge-selection="true"
-    :available-badges="availableBadges"
-    :default-selected-badges="defaultSelectedBadges"
     @confirm="replaceWithSelectedPoster"
     @cancel="showConfirmDialog = false"
   />
@@ -200,15 +197,6 @@ export default {
     const selectedSource = ref('');
     const selectedLanguage = ref('');
     const sortBy = ref('quality');
-    
-    // Badge selection for replacement
-    const availableBadges = ref([
-      { key: 'audio', label: 'Audio Codec', description: 'DTS-X, Atmos, TrueHD, etc.' },
-      { key: 'resolution', label: 'Resolution', description: '4K, 1080p, HDR, etc.' },
-      { key: 'review', label: 'Reviews', description: 'IMDb, TMDb ratings' },
-      { key: 'awards', label: 'Awards', description: 'Crunchyroll, festival awards' }
-    ]);
-    const defaultSelectedBadges = ref(['audio', 'resolution', 'review', 'awards']);
     
     // Computed properties
     const availableSources = computed(() => {
@@ -253,9 +241,9 @@ export default {
       if (!selectedPoster.value) return '';
       
       const poster = selectedPoster.value;
-      return `Replace the current poster with this ${poster.source} poster (${poster.width}×${poster.height})? 
+      return `Replace the current poster with this ${poster.source} poster (${poster.width}×${poster.height})?
               
-You can choose which badges to apply to the new poster:`;
+The poster will be uploaded without any badges. You can apply badges separately using the "Apply Badges" button if desired.`;
     });
     
     // Methods
@@ -289,7 +277,7 @@ You can choose which badges to apply to the new poster:`;
       showConfirmDialog.value = true;
     };
     
-    const replaceWithSelectedPoster = async (selectedBadges) => {
+    const replaceWithSelectedPoster = async () => {
       if (!selectedPoster.value) return;
       
       showConfirmDialog.value = false;
@@ -303,7 +291,7 @@ You can choose which badges to apply to the new poster:`;
           },
           body: JSON.stringify({
             poster_data: selectedPoster.value,
-            badges: selectedBadges
+            badges: [] // Always empty - no badges applied
           })
         });
         
@@ -314,7 +302,7 @@ You can choose which badges to apply to the new poster:`;
           emit('poster-replaced', {
             jobId: data.jobId,
             posterSource: selectedPoster.value.source,
-            badges: selectedBadges
+            badges: [] // No badges applied
           });
           
           // Close modal
@@ -349,8 +337,6 @@ You can choose which badges to apply to the new poster:`;
       selectedSource,
       selectedLanguage,
       sortBy,
-      availableBadges,
-      defaultSelectedBadges,
       availableSources,
       availableLanguages,
       filteredPosters,
