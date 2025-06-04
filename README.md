@@ -26,13 +26,6 @@ mkdir aphrodite && cd aphrodite
 # Download docker-compose.yml
 curl -o docker-compose.yml https://raw.githubusercontent.com/jackkerouac/aphrodite/main/docker-compose.yml
 
-# Create required directories
-mkdir -p config data posters fonts images
-
-# Download assets (fonts and images)
-# Visit: https://github.com/jackkerouac/aphrodite/releases
-# Download fonts.zip and images.zip, extract to ./fonts and ./images
-
 # Start Aphrodite (configuration files are automatically created)
 docker-compose up -d
 ```
