@@ -48,6 +48,9 @@
                   <div v-if="posterStatus?.has_modified">
                     <strong>Modified:</strong> {{ formatDate(posterStatus.modified_created) }}
                   </div>
+                  <div v-if="posterStatus?.can_revert !== undefined">
+                    <strong>Can Revert:</strong> {{ posterStatus.can_revert ? 'Yes' : 'No' }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -95,8 +98,9 @@
         <div class="flex flex-wrap gap-3">
           <button 
             class="btn btn-primary"
-            :disabled="isProcessing"
-            @click="reprocessItem"
+            :disabled="isProcessing || posterStatus?.has_badges"
+            @click="showReprocessConfirmation"
+            :title="posterStatus?.has_badges ? 'Item already has badges. Use revert first to re-apply badges.' : 'Apply badges to this poster'"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -106,8 +110,9 @@
 
           <button 
             class="btn btn-secondary"
-            :disabled="!posterStatus?.has_modified || isProcessing"
-            @click="revertToOriginal"
+            :disabled="!posterStatus?.can_revert || isProcessing"
+            @click="showRevertConfirmation"
+            :title="posterStatus?.can_revert ? 'Remove badges and restore original poster' : 'Cannot revert: no badges or original poster not found'"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
@@ -139,13 +144,16 @@
         </div>
 
         <!-- Processing Status -->
-        <div v-if="actionMessage" class="alert" :class="actionMessage.type === 'success' ? 'alert-success' : 'alert-error'">
+        <div v-if="actionMessage" class="alert" :class="actionMessage.type === 'success' ? 'alert-success' : actionMessage.type === 'error' ? 'alert-error' : 'alert-info'">
           <div>
             <svg v-if="actionMessage.type === 'success'" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+            <svg v-else-if="actionMessage.type === 'error'" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span>{{ actionMessage.text }}</span>
           </div>
@@ -158,13 +166,43 @@
       </div>
     </div>
   </div>
+
+  <!-- Confirmation Dialogs -->
+  <ConfirmationDialog
+    v-if="showRevertDialog"
+    title="Revert to Original Poster"
+    message="This will remove all badges and restore the original poster. This action cannot be undone."
+    confirm-text="Revert"
+    type="warning"
+    :is-processing="isProcessing"
+    @confirm="revertToOriginal"
+    @cancel="showRevertDialog = false"
+  />
+
+  <ConfirmationDialog
+    v-if="showReprocessDialog"
+    title="Apply Badges"
+    message="Select which badges to apply to this poster:"
+    confirm-text="Apply Selected Badges"
+    type="info"
+    :is-processing="isProcessing"
+    :show-badge-selection="true"
+    :available-badges="availableBadges"
+    :default-selected-badges="defaultSelectedBadges"
+    @confirm="reprocessItem"
+    @cancel="showReprocessDialog = false"
+  />
 </template>
 
 <script>
 import { ref, onMounted } from 'vue';
+import ConfirmationDialog from './ConfirmationDialog.vue';
 
 export default {
   name: 'ItemDetailsModal',
+  components: {
+    ConfirmationDialog
+  },
   props: {
     item: {
       type: Object,
@@ -172,12 +210,25 @@ export default {
     }
   },
   emits: ['close', 'item-updated'],
-  setup(props) {
+  setup(props, { emit }) {
     const isLoading = ref(false);
     const isProcessing = ref(false);
     const posterStatus = ref(null);
     const badgeHistory = ref(null);
     const actionMessage = ref(null);
+    const showRevertDialog = ref(false);
+    const showReprocessDialog = ref(false);
+    const currentJobId = ref(null);
+    const jobCheckInterval = ref(null);
+    
+    // Badge selection for reprocessing
+    const availableBadges = ref([
+      { key: 'audio', label: 'Audio Codec', description: 'DTS-X, Atmos, TrueHD, etc.' },
+      { key: 'resolution', label: 'Resolution', description: '4K, 1080p, HDR, etc.' },
+      { key: 'review', label: 'Reviews', description: 'IMDb, TMDb ratings' },
+      { key: 'awards', label: 'Awards', description: 'Crunchyroll, festival awards' }
+    ]);
+    const defaultSelectedBadges = ref(['audio', 'resolution', 'review', 'awards']);
 
     // Methods
     const loadItemDetails = async () => {
@@ -191,40 +242,130 @@ export default {
           badgeHistory.value = data.badge_history;
         } else {
           console.error('Error loading item details:', data.message);
+          showActionMessage('Error loading item details', 'error');
         }
       } catch (error) {
         console.error('Error loading item details:', error);
+        showActionMessage('Error loading item details', 'error');
       } finally {
         isLoading.value = false;
       }
     };
 
-    const reprocessItem = async () => {
+    const showReprocessConfirmation = () => {
+      if (posterStatus.value?.has_badges) {
+        showActionMessage('Item already has badges. Use revert first if you want to re-apply badges.', 'error');
+        return;
+      }
+      showReprocessDialog.value = true;
+    };
+
+    const showRevertConfirmation = () => {
+      if (!posterStatus.value?.can_revert) {
+        showActionMessage('Cannot revert: item has no badges or original poster not found', 'error');
+        return;
+      }
+      showRevertDialog.value = true;
+    };
+
+    const reprocessItem = async (selectedBadges) => {
+      showReprocessDialog.value = false;
       isProcessing.value = true;
       actionMessage.value = null;
       
       try {
-        // This would call the existing process API
-        showActionMessage('Re-processing functionality will be implemented in Phase 2', 'info');
+        const response = await fetch(`/api/poster-manager/item/${props.item.id}/reprocess`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            badges: selectedBadges
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          currentJobId.value = data.jobId;
+          const badgeList = selectedBadges.join(', ');
+          showActionMessage(`Badge processing started for: ${badgeList}...`, 'info');
+          startJobStatusCheck();
+        } else {
+          showActionMessage(data.message || 'Error starting badge processing', 'error');
+          isProcessing.value = false;
+        }
       } catch (error) {
-        showActionMessage('Error re-processing item', 'error');
-      } finally {
+        showActionMessage('Error starting badge processing', 'error');
         isProcessing.value = false;
       }
     };
 
     const revertToOriginal = async () => {
+      showRevertDialog.value = false;
       isProcessing.value = true;
       actionMessage.value = null;
       
       try {
-        // This would call a revert API
-        showActionMessage('Revert functionality will be implemented in Phase 2', 'info');
+        const response = await fetch(`/api/poster-manager/item/${props.item.id}/revert`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          currentJobId.value = data.jobId;
+          showActionMessage('Revert process started...', 'info');
+          startJobStatusCheck();
+        } else {
+          showActionMessage(data.message || 'Error starting revert process', 'error');
+          isProcessing.value = false;
+        }
       } catch (error) {
-        showActionMessage('Error reverting poster', 'error');
-      } finally {
+        showActionMessage('Error starting revert process', 'error');
         isProcessing.value = false;
       }
+    };
+
+    const startJobStatusCheck = () => {
+      if (jobCheckInterval.value) {
+        clearInterval(jobCheckInterval.value);
+      }
+      
+      jobCheckInterval.value = setInterval(async () => {
+        try {
+          const response = await fetch(`/api/jobs/${currentJobId.value}`);
+          const data = await response.json();
+          
+          if (data.success && data.job) {
+            const job = data.job;
+            
+            if (job.status === 'success') {
+              clearInterval(jobCheckInterval.value);
+              showActionMessage('Operation completed successfully!', 'success');
+              isProcessing.value = false;
+              
+              // Reload item details to reflect changes
+              await loadItemDetails();
+              
+              // Emit event to parent to refresh the gallery
+              emit('item-updated');
+              
+            } else if (job.status === 'failed') {
+              clearInterval(jobCheckInterval.value);
+              const errorMsg = job.result?.error || job.result?.message || 'Operation failed';
+              showActionMessage(errorMsg, 'error');
+              isProcessing.value = false;
+            }
+            // Continue polling if status is still 'queued' or 'running'
+          }
+        } catch (error) {
+          console.error('Error checking job status:', error);
+        }
+      }, 2000); // Check every 2 seconds
     };
 
     const fetchNewPoster = () => {
@@ -251,9 +392,15 @@ export default {
       event.target.src = '/images/professor_relaxing.png';
     };
 
-    // Load details on mount
+    // Cleanup on component unmount
     onMounted(() => {
       loadItemDetails();
+      
+      return () => {
+        if (jobCheckInterval.value) {
+          clearInterval(jobCheckInterval.value);
+        }
+      };
     });
 
     return {
@@ -262,6 +409,12 @@ export default {
       posterStatus,
       badgeHistory,
       actionMessage,
+      showRevertDialog,
+      showReprocessDialog,
+      availableBadges,
+      defaultSelectedBadges,
+      showReprocessConfirmation,
+      showRevertConfirmation,
       reprocessItem,
       revertToOriginal,
       fetchNewPoster,

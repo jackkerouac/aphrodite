@@ -249,6 +249,15 @@ export default {
         });
       }
 
+      // Sort alphabetically by name (case-insensitive)
+      items.sort((a, b) => {
+        const nameA = a.name.toLowerCase();
+        const nameB = b.name.toLowerCase();
+        if (nameA < nameB) return -1;
+        if (nameA > nameB) return 1;
+        return 0;
+      });
+
       return items;
     });
 
@@ -322,12 +331,9 @@ export default {
       selectedItem.value = item;
     };
 
-    const handleItemUpdated = (updatedItem) => {
-      // Update the item in our list
-      const index = allItems.value.findIndex(item => item.id === updatedItem.id);
-      if (index !== -1) {
-        allItems.value[index] = { ...allItems.value[index], ...updatedItem };
-      }
+    const handleItemUpdated = () => {
+      // Refresh the entire library to get updated poster status
+      loadLibraryPosters();
     };
 
     const handleImageError = (event) => {

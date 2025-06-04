@@ -2,6 +2,11 @@ from flask import Blueprint, jsonify, request
 import sys
 import os
 import json
+import shutil
+import subprocess
+import uuid
+import threading
+import time
 from datetime import datetime
 import logging
 
@@ -17,6 +22,8 @@ try:
         get_jellyfin_libraries
     )
     from app.api.jellyfin_helpers import get_library_items_with_posters
+    from app.services.job import JobService
+    from aphrodite_helpers.metadata_tagger import MetadataTagger, get_tagging_settings
     logger.info("Successfully imported dependencies for poster_manager")
 except ImportError as e:
     logger.error(f"Import error in poster_manager: {e}")
@@ -82,6 +89,7 @@ def get_library_posters(library_id):
             item['poster_status'] = {
                 'has_original': item.get('has_original_poster', False),
                 'has_badges': item.get('has_badges', False),
+                'has_modified': item.get('has_badges', False),  # Frontend compatibility
                 'current_source': 'badged' if item.get('has_badges', False) else 'original'
             }
             filtered_items.append(item)
@@ -134,6 +142,311 @@ def get_item_details(item_id):
         return jsonify({
             'success': False,
             'message': f'Error fetching item details: {str(e)}'
+        }), 500
+
+@bp.route('/item/<item_id>/revert', methods=['POST'])
+def revert_item_to_original(item_id):
+    """Revert a single item's poster to its original state"""
+    try:
+        # Load settings
+        settings = load_settings()
+        if not settings:
+            return jsonify({
+                'success': False,
+                'message': 'Failed to load settings'
+            }), 500
+        
+        # Get Jellyfin connection details
+        jf = settings["api_keys"]["Jellyfin"][0]
+        url, api_key, user_id = jf["url"], jf["api_key"], jf["user_id"]
+        
+        # Get item information
+        item_info = get_jellyfin_item_details(url, api_key, user_id, item_id)
+        poster_status = get_enhanced_poster_status(item_id, item_info.get('tags', []))
+        
+        # Check if revert is possible
+        if not poster_status.get('can_revert', False):
+            return jsonify({
+                'success': False,
+                'message': 'Cannot revert: item has no badges or original poster not found'
+            }), 400
+        
+        # Generate job ID
+        job_id = str(uuid.uuid4())
+        
+        # Create job record
+        job_details = {
+            'id': job_id,
+            'type': 'revert',
+            'command': f'revert_item_{item_id}',
+            'options': {'item_id': item_id},
+            'status': 'queued',
+            'start_time': time.time(),
+            'end_time': None,
+            'result': None
+        }
+        
+        JobService.create_job(job_details)
+        
+        # Define function to run revert
+        def run_revert():
+            try:
+                # Determine base directory (Docker-aware)
+                is_docker = (
+                    os.path.exists('/app') and 
+                    os.path.exists('/app/settings.yaml') and 
+                    os.path.exists('/.dockerenv')
+                )
+                
+                if is_docker:
+                    base_dir = '/app'
+                else:
+                    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+                
+                # Find original poster with multiple extensions
+                original_path = None
+                for ext in ['.jpg', '.jpeg', '.png', '.webp']:
+                    test_path = os.path.join(base_dir, 'posters', 'original', f"{item_id}{ext}")
+                    if os.path.exists(test_path):
+                        original_path = test_path
+                        break
+                
+                if not original_path:
+                    raise Exception('Original poster not found')
+                
+                # Find modified poster to delete
+                modified_path = None
+                for ext in ['.jpg', '.jpeg', '.png', '.webp']:
+                    test_path = os.path.join(base_dir, 'posters', 'modified', f"{item_id}{ext}")
+                    if os.path.exists(test_path):
+                        modified_path = test_path
+                        break
+                
+                # Remove modified poster if it exists
+                if modified_path and os.path.exists(modified_path):
+                    logger.info(f"Removing modified poster: {modified_path}")
+                    os.remove(modified_path)
+                    logger.info(f"Successfully removed modified poster")
+                else:
+                    logger.warning(f"Modified poster not found or path is None: {modified_path}")
+                
+                # Upload original poster back to Jellyfin
+                try:
+                    from aphrodite_helpers.poster_uploader import PosterUploader
+                    logger.info(f"Uploading original poster back to Jellyfin: {original_path}")
+                    uploader = PosterUploader(url, api_key, user_id)
+                    upload_success = uploader.upload_poster(item_id, original_path, max_retries=3)
+                    logger.info(f"Original poster upload result: {upload_success}")
+                except Exception as upload_error:
+                    logger.error(f"Failed to upload original poster: {upload_error}")
+                    upload_success = False
+                
+                # Remove metadata tag
+                tagging_settings = get_tagging_settings()
+                tag_name = tagging_settings.get('tag_name', 'aphrodite-overlay')
+                logger.info(f"Attempting to remove metadata tag: {tag_name}")
+                tagger = MetadataTagger(url, api_key, user_id)
+                tag_removed = tagger.remove_aphrodite_tag(item_id, tag_name)
+                logger.info(f"Tag removal result: {tag_removed}")
+                
+                # Update job status
+                result = {
+                    'success': True,
+                    'message': 'Successfully reverted to original poster',
+                    'item_id': item_id,
+                    'tag_removed': tag_removed,
+                    'poster_uploaded': upload_success
+                }
+                
+                JobService.update_job(job_id, {
+                    'status': 'success',
+                    'end_time': time.time(),
+                    'result': result
+                })
+                
+                logger.info(f"Successfully reverted item {item_id} to original poster")
+                
+            except Exception as e:
+                logger.error(f"Error reverting item {item_id}: {str(e)}")
+                JobService.update_job(job_id, {
+                    'status': 'failed',
+                    'end_time': time.time(),
+                    'result': {
+                        'success': False,
+                        'error': str(e),
+                        'item_id': item_id
+                    }
+                })
+        
+        # Start revert in background thread
+        thread = threading.Thread(target=run_revert)
+        thread.daemon = True
+        thread.start()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Revert process started for item {item_id}',
+            'jobId': job_id
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error starting revert process: {str(e)}'
+        }), 500
+
+@bp.route('/item/<item_id>/reprocess', methods=['POST'])
+def reprocess_item_badges(item_id):
+    """Re-apply badges to a single item (only if it doesn't already have badges)"""
+    try:
+        # Load settings
+        settings = load_settings()
+        if not settings:
+            return jsonify({
+                'success': False,
+                'message': 'Failed to load settings'
+            }), 500
+        
+        # Get Jellyfin connection details
+        jf = settings["api_keys"]["Jellyfin"][0]
+        url, api_key, user_id = jf["url"], jf["api_key"], jf["user_id"]
+        
+        # Get request data for badge selection
+        data = request.get_json() or {}
+        selected_badges = data.get('badges', ['audio', 'resolution', 'review', 'awards'])  # Default to all
+        
+        # Validate badge types
+        valid_badges = ['audio', 'resolution', 'review', 'awards']
+        selected_badges = [badge for badge in selected_badges if badge in valid_badges]
+        
+        if not selected_badges:
+            return jsonify({
+                'success': False,
+                'message': 'At least one badge type must be selected'
+            }), 400
+        
+        # Get item information
+        item_info = get_jellyfin_item_details(url, api_key, user_id, item_id)
+        poster_status = get_enhanced_poster_status(item_id, item_info.get('tags', []))
+        
+        # Check if item already has badges (only allow reprocessing of original items)
+        if poster_status.get('has_badges', False):
+            return jsonify({
+                'success': False,
+                'message': 'Item already has badges. Use revert first if you want to re-apply badges.'
+            }), 400
+        
+        # Generate job ID
+        job_id = str(uuid.uuid4())
+        
+        # Create job record
+        job_details = {
+            'id': job_id,
+            'type': 'reprocess',
+            'command': f'python aphrodite.py item {item_id}',
+            'options': {'item_id': item_id, 'badges': selected_badges},
+            'status': 'queued',
+            'start_time': time.time(),
+            'end_time': None,
+            'result': None
+        }
+        
+        JobService.create_job(job_details)
+        
+        # Define function to run reprocessing
+        def run_reprocess():
+            try:
+                # Determine base directory (Docker-aware)
+                is_docker = (
+                    os.path.exists('/app') and 
+                    os.path.exists('/app/settings.yaml') and 
+                    os.path.exists('/.dockerenv')
+                )
+                
+                if is_docker:
+                    working_dir = '/app'
+                    cmd = ['python', '/app/aphrodite.py', 'item', item_id]
+                else:
+                    working_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+                    cmd = ['python', os.path.join(working_dir, 'aphrodite.py'), 'item', item_id]
+                
+                # Add badge type flags based on selection
+                all_badge_types = ['audio', 'resolution', 'review', 'awards']
+                for badge_type in all_badge_types:
+                    if badge_type not in selected_badges:
+                        cmd.append(f'--no-{badge_type}')
+                
+                # Run the aphrodite.py command with debug output
+                logger.info(f"Executing command: {' '.join(cmd)}")
+                process = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    cwd=working_dir
+                )
+                
+                stdout, stderr = process.communicate()
+                
+                # Log the output for debugging
+                logger.info(f"Command stdout: {stdout}")
+                if stderr:
+                    logger.warning(f"Command stderr: {stderr}")
+                
+                # Update job status
+                success = process.returncode == 0
+                status = 'success' if success else 'failed'
+                
+                badge_list = ', '.join(selected_badges)
+                result = {
+                    'success': success,
+                    'message': f'Badges ({badge_list}) successfully applied' if success else 'Failed to apply badges',
+                    'item_id': item_id,
+                    'badges_applied': selected_badges,
+                    'stdout': stdout,
+                    'stderr': stderr,
+                    'returncode': process.returncode
+                }
+                
+                JobService.update_job(job_id, {
+                    'status': status,
+                    'end_time': time.time(),
+                    'result': result
+                })
+                
+                if success:
+                    logger.info(f"Successfully reprocessed item {item_id} with badges: {badge_list}")
+                else:
+                    logger.error(f"Failed to reprocess item {item_id}: {stderr}")
+                
+            except Exception as e:
+                logger.error(f"Error reprocessing item {item_id}: {str(e)}")
+                JobService.update_job(job_id, {
+                    'status': 'failed',
+                    'end_time': time.time(),
+                    'result': {
+                        'success': False,
+                        'error': str(e),
+                        'item_id': item_id
+                    }
+                })
+        
+        # Start reprocessing in background thread
+        thread = threading.Thread(target=run_reprocess)
+        thread.daemon = True
+        thread.start()
+        
+        badge_list = ', '.join(selected_badges)
+        return jsonify({
+            'success': True,
+            'message': f'Reprocessing started for item {item_id} with badges: {badge_list}',
+            'jobId': job_id
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error starting reprocess: {str(e)}'
         }), 500
 
 def get_jellyfin_item_details(url, api_key, user_id, item_id):
@@ -204,7 +517,7 @@ def get_enhanced_poster_status(item_id, tags):
     
     status = {
         'has_original': has_original,
-        'has_modified': has_modified,
+        'has_modified': has_badges,  # Frontend compatibility - use metadata tag instead of file existence
         'has_badges': has_badges,  # Based on metadata tag
         'current_source': 'badged' if has_badges else 'original',
         'can_revert': has_original and has_badges  # Only allow revert if original exists and has badges
