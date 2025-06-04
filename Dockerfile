@@ -49,6 +49,9 @@ COPY settings.yaml.template /app/settings.yaml.template
 # Create default settings.yaml from template if it doesn't exist
 RUN if [ ! -f "/app/settings.yaml" ]; then cp /app/settings.yaml.template /app/settings.yaml; fi
 
+# Ensure version.yml exists with current version (should be copied by COPY . . but ensure it exists)
+RUN if [ ! -f "/app/version.yml" ]; then echo "version: 2.2.0" > /app/version.yml; fi
+
 # Create necessary directories with correct permissions
 RUN mkdir -p /app/posters/original /app/posters/working /app/posters/modified /app/data /app/config && \
     chmod -R 775 /app/posters /app/data /app/config
