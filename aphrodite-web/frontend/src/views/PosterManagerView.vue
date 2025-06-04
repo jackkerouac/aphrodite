@@ -207,6 +207,7 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { debounce } from 'lodash';
 import ItemDetailsModal from '@/components/poster-manager/ItemDetailsModal.vue';
+import api from '@/api';
 
 export default {
   name: 'PosterManagerView',
@@ -283,8 +284,8 @@ export default {
     // Methods
     const loadLibraries = async () => {
       try {
-        const response = await fetch('/api/libraries/');
-        const data = await response.json();
+        const response = await api.get('/api/libraries/');
+        const data = response.data;
         if (data.success) {
           libraries.value = data.libraries;
         }
@@ -303,8 +304,8 @@ export default {
         if (mediaTypeFilter.value) params.append('type', mediaTypeFilter.value);
         if (badgeStatusFilter.value) params.append('badges', badgeStatusFilter.value);
 
-        const response = await fetch(`/api/poster-manager/library/${selectedLibrary.value}?${params}`);
-        const data = await response.json();
+        const response = await api.get(`/api/poster-manager/library/${selectedLibrary.value}?${params}`);
+        const data = response.data;
         
         if (data.success) {
           allItems.value = data.items;

@@ -1,5 +1,14 @@
 changes:
   - date: "2025-06-04"
+    category: "bugfix"
+    title: "Fixed Library Dropdown in Docker Environment"
+    description: "Resolved issue where library dropdown menu was empty when running Aphrodite in Docker"
+    details:
+      - "Fixed PosterManagerView library dropdown not displaying libraries in Docker environment"
+      - "Changed from direct fetch() calls to use configured API helper for proper base URL handling"
+      - "Ensures consistent behavior between Docker and local development environments"
+      - "Now uses same API infrastructure as other working components (LibraryForm)"
+  - date: "2025-06-04"
     category: "feature"
     title: "Poster Manager Interface - Complete Poster Control"
     description: "New web-based interface providing complete control over your Jellyfin poster collection"
@@ -50,13 +59,3 @@ changes:
       - "Created comprehensive migration documentation (DOCKER_MIGRATION_GUIDE.md)"
       - "New docker-compose.yml structure: ./config, ./posters, ./data volumes only"
       - "Backward compatibility maintained for all configuration file formats"
-  - date: "2025-06-03"
-    category: "feature"
-    title: "Crunchyroll Anime Awards Integration"
-    description: "Added support for Crunchyroll Anime Awards!"
-    details:
-      - "Automatic detection for 11 major anime winners (2017-2025)"
-      - "Includes Solo Leveling, Demon Slayer, Attack on Titan, Jujutsu Kaisen, My Hero Academia"
-      - "TMDb ID and title-based matching with search variants support"
-      - "High priority in award hierarchy, fully integrated in Settings → Awards"
-      - "Multi-color badge support (black, gray, red, yellow) with ribbon styling"
