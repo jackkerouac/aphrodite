@@ -285,6 +285,9 @@ class PosterReplacementService:
             import subprocess
             logger.info(f"Executing badge application: {' '.join(cmd)}")
             
+            # Add some debugging for TV series
+            logger.info(f"Checking if item {item_id} is a TV series...")
+            
             process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,

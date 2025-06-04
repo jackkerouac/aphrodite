@@ -70,55 +70,36 @@ init_config() {
             cp "/app/settings.yaml.template" "/app/config/settings.yaml"
         else
             log_msg "WARNING: No settings.yaml or settings.yaml.template found to copy"
-            log_msg "Creating minimal default settings.yaml"
-            cat > "/app/config/settings.yaml" << 'EOF'
-api_keys:
-  Jellyfin:
-  - url: https://your-jellyfin-server.com
-    api_key: YOUR_JELLYFIN_API_KEY
-    user_id: YOUR_JELLYFIN_USER_ID
-  OMDB:
-  - api_key: YOUR_OMDB_API_KEY
-    cache_expiration: 60
-  TMDB:
-  - api_key: YOUR_TMDB_API_KEY
-    cache_expiration: 60
-    language: en
-    region: US
-  aniDB:
-  - username: YOUR_ANIDB_USERNAME
-    password: YOUR_ANIDB_PASSWORD
-    version: 5
-    client_name: aphrodite
-    language: en
-    cache_expiration: 60
-
-tv_series:
-  show_dominant_badges: true
-  max_episodes_to_analyze: 5
-  episode_timeout: 25
-
-metadata_tagging:
-  enabled: true
-  tag_name: "aphrodite-overlay"
-  tag_on_success_only: true
-
-scheduler:
-  enabled: true
-  timezone: "UTC"
-  max_concurrent_jobs: 1
-  job_history_limit: 50
-EOF
+            log_msg "Will create minimal default settings.yaml via auto-repair"
         fi
         if [ -f "/app/config/settings.yaml" ]; then
             chown "${PUID}":"${PGID}" "/app/config/settings.yaml"
             chmod 664 "/app/config/settings.yaml"
             log_msg "Successfully created settings.yaml in config directory"
-        else
-            log_msg "ERROR: Failed to create settings.yaml"
         fi
     else
-        log_msg "Skipping settings.yaml (destination already exists)"
+        log_msg "Skipping settings.yaml copy (destination already exists)"
+    fi
+    
+    # Auto-repair settings to ensure all required sections exist
+    log_msg "Running settings auto-repair to ensure all required sections exist..."
+    if [ -f "/app/config/settings.yaml" ]; then
+        python /app/aphrodite_helpers/config_auto_repair.py --settings-path "/app/config/settings.yaml" --verbose
+        if [ $? -eq 0 ]; then
+            log_msg "✅ Settings auto-repair completed successfully"
+        else
+            log_msg "⚠️ Settings auto-repair encountered issues, but continuing..."
+        fi
+    else
+        log_msg "Creating new settings file via auto-repair..."
+        python /app/aphrodite_helpers/config_auto_repair.py --settings-path "/app/config/settings.yaml" --verbose
+        if [ $? -eq 0 ]; then
+            chown "${PUID}":"${PGID}" "/app/config/settings.yaml"
+            chmod 664 "/app/config/settings.yaml"
+            log_msg "✅ New settings file created and repaired successfully"
+        else
+            log_msg "❌ Failed to create settings file via auto-repair"
+        fi
     fi
     
     # Handle other config files

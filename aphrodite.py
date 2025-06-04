@@ -9,6 +9,7 @@ import time
 from aphrodite_helpers.cleanup.poster_cleanup import clean_poster_directories
 
 from aphrodite_helpers.settings_validator import run_settings_check
+from aphrodite_helpers.config_auto_repair import validate_and_repair_settings
 from aphrodite_helpers.check_jellyfin_connection import (
     load_settings,
     get_jellyfin_libraries,
@@ -65,7 +66,34 @@ def process_single_item(jellyfin_url: str, api_key: str, user_id: str,
         return False
 
     # Check if this is a TV series and get dominant badge info if applicable
+    print(f"🔍 Checking if item {item_id} is a TV series...")
+    
+    # Add more detailed debugging
+    from aphrodite_helpers.tv_series_aggregator import get_jellyfin_item_details, is_tv_series, should_use_dominant_badges
+    
+    print(f"🔧 Debug: Checking TV series settings...")
+    tv_enabled = should_use_dominant_badges()
+    print(f"🔧 Debug: TV series dominant badges enabled: {tv_enabled}")
+    
+    if tv_enabled:
+        print(f"🔧 Debug: Getting item details for {item_id}...")
+        item_details = get_jellyfin_item_details(jellyfin_url, api_key, user_id, item_id)
+        if item_details:
+            item_type = item_details.get('Type', 'Unknown')
+            print(f"🔧 Debug: Item type: {item_type}")
+            is_series = is_tv_series(item_details)
+            print(f"🔧 Debug: Is TV series: {is_series}")
+        else:
+            print(f"🔧 Debug: Failed to get item details")
+    
     series_badge_info = get_series_dominant_badge_info(jellyfin_url, api_key, user_id, item_id)
+    
+    if series_badge_info:
+        print(f"✅ TV series detected: {series_badge_info['name']}")
+        print(f"📊 Dominant audio codec: {series_badge_info['audio_codec']}")
+        print(f"📊 Dominant resolution: {series_badge_info['resolution']}")
+    else:
+        print(f"ℹ️ Not a TV series or TV series analysis disabled")
     
     # 1. Download poster (we'll need this for any badge type)
     poster_path = download_poster(jellyfin_url, api_key, item_id)
@@ -395,6 +423,11 @@ def main() -> int:
     lib_p.add_argument("--cleanup", action="store_true", help="Clean up poster directories after processing")
 
     args = parser.parse_args()
+    
+    # Auto-repair settings before validation
+    print("🔧 Auto-repairing settings file...")
+    validate_and_repair_settings()
+    
     run_settings_check()
 
     settings = load_settings()

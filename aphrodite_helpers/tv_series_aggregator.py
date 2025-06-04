@@ -12,20 +12,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from aphrodite_helpers.get_media_info import get_primary_audio_codec
 from aphrodite_helpers.get_resolution_info import get_resolution_badge_text
-
-def load_settings(path="settings.yaml"):
-    """Load settings from the settings file."""
-    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    full_path = os.path.join(root_dir, path)
-    try:
-        with open(full_path, 'r') as f:
-            return yaml.safe_load(f)
-    except FileNotFoundError:
-        print(f"❌ Error: Settings file {path} not found.")
-        return None
-    except yaml.YAMLError as e:
-        print(f"❌ Error parsing settings: {e}")
-        return None
+from aphrodite_helpers.check_jellyfin_connection import load_settings
 
 def get_jellyfin_item_details(url, api_key, user_id, item_id, timeout=30):
     """Get detailed information about a Jellyfin item."""

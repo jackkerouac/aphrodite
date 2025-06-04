@@ -13,6 +13,34 @@ def create_app():
     # Set up logging to be more verbose
     app = Flask(__name__, static_folder='../frontend/dist', static_url_path='/')
     
+    # Auto-repair settings before anything else
+    try:
+        # Determine base directory for settings
+        is_docker = (
+            os.path.exists('/app') and 
+            os.path.exists('/app/settings.yaml') and 
+            os.path.exists('/.dockerenv')
+        )
+        
+        if is_docker:
+            settings_path = '/app/settings.yaml'
+        else:
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+            settings_path = os.path.join(base_dir, 'settings.yaml')
+        
+        # Import and run auto-repair
+        import sys
+        sys.path.append('/app' if is_docker else base_dir)
+        from aphrodite_helpers.config_auto_repair import validate_and_repair_settings
+        
+        print(f"🔧 Web app auto-repairing settings: {settings_path}")
+        validate_and_repair_settings(settings_path)
+        print("✅ Settings auto-repair completed for web app")
+        
+    except Exception as e:
+        print(f"⚠️ Settings auto-repair failed in web app: {e}")
+        # Continue anyway - the app should still work with existing settings
+    
     # Configure logging
     from flask.logging import create_logger
     logger = create_logger(app)

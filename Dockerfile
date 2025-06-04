@@ -43,6 +43,9 @@ COPY config_from_env.py /app/
 # Copy application code
 COPY . .
 
+# Ensure complete settings file is present
+COPY settings.yaml /app/settings.yaml
+
 # Ensure template files are present for config initialization
 COPY settings.yaml.template /app/settings.yaml.template
 
