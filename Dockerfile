@@ -43,11 +43,11 @@ COPY config_from_env.py /app/
 # Copy application code
 COPY . .
 
-# Ensure complete settings file is present
-COPY settings.yaml /app/settings.yaml
-
 # Ensure template files are present for config initialization
 COPY settings.yaml.template /app/settings.yaml.template
+
+# Create default settings.yaml from template if it doesn't exist
+RUN if [ ! -f "/app/settings.yaml" ]; then cp /app/settings.yaml.template /app/settings.yaml; fi
 
 # Create necessary directories with correct permissions
 RUN mkdir -p /app/posters/original /app/posters/working /app/posters/modified /app/data /app/config && \
