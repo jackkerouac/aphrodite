@@ -45,6 +45,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Extract version from tag
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            VERSION=${{ github.event.release.tag_name }}
+            VERSION=${VERSION#v}  # Remove 'v' prefix if present
+          else
+            VERSION="dev-$(echo ${{ github.sha }} | cut -c1-7)"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Building version: ${VERSION}"
+
       - name: Extract metadata for Docker
         id: meta
         uses: docker/metadata-action@v4
@@ -64,3 +76,5 @@ jobs:
           push: ${{ github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.push_to_registry == 'true') }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ steps.version.outputs.version }}

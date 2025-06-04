@@ -49,8 +49,30 @@ COPY settings.yaml.template /app/settings.yaml.template
 # Create default settings.yaml from template if it doesn't exist
 RUN if [ ! -f "/app/settings.yaml" ]; then cp /app/settings.yaml.template /app/settings.yaml; fi
 
-# Ensure version.yml exists with current version (should be copied by COPY . . but ensure it exists)
-RUN if [ ! -f "/app/version.yml" ]; then echo "version: 2.2.0" > /app/version.yml; fi
+# Extract version from git tag during build (works for releases)
+ARG VERSION=unknown
+ENV BUILD_VERSION=${VERSION}
+
+# Ensure version.yml exists with current version
+# Priority: 1) Existing version.yml file, 2) Build argument, 3) Extract from git
+RUN if [ ! -f "/app/version.yml" ]; then \
+        if [ "$BUILD_VERSION" != "unknown" ] && [ -n "$BUILD_VERSION" ]; then \
+            echo "version: $BUILD_VERSION" > /app/version.yml; \
+            echo "Version set from build arg: $BUILD_VERSION"; \
+        else \
+            # Try to extract from git if available \
+            if [ -d "/app/.git" ]; then \
+                GIT_VERSION=$(cd /app && git describe --tags --always 2>/dev/null || echo "dev"); \
+                echo "version: $GIT_VERSION" > /app/version.yml; \
+                echo "Version set from git: $GIT_VERSION"; \
+            else \
+                echo "version: dev-$(date +%Y%m%d)" > /app/version.yml; \
+                echo "Version set to development build"; \
+            fi; \
+        fi; \
+    else \
+        echo "Using existing version.yml file"; \
+    fi
 
 # Create necessary directories with correct permissions
 RUN mkdir -p /app/posters/original /app/posters/working /app/posters/modified /app/data /app/config && \

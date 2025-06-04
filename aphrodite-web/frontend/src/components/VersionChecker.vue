@@ -1,8 +1,10 @@
 <template>
   <div class="version-checker">
     <!-- Loading state -->
-    <div v-if="isLoading" class="text-sm opacity-70">
-      v{{ currentVersion }} <span class="loading loading-spinner loading-xs ml-1"></span>
+    <div v-if="isLoading || !currentVersion" class="text-sm opacity-70">
+      <span v-if="currentVersion">v{{ currentVersion }}</span>
+      <span v-else>Loading...</span>
+      <span class="loading loading-spinner loading-xs ml-1"></span>
     </div>
     
     <!-- Update available state -->
@@ -93,7 +95,7 @@ export default {
   name: 'VersionChecker',
   data() {
     return {
-      currentVersion: '1.4.8',
+      currentVersion: null,  // Will be fetched from API
       latestVersion: null,
       updateAvailable: false,
       isLoading: false,
@@ -134,7 +136,8 @@ export default {
 
       try {
         console.log('VersionChecker: Making API request to /api/version/check');
-        const response = await axios.get(`/api/version/check${force ? '?force=true' : ''}`);
+        const cacheBuster = new Date().getTime();
+        const response = await axios.get(`/api/version/check${force ? '?force=true' : ''}${force ? '&' : '?'}_cb=${cacheBuster}`);
         console.log('VersionChecker: API response:', response.data);
         
         if (response.data.success) {

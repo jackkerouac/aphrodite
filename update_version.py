@@ -1,93 +1,137 @@
 #!/usr/bin/env python3
 """
-Simple script to update the Aphrodite version across all files
-Usage: python update_version.py 1.4.4
+Update all version files to match a target version.
+This ensures consistency across the project.
 """
 
-import sys
 import yaml
-import json
+import sys
+import os
+import re
 from pathlib import Path
 
-def update_version(new_version):
-    """Update version in all relevant files"""
+def get_current_version():
+    """Get the current version from version.yml."""
+    base_dir = Path(__file__).parent
+    version_file = base_dir / "version.yml"
     
-    # Base directory (root of the project)
+    if version_file.exists():
+        try:
+            with open(version_file, 'r') as f:
+                data = yaml.safe_load(f)
+                return data.get('version', 'unknown')
+        except Exception:
+            pass
+    return 'unknown'
+
+def update_version_files(new_version):
+    """Update all version-related files to the specified version."""
+    
     base_dir = Path(__file__).parent
     
-    files_updated = []
+    # Files to update
+    version_files = [
+        base_dir / "version.yml",
+        base_dir / "config" / "version.yml"
+    ]
     
-    # 1. Update version.yml
-    version_file = base_dir / 'version.yml'
-    try:
-        with open(version_file, 'w') as f:
-            yaml.dump({'version': new_version}, f, default_flow_style=False)
-        files_updated.append(str(version_file))
-        print(f"✅ Updated {version_file}")
-    except Exception as e:
-        print(f"❌ Failed to update {version_file}: {e}")
+    print(f"Updating all version files to: {new_version}")
     
-    # 2. Update package.json
-    package_file = base_dir / 'package.json'
-    try:
-        with open(package_file, 'r') as f:
-            package_data = json.load(f)
-        
-        package_data['version'] = new_version
-        
-        with open(package_file, 'w') as f:
-            json.dump(package_data, f, indent=2)
-        
-        files_updated.append(str(package_file))
-        print(f"✅ Updated {package_file}")
-    except Exception as e:
-        print(f"❌ Failed to update {package_file}: {e}")
-    
-    # 3. Update frontend package.json
-    frontend_package_file = base_dir / 'aphrodite-web' / 'frontend' / 'package.json'
-    try:
-        if frontend_package_file.exists():
-            with open(frontend_package_file, 'r') as f:
-                frontend_package_data = json.load(f)
+    # Update YAML version files
+    for version_file in version_files:
+        try:
+            # Create directory if it doesn't exist
+            version_file.parent.mkdir(parents=True, exist_ok=True)
             
-            frontend_package_data['version'] = new_version
-            
-            with open(frontend_package_file, 'w') as f:
-                json.dump(frontend_package_data, f, indent=2)
-            
-            files_updated.append(str(frontend_package_file))
-            print(f"✅ Updated {frontend_package_file}")
-    except Exception as e:
-        print(f"❌ Failed to update {frontend_package_file}: {e}")
+            with open(version_file, 'w') as f:
+                yaml.dump({'version': new_version}, f, default_flow_style=False)
+            print(f"✅ Updated {version_file}")
+        except Exception as e:
+            print(f"❌ Failed to update {version_file}: {e}")
     
-    print(f"\n🎉 Version updated to {new_version}")
-    print(f"📁 Files updated: {len(files_updated)}")
-    
-    print("\n📋 Next steps:")
-    print("1. Test the application to ensure version is displayed correctly")
-    print("2. Commit changes: git add . && git commit -m 'chore: bump version to v{}'".format(new_version))
-    print("3. Create GitHub release: git tag v{} && git push origin v{}".format(new_version, new_version))
-    
-    return files_updated
+    print(f"\n🎉 Version update complete!")
+    print(f"📝 Next steps:")
+    print(f"   1. Update docker-compose.yml image tag to: ghcr.io/jackkerouac/aphrodite:{new_version}")
+    print(f"   2. Commit changes: git add . && git commit -m 'Release v{new_version}'")
+    print(f"   3. Create and push tag: git tag v{new_version} && git push --tags")
+    print(f"   4. Create GitHub release to trigger Docker build")
+    print(f"   5. Test the published image")
 
-def main():
-    if len(sys.argv) != 2:
-        print("Usage: python update_version.py <new_version>")
-        print("Example: python update_version.py 1.4.4")
-        sys.exit(1)
+def update_docker_compose(new_version):
+    """Update docker-compose.yml with new version."""
+    base_dir = Path(__file__).parent
+    compose_file = base_dir / "docker-compose.yml"
     
-    new_version = sys.argv[1]
+    if not compose_file.exists():
+        print(f"⚠️  {compose_file} not found")
+        return
     
-    # Basic version validation
-    if not new_version.replace('.', '').replace('-', '').replace('rc', '').replace('beta', '').replace('alpha', '').isalnum():
-        print(f"❌ Invalid version format: {new_version}")
-        print("Expected format: x.y.z (e.g., 1.4.4)")
-        sys.exit(1)
-    
-    print(f"🔄 Updating Aphrodite version to {new_version}")
-    print("=" * 50)
-    
-    update_version(new_version)
+    try:
+        with open(compose_file, 'r') as f:
+            content = f.read()
+        
+        # Replace the image tag
+        pattern = r'(image: ghcr\.io/jackkerouac/aphrodite:)([^\s]+)'
+        replacement = f'\\1{new_version}'
+        
+        new_content = re.sub(pattern, replacement, content)
+        
+        if new_content != content:
+            with open(compose_file, 'w') as f:
+                f.write(new_content)
+            print(f"✅ Updated {compose_file}")
+        else:
+            print(f"⚠️  No image tag found to update in {compose_file}")
+            
+    except Exception as e:
+        print(f"❌ Failed to update {compose_file}: {e}")
+
+def show_current_version():
+    """Show the current version."""
+    current = get_current_version()
+    print(f"Current version: {current}")
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) < 2:
+        print("Aphrodite Version Management")
+        print("Usage:")
+        print("  python update_version.py <version>    # Update to specific version")
+        print("  python update_version.py current      # Show current version")
+        print("  python update_version.py auto         # Auto-increment patch version")
+        print("")
+        print("Examples:")
+        print("  python update_version.py 2.3.0")
+        print("  python update_version.py current")
+        print("  python update_version.py auto")
+        sys.exit(1)
+    
+    command = sys.argv[1]
+    
+    if command == "current":
+        show_current_version()
+    elif command == "auto":
+        current = get_current_version()
+        if current == 'unknown':
+            print("❌ Cannot auto-increment unknown version. Please specify a version.")
+            sys.exit(1)
+        
+        try:
+            # Parse semantic version and increment patch
+            parts = current.split('.')
+            if len(parts) >= 3:
+                major, minor, patch = parts[0], parts[1], parts[2]
+                new_patch = str(int(patch) + 1)
+                new_version = f"{major}.{minor}.{new_patch}"
+                print(f"Auto-incrementing: {current} → {new_version}")
+                update_version_files(new_version)
+                update_docker_compose(new_version)
+            else:
+                print(f"❌ Cannot parse version '{current}' for auto-increment")
+                sys.exit(1)
+        except Exception as e:
+            print(f"❌ Auto-increment failed: {e}")
+            sys.exit(1)
+    else:
+        version = command.lstrip('v')  # Remove 'v' prefix if present
+        update_version_files(version)
+        update_docker_compose(version)
