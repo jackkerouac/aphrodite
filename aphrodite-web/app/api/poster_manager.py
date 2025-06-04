@@ -445,6 +445,71 @@ def replace_with_external_poster(item_id):
             'error_type': type(e).__name__
         }), 500
 
+@bp.route('/item/<item_id>/upload-custom', methods=['POST'])
+def upload_custom_poster(item_id):
+    """Upload a custom poster for an item"""
+    try:
+        logger.info(f"Starting custom poster upload for item {item_id}")
+        
+        # Check if file is present
+        if 'poster' not in request.files:
+            return jsonify({
+                'success': False,
+                'message': 'No poster file provided'
+            }), 400
+        
+        file = request.files['poster']
+        if file.filename == '':
+            return jsonify({
+                'success': False,
+                'message': 'No file selected'
+            }), 400
+        
+        # Check file type
+        allowed_extensions = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
+        file_ext = os.path.splitext(file.filename)[1].lower()
+        if file_ext not in allowed_extensions:
+            return jsonify({
+                'success': False,
+                'message': f'Invalid file type. Allowed: {", ".join(allowed_extensions)}'
+            }), 400
+        
+        # Get badge application preference
+        apply_badges = request.form.get('apply_badges', 'true').lower() == 'true'
+        
+        logger.info(f"File: {file.filename}, Apply badges: {apply_badges}")
+        
+        # Import and create service
+        from app.services.custom_poster_service import CustomPosterService
+        poster_service = CustomPosterService()
+        
+        # Read file data
+        file_data = file.read()
+        
+        # Start upload process
+        job_id = poster_service.upload_custom_poster_async(
+            item_id, 
+            file_data, 
+            apply_badges
+        )
+        
+        badge_message = "with badges" if apply_badges else "without badges"
+        
+        return jsonify({
+            'success': True,
+            'message': f'Custom poster upload started {badge_message}',
+            'jobId': job_id
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in upload_custom_poster: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return jsonify({
+            'success': False,
+            'message': f'Error uploading custom poster: {str(e)}'
+        }), 500
+
 @bp.route('/item/<item_id>/reprocess', methods=['POST'])
 def reprocess_item_badges(item_id):
     """Re-apply badges to a single item (only if it doesn't already have badges)"""

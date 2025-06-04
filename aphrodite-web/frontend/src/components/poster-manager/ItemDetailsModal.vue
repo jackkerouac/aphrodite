@@ -200,18 +200,28 @@
     @close="showPosterSearchModal = false"
     @poster-replaced="handlePosterReplaced"
   />
+
+  <!-- Custom Poster Upload Modal -->
+  <CustomPosterUploadModal
+    v-if="showUploadModal"
+    :item="itemData"
+    @close="showUploadModal = false"
+    @upload-started="handleUploadStarted"
+  />
 </template>
 
 <script>
 import { ref, onMounted } from 'vue';
 import ConfirmationDialog from './ConfirmationDialog.vue';
 import PosterSearchModal from './PosterSearchModal.vue';
+import CustomPosterUploadModal from './CustomPosterUploadModal.vue';
 
 export default {
   name: 'ItemDetailsModal',
   components: {
     ConfirmationDialog,
-    PosterSearchModal
+    PosterSearchModal,
+    CustomPosterUploadModal
   },
   props: {
     item: {
@@ -229,6 +239,7 @@ export default {
     const showRevertDialog = ref(false);
     const showReprocessDialog = ref(false);
     const showPosterSearchModal = ref(false);
+    const showUploadModal = ref(false);
     const currentJobId = ref(null);
     const jobCheckInterval = ref(null);
     const itemData = ref({ ...props.item }); // Create reactive copy of item data
@@ -407,7 +418,17 @@ export default {
     };
 
     const uploadCustomPoster = () => {
-      showActionMessage('Custom poster upload will be implemented in Phase 4', 'info');
+      showUploadModal.value = true;
+    };
+
+    const handleUploadStarted = async (uploadData) => {
+      showUploadModal.value = false;
+      isProcessing.value = true;
+      currentJobId.value = uploadData.jobId;
+      
+      showActionMessage(uploadData.message, 'info');
+      
+      startJobStatusCheck();
     };
 
     const showActionMessage = (text, type = 'success') => {
@@ -446,6 +467,7 @@ export default {
       showRevertDialog,
       showReprocessDialog,
       showPosterSearchModal,
+      showUploadModal,
       availableBadges,
       defaultSelectedBadges,
       itemData,
@@ -455,6 +477,7 @@ export default {
       revertToOriginal,
       fetchNewPoster,
       uploadCustomPoster,
+      handleUploadStarted,
       handlePosterReplaced,
       formatDate,
       handleImageError

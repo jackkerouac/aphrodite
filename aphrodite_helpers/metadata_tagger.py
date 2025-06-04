@@ -143,6 +143,22 @@ class MetadataTagger:
         current_tags = item_data.get("Tags", []) or []
         return tag in current_tags
     
+    def get_item_tags(self, item_id: str) -> List[str]:
+        """
+        Get all tags for a Jellyfin item.
+        
+        Args:
+            item_id: Jellyfin item ID
+            
+        Returns:
+            List of tags for the item
+        """
+        item_data = self.get_item_metadata(item_id)
+        if not item_data:
+            return []
+        
+        return item_data.get("Tags", []) or []
+    
     def remove_aphrodite_tag(self, item_id: str, tag: str = "aphrodite-overlay") -> bool:
         """
         Remove an Aphrodite tag from a Jellyfin item.
