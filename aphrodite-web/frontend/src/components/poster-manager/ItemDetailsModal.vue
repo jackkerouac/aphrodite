@@ -72,24 +72,6 @@
             <div v-if="itemData.overview" class="text-sm opacity-80">
               {{ itemData.overview }}
             </div>
-
-            <!-- Badge History -->
-            <div v-if="badgeHistory" class="card bg-base-200">
-              <div class="card-body p-4">
-                <h4 class="card-title text-sm">Badge History</h4>
-                <div class="text-sm space-y-1">
-                  <div v-if="badgeHistory.last_processed">
-                    <strong>Last Processed:</strong> {{ formatDate(badgeHistory.last_processed) }}
-                  </div>
-                  <div>
-                    <strong>Processing Count:</strong> {{ badgeHistory.processing_count }}
-                  </div>
-                  <div v-if="badgeHistory.badges_applied && badgeHistory.badges_applied.length > 0">
-                    <strong>Applied Badges:</strong> {{ badgeHistory.badges_applied.join(', ') }}
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 

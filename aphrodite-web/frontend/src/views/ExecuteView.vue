@@ -1,18 +1,11 @@
 <template>
   <div class="execute">
-    <h1 class="text-2xl font-bold mb-4">Execute</h1>
+    <h1 class="text-2xl font-bold mb-4">Run Aphrodite</h1>
     
     <div class="mb-6">
       <p class="mb-4">Use the forms below to process Jellyfin items with the Aphrodite script.</p>
       
       <div class="tabs tabs-boxed mb-6">
-        <a 
-          class="tab" 
-          :class="{ 'tab-active': activeTab === 'item' }"
-          @click="activeTab = 'item'"
-        >
-          Process Single Item
-        </a>
         <a 
           class="tab" 
           :class="{ 'tab-active': activeTab === 'library' }"
@@ -36,13 +29,8 @@
         </a>
       </div>
       
-      <!-- Single Item Processing Form -->
-      <div v-if="activeTab === 'item'">
-        <ItemForm @process-submitted="handleProcessSubmitted" />
-      </div>
-      
       <!-- Library Processing Form -->
-      <div v-else-if="activeTab === 'library'">
+      <div v-if="activeTab === 'library'">
         <WorkflowManager class="mb-6" />
         <LibraryForm @process-submitted="handleProcessSubmitted" />
       </div>
@@ -191,7 +179,7 @@
 <script>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import ItemForm from '@/components/execute/ItemForm.vue';
+
 import LibraryForm from '@/components/execute/LibraryForm.vue';
 import WorkflowManager from '@/components/execute/WorkflowManager.vue';
 import ConnectionCheck from '@/components/execute/ConnectionCheck.vue';
@@ -200,7 +188,6 @@ import CleanupForm from '@/components/execute/CleanupForm.vue';
 export default {
   name: 'ExecuteView',
   components: {
-    ItemForm,
     LibraryForm,
     WorkflowManager,
     ConnectionCheck,
@@ -208,14 +195,14 @@ export default {
   },
   setup() {
     const route = useRouter().currentRoute.value;
-    const activeTab = ref('item');
+    const activeTab = ref('library');
     const isLoading = ref(false);
     const processResult = ref(null);
     const showResults = ref(false);
     
     // Handle route query parameters
     if (route.query.tab) {
-      const validTabs = ['item', 'library', 'check'];
+      const validTabs = ['library', 'check', 'cleanup'];
       if (validTabs.includes(route.query.tab)) {
         activeTab.value = route.query.tab;
       }
