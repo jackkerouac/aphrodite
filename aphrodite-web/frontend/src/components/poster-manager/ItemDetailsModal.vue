@@ -20,8 +20,8 @@
           <div class="space-y-4">
             <div class="relative">
               <img 
-                :src="item.poster_url || '/images/professor_relaxing.png'"
-                :alt="item.name"
+                :src="itemData.poster_url || '/images/professor_relaxing.png'"
+                :alt="itemData.name"
                 class="w-full rounded-lg shadow-lg"
                 @error="handleImageError"
               />
@@ -59,18 +59,18 @@
           <!-- Item Details -->
           <div class="space-y-4">
             <div>
-              <h2 class="text-2xl font-bold">{{ item.name }}</h2>
+              <h2 class="text-2xl font-bold">{{ itemData.name }}</h2>
               <div class="flex flex-wrap gap-2 mt-2">
-                <div class="badge badge-outline">{{ item.type }}</div>
-                <div v-if="item.year" class="badge badge-outline">{{ item.year }}</div>
-                <div v-for="genre in (item.genres || []).slice(0, 3)" :key="genre" class="badge badge-outline">
+                <div class="badge badge-outline">{{ itemData.type }}</div>
+                <div v-if="itemData.year" class="badge badge-outline">{{ itemData.year }}</div>
+                <div v-for="genre in (itemData.genres || []).slice(0, 3)" :key="genre" class="badge badge-outline">
                   {{ genre }}
                 </div>
               </div>
             </div>
 
-            <div v-if="item.overview" class="text-sm opacity-80">
-              {{ item.overview }}
+            <div v-if="itemData.overview" class="text-sm opacity-80">
+              {{ itemData.overview }}
             </div>
 
             <!-- Badge History -->
@@ -196,7 +196,7 @@
   <!-- Poster Search Modal -->
   <PosterSearchModal
     v-if="showPosterSearchModal"
-    :item="item"
+    :item="itemData"
     @close="showPosterSearchModal = false"
     @poster-replaced="handlePosterReplaced"
   />
@@ -231,6 +231,7 @@ export default {
     const showPosterSearchModal = ref(false);
     const currentJobId = ref(null);
     const jobCheckInterval = ref(null);
+    const itemData = ref({ ...props.item }); // Create reactive copy of item data
     
     // Badge selection for reprocessing
     const availableBadges = ref([
@@ -251,6 +252,15 @@ export default {
         if (data.success) {
           posterStatus.value = data.poster_status;
           badgeHistory.value = data.badge_history;
+          
+          // Update item data and add cache-busting to poster URL
+          Object.assign(itemData.value, data.item);
+          if (itemData.value.poster_url) {
+            const baseUrl = itemData.value.poster_url.split('?')[0];
+            const urlParams = new URLSearchParams(itemData.value.poster_url.split('?')[1] || '');
+            urlParams.set('_t', Date.now().toString());
+            itemData.value.poster_url = `${baseUrl}?${urlParams.toString()}`;
+          }
         } else {
           console.error('Error loading item details:', data.message);
           showActionMessage('Error loading item details', 'error');
@@ -439,6 +449,7 @@ export default {
       showPosterSearchModal,
       availableBadges,
       defaultSelectedBadges,
+      itemData,
       showReprocessConfirmation,
       showRevertConfirmation,
       reprocessItem,

@@ -151,10 +151,14 @@ class PosterReplacementService:
             if not upload_success:
                 raise Exception("Failed to upload poster to Jellyfin")
             
-            # Step 5: Update metadata tags if badges were applied
+            # Step 5: Update metadata tags
             tag_updated = False
             if selected_badges and len(selected_badges) > 0:
+                # Add tag if badges were applied
                 tag_updated = self._update_metadata_tag(item_id)
+            else:
+                # Remove tag if no badges were applied (clean poster replacement)
+                tag_updated = self._remove_metadata_tag(item_id)
             
             # Success result
             result = {
@@ -235,20 +239,38 @@ class PosterReplacementService:
             
             if is_docker:
                 working_dir = '/app'
-                base_command = ['python', '/app/aphrodite.py', 'item', item_id]
             else:
                 working_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../..'))
-                base_command = ['python', os.path.join(working_dir, 'aphrodite.py'), 'item', item_id]
             
-            # Copy custom poster to working directory so Aphrodite can process it
-            working_poster_dir = os.path.join(working_dir, 'posters', 'working')
-            os.makedirs(working_poster_dir, exist_ok=True)
+            # Strategy: Replace the original poster with our custom poster, then run Aphrodite normally
+            original_poster_dir = os.path.join(working_dir, 'posters', 'original')
+            os.makedirs(original_poster_dir, exist_ok=True)
             
-            working_poster_path = os.path.join(working_poster_dir, f"{item_id}.jpg")
-            shutil.copy2(poster_path, working_poster_path)
+            # Find existing original poster
+            original_poster_path = None
+            for ext in ['.jpg', '.jpeg', '.png', '.webp']:
+                test_path = os.path.join(original_poster_dir, f"{item_id}{ext}")
+                if os.path.exists(test_path):
+                    original_poster_path = test_path
+                    break
+            
+            # Replace the original poster with our custom poster
+            new_original_path = os.path.join(original_poster_dir, f"{item_id}.jpg")
+            
+            # Remove existing original if different extension
+            if original_poster_path and original_poster_path != new_original_path:
+                os.remove(original_poster_path)
+                logger.info(f"Removed old original poster: {original_poster_path}")
+            
+            # Copy our custom poster as the new original
+            shutil.copy2(poster_path, new_original_path)
+            logger.info(f"Set custom poster as new original: {new_original_path}")
             
             # Build command with badge selection flags
-            cmd = base_command.copy()
+            if is_docker:
+                cmd = ['python', '/app/aphrodite.py', 'item', item_id]
+            else:
+                cmd = ['python', os.path.join(working_dir, 'aphrodite.py'), 'item', item_id]
             
             # Add flags to disable badges not selected
             all_badge_types = ['audio', 'resolution', 'review', 'awards']
@@ -256,8 +278,8 @@ class PosterReplacementService:
                 if badge_type not in selected_badges:
                     cmd.append(f'--no-{badge_type}')
             
-            # Add flag to skip poster download (use existing working poster)
-            cmd.append('--no-download')
+            # Skip upload since we'll handle it ourselves
+            cmd.append('--no-upload')
             
             # Execute Aphrodite processing
             import subprocess
@@ -285,8 +307,10 @@ class PosterReplacementService:
                 logger.info(f"Successfully applied badges to poster: {modified_poster_path}")
                 return modified_poster_path
             else:
-                logger.warning("Badge application completed but no modified poster found")
-                return poster_path  # Return original if badges didn't create modified version
+                # If no modified poster, it means no badges were applied
+                # Return the custom poster itself
+                logger.info("No badges applied, using custom poster directly")
+                return poster_path
             
         except Exception as e:
             logger.error(f"Error applying badges to poster: {e}")
@@ -337,6 +361,31 @@ class PosterReplacementService:
             
         except Exception as e:
             logger.error(f"Error updating metadata tag: {e}")
+            return False
+    
+    def _remove_metadata_tag(self, item_id: str) -> bool:
+        """Remove Jellyfin metadata tag when poster has no badges"""
+        try:
+            tagging_settings = get_tagging_settings()
+            tag_name = tagging_settings.get('tag_name', 'aphrodite-overlay')
+            
+            tagger = MetadataTagger(
+                self.jellyfin_settings.get("url"),
+                self.jellyfin_settings.get("api_key"),
+                self.jellyfin_settings.get("user_id")
+            )
+            
+            success = tagger.remove_aphrodite_tag(item_id, tag_name)
+            
+            if success:
+                logger.info(f"Successfully removed metadata tag for item {item_id}")
+            else:
+                logger.warning(f"Failed to remove metadata tag for item {item_id}")
+            
+            return success
+            
+        except Exception as e:
+            logger.error(f"Error removing metadata tag: {e}")
             return False
     
     def validate_poster_data(self, poster_data: Dict) -> bool:
