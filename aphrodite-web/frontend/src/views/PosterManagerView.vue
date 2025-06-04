@@ -129,7 +129,7 @@
     </div>
 
     <!-- Poster Grid -->
-    <div v-else-if="filteredItems.length > 0" class="space-y-6">
+    <div v-if="filteredItems.length > 0" class="space-y-6">
       <!-- Results Summary -->
       <div class="stats shadow">
         <div class="stat">
