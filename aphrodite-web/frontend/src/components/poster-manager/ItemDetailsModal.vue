@@ -192,16 +192,26 @@
     @confirm="reprocessItem"
     @cancel="showReprocessDialog = false"
   />
+
+  <!-- Poster Search Modal -->
+  <PosterSearchModal
+    v-if="showPosterSearchModal"
+    :item="item"
+    @close="showPosterSearchModal = false"
+    @poster-replaced="handlePosterReplaced"
+  />
 </template>
 
 <script>
 import { ref, onMounted } from 'vue';
 import ConfirmationDialog from './ConfirmationDialog.vue';
+import PosterSearchModal from './PosterSearchModal.vue';
 
 export default {
   name: 'ItemDetailsModal',
   components: {
-    ConfirmationDialog
+    ConfirmationDialog,
+    PosterSearchModal
   },
   props: {
     item: {
@@ -218,6 +228,7 @@ export default {
     const actionMessage = ref(null);
     const showRevertDialog = ref(false);
     const showReprocessDialog = ref(false);
+    const showPosterSearchModal = ref(false);
     const currentJobId = ref(null);
     const jobCheckInterval = ref(null);
     
@@ -368,8 +379,22 @@ export default {
       }, 2000); // Check every 2 seconds
     };
 
+    const handlePosterReplaced = async (replacementData) => {
+      showPosterSearchModal.value = false;
+      isProcessing.value = true;
+      currentJobId.value = replacementData.jobId;
+      
+      const badgeList = replacementData.badges.join(', ') || 'none';
+      showActionMessage(
+        `Poster replacement started from ${replacementData.posterSource} with badges: ${badgeList}...`, 
+        'info'
+      );
+      
+      startJobStatusCheck();
+    };
+
     const fetchNewPoster = () => {
-      showActionMessage('External poster fetching will be implemented in Phase 3', 'info');
+      showPosterSearchModal.value = true;
     };
 
     const uploadCustomPoster = () => {
@@ -411,6 +436,7 @@ export default {
       actionMessage,
       showRevertDialog,
       showReprocessDialog,
+      showPosterSearchModal,
       availableBadges,
       defaultSelectedBadges,
       showReprocessConfirmation,
@@ -419,6 +445,7 @@ export default {
       revertToOriginal,
       fetchNewPoster,
       uploadCustomPoster,
+      handlePosterReplaced,
       formatDate,
       handleImageError
     };

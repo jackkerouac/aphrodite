@@ -42,6 +42,42 @@ def test_poster_manager():
         'blueprint': 'poster_manager'
     })
 
+@bp.route('/test-services', methods=['GET'])
+def test_services():
+    """Test route to verify services can be imported"""
+    results = {
+        'external_poster_service': False,
+        'poster_replacement_service': False,
+        'errors': []
+    }
+    
+    # Test ExternalPosterService
+    try:
+        from app.services.external_poster_service import ExternalPosterService
+        service = ExternalPosterService()
+        results['external_poster_service'] = True
+        logger.info("Successfully imported and created ExternalPosterService")
+    except Exception as e:
+        error_msg = f"ExternalPosterService error: {str(e)}"
+        results['errors'].append(error_msg)
+        logger.error(error_msg)
+    
+    # Test PosterReplacementService
+    try:
+        from app.services.poster_replacement_service import PosterReplacementService
+        service = PosterReplacementService()
+        results['poster_replacement_service'] = True
+        logger.info("Successfully imported and created PosterReplacementService")
+    except Exception as e:
+        error_msg = f"PosterReplacementService error: {str(e)}"
+        results['errors'].append(error_msg)
+        logger.error(error_msg)
+    
+    return jsonify({
+        'success': len(results['errors']) == 0,
+        'results': results
+    })
+
 @bp.route('/library/<library_id>', methods=['GET'])
 def get_library_posters(library_id):
     """Get all items with poster information for a specific library"""
@@ -293,6 +329,120 @@ def revert_item_to_original(item_id):
         return jsonify({
             'success': False,
             'message': f'Error starting revert process: {str(e)}'
+        }), 500
+
+@bp.route('/item/<item_id>/poster-sources', methods=['GET'])
+def get_external_poster_sources(item_id):
+    """Get poster options from external sources (TMDB, OMDB)"""
+    try:
+        # Test import first
+        logger.info(f"Testing import of ExternalPosterService...")
+        from app.services.external_poster_service import ExternalPosterService
+        logger.info(f"Successfully imported ExternalPosterService")
+        
+        # Create service instance
+        logger.info(f"Creating ExternalPosterService instance...")
+        poster_service = ExternalPosterService()
+        logger.info(f"Successfully created ExternalPosterService instance")
+        
+        # Get poster sources
+        logger.info(f"Getting poster sources for item {item_id}...")
+        poster_sources = poster_service.get_poster_sources(item_id)
+        logger.info(f"Successfully got {len(poster_sources)} poster sources")
+        
+        return jsonify({
+            'success': True,
+            'sources': poster_sources,
+            'total': len(poster_sources)
+        })
+        
+    except ImportError as e:
+        logger.error(f"Import error in get_external_poster_sources: {e}")
+        return jsonify({
+            'success': False,
+            'message': f'Import error: {str(e)}',
+            'error_type': 'ImportError'
+        }), 500
+    except Exception as e:
+        logger.error(f"General error in get_external_poster_sources: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return jsonify({
+            'success': False,
+            'message': f'Error fetching poster sources: {str(e)}',
+            'error_type': type(e).__name__
+        }), 500
+
+@bp.route('/item/<item_id>/replace-poster', methods=['POST'])
+def replace_with_external_poster(item_id):
+    """Replace current poster with external source"""
+    try:
+        logger.info(f"Starting poster replacement for item {item_id}")
+        
+        # Test import first
+        logger.info("Testing import of PosterReplacementService...")
+        from app.services.poster_replacement_service import PosterReplacementService
+        logger.info("Successfully imported PosterReplacementService")
+        
+        # Get request data
+        data = request.get_json() or {}
+        poster_data = data.get('poster_data')
+        selected_badges = data.get('badges', [])
+        
+        logger.info(f"Request data - poster_data: {bool(poster_data)}, badges: {selected_badges}")
+        
+        if not poster_data:
+            return jsonify({
+                'success': False,
+                'message': 'Poster data is required'
+            }), 400
+        
+        # Create service instance
+        logger.info("Creating PosterReplacementService instance...")
+        replacement_service = PosterReplacementService()
+        logger.info("Successfully created PosterReplacementService instance")
+        
+        # Validate poster data
+        logger.info("Validating poster data...")
+        if not replacement_service.validate_poster_data(poster_data):
+            return jsonify({
+                'success': False,
+                'message': 'Invalid poster data provided'
+            }), 400
+        
+        # Start replacement process
+        logger.info("Starting replacement process...")
+        job_id = replacement_service.replace_poster_async(
+            item_id, 
+            poster_data, 
+            selected_badges
+        )
+        logger.info(f"Replacement process started with job ID: {job_id}")
+        
+        poster_source = poster_data.get('source', 'External')
+        badge_list = ', '.join(selected_badges) if selected_badges else 'none'
+        
+        return jsonify({
+            'success': True,
+            'message': f'Poster replacement started from {poster_source} with badges: {badge_list}',
+            'jobId': job_id
+        })
+        
+    except ImportError as e:
+        logger.error(f"Import error in replace_with_external_poster: {e}")
+        return jsonify({
+            'success': False,
+            'message': f'Import error: {str(e)}',
+            'error_type': 'ImportError'
+        }), 500
+    except Exception as e:
+        logger.error(f"General error in replace_with_external_poster: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return jsonify({
+            'success': False,
+            'message': f'Error starting poster replacement: {str(e)}',
+            'error_type': type(e).__name__
         }), 500
 
 @bp.route('/item/<item_id>/reprocess', methods=['POST'])
