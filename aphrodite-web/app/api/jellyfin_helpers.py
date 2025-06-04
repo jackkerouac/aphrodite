@@ -58,7 +58,10 @@ def get_library_items_with_posters(url, api_key, user_id, library_id):
     for item in data.get('Items', []):
         poster_url = None
         if item.get('ImageTags', {}).get('Primary'):
-            poster_url = f"{url}/Items/{item['Id']}/Images/Primary?api_key={api_key}"
+            # Add cache-busting parameter with current timestamp
+            import time
+            cache_buster = int(time.time())
+            poster_url = f"{url}/Items/{item['Id']}/Images/Primary?api_key={api_key}&_t={cache_buster}"
         
         # Check if item has aphrodite-overlay metadata tag
         tags = item.get('Tags', [])

@@ -198,6 +198,7 @@
       :item="selectedItem"
       @close="selectedItem = null"
       @item-updated="handleItemUpdated"
+      @gallery-refresh="handleGalleryRefresh"
     />
   </div>
 </template>
@@ -336,6 +337,11 @@ export default {
       loadLibraryPosters();
     };
 
+    const handleGalleryRefresh = () => {
+      // Refresh the gallery with cache-busting for poster URLs
+      loadLibraryPosters();
+    };
+
     const handleImageError = (event) => {
       event.target.src = '/images/professor_relaxing.png';
     };
@@ -376,6 +382,7 @@ export default {
       debouncedSearch,
       openItemDetails,
       handleItemUpdated,
+      handleGalleryRefresh,
       handleImageError
     };
   }

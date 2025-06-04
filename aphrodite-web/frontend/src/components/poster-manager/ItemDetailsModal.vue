@@ -4,7 +4,7 @@
       <!-- Modal Header -->
       <div class="flex justify-between items-center mb-4">
         <h3 class="font-bold text-lg">Poster Details</h3>
-        <button class="btn btn-sm btn-circle btn-ghost" @click="$emit('close')">✕</button>
+        <button class="btn btn-sm btn-circle btn-ghost" @click="handleClose">✕</button>
       </div>
 
       <!-- Loading State -->
@@ -162,7 +162,7 @@
 
       <!-- Modal Actions -->
       <div class="modal-action">
-        <button class="btn" @click="$emit('close')">Close</button>
+        <button class="btn" @click="handleClose">Close</button>
       </div>
     </div>
   </div>
@@ -229,7 +229,7 @@ export default {
       required: true
     }
   },
-  emits: ['close', 'item-updated'],
+  emits: ['close', 'item-updated', 'gallery-refresh'],
   setup(props, { emit }) {
     const isLoading = ref(false);
     const isProcessing = ref(false);
@@ -242,6 +242,7 @@ export default {
     const showUploadModal = ref(false);
     const currentJobId = ref(null);
     const jobCheckInterval = ref(null);
+    const hasChanges = ref(false); // Track if any changes were made
     const itemData = ref({ ...props.item }); // Create reactive copy of item data
     
     // Badge selection for reprocessing
@@ -379,6 +380,7 @@ export default {
               clearInterval(jobCheckInterval.value);
               showActionMessage('Operation completed successfully!', 'success');
               isProcessing.value = false;
+              hasChanges.value = true; // Mark that changes were made
               
               // Reload item details to reflect changes
               await loadItemDetails();
@@ -404,6 +406,7 @@ export default {
       showPosterSearchModal.value = false;
       isProcessing.value = true;
       currentJobId.value = replacementData.jobId;
+      hasChanges.value = true; // Mark that changes were made
       
       showActionMessage(
         `Poster replacement started from ${replacementData.posterSource} (no badges will be applied)...`, 
@@ -425,8 +428,9 @@ export default {
       showUploadModal.value = false;
       isProcessing.value = true;
       currentJobId.value = uploadData.jobId;
+      hasChanges.value = true; // Mark that changes were made
       
-      showActionMessage(uploadData.message, 'info');
+      showActionMessage('Custom poster upload started (no badges applied)...', 'info');
       
       startJobStatusCheck();
     };
@@ -441,6 +445,14 @@ export default {
     const formatDate = (dateString) => {
       if (!dateString) return 'Unknown';
       return new Date(dateString).toLocaleString();
+    };
+
+    const handleClose = () => {
+      // If changes were made, emit gallery-refresh event to parent
+      if (hasChanges.value) {
+        emit('gallery-refresh');
+      }
+      emit('close');
     };
 
     const handleImageError = (event) => {
@@ -479,6 +491,7 @@ export default {
       uploadCustomPoster,
       handleUploadStarted,
       handlePosterReplaced,
+      handleClose,
       formatDate,
       handleImageError
     };

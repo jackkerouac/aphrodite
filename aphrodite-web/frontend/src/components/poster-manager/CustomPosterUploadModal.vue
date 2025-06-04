@@ -76,21 +76,6 @@
           </label>
         </div>
 
-        <!-- Badge Application Option -->
-        <div class="form-control">
-          <label class="label cursor-pointer">
-            <span class="label-text">
-              <span class="font-medium">Apply Badges</span>
-              <span class="text-sm text-base-content/70 block">Add audio, resolution, and review badges to the poster</span>
-            </span>
-            <input 
-              v-model="applyBadges" 
-              type="checkbox" 
-              class="toggle toggle-primary" 
-            />
-          </label>
-        </div>
-
         <!-- Info Alert -->
         <div class="alert alert-info">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
@@ -98,7 +83,7 @@
           </svg>
           <div class="text-sm">
             <p>The uploaded image will be resized to 1000px width and saved as the new poster for this item.</p>
-            <p class="mt-1">The original poster will be replaced in both Aphrodite and Jellyfin.</p>
+            <p class="mt-1">The original poster will be replaced in both Aphrodite and Jellyfin. Use "Apply Badges" after upload to add badges.</p>
           </div>
         </div>
       </div>
@@ -141,7 +126,6 @@ export default {
     const fileInput = ref(null)
     const selectedFile = ref(null)
     const previewUrl = ref(null)
-    const applyBadges = ref(true)
     const isUploading = ref(false)
     const uploadError = ref(null)
     const isDragOver = ref(false)
@@ -242,7 +226,7 @@ export default {
       try {
         const formData = new FormData()
         formData.append('poster', selectedFile.value)
-        formData.append('apply_badges', applyBadges.value.toString())
+        formData.append('apply_badges', 'false')  // Always false - badges applied separately
         
         const response = await fetch(`/api/poster-manager/item/${props.item.id}/upload-custom`, {
           method: 'POST',
@@ -256,7 +240,7 @@ export default {
           emit('upload-started', {
             jobId: data.jobId,
             message: data.message,
-            applyBadges: applyBadges.value
+            applyBadges: false
           })
         } else {
           uploadError.value = data.message || 'Upload failed'
@@ -289,7 +273,6 @@ export default {
       fileInput,
       selectedFile,
       previewUrl,
-      applyBadges,
       isUploading,
       uploadError,
       isDragOver,

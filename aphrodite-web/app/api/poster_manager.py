@@ -474,10 +474,11 @@ def upload_custom_poster(item_id):
                 'message': f'Invalid file type. Allowed: {", ".join(allowed_extensions)}'
             }), 400
         
-        # Get badge application preference
-        apply_badges = request.form.get('apply_badges', 'true').lower() == 'true'
+        # Always set apply_badges to false for custom uploads
+        # Users can apply badges separately using the "Apply Badges" button
+        apply_badges = False
         
-        logger.info(f"File: {file.filename}, Apply badges: {apply_badges}")
+        logger.info(f"File: {file.filename}, Apply badges: {apply_badges} (always false for custom uploads)")
         
         # Import and create service
         from app.services.custom_poster_service import CustomPosterService
@@ -493,11 +494,9 @@ def upload_custom_poster(item_id):
             apply_badges
         )
         
-        badge_message = "with badges" if apply_badges else "without badges"
-        
         return jsonify({
             'success': True,
-            'message': f'Custom poster upload started {badge_message}',
+            'message': f'Custom poster upload started (no badges applied)',
             'jobId': job_id
         })
         
