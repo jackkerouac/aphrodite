@@ -1,0 +1,505 @@
+# app/services/settings_service.py
+
+import sqlite3
+import json
+import os
+import datetime
+from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
+
+class SettingsService:
+    """Service for managing settings in SQLite database"""
+    
+    def __init__(self, db_path=None):
+        """Initialize the settings service with a database path"""
+        if db_path is None:
+            # Use default path based on environment
+            is_docker = os.path.exists('/.dockerenv')
+            if is_docker:
+                self.db_path = '/app/data/aphrodite.db'
+            else:
+                base_dir = Path(os.path.abspath(__file__)).parents[3]
+                self.db_path = os.path.join(base_dir, 'data', 'aphrodite.db')
+        else:
+            self.db_path = db_path
+            
+        # Ensure the database directory exists
+        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+        
+        # Initialize database
+        self._init_db()
+        
+    def _init_db(self):
+        """Initialize the database schema if it doesn't exist"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        # Create settings table
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL,
+            type TEXT NOT NULL,
+            category TEXT NOT NULL,
+            description TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
+        # Create API keys table
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS api_keys (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            service TEXT NOT NULL,
+            key_name TEXT NOT NULL,
+            value TEXT NOT NULL,
+            group_id INTEGER NOT NULL DEFAULT 0,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(service, key_name, group_id)
+        )
+        ''')
+        
+        # Create badge settings table
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS badge_settings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            badge_type TEXT NOT NULL,
+            setting_name TEXT NOT NULL,
+            value TEXT NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(badge_type, setting_name)
+        )
+        ''')
+        
+        # Create version table
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS settings_version (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            version INTEGER NOT NULL,
+            applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
+        conn.commit()
+        conn.close()
+    
+    def _get_connection(self):
+        """Get a database connection"""
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        return conn
+    
+    # General settings methods
+    
+    def get_setting(self, key, default=None):
+        """Get a setting value by key"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT * FROM settings WHERE key = ?', (key,))
+        row = cursor.fetchone()
+        
+        if not row:
+            conn.close()
+            return default
+        
+        value = row['value']
+        value_type = row['type']
+        
+        # Convert value based on type
+        if value_type == 'json':
+            value = json.loads(value)
+        elif value_type == 'integer':
+            value = int(value)
+        elif value_type == 'float':
+            value = float(value)
+        elif value_type == 'boolean':
+            value = value.lower() == 'true'
+        
+        conn.close()
+        return value
+    
+    def set_setting(self, key, value, category, description=None):
+        """Set a setting value"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        # Determine value type
+        if isinstance(value, dict) or isinstance(value, list):
+            value_type = 'json'
+            value = json.dumps(value)
+        elif isinstance(value, bool):
+            value_type = 'boolean'
+            value = str(value).lower()
+        elif isinstance(value, int):
+            value_type = 'integer'
+            value = str(value)
+        elif isinstance(value, float):
+            value_type = 'float'
+            value = str(value)
+        else:
+            value_type = 'string'
+            value = str(value)
+        
+        # Insert or update the setting
+        cursor.execute('''
+        INSERT INTO settings (key, value, type, category, description, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT(key) DO UPDATE SET
+            value = excluded.value,
+            type = excluded.type,
+            category = excluded.category,
+            description = excluded.description,
+            updated_at = excluded.updated_at
+        ''', (
+            key, value, value_type, category, description,
+            datetime.datetime.now().isoformat()
+        ))
+        
+        conn.commit()
+        conn.close()
+    
+    def get_settings_by_category(self, category):
+        """Get all settings in a category"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT * FROM settings WHERE category = ?', (category,))
+        rows = cursor.fetchall()
+        
+        result = {}
+        for row in rows:
+            key = row['key']
+            value = row['value']
+            value_type = row['type']
+            
+            # Convert value based on type
+            if value_type == 'json':
+                value = json.loads(value)
+            elif value_type == 'integer':
+                value = int(value)
+            elif value_type == 'float':
+                value = float(value)
+            elif value_type == 'boolean':
+                value = value.lower() == 'true'
+            
+            result[key] = value
+        
+        conn.close()
+        return result
+    
+    def delete_setting(self, key):
+        """Delete a setting by key"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('DELETE FROM settings WHERE key = ?', (key,))
+        
+        conn.commit()
+        conn.close()
+    
+    def delete_settings_by_category(self, category):
+        """Delete all settings in a category"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('DELETE FROM settings WHERE category = ?', (category,))
+        
+        conn.commit()
+        conn.close()
+    
+    # API keys methods
+    
+    def get_api_keys(self, service=None):
+        """Get all API keys for a service, or all services if none specified"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        if service:
+            cursor.execute('SELECT * FROM api_keys WHERE service = ? ORDER BY group_id, id', (service,))
+        else:
+            cursor.execute('SELECT * FROM api_keys ORDER BY service, group_id, id')
+        
+        rows = cursor.fetchall()
+        
+        # Organize API keys by service and group
+        result = {}
+        for row in rows:
+            service_name = row['service']
+            key_name = row['key_name']
+            value = row['value']
+            group_id = row['group_id']
+            
+            if service_name not in result:
+                result[service_name] = []
+            
+            # Ensure the group exists
+            while len(result[service_name]) <= group_id:
+                result[service_name].append({})
+            
+            # Add the key to the group
+            result[service_name][group_id][key_name] = value
+        
+        conn.close()
+        
+        # Return just the service if specified
+        if service and service in result:
+            return result[service]
+        
+        return result
+    
+    def set_api_key(self, service, key_name, value, group_id=0):
+        """Set an API key value"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+        INSERT INTO api_keys (service, key_name, value, group_id, updated_at)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(service, key_name, group_id) DO UPDATE SET
+            value = excluded.value,
+            updated_at = excluded.updated_at
+        ''', (
+            service, key_name, value, group_id,
+            datetime.datetime.now().isoformat()
+        ))
+        
+        conn.commit()
+        conn.close()
+    
+    def update_api_keys(self, service, keys_data):
+        """Update all API keys for a service"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        # First, delete all existing keys for this service
+        cursor.execute('DELETE FROM api_keys WHERE service = ?', (service,))
+        
+        # Then insert the new keys
+        for group_id, group_data in enumerate(keys_data):
+            for key_name, value in group_data.items():
+                cursor.execute('''
+                INSERT INTO api_keys (service, key_name, value, group_id, updated_at)
+                VALUES (?, ?, ?, ?, ?)
+                ''', (
+                    service, key_name, value, group_id,
+                    datetime.datetime.now().isoformat()
+                ))
+        
+        conn.commit()
+        conn.close()
+    
+    # Badge settings methods
+    
+    def get_badge_settings(self, badge_type):
+        """Get all settings for a badge type"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT * FROM badge_settings WHERE badge_type = ?', (badge_type,))
+        rows = cursor.fetchall()
+        
+        result = {}
+        for row in rows:
+            setting_name = row['setting_name']
+            value = row['value']
+            
+            # Try to parse as JSON first (for nested structures)
+            try:
+                value = json.loads(value)
+            except (json.JSONDecodeError, TypeError):
+                # Try to convert value if it's a number or boolean
+                try:
+                    if value.lower() == 'true':
+                        value = True
+                    elif value.lower() == 'false':
+                        value = False
+                    elif value.isdigit():
+                        value = int(value)
+                    elif '.' in value and all(p.isdigit() for p in value.split('.', 1)):
+                        value = float(value)
+                except (ValueError, AttributeError):
+                    pass
+            
+            result[setting_name] = value
+        
+        conn.close()
+        return result
+    
+    def update_badge_settings(self, badge_type, settings_data):
+        """Update all settings for a badge type"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        # First, delete all existing settings for this badge type
+        cursor.execute('DELETE FROM badge_settings WHERE badge_type = ?', (badge_type,))
+        
+        # Then insert the new settings
+        for setting_name, value in settings_data.items():
+            # Convert value to string
+            if isinstance(value, (dict, list)):
+                value = json.dumps(value)
+            else:
+                value = str(value)
+            
+            cursor.execute('''
+            INSERT INTO badge_settings (badge_type, setting_name, value, updated_at)
+            VALUES (?, ?, ?, ?)
+            ''', (
+                badge_type, setting_name, value,
+                datetime.datetime.now().isoformat()
+            ))
+        
+        conn.commit()
+        conn.close()
+    
+    # Version methods
+    
+    def get_current_version(self):
+        """Get the current settings version"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT MAX(version) AS version FROM settings_version')
+        row = cursor.fetchone()
+        
+        conn.close()
+        
+        if row and row['version'] is not None:
+            return row['version']
+        return 0
+    
+    def set_version(self, version):
+        """Set the settings version"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+        INSERT INTO settings_version (version, applied_at)
+        VALUES (?, ?)
+        ''', (
+            version,
+            datetime.datetime.now().isoformat()
+        ))
+        
+        conn.commit()
+        conn.close()
+    
+    # Migration helper methods
+    
+    def import_from_yaml(self, yaml_data, category):
+        """Import settings from YAML data for a specific category"""
+        if category in yaml_data:
+            category_data = yaml_data[category]
+            
+            # Handle nested structures
+            if isinstance(category_data, dict):
+                for key, value in category_data.items():
+                    full_key = f"{category}.{key}"
+                    self.set_setting(full_key, value, category)
+            else:
+                self.set_setting(category, category_data, category)
+    
+    def export_to_yaml(self):
+        """Export all settings to YAML format"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        # Get all settings
+        cursor.execute('SELECT * FROM settings')
+        settings_rows = cursor.fetchall()
+        
+        # Get all API keys
+        cursor.execute('SELECT * FROM api_keys ORDER BY service, group_id, id')
+        api_keys_rows = cursor.fetchall()
+        
+        # Get all badge settings
+        cursor.execute('SELECT * FROM badge_settings ORDER BY badge_type, setting_name')
+        badge_settings_rows = cursor.fetchall()
+        
+        conn.close()
+        
+        # Build the YAML structure
+        result = {}
+        
+        # Process regular settings
+        for row in settings_rows:
+            key = row['key']
+            value = row['value']
+            value_type = row['type']
+            category = row['category']
+            
+            # Convert value based on type
+            if value_type == 'json':
+                value = json.loads(value)
+            elif value_type == 'integer':
+                value = int(value)
+            elif value_type == 'float':
+                value = float(value)
+            elif value_type == 'boolean':
+                value = value.lower() == 'true'
+            
+            # Handle nested keys
+            if '.' in key:
+                parts = key.split('.')
+                current = result
+                for part in parts[:-1]:
+                    if part not in current:
+                        current[part] = {}
+                    current = current[part]
+                current[parts[-1]] = value
+            else:
+                result[key] = value
+        
+        # Process API keys
+        api_keys = {}
+        for row in api_keys_rows:
+            service = row['service']
+            key_name = row['key_name']
+            value = row['value']
+            group_id = row['group_id']
+            
+            if service not in api_keys:
+                api_keys[service] = []
+            
+            # Ensure the group exists
+            while len(api_keys[service]) <= group_id:
+                api_keys[service].append({})
+            
+            # Add the key to the group
+            api_keys[service][group_id][key_name] = value
+        
+        result['api_keys'] = api_keys
+        
+        # Process badge settings (these will be separate files)
+        badge_settings = {}
+        for row in badge_settings_rows:
+            badge_type = row['badge_type']
+            setting_name = row['setting_name']
+            value = row['value']
+            
+            # Try to parse as JSON first
+            try:
+                value = json.loads(value)
+            except (json.JSONDecodeError, TypeError):
+                # Try to convert value if it's a number or boolean
+                try:
+                    if value.lower() == 'true':
+                        value = True
+                    elif value.lower() == 'false':
+                        value = False
+                    elif value.isdigit():
+                        value = int(value)
+                    elif '.' in value and all(p.isdigit() for p in value.split('.', 1)):
+                        value = float(value)
+                except (ValueError, AttributeError):
+                    pass
+            
+            if badge_type not in badge_settings:
+                badge_settings[badge_type] = {}
+            
+            badge_settings[badge_type][setting_name] = value
+        
+        return result, badge_settings

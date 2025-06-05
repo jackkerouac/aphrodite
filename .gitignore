@@ -67,3 +67,29 @@ CRUNCHYROLL_INTEGRATION_SUMMARY.md
 DOCKER_COMPOSE_USAGE.md
 DOCKER_EXAMPLES.md
 DOCKER_README.md
+
+# SQLite databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Test databases specifically
+data/test_migration.db
+data/aphrodite.db
+
+# Python cache files (if not already present)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Test coverage files
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Temporary test files
+test_*.db
+*_test.db
