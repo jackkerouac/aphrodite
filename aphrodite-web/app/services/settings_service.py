@@ -107,6 +107,67 @@ class SettingsService:
             ''')
             logger.info("DEBUG: Created/verified app_version table")
             
+            # Create schedules table
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS schedules (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                description TEXT,
+                cron_expression TEXT NOT NULL,
+                timezone TEXT NOT NULL DEFAULT 'UTC',
+                enabled BOOLEAN NOT NULL DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_run_at TIMESTAMP,
+                next_run_at TIMESTAMP
+            )
+            ''')
+            logger.info("DEBUG: Created/verified schedules table")
+            
+            # Create schedule processing options table
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS schedule_processing_options (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                schedule_id TEXT NOT NULL,
+                option_name TEXT NOT NULL,
+                option_value TEXT NOT NULL,
+                FOREIGN KEY (schedule_id) REFERENCES schedules (id) ON DELETE CASCADE,
+                UNIQUE(schedule_id, option_name)
+            )
+            ''')
+            logger.info("DEBUG: Created/verified schedule_processing_options table")
+            
+            # Create schedule target directories table
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS schedule_target_directories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                schedule_id TEXT NOT NULL,
+                directory_name TEXT NOT NULL,
+                FOREIGN KEY (schedule_id) REFERENCES schedules (id) ON DELETE CASCADE,
+                UNIQUE(schedule_id, directory_name)
+            )
+            ''')
+            logger.info("DEBUG: Created/verified schedule_target_directories table")
+            
+            # Create job execution history table
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS job_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                schedule_id TEXT NOT NULL,
+                job_id TEXT,
+                status TEXT NOT NULL,
+                started_at TIMESTAMP NOT NULL,
+                completed_at TIMESTAMP,
+                duration_seconds REAL,
+                message TEXT,
+                error_details TEXT,
+                workflow_id TEXT,
+                result_data TEXT,
+                FOREIGN KEY (schedule_id) REFERENCES schedules (id) ON DELETE CASCADE
+            )
+            ''')
+            logger.info("DEBUG: Created/verified job_history table")
+            
             conn.commit()
             conn.close()
             logger.info("DEBUG: Database initialization completed successfully")
@@ -688,3 +749,341 @@ class SettingsService:
                 'last_checked': datetime.datetime.now().isoformat()
             }
             self.set_app_version_info(version_info)
+    
+    # Schedule management methods
+    
+    def get_schedules(self):
+        """Get all schedules with their processing options and target directories"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        # Get all schedules
+        cursor.execute('SELECT * FROM schedules ORDER BY name')
+        schedule_rows = cursor.fetchall()
+        
+        schedules = []
+        for row in schedule_rows:
+            schedule = {
+                'id': row['id'],
+                'name': row['name'],
+                'description': row['description'],
+                'cron': row['cron_expression'],
+                'timezone': row['timezone'],
+                'enabled': bool(row['enabled']),
+                'created_at': row['created_at'],
+                'updated_at': row['updated_at'],
+                'last_run': row['last_run_at'],
+                'next_run': row['next_run_at']
+            }
+            
+            # Get processing options
+            cursor.execute('SELECT option_name, option_value FROM schedule_processing_options WHERE schedule_id = ?', (row['id'],))
+            option_rows = cursor.fetchall()
+            
+            processing_options = {}
+            for option_row in option_rows:
+                option_name = option_row['option_name']
+                option_value = option_row['option_value']
+                
+                # Try to parse as boolean/number
+                if option_value.lower() == 'true':
+                    option_value = True
+                elif option_value.lower() == 'false':
+                    option_value = False
+                elif option_value.isdigit():
+                    option_value = int(option_value)
+                
+                processing_options[option_name] = option_value
+            
+            # Get target directories
+            cursor.execute('SELECT directory_name FROM schedule_target_directories WHERE schedule_id = ? ORDER BY directory_name', (row['id'],))
+            dir_rows = cursor.fetchall()
+            processing_options['target_directories'] = [dir_row['directory_name'] for dir_row in dir_rows]
+            
+            schedule['processing_options'] = processing_options
+            schedules.append(schedule)
+        
+        conn.close()
+        return schedules
+    
+    def get_schedule(self, schedule_id):
+        """Get a specific schedule by ID"""
+        schedules = self.get_schedules()
+        for schedule in schedules:
+            if schedule['id'] == schedule_id:
+                return schedule
+        return None
+    
+    def create_schedule(self, schedule_data):
+        """Create a new schedule"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # Insert schedule
+            cursor.execute('''
+            INSERT INTO schedules (
+                id, name, description, cron_expression, timezone, enabled, 
+                created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                schedule_data['id'],
+                schedule_data['name'],
+                schedule_data.get('description'),
+                schedule_data['cron'],
+                schedule_data.get('timezone', 'UTC'),
+                schedule_data.get('enabled', True),
+                datetime.datetime.now().isoformat(),
+                datetime.datetime.now().isoformat()
+            ))
+            
+            # Insert processing options
+            processing_options = schedule_data.get('processing_options', {})
+            target_directories = processing_options.pop('target_directories', [])
+            
+            for option_name, option_value in processing_options.items():
+                cursor.execute('''
+                INSERT INTO schedule_processing_options (schedule_id, option_name, option_value)
+                VALUES (?, ?, ?)
+                ''', (schedule_data['id'], option_name, str(option_value)))
+            
+            # Insert target directories
+            for directory in target_directories:
+                cursor.execute('''
+                INSERT INTO schedule_target_directories (schedule_id, directory_name)
+                VALUES (?, ?)
+                ''', (schedule_data['id'], directory))
+            
+            conn.commit()
+            return schedule_data
+        except Exception as e:
+            conn.rollback()
+            raise e
+        finally:
+            conn.close()
+    
+    def update_schedule(self, schedule_id, schedule_data):
+        """Update an existing schedule"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # Update schedule
+            cursor.execute('''
+            UPDATE schedules SET
+                name = ?, description = ?, cron_expression = ?, timezone = ?,
+                enabled = ?, updated_at = ?
+            WHERE id = ?
+            ''', (
+                schedule_data['name'],
+                schedule_data.get('description'),
+                schedule_data['cron'],
+                schedule_data.get('timezone', 'UTC'),
+                schedule_data.get('enabled', True),
+                datetime.datetime.now().isoformat(),
+                schedule_id
+            ))
+            
+            # Delete existing processing options and directories
+            cursor.execute('DELETE FROM schedule_processing_options WHERE schedule_id = ?', (schedule_id,))
+            cursor.execute('DELETE FROM schedule_target_directories WHERE schedule_id = ?', (schedule_id,))
+            
+            # Insert new processing options
+            processing_options = schedule_data.get('processing_options', {})
+            target_directories = processing_options.pop('target_directories', [])
+            
+            for option_name, option_value in processing_options.items():
+                cursor.execute('''
+                INSERT INTO schedule_processing_options (schedule_id, option_name, option_value)
+                VALUES (?, ?, ?)
+                ''', (schedule_id, option_name, str(option_value)))
+            
+            # Insert new target directories
+            for directory in target_directories:
+                cursor.execute('''
+                INSERT INTO schedule_target_directories (schedule_id, directory_name)
+                VALUES (?, ?)
+                ''', (schedule_id, directory))
+            
+            conn.commit()
+            schedule_data['id'] = schedule_id
+            return schedule_data
+        except Exception as e:
+            conn.rollback()
+            raise e
+        finally:
+            conn.close()
+    
+    def delete_schedule(self, schedule_id):
+        """Delete a schedule and all related data"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # Check if schedule exists
+            cursor.execute('SELECT id FROM schedules WHERE id = ?', (schedule_id,))
+            if not cursor.fetchone():
+                raise ValueError(f"Schedule with ID '{schedule_id}' not found")
+            
+            # Delete related data (cascade should handle this, but be explicit)
+            cursor.execute('DELETE FROM schedule_processing_options WHERE schedule_id = ?', (schedule_id,))
+            cursor.execute('DELETE FROM schedule_target_directories WHERE schedule_id = ?', (schedule_id,))
+            cursor.execute('DELETE FROM job_history WHERE schedule_id = ?', (schedule_id,))
+            
+            # Delete schedule
+            cursor.execute('DELETE FROM schedules WHERE id = ?', (schedule_id,))
+            
+            conn.commit()
+            return True
+        except Exception as e:
+            conn.rollback()
+            raise e
+        finally:
+            conn.close()
+    
+    def update_schedule_runtime_info(self, schedule_id, next_run=None, last_run=None):
+        """Update schedule runtime information (next_run, last_run)"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        updates = []
+        params = []
+        
+        if next_run is not None:
+            updates.append('next_run_at = ?')
+            params.append(next_run)
+        
+        if last_run is not None:
+            updates.append('last_run_at = ?')
+            params.append(last_run)
+        
+        if updates:
+            updates.append('updated_at = ?')
+            params.append(datetime.datetime.now().isoformat())
+            params.append(schedule_id)
+            
+            cursor.execute(f'''
+            UPDATE schedules SET {', '.join(updates)}
+            WHERE id = ?
+            ''', params)
+            
+            conn.commit()
+        
+        conn.close()
+    
+    # Job history methods
+    
+    def get_job_history(self, schedule_id=None, limit=None):
+        """Get job execution history"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        query = 'SELECT * FROM job_history'
+        params = []
+        
+        if schedule_id:
+            query += ' WHERE schedule_id = ?'
+            params.append(schedule_id)
+        
+        query += ' ORDER BY started_at DESC'
+        
+        if limit:
+            query += ' LIMIT ?'
+            params.append(limit)
+        
+        cursor.execute(query, params)
+        rows = cursor.fetchall()
+        
+        history = []
+        for row in rows:
+            history_item = {
+                'id': row['id'],
+                'schedule_id': row['schedule_id'],
+                'job_id': row['job_id'],
+                'status': row['status'],
+                'started_at': row['started_at'],
+                'completed_at': row['completed_at'],
+                'duration': row['duration_seconds'],
+                'message': row['message'],
+                'error': row['error_details'],
+                'workflow_id': row['workflow_id'],
+                'result': row['result_data']
+            }
+            history.append(history_item)
+        
+        conn.close()
+        return history
+    
+    def create_job_history_entry(self, schedule_id, job_id=None, status='running', 
+                                message=None, workflow_id=None):
+        """Create a new job history entry"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+        INSERT INTO job_history (
+            schedule_id, job_id, status, started_at, message, workflow_id
+        ) VALUES (?, ?, ?, ?, ?, ?)
+        ''', (
+            schedule_id, job_id, status, datetime.datetime.now().isoformat(),
+            message, workflow_id
+        ))
+        
+        job_history_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        
+        return job_history_id
+    
+    def update_job_history_entry(self, job_history_id, status=None, message=None,
+                                error_details=None, result_data=None):
+        """Update a job history entry"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        updates = []
+        params = []
+        
+        if status is not None:
+            updates.append('status = ?')
+            params.append(status)
+            
+            if status in ['success', 'failed']:
+                updates.append('completed_at = ?')
+                params.append(datetime.datetime.now().isoformat())
+                
+                # Calculate duration
+                cursor.execute('SELECT started_at FROM job_history WHERE id = ?', (job_history_id,))
+                row = cursor.fetchone()
+                if row:
+                    started_at = datetime.datetime.fromisoformat(row['started_at'])
+                    completed_at = datetime.datetime.now()
+                    duration = (completed_at - started_at).total_seconds()
+                    updates.append('duration_seconds = ?')
+                    params.append(duration)
+        
+        if message is not None:
+            updates.append('message = ?')
+            params.append(message)
+        
+        if error_details is not None:
+            updates.append('error_details = ?')
+            params.append(error_details)
+        
+        if result_data is not None:
+            if isinstance(result_data, (dict, list)):
+                result_data = json.dumps(result_data)
+            updates.append('result_data = ?')
+            params.append(result_data)
+        
+        if updates:
+            params.append(job_history_id)
+            
+            cursor.execute(f'''
+            UPDATE job_history SET {', '.join(updates)}
+            WHERE id = ?
+            ''', params)
+            
+            conn.commit()
+        
+        conn.close()

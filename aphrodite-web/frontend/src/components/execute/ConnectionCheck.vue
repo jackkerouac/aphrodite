@@ -66,6 +66,12 @@ export default {
         error: null
       },
       {
+        name: 'MDBList',
+        description: 'Check connection to MDBList API using configured API key',
+        status: null,
+        error: null
+      },
+      {
         name: 'AniDB',
         description: 'Check connection to AniDB using configured credentials',
         status: null,
@@ -160,28 +166,87 @@ export default {
         
         switch(service.name) {
           case 'OMDB':
-            // Check if OMDB API key exists
+            // Check if OMDB API key exists and test connection
             if (!config.api_keys.OMDB || !config.api_keys.OMDB[0] || !config.api_keys.OMDB[0].api_key) {
               service.status = 'failed';
               service.error = 'OMDB API key not configured';
               console.warn('OMDB API key not configured or invalid:', config.api_keys.OMDB);
             } else {
-              // For now we just check if the API key exists since we don't have a specific OMDB connection test endpoint
-              console.log('OMDB API key exists:', config.api_keys.OMDB[0].api_key.substring(0, 4) + '...');
-              service.status = 'connected';
+              // Test actual connection to OMDB
+              console.log('Testing OMDB connection...');
+              try {
+                const testResponse = await configApi.testConnection('omdb', {
+                  api_key: config.api_keys.OMDB[0].api_key
+                });
+                
+                if (testResponse.data && testResponse.data.success) {
+                  service.status = 'connected';
+                } else {
+                  service.status = 'failed';
+                  service.error = testResponse.data?.error || 'OMDB connection test failed';
+                }
+              } catch (testError) {
+                console.error('OMDB connection test error:', testError);
+                service.status = 'failed';
+                service.error = testError.response?.data?.error || 'OMDB connection test failed';
+              }
             }
             break;
             
           case 'TMDB':
-            // Check if TMDB API key exists
+            // Check if TMDB API key exists and test connection
             if (!config.api_keys.TMDB || !config.api_keys.TMDB[0] || !config.api_keys.TMDB[0].api_key) {
               service.status = 'failed';
               service.error = 'TMDB API key not configured';
               console.warn('TMDB API key not configured or invalid:', config.api_keys.TMDB);
             } else {
-              // For now we just check if the API key exists since we don't have a specific TMDB connection test endpoint
-              console.log('TMDB API key exists:', config.api_keys.TMDB[0].api_key.substring(0, 4) + '...');
-              service.status = 'connected';
+              // Test actual connection to TMDB
+              console.log('Testing TMDB connection...');
+              try {
+                const testResponse = await configApi.testConnection('tmdb', {
+                  api_key: config.api_keys.TMDB[0].api_key,
+                  language: config.api_keys.TMDB[0].language || 'en'
+                });
+                
+                if (testResponse.data && testResponse.data.success) {
+                  service.status = 'connected';
+                } else {
+                  service.status = 'failed';
+                  service.error = testResponse.data?.error || 'TMDB connection test failed';
+                }
+              } catch (testError) {
+                console.error('TMDB connection test error:', testError);
+                service.status = 'failed';
+                service.error = testError.response?.data?.error || 'TMDB connection test failed';
+              }
+            }
+            break;
+            
+          case 'MDBList':
+            // Check if MDBList API key exists and test connection
+            if (!config.api_keys.MDBList || !config.api_keys.MDBList[0] || !config.api_keys.MDBList[0].api_key) {
+              service.status = 'failed';
+              service.error = 'MDBList API key not configured';
+              console.warn('MDBList API key not configured or invalid:', config.api_keys.MDBList);
+            } else {
+              // Test actual connection to MDBList
+              console.log('Testing MDBList connection...');
+              try {
+                const testResponse = await configApi.testConnection('mdblist', {
+                  api_key: config.api_keys.MDBList[0].api_key
+                });
+                
+                if (testResponse.data && testResponse.data.success) {
+                  service.status = 'connected';
+                } else {
+                  service.status = 'failed';
+                  service.error = testResponse.data?.error || 'MDBList connection test failed';
+                }
+              } catch (testError) {
+                console.error('MDBList connection test error:', testError);
+                service.status = 'failed';
+                service.error = testError.response?.data?.error || 'MDBList connection test failed';
+              }
             }
             break;
             
@@ -201,20 +266,27 @@ export default {
               
               let username = '';
               let password = '';
+              let client_name = 'aphrodite';
+              let version = 3;
               
               // Handle both array and object formats based on how the ConfigService processes it
               if (Array.isArray(anidbConfig)) {
                 console.log('AniDB config is an array with length:', anidbConfig.length);
-                if (anidbConfig.length > 0 && anidbConfig[0]) {
-                  username = anidbConfig[0].username || '';
-                }
-                if (anidbConfig.length > 1 && anidbConfig[1]) {
-                  password = anidbConfig[1].password || '';
+                // Find username and password in any of the array elements
+                for (const item of anidbConfig) {
+                  if (item && typeof item === 'object') {
+                    if (item.username) username = item.username;
+                    if (item.password) password = item.password;
+                    if (item.client_name) client_name = item.client_name;
+                    if (item.version) version = item.version;
+                  }
                 }
               } else if (typeof anidbConfig === 'object') {
                 console.log('AniDB config is an object');
                 username = anidbConfig.username || '';
                 password = anidbConfig.password || '';
+                client_name = anidbConfig.client_name || 'aphrodite';
+                version = anidbConfig.version || 3;
               }
               
               console.log('AniDB credentials found - username exists:', !!username, 'password exists:', !!password);
@@ -224,8 +296,27 @@ export default {
                 service.error = 'AniDB credentials incomplete';
                 console.warn('AniDB credentials incomplete - missing username or password');
               } else {
-                // For now we just check if the credentials exist since we don't have a specific AniDB connection test endpoint
-                service.status = 'connected';
+                // Test actual connection to AniDB
+                console.log('Testing AniDB connection...');
+                try {
+                  const testResponse = await configApi.testConnection('anidb', {
+                    username: username,
+                    password: password,
+                    client_name: client_name,
+                    version: version
+                  });
+                  
+                  if (testResponse.data && testResponse.data.success) {
+                    service.status = 'connected';
+                  } else {
+                    service.status = 'failed';
+                    service.error = testResponse.data?.error || 'AniDB connection test failed';
+                  }
+                } catch (testError) {
+                  console.error('AniDB connection test error:', testError);
+                  service.status = 'failed';
+                  service.error = testError.response?.data?.error || 'AniDB connection test failed';
+                }
               }
             }
             break;
