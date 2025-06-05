@@ -10,8 +10,29 @@ from flask_cors import CORS
 
 def create_app():
     """Create and configure the Flask application"""
+    # Determine if we're in Docker environment
+    is_docker = (
+        os.path.exists('/app') and 
+        os.path.exists('/app/settings.yaml') and 
+        os.path.exists('/.dockerenv')
+    )
+    
+    # Set static folder path based on environment
+    if is_docker:
+        # In Docker, the built frontend is at /app/aphrodite-web/frontend/dist
+        static_folder_path = '/app/aphrodite-web/frontend/dist'
+    else:
+        # In development, use relative path
+        static_folder_path = '../frontend/dist'
+    
     # Set up logging to be more verbose
-    app = Flask(__name__, static_folder='../frontend/dist', static_url_path='/')
+    app = Flask(__name__, static_folder=static_folder_path, static_url_path='/')
+    
+    # Add early debug logging about static folder
+    print(f"DEBUG: Flask app created with static_folder='{static_folder_path}'")
+    print(f"DEBUG: Static folder exists: {os.path.exists(static_folder_path)}")
+    if os.path.exists(static_folder_path):
+        print(f"DEBUG: Static folder contents: {os.listdir(static_folder_path)}")
     
     # Auto-repair settings before anything else
     try:
@@ -302,6 +323,8 @@ def create_app():
     def serve_frontend(path):
         # Log the requested path for debugging
         app.logger.info(f"Serving frontend route: '{path}'")
+        app.logger.info(f"Static folder: {app.static_folder}")
+        app.logger.info(f"Static folder exists: {os.path.exists(app.static_folder)}")
         
         # Check if this is an API route - these should not be handled by the frontend
         if path.startswith('api/'):
