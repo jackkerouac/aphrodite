@@ -1,6 +1,6 @@
 <template>
   <div class="poster-manager">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex justify-between items-center mb-4">
       <h1 class="text-3xl font-bold">Poster Manager</h1>
       <div class="flex items-center gap-4">
         <button 
@@ -18,6 +18,16 @@
           Manage and organize your Jellyfin poster collection
         </div>
       </div>
+    </div>
+    
+    <!-- Description Section -->
+    <div class="bg-base-200 rounded-lg p-4 mb-6">
+      <p class="text-sm leading-relaxed opacity-80">
+        The Poster Manager provides comprehensive control over your Jellyfin poster collection. 
+        <strong>Add informational badges</strong> to individual posters or entire libraries, featuring audio codec, resolution, review scores, and award recognition. 
+        <strong>Revert posters</strong> back to their original state to remove all modifications. 
+        Use <strong>Select Mode</strong> for efficient bulk operations across multiple items, or click individual posters for detailed management options.
+      </p>
     </div>
 
     <!-- Library Selection -->

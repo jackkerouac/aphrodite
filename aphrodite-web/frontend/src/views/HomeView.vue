@@ -64,8 +64,7 @@
         <div class="card-body">
           <h2 class="card-title">Quick Actions</h2>
           <div class="space-y-3">
-            <button class="btn btn-primary w-full" @click="goToExecute('item')">Process Single Item</button>
-            <button class="btn btn-primary w-full" @click="goToExecute('library')">Process Library</button>
+            <button class="btn btn-primary w-full" @click="goToPosterManager()">Poster Manager</button>
             <button class="btn btn-secondary w-full" @click="goToExecute('check')">Check Connections</button>
           </div>
         </div>
@@ -108,6 +107,11 @@ export default {
         path: '/execute',
         query: { tab: tab }
       });
+    };
+
+    // Navigate to Poster Manager page
+    const goToPosterManager = () => {
+      router.push('/poster-manager');
     };
 
     // Get job statistics
@@ -155,7 +159,8 @@ export default {
       changes,
       goToSettings,
       goToHistory,
-      goToExecute
+      goToExecute,
+      goToPosterManager
     };
   }
 };

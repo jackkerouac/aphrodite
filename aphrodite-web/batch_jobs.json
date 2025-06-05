@@ -1,0 +1,32 @@
+{
+  "be0f6ea5-55bc-4ded-b2cb-d2b719a05133": {
+    "batch_id": "be0f6ea5-55bc-4ded-b2cb-d2b719a05133",
+    "total_items": 3,
+    "valid_items": 3,
+    "skipped_items": 0,
+    "selected_badges": [
+      "resolution",
+      "review",
+      "awards"
+    ],
+    "jobs": [
+      {
+        "job_id": "919f06fe-d02c-485d-8dc1-ccd38121a520",
+        "item_id": "70a94308a64cfa6f05834e2760d26abd",
+        "item_name": "Law & Order: Organized Crime"
+      },
+      {
+        "job_id": "404c6b09-608f-4e93-bfdd-6644b76e3f92",
+        "item_id": "6c2814371b12a4dc3ca5159a6948fa8a",
+        "item_name": "Leverage: Redemption"
+      },
+      {
+        "job_id": "e08406d5-54bc-43dc-bdda-2eb122a51d29",
+        "item_id": "96b6e2f037fee93c81af8f401b424b16",
+        "item_name": "The Librarians: The Next Chapter"
+      }
+    ],
+    "skipped": [],
+    "created_at": 1749162731.0524805
+  }
+}
