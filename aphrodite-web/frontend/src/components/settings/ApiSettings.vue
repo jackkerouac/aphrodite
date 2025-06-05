@@ -159,18 +159,25 @@ export default {
       error.value = null;
       
       try {
+        console.log('DEBUG: Loading settings from API...');
         const res = await api.getConfig('settings.yaml');
         const config = res.data.config;
+        console.log('DEBUG: Received config from API:', config);
         
         if (config && config.api_keys) {
           // Load Jellyfin settings
           if (config.api_keys.Jellyfin && config.api_keys.Jellyfin.length > 0) {
             const jellyfinConfig = config.api_keys.Jellyfin[0];
+            console.log('DEBUG: Loading Jellyfin config:', jellyfinConfig);
+            console.log('DEBUG: Current jellyfin reactive object before update:', jellyfin);
+            
             Object.assign(jellyfin, {
               url: jellyfinConfig.url || '',
               api_key: jellyfinConfig.api_key || '',
               user_id: jellyfinConfig.user_id || ''
             });
+            
+            console.log('DEBUG: Current jellyfin reactive object after update:', jellyfin);
           }
           
           // Load OMDB settings
@@ -246,6 +253,9 @@ export default {
       error.value = null;
       success.value = false;
       
+      console.log('DEBUG: Saving settings...');
+      console.log('DEBUG: Current jellyfin reactive object before save:', jellyfin);
+      
       try {
         const settingsObj = {
           api_keys: {
@@ -280,6 +290,9 @@ export default {
             }]
           }
         };
+        
+        console.log('DEBUG: Settings object to be sent:', settingsObj);
+        console.log('DEBUG: Jellyfin URL in settings object:', settingsObj.api_keys.Jellyfin[0].url);
         
         await api.updateConfig('settings.yaml', settingsObj);
         success.value = true;

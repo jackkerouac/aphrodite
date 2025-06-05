@@ -1,6 +1,6 @@
 services:
   aphrodite:
-    image: ghcr.io/jackkerouac/aphrodite:2.2.2
+    image: ghcr.io/jackkerouac/aphrodite:latest
     container_name: aphrodite
     ports:
       - "2125:5000"

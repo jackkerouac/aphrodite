@@ -49,32 +49,71 @@ class ConfigService:
         """Check if settings need to be migrated from YAML to SQLite"""
         # Check if database has any settings
         version = self.settings_service.get_current_version()
+        logger.info(f"DEBUG: _check_migration - Current database version: {version}")
         
         if version == 0:
             # Database is empty, check if YAML files exist
             settings_path = self.base_dir / 'settings.yaml'
+            logger.info(f"DEBUG: _check_migration - Checking for settings.yaml at: {settings_path}")
             
             if settings_path.exists():
-                logger.info("DEBUG: Found settings.yaml, attempting migration")
+                logger.info("DEBUG: Found settings.yaml, attempting direct migration")
                 try:
-                    # Import migration script
-                    import sys
-                    sys.path.append(str(self.base_dir))
-                    from tools.migrate_settings import migrate_yaml_to_sqlite
+                    # Load and migrate settings directly instead of importing migrate_settings
+                    import yaml
                     
-                    # Migrate settings
-                    success = migrate_yaml_to_sqlite(
-                        str(self.base_dir),
-                        self.settings_service.db_path,
-                        interactive=False
-                    )
+                    with open(settings_path, 'r') as f:
+                        settings = yaml.safe_load(f)
                     
-                    if success:
-                        logger.info("DEBUG: Settings migration successful")
-                    else:
-                        logger.error("DEBUG: Settings migration failed")
+                    logger.info(f"DEBUG: Loaded settings from YAML: {list(settings.keys()) if settings else 'None'}")
+                    
+                    # Migrate API keys
+                    if 'api_keys' in settings:
+                        api_keys = settings['api_keys']
+                        logger.info(f"DEBUG: Migrating API keys: {list(api_keys.keys())}")
+                        for service, service_keys in api_keys.items():
+                            if isinstance(service_keys, list):
+                                self.settings_service.update_api_keys(service, service_keys)
+                                logger.info(f"DEBUG: Migrated {service} API keys")
+                            else:
+                                logger.warning(f"DEBUG: Unexpected format for {service} API keys")
+                    
+                    # Migrate other settings categories
+                    categories = ['tv_series', 'metadata_tagging', 'scheduler']
+                    for category in categories:
+                        if category in settings:
+                            logger.info(f"DEBUG: Migrating {category} settings")
+                            self.settings_service.import_from_yaml(settings, category)
+                    
+                    # Migrate badge settings
+                    badge_files = {
+                        'audio': 'badge_settings_audio.yml',
+                        'resolution': 'badge_settings_resolution.yml',
+                        'review': 'badge_settings_review.yml',
+                        'awards': 'badge_settings_awards.yml'
+                    }
+                    
+                    for badge_type, filename in badge_files.items():
+                        badge_path = self.base_dir / filename
+                        if badge_path.exists():
+                            try:
+                                with open(badge_path, 'r') as f:
+                                    badge_settings = yaml.safe_load(f)
+                                self.settings_service.update_badge_settings(badge_type, badge_settings)
+                                logger.info(f"DEBUG: Migrated {badge_type} badge settings")
+                            except Exception as e:
+                                logger.error(f"DEBUG: Error migrating {badge_type} settings: {e}")
+                    
+                    # Set version to 1 to indicate successful migration
+                    self.settings_service.set_version(1)
+                    logger.info("DEBUG: Migration completed successfully!")
+                    
                 except Exception as e:
                     logger.error(f"DEBUG: Error during settings migration: {e}")
+                    import traceback
+                    logger.error(f"DEBUG: Migration traceback: {traceback.format_exc()}")
+            else:
+                logger.info("DEBUG: No settings.yaml found, skipping migration")
     
     def get_config_files(self):
         """Get a list of all available configuration files."""
@@ -185,22 +224,33 @@ class ConfigService:
     def update_config(self, file_name, content):
         """Update the content of a configuration file."""
         logger.info(f"DEBUG: Updating config for {file_name}")
+        logger.info(f"DEBUG: Content received: {content}")
         
         # Determine if we're using SQLite
         version = self.settings_service.get_current_version()
+        logger.info(f"DEBUG: Current database version: {version}")
         
         if version > 0:
+            logger.info("DEBUG: Using SQLite database for storage")
             # Save to database
             if file_name == 'settings.yaml':
+                logger.info("DEBUG: Processing settings.yaml")
                 # Handle API keys
                 if 'api_keys' in content:
+                    logger.info("DEBUG: Processing API keys")
                     api_keys = content['api_keys']
                     for service, service_keys in api_keys.items():
-                        if isinstance(service_keys, list):
-                            self.settings_service.update_api_keys(service, service_keys)
-                        else:
-                            # Convert single dict to list format
-                            self.settings_service.update_api_keys(service, [service_keys])
+                        logger.info(f"DEBUG: Processing {service} API keys: {service_keys}")
+                        try:
+                            if isinstance(service_keys, list):
+                                self.settings_service.update_api_keys(service, service_keys)
+                            else:
+                                # Convert single dict to list format
+                                self.settings_service.update_api_keys(service, [service_keys])
+                            logger.info(f"DEBUG: Successfully updated {service} API keys")
+                        except Exception as e:
+                            logger.error(f"DEBUG: Error updating {service} API keys: {e}")
+                            return False
                 
                 # Handle other categories
                 categories = {
@@ -211,21 +261,36 @@ class ConfigService:
                 
                 for yaml_key, category in categories.items():
                     if yaml_key in content:
-                        # Clear existing settings for this category
-                        self.settings_service.delete_settings_by_category(category)
-                        
-                        # Add new settings
-                        category_data = content[yaml_key]
-                        for key, value in category_data.items():
-                            full_key = f"{category}.{key}"
-                            self.settings_service.set_setting(full_key, value, category)
+                        logger.info(f"DEBUG: Processing {category} settings")
+                        try:
+                            # Clear existing settings for this category
+                            self.settings_service.delete_settings_by_category(category)
+                            
+                            # Add new settings
+                            category_data = content[yaml_key]
+                            for key, value in category_data.items():
+                                full_key = f"{category}.{key}"
+                                self.settings_service.set_setting(full_key, value, category)
+                            logger.info(f"DEBUG: Successfully updated {category} settings")
+                        except Exception as e:
+                            logger.error(f"DEBUG: Error updating {category} settings: {e}")
+                            return False
                 
+                logger.info("DEBUG: Successfully saved all settings to database")
                 return True
             elif file_name.startswith('badge_settings_'):
+                logger.info(f"DEBUG: Processing badge settings file: {file_name}")
                 # Extract badge type from filename
                 badge_type = file_name.replace('badge_settings_', '').replace('.yml', '')
-                self.settings_service.update_badge_settings(badge_type, content)
-                return True
+                try:
+                    self.settings_service.update_badge_settings(badge_type, content)
+                    logger.info(f"DEBUG: Successfully updated {badge_type} badge settings")
+                    return True
+                except Exception as e:
+                    logger.error(f"DEBUG: Error updating {badge_type} badge settings: {e}")
+                    return False
+        else:
+            logger.info("DEBUG: Database version is 0, falling back to YAML file storage")
         
         # Fall back to saving to YAML file
         file_path = self.base_dir / file_name

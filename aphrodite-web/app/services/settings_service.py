@@ -33,63 +33,85 @@ class SettingsService:
         
     def _init_db(self):
         """Initialize the database schema if it doesn't exist"""
-        conn = self._get_connection()
-        cursor = conn.cursor()
+        logger.info(f"DEBUG: Initializing database at {self.db_path}")
         
-        # Create settings table
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS settings (
-            key TEXT PRIMARY KEY,
-            value TEXT NOT NULL,
-            type TEXT NOT NULL,
-            category TEXT NOT NULL,
-            description TEXT,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-        ''')
-        
-        # Create API keys table
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS api_keys (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            service TEXT NOT NULL,
-            key_name TEXT NOT NULL,
-            value TEXT NOT NULL,
-            group_id INTEGER NOT NULL DEFAULT 0,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE(service, key_name, group_id)
-        )
-        ''')
-        
-        # Create badge settings table
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS badge_settings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            badge_type TEXT NOT NULL,
-            setting_name TEXT NOT NULL,
-            value TEXT NOT NULL,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE(badge_type, setting_name)
-        )
-        ''')
-        
-        # Create version table
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS settings_version (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            version INTEGER NOT NULL,
-            applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-        ''')
-        
-        conn.commit()
-        conn.close()
+        try:
+            conn = self._get_connection()
+            cursor = conn.cursor()
+            
+            # Create settings table
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS settings (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL,
+                type TEXT NOT NULL,
+                category TEXT NOT NULL,
+                description TEXT,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            ''')
+            logger.info("DEBUG: Created/verified settings table")
+            
+            # Create API keys table
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS api_keys (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                service TEXT NOT NULL,
+                key_name TEXT NOT NULL,
+                value TEXT NOT NULL,
+                group_id INTEGER NOT NULL DEFAULT 0,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(service, key_name, group_id)
+            )
+            ''')
+            logger.info("DEBUG: Created/verified api_keys table")
+            
+            # Create badge settings table
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS badge_settings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                badge_type TEXT NOT NULL,
+                setting_name TEXT NOT NULL,
+                value TEXT NOT NULL,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(badge_type, setting_name)
+            )
+            ''')
+            logger.info("DEBUG: Created/verified badge_settings table")
+            
+            # Create version table
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS settings_version (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                version INTEGER NOT NULL,
+                applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            ''')
+            logger.info("DEBUG: Created/verified settings_version table")
+            
+            conn.commit()
+            conn.close()
+            logger.info("DEBUG: Database initialization completed successfully")
+            
+        except Exception as e:
+            logger.error(f"DEBUG: Error initializing database: {e}")
+            import traceback
+            logger.error(f"DEBUG: Database init traceback: {traceback.format_exc()}")
+            if 'conn' in locals():
+                conn.close()
+            raise
     
     def _get_connection(self):
         """Get a database connection"""
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
-        return conn
+        try:
+            logger.debug(f"DEBUG: Connecting to database at {self.db_path}")
+            conn = sqlite3.connect(self.db_path)
+            conn.row_factory = sqlite3.Row
+            logger.debug("DEBUG: Database connection successful")
+            return conn
+        except Exception as e:
+            logger.error(f"DEBUG: Error connecting to database: {e}")
+            raise
     
     # General settings methods
     
@@ -271,25 +293,40 @@ class SettingsService:
     
     def update_api_keys(self, service, keys_data):
         """Update all API keys for a service"""
-        conn = self._get_connection()
-        cursor = conn.cursor()
+        logger.info(f"DEBUG: SettingsService.update_api_keys called for {service} with data: {keys_data}")
         
-        # First, delete all existing keys for this service
-        cursor.execute('DELETE FROM api_keys WHERE service = ?', (service,))
-        
-        # Then insert the new keys
-        for group_id, group_data in enumerate(keys_data):
-            for key_name, value in group_data.items():
-                cursor.execute('''
-                INSERT INTO api_keys (service, key_name, value, group_id, updated_at)
-                VALUES (?, ?, ?, ?, ?)
-                ''', (
-                    service, key_name, value, group_id,
-                    datetime.datetime.now().isoformat()
-                ))
-        
-        conn.commit()
-        conn.close()
+        try:
+            conn = self._get_connection()
+            cursor = conn.cursor()
+            
+            # First, delete all existing keys for this service
+            logger.info(f"DEBUG: Deleting existing API keys for {service}")
+            cursor.execute('DELETE FROM api_keys WHERE service = ?', (service,))
+            deleted_count = cursor.rowcount
+            logger.info(f"DEBUG: Deleted {deleted_count} existing API keys for {service}")
+            
+            # Then insert the new keys
+            logger.info(f"DEBUG: Inserting new API keys for {service}")
+            for group_id, group_data in enumerate(keys_data):
+                logger.info(f"DEBUG: Processing group {group_id}: {group_data}")
+                for key_name, value in group_data.items():
+                    logger.info(f"DEBUG: Inserting {key_name}={value} for {service} group {group_id}")
+                    cursor.execute('''
+                    INSERT INTO api_keys (service, key_name, value, group_id, updated_at)
+                    VALUES (?, ?, ?, ?, ?)
+                    ''', (
+                        service, key_name, value, group_id,
+                        datetime.datetime.now().isoformat()
+                    ))
+            
+            conn.commit()
+            logger.info(f"DEBUG: Successfully committed API keys for {service}")
+            conn.close()
+        except Exception as e:
+            logger.error(f"DEBUG: Error in update_api_keys for {service}: {e}")
+            if 'conn' in locals():
+                conn.close()
+            raise
     
     # Badge settings methods
     
@@ -359,17 +396,27 @@ class SettingsService:
     
     def get_current_version(self):
         """Get the current settings version"""
-        conn = self._get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute('SELECT MAX(version) AS version FROM settings_version')
-        row = cursor.fetchone()
-        
-        conn.close()
-        
-        if row and row['version'] is not None:
-            return row['version']
-        return 0
+        try:
+            conn = self._get_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute('SELECT MAX(version) AS version FROM settings_version')
+            row = cursor.fetchone()
+            
+            conn.close()
+            
+            if row and row['version'] is not None:
+                version = row['version']
+                logger.info(f"DEBUG: Current database version: {version}")
+                return version
+            
+            logger.info("DEBUG: No version found in database, returning 0")
+            return 0
+        except Exception as e:
+            logger.error(f"DEBUG: Error getting current version: {e}")
+            if 'conn' in locals():
+                conn.close()
+            return 0
     
     def set_version(self, version):
         """Set the settings version"""

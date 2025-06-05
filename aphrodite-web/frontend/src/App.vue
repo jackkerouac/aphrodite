@@ -171,6 +171,7 @@ export default {
       // Optionally refresh the page or update app state
       console.log('Migration completed successfully!');
       // You could emit an event here to refresh configuration
+    }
   },
   mounted() {
     // Add event listeners for theme switching
