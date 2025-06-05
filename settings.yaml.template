@@ -18,6 +18,9 @@ api_keys:
     client_name: aphrodite
     language: en
     cache_expiration: 60
+  MDBList:
+  - api_key: YOUR_MDBLIST_API_KEY
+    cache_expiration: 60
 
 # TV Series Badge Settings
 tv_series:

@@ -114,6 +114,10 @@ export default {
     return apiClient.post('/api/check/', credentials)
   },
   
+  testConnection(apiType, credentials) {
+    return apiClient.post('/api/check/', { api_type: apiType, ...credentials })
+  },
+  
   // Helper function to get a normalized image URL
   getImageUrl(imagePath) {
     return normalizeImageURL(imagePath);

@@ -22,7 +22,7 @@ docker system prune -f
 
 echo
 echo "Step 4: Pulling fresh image..."
-docker pull ghcr.io/jackkerouac/aphrodite:2.2.2
+docker pull ghcr.io/jackkerouac/aphrodite:latest
 
 echo
 echo "Step 5: Starting Aphrodite with latest version..."

@@ -4,232 +4,44 @@
     
     <form @submit.prevent="saveSettings" class="space-y-6">
       <!-- Jellyfin Settings -->
-      <div class="bg-white shadow rounded-lg p-4 border border-gray-200">
-        <h3 class="text-lg font-medium mb-3">Jellyfin Connection</h3>
-        
-        <div class="grid grid-cols-1 gap-4">
-          <div class="form-group">
-            <label for="jellyfin-url" class="block text-sm font-medium text-gray-700 mb-1">Server URL</label>
-            <input 
-              id="jellyfin-url" 
-              v-model="jellyfin.url" 
-              type="text" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="https://jellyfin.example.com"
-            />
-          </div>
-          
-          <div class="form-group">
-            <label for="jellyfin-api-key" class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
-            <input 
-              id="jellyfin-api-key" 
-              v-model="jellyfin.api_key" 
-              type="text" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Your Jellyfin API key"
-            />
-          </div>
-          
-          <div class="form-group">
-            <label for="jellyfin-user-id" class="block text-sm font-medium text-gray-700 mb-1">User ID</label>
-            <input 
-              id="jellyfin-user-id" 
-              v-model="jellyfin.user_id" 
-              type="text" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Your Jellyfin user ID"
-            />
-          </div>
-          
-          <div class="form-group">
-            <button 
-              type="button" 
-              @click="testJellyfinConnection" 
-              class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-              :disabled="connectionTesting"
-            >
-              {{ connectionTesting ? 'Testing...' : 'Test Connection' }}
-            </button>
-            <span v-if="connectionStatus" :class="connectionStatus.success ? 'text-green-600' : 'text-red-600'" class="ml-2">
-              {{ connectionStatus.message }}
-            </span>
-          </div>
-        </div>
-      </div>
+      <JellyfinSettings
+        v-model="jellyfin"
+        :testing="connectionTesting"
+        :status="connectionStatus"
+        @test="testJellyfinConnection"
+      />
       
       <!-- OMDB Settings -->
-      <div class="bg-white shadow rounded-lg p-4 border border-gray-200">
-        <h3 class="text-lg font-medium mb-3">OMDB API</h3>
-        
-        <div class="grid grid-cols-1 gap-4">
-          <div class="form-group">
-            <label for="omdb-api-key" class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
-            <input 
-              id="omdb-api-key" 
-              v-model="omdb.api_key" 
-              type="text" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Your OMDB API key"
-            />
-          </div>
-          
-          <div class="form-group">
-            <label for="omdb-cache" class="block text-sm font-medium text-gray-700 mb-1">Cache Expiration (minutes)</label>
-            <input 
-              id="omdb-cache" 
-              v-model.number="omdb.cache_expiration" 
-              type="number" 
-              min="0"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="60"
-            />
-          </div>
-        </div>
-      </div>
+      <OmdbSettings
+        v-model="omdb"
+        :testing="omdbTesting"
+        :status="omdbStatus"
+        @test="testOmdbConnection"
+      />
       
       <!-- TMDB Settings -->
-      <div class="bg-white shadow rounded-lg p-4 border border-gray-200">
-        <h3 class="text-lg font-medium mb-3">TMDB API</h3>
-        
-        <div class="grid grid-cols-1 gap-4">
-          <div class="form-group">
-            <label for="tmdb-api-key" class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
-            <input 
-              id="tmdb-api-key" 
-              v-model="tmdb.api_key" 
-              type="text" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Your TMDB API key"
-            />
-          </div>
-          
-          <div class="form-group">
-            <label for="tmdb-cache" class="block text-sm font-medium text-gray-700 mb-1">Cache Expiration (minutes)</label>
-            <input 
-              id="tmdb-cache" 
-              v-model.number="tmdb.cache_expiration" 
-              type="number" 
-              min="0"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="60"
-            />
-          </div>
-          
-          <div class="form-group">
-            <label for="tmdb-language" class="block text-sm font-medium text-gray-700 mb-1">Language</label>
-            <input 
-              id="tmdb-language" 
-              v-model="tmdb.language" 
-              type="text" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="en"
-            />
-          </div>
-          
-          <div class="form-group">
-            <label for="tmdb-region" class="block text-sm font-medium text-gray-700 mb-1">Region (optional)</label>
-            <input 
-              id="tmdb-region" 
-              v-model="tmdb.region" 
-              type="text" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="US"
-            />
-          </div>
-        </div>
-      </div>
+      <TmdbSettings
+        v-model="tmdb"
+        :testing="tmdbTesting"
+        :status="tmdbStatus"
+        @test="testTmdbConnection"
+      />
+      
+      <!-- MDBList Settings -->
+      <MdblistSettings
+        v-model="mdblist"
+        :testing="mdblistTesting"
+        :status="mdblistStatus"
+        @test="testMdblistConnection"
+      />
       
       <!-- AniDB Settings -->
-      <div class="bg-white shadow rounded-lg p-4 border border-gray-200">
-        <h3 class="text-lg font-medium mb-3">AniDB API</h3>
-        
-        <div class="grid grid-cols-1 gap-4">
-          <div class="form-group">
-            <label for="anidb-username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-            <input 
-              id="anidb-username" 
-              v-model="anidb.username" 
-              type="text" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Your AniDB username"
-            />
-          </div>
-          
-          <div class="form-group">
-            <label for="anidb-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <div class="relative">
-              <input 
-                id="anidb-password" 
-                :type="showPassword ? 'text' : 'password'" 
-                v-model="anidb.password" 
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Your AniDB password"
-              />
-              <button 
-                type="button" 
-                @click="showPassword = !showPassword" 
-                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 focus:outline-none"
-              >
-                <!-- Eye Icon (when password is hidden) -->
-                <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-                <!-- Eye Slash Icon (when password is visible) -->
-                <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                </svg>
-              </button>
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label for="anidb-version" class="block text-sm font-medium text-gray-700 mb-1">Version</label>
-            <input 
-              id="anidb-version" 
-              v-model.number="anidb.version" 
-              type="number" 
-              min="1"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="1"
-            />
-          </div>
-          
-          <div class="form-group">
-            <label for="anidb-client-name" class="block text-sm font-medium text-gray-700 mb-1">Client Name</label>
-            <input 
-              id="anidb-client-name" 
-              v-model="anidb.client_name" 
-              type="text" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="MyClientName"
-            />
-          </div>
-          
-          <div class="form-group">
-            <label for="anidb-language" class="block text-sm font-medium text-gray-700 mb-1">Language</label>
-            <input 
-              id="anidb-language" 
-              v-model="anidb.language" 
-              type="text" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="en"
-            />
-          </div>
-          
-          <div class="form-group">
-            <label for="anidb-cache" class="block text-sm font-medium text-gray-700 mb-1">Cache Expiration (minutes)</label>
-            <input 
-              id="anidb-cache" 
-              v-model.number="anidb.cache_expiration" 
-              type="number" 
-              min="0"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="60"
-            />
-          </div>
-        </div>
-      </div>
+      <AnidbSettings
+        v-model="anidb"
+        :testing="anidbTesting"
+        :status="anidbStatus"
+        @test="testAnidbConnection"
+      />
       
       <!-- Submit Button -->
       <div class="flex justify-end">
@@ -240,31 +52,30 @@
         >
           {{ saving ? 'Saving...' : 'Save Changes' }}
         </button>
+        
+        <!-- Success Toast -->
         <div class="toast toast-top toast-end w-64" v-if="success">
-        <div class="alert alert-success shadow-lg w-64 flex items-center space-x-2">
-          <!-- icon -->
-          <svg xmlns="http://www.w3.org/2000/svg" 
-              class="stroke-current h-6 w-6 flex-shrink-0" 
-              fill="none" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" 
-                  stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          <!-- text -->
-          <span>API settings saved!</span>
+          <div class="alert alert-success shadow-lg w-64 flex items-center space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" 
+                class="stroke-current h-6 w-6 flex-shrink-0" 
+                fill="none" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" 
+                    stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>API settings saved!</span>
+          </div>
         </div>
-      </div>
-      <div class="toast toast-top toast-end w-64" v-if="error">
+        
+        <!-- Error Toast -->
+        <div class="toast toast-top toast-end w-64" v-if="error">
           <div class="alert alert-error shadow-lg w-64 flex items-center space-x-2">
-            <div>
-              <!-- icon -->
-              <svg xmlns="http://www.w3.org/2000/svg" 
-                  class="stroke-current h-6 w-6 flex-shrink-0" 
-                  fill="none" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" 
-                      stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-              <span>API settings NOT saved!</span>
-            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" 
+                class="stroke-current h-6 w-6 flex-shrink-0" 
+                fill="none" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" 
+                    stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>API settings NOT saved!</span>
           </div>
         </div>
       </div>
@@ -275,20 +86,39 @@
 <script>
 import { ref, reactive, onMounted } from 'vue';
 import api from '@/api/config.js';
+import JellyfinSettings from './api/JellyfinSettings.vue';
+import OmdbSettings from './api/OmdbSettings.vue';
+import TmdbSettings from './api/TmdbSettings.vue';
+import MdblistSettings from './api/MdblistSettings.vue';
+import AnidbSettings from './api/AnidbSettings.vue';
 
 export default {
   name: 'ApiSettings',
+  components: {
+    JellyfinSettings,
+    OmdbSettings,
+    TmdbSettings,
+    MdblistSettings,
+    AnidbSettings
+  },
   
   setup() {
     const loading = ref(false);
     const error = ref(null);
     const success = ref(false);
     const saving = ref(false);
+    
+    // Connection testing states for each API
     const connectionTesting = ref(false);
     const connectionStatus = ref(null);
-    const showPassword = ref(false); // For password visibility toggle
-    
-    // For API integration
+    const omdbTesting = ref(false);
+    const omdbStatus = ref(null);
+    const tmdbTesting = ref(false);
+    const tmdbStatus = ref(null);
+    const mdblistTesting = ref(false);
+    const mdblistStatus = ref(null);
+    const anidbTesting = ref(false);
+    const anidbStatus = ref(null);
     
     // Form data
     const jellyfin = reactive({
@@ -318,110 +148,97 @@ export default {
       cache_expiration: 60
     });
     
+    const mdblist = reactive({
+      api_key: '',
+      cache_expiration: 60
+    });
+    
     // Load settings
     const loadSettings = async () => {
-    loading.value = true;
-    error.value = null;
-    
-    console.log('DEBUG: Starting to load settings');
-    
-    try {
-      console.log('DEBUG: Making API request to get settings.yaml');
-      const res = await api.getConfig('settings.yaml');
-      console.log('DEBUG: Got API response:', res);
-      const config = res.data.config;
-      console.log('DEBUG: Extracted config data:', config);
+      loading.value = true;
+      error.value = null;
       
-      if (config && config.api_keys) {
-        console.log('DEBUG: API keys found in config:', Object.keys(config.api_keys));
+      try {
+        const res = await api.getConfig('settings.yaml');
+        const config = res.data.config;
         
-        // Load Jellyfin settings (first item in array)
-        if (config.api_keys.Jellyfin && config.api_keys.Jellyfin.length > 0) {
-          console.log('DEBUG: Loading Jellyfin settings:', config.api_keys.Jellyfin);
-          const jellyfinConfig = config.api_keys.Jellyfin[0];
-          jellyfin.url = jellyfinConfig.url || '';
-          jellyfin.api_key = jellyfinConfig.api_key || '';
-          jellyfin.user_id = jellyfinConfig.user_id || '';
-          console.log('DEBUG: Jellyfin settings loaded:', jellyfin);
-        } else {
-          console.log('DEBUG: No Jellyfin settings found in config');
-        }
-        
-        // Load OMDB settings (first item in array)
-        if (config.api_keys.OMDB && config.api_keys.OMDB.length > 0) {
-          console.log('DEBUG: Loading OMDB settings:', config.api_keys.OMDB);
-          const omdbConfig = config.api_keys.OMDB[0];
-          omdb.api_key = omdbConfig.api_key || '';
-          omdb.cache_expiration = omdbConfig.cache_expiration || 60;
-          console.log('DEBUG: OMDB settings loaded:', omdb);
-        } else {
-          console.log('DEBUG: No OMDB settings found in config');
-        }
-        
-        // Load TMDB settings (first item in array)
-        if (config.api_keys.TMDB && config.api_keys.TMDB.length > 0) {
-          console.log('DEBUG: Loading TMDB settings:', config.api_keys.TMDB);
-          const tmdbConfig = config.api_keys.TMDB[0];
-          tmdb.api_key = tmdbConfig.api_key || '';
-          tmdb.cache_expiration = tmdbConfig.cache_expiration || 60;
-          tmdb.language = tmdbConfig.language || 'en';
-          tmdb.region = tmdbConfig.region || '';
-          console.log('DEBUG: TMDB settings loaded:', tmdb);
-        } else {
-          console.log('DEBUG: No TMDB settings found in config');
-        }
-        
-        // Load AniDB settings
-        if (config.api_keys.aniDB) {
-          console.log('DEBUG: Loading AniDB settings:', config.api_keys.aniDB);
-          const anidbConfig = config.api_keys.aniDB;
-          console.log('DEBUG: AniDB config type:', typeof anidbConfig, Array.isArray(anidbConfig));
-          
-          // Handle both array and object formats to ensure compatibility
-          if (Array.isArray(anidbConfig)) {
-            console.log('DEBUG: AniDB config is an array with length:', anidbConfig.length);
-            // Array format - extract from both items
-            if (anidbConfig.length > 0 && anidbConfig[0]) {
-              console.log('DEBUG: Loading AniDB username from first item:', anidbConfig[0]);
-              anidb.username = anidbConfig[0].username || '';
-            }
-            
-            if (anidbConfig.length > 1 && anidbConfig[1]) {
-              console.log('DEBUG: Loading AniDB other settings from second item:', anidbConfig[1]);
-              const secondItem = anidbConfig[1];
-              anidb.password = secondItem.password || '';
-              anidb.version = secondItem.version || 1;
-              anidb.client_name = secondItem.client_name || '';
-              anidb.language = secondItem.language || 'en';
-              anidb.cache_expiration = secondItem.cache_expiration || 60;
-            }
-          } else if (typeof anidbConfig === 'object') {
-            console.log('DEBUG: AniDB config is an object');
-            // Object format - backend already combined the values
-            anidb.username = anidbConfig.username || '';
-            anidb.password = anidbConfig.password || '';
-            anidb.version = anidbConfig.version || 1;
-            anidb.client_name = anidbConfig.client_name || '';
-            anidb.language = anidbConfig.language || 'en';
-            anidb.cache_expiration = anidbConfig.cache_expiration || 60;
+        if (config && config.api_keys) {
+          // Load Jellyfin settings
+          if (config.api_keys.Jellyfin && config.api_keys.Jellyfin.length > 0) {
+            const jellyfinConfig = config.api_keys.Jellyfin[0];
+            Object.assign(jellyfin, {
+              url: jellyfinConfig.url || '',
+              api_key: jellyfinConfig.api_key || '',
+              user_id: jellyfinConfig.user_id || ''
+            });
           }
-          console.log('DEBUG: AniDB settings loaded:', anidb);
-        } else {
-          console.log('DEBUG: No AniDB settings found in config');
+          
+          // Load OMDB settings
+          if (config.api_keys.OMDB && config.api_keys.OMDB.length > 0) {
+            const omdbConfig = config.api_keys.OMDB[0];
+            Object.assign(omdb, {
+              api_key: omdbConfig.api_key || '',
+              cache_expiration: omdbConfig.cache_expiration || 60
+            });
+          }
+          
+          // Load TMDB settings
+          if (config.api_keys.TMDB && config.api_keys.TMDB.length > 0) {
+            const tmdbConfig = config.api_keys.TMDB[0];
+            Object.assign(tmdb, {
+              api_key: tmdbConfig.api_key || '',
+              cache_expiration: tmdbConfig.cache_expiration || 60,
+              language: tmdbConfig.language || 'en',
+              region: tmdbConfig.region || ''
+            });
+          }
+          
+          // Load AniDB settings
+          if (config.api_keys.aniDB) {
+            const anidbConfig = config.api_keys.aniDB;
+            
+            if (Array.isArray(anidbConfig)) {
+              if (anidbConfig.length > 0 && anidbConfig[0]) {
+                anidb.username = anidbConfig[0].username || '';
+              }
+              
+              if (anidbConfig.length > 1 && anidbConfig[1]) {
+                const secondItem = anidbConfig[1];
+                Object.assign(anidb, {
+                  password: secondItem.password || '',
+                  version: secondItem.version || 1,
+                  client_name: secondItem.client_name || '',
+                  language: secondItem.language || 'en',
+                  cache_expiration: secondItem.cache_expiration || 60
+                });
+              }
+            } else if (typeof anidbConfig === 'object') {
+              Object.assign(anidb, {
+                username: anidbConfig.username || '',
+                password: anidbConfig.password || '',
+                version: anidbConfig.version || 1,
+                client_name: anidbConfig.client_name || '',
+                language: anidbConfig.language || 'en',
+                cache_expiration: anidbConfig.cache_expiration || 60
+              });
+            }
+          }
+          
+          // Load MDBList settings
+          if (config.api_keys.MDBList && config.api_keys.MDBList.length > 0) {
+            const mdblistConfig = config.api_keys.MDBList[0];
+            Object.assign(mdblist, {
+              api_key: mdblistConfig.api_key || '',
+              cache_expiration: mdblistConfig.cache_expiration || 60
+            });
+          }
         }
-      } else {
-        console.log('DEBUG: No API keys found in config');
+      } catch (err) {
+        error.value = err.response?.data?.error || err.message || 'Failed to load API settings';
+      } finally {
+        loading.value = false;
       }
-    } catch (err) {
-      console.error('DEBUG: Error loading settings:', err);
-      console.error('DEBUG: Error response:', err.response?.data);
-      console.error('DEBUG: Error status:', err.response?.status);
-      error.value = err.response?.data?.error || err.message || 'Failed to load API settings';
-    } finally {
-      loading.value = false;
-      console.log('DEBUG: Finished loading settings');
-    }
-  };
+    };
     
     // Save settings
     const saveSettings = async () => {
@@ -430,34 +247,25 @@ export default {
       success.value = false;
       
       try {
-        // Construct the settings object in the format expected by the backend
         const settingsObj = {
           api_keys: {
-            Jellyfin: [
-              {
-                url: jellyfin.url,
-                api_key: jellyfin.api_key,
-                user_id: jellyfin.user_id
-              }
-            ],
-            OMDB: [
-              {
-                api_key: omdb.api_key,
-                cache_expiration: omdb.cache_expiration
-              }
-            ],
-            TMDB: [
-              {
-                api_key: tmdb.api_key,
-                cache_expiration: tmdb.cache_expiration,
-                language: tmdb.language,
-                region: tmdb.region || null
-              }
-            ],
+            Jellyfin: [{
+              url: jellyfin.url,
+              api_key: jellyfin.api_key,
+              user_id: jellyfin.user_id
+            }],
+            OMDB: [{
+              api_key: omdb.api_key,
+              cache_expiration: omdb.cache_expiration
+            }],
+            TMDB: [{
+              api_key: tmdb.api_key,
+              cache_expiration: tmdb.cache_expiration,
+              language: tmdb.language,
+              region: tmdb.region || null
+            }],
             aniDB: [
-              {
-                username: anidb.username
-              },
+              { username: anidb.username },
               {
                 password: anidb.password,
                 version: anidb.version,
@@ -465,11 +273,14 @@ export default {
                 language: anidb.language,
                 cache_expiration: anidb.cache_expiration
               }
-            ]
+            ],
+            MDBList: [{
+              api_key: mdblist.api_key,
+              cache_expiration: mdblist.cache_expiration
+            }]
           }
         };
         
-        // Save settings to the backend
         await api.updateConfig('settings.yaml', settingsObj);
         success.value = true;
         setTimeout(() => success.value = false, 3000);
@@ -480,43 +291,167 @@ export default {
       }
     };
     
-    // Test Jellyfin connection
+    // Test connection functions
     const testJellyfinConnection = async () => {
       connectionTesting.value = true;
       connectionStatus.value = null;
       
       try {
-        // Check for required fields
         if (!jellyfin.url || !jellyfin.api_key || !jellyfin.user_id) {
           connectionStatus.value = {
             success: false,
             message: 'Please fill in all Jellyfin fields'
           };
-          connectionTesting.value = false;
           return;
         }
         
-        // Make API call to backend to test connection using the api client
         const response = await api.testJellyfinConnection({
           url: jellyfin.url,
           api_key: jellyfin.api_key,
           user_id: jellyfin.user_id
         });
 
-        // Access the data directly from the response
-        const data = response.data;
-
         connectionStatus.value = {
           success: true,
-          message: data.message || 'Connection successful!'
+          message: response.data.message || 'Connection successful!'
         };
-        connectionTesting.value = false;
       } catch (err) {
         connectionStatus.value = {
           success: false,
           message: err.response?.data?.error || 'Connection failed'
         };
+      } finally {
         connectionTesting.value = false;
+      }
+    };
+    
+    const testOmdbConnection = async () => {
+      omdbTesting.value = true;
+      omdbStatus.value = null;
+      
+      try {
+        if (!omdb.api_key) {
+          omdbStatus.value = {
+            success: false,
+            message: 'Please enter an OMDB API key'
+          };
+          return;
+        }
+        
+        const response = await api.testConnection('omdb', {
+          api_key: omdb.api_key
+        });
+
+        omdbStatus.value = {
+          success: true,
+          message: response.data.message || 'Connection successful!'
+        };
+      } catch (err) {
+        omdbStatus.value = {
+          success: false,
+          message: err.response?.data?.error || 'Connection failed'
+        };
+      } finally {
+        omdbTesting.value = false;
+      }
+    };
+    
+    const testTmdbConnection = async () => {
+      tmdbTesting.value = true;
+      tmdbStatus.value = null;
+      
+      try {
+        if (!tmdb.api_key) {
+          tmdbStatus.value = {
+            success: false,
+            message: 'Please enter a TMDB API key'
+          };
+          return;
+        }
+        
+        const response = await api.testConnection('tmdb', {
+          api_key: tmdb.api_key,
+          language: tmdb.language,
+          region: tmdb.region
+        });
+
+        tmdbStatus.value = {
+          success: true,
+          message: response.data.message || 'Connection successful!'
+        };
+      } catch (err) {
+        tmdbStatus.value = {
+          success: false,
+          message: err.response?.data?.error || 'Connection failed'
+        };
+      } finally {
+        tmdbTesting.value = false;
+      }
+    };
+    
+    const testMdblistConnection = async () => {
+      mdblistTesting.value = true;
+      mdblistStatus.value = null;
+      
+      try {
+        if (!mdblist.api_key) {
+          mdblistStatus.value = {
+            success: false,
+            message: 'Please enter an MDBList API key'
+          };
+          return;
+        }
+        
+        const response = await api.testConnection('mdblist', {
+          api_key: mdblist.api_key
+        });
+
+        mdblistStatus.value = {
+          success: true,
+          message: response.data.message || 'Connection successful!'
+        };
+      } catch (err) {
+        mdblistStatus.value = {
+          success: false,
+          message: err.response?.data?.error || 'Connection failed'
+        };
+      } finally {
+        mdblistTesting.value = false;
+      }
+    };
+    
+    const testAnidbConnection = async () => {
+      anidbTesting.value = true;
+      anidbStatus.value = null;
+      
+      try {
+        if (!anidb.username || !anidb.password) {
+          anidbStatus.value = {
+            success: false,
+            message: 'Please enter AniDB username and password'
+          };
+          return;
+        }
+        
+        const response = await api.testConnection('anidb', {
+          username: anidb.username,
+          password: anidb.password,
+          version: anidb.version,
+          client_name: anidb.client_name,
+          language: anidb.language
+        });
+
+        anidbStatus.value = {
+          success: true,
+          message: response.data.message || 'Connection successful!'
+        };
+      } catch (err) {
+        anidbStatus.value = {
+          success: false,
+          message: err.response?.data?.error || 'Connection failed'
+        };
+      } finally {
+        anidbTesting.value = false;
       }
     };
     
@@ -528,16 +463,28 @@ export default {
       loading,
       error,
       saving,
+      success,
       connectionTesting,
       connectionStatus,
+      omdbTesting,
+      omdbStatus,
+      tmdbTesting,
+      tmdbStatus,
+      mdblistTesting,
+      mdblistStatus,
+      anidbTesting,
+      anidbStatus,
       jellyfin,
       omdb,
       tmdb,
       anidb,
-      success,
+      mdblist,
       saveSettings,
       testJellyfinConnection,
-      showPassword
+      testOmdbConnection,
+      testTmdbConnection,
+      testMdblistConnection,
+      testAnidbConnection
     };
   }
 };
