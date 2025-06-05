@@ -61,6 +61,13 @@ create_enhanced_awards_data.py
 requirements_scraper.txt
 update_version.py
 docker-compose.dev.yml
+rebuild.bat
+update*.bat
+update*.py
+update*.sh
+test*.py
+test*.sh
+test*.bat
 
 # Documentation
 CRUNCHYROLL_INTEGRATION_SUMMARY.md
