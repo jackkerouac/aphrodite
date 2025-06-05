@@ -1,18 +1,11 @@
-import yaml
 import sys
 from pathlib import Path
 
+# Import the compatibility layer
+from aphrodite_helpers.settings_compat import load_settings
+
 REQUIRED_JELLYFIN_FIELDS = ["url", "api_key", "user_id"]
 OPTIONAL_API_SECTIONS = ["OMDB", "TMDB", "aniDB"]
-
-def load_settings(filepath="settings.yaml"):
-    try:
-        with open(filepath, "r") as file:
-            return yaml.safe_load(file)
-    except FileNotFoundError:
-        sys.exit("❌ Error: settings.yaml file not found.")
-    except yaml.YAMLError as e:
-        sys.exit(f"❌ Error parsing settings.yaml: {e}")
 
 def validate_settings(settings):
     api_keys = settings.get("api_keys", {})
@@ -43,4 +36,6 @@ def validate_settings(settings):
 
 def run_settings_check():
     settings = load_settings()
+    if not settings:
+        sys.exit("❌ Error: Could not load settings from database or YAML file.")
     validate_settings(settings)

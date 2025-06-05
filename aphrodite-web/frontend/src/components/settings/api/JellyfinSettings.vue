@@ -9,6 +9,7 @@
           id="jellyfin-url" 
           :value="modelValue.url"
           @input="updateValue('url', $event.target.value)"
+          @change="console.log('DEBUG: URL input changed to:', $event.target.value)"
           type="text" 
           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           placeholder="https://jellyfin.example.com"
@@ -73,10 +74,16 @@ export default {
   emits: ['update:modelValue', 'test'],
   setup(props, { emit }) {
     const updateValue = (key, value) => {
-      emit('update:modelValue', {
+      console.log(`DEBUG: JellyfinSettings.updateValue called with key: ${key}, value: ${value}`);
+      console.log('DEBUG: Current modelValue before update:', props.modelValue);
+      
+      const newValue = {
         ...props.modelValue,
         [key]: value
-      });
+      };
+      
+      console.log('DEBUG: New value to emit:', newValue);
+      emit('update:modelValue', newValue);
     };
 
     const handleTest = () => {

@@ -126,12 +126,20 @@ def run_aphrodite_command(item_id, selected_badges):
         
         # Run the aphrodite.py command
         logger.info(f"Executing command: {' '.join(cmd)}")
+        
+        # Set environment to ensure UTF-8 encoding
+        env = os.environ.copy()
+        env['PYTHONIOENCODING'] = 'utf-8'
+        
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
-            cwd=working_dir
+            encoding='utf-8',
+            errors='replace',  # Replace problematic characters instead of failing
+            cwd=working_dir,
+            env=env
         )
         
         stdout, stderr = process.communicate()

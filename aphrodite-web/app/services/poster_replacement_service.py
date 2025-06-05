@@ -15,7 +15,7 @@ from typing import Dict, Optional
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../..')))
 
 try:
-    from aphrodite_helpers.settings_validator import load_settings
+    from aphrodite_helpers.settings_compat import load_settings
     from aphrodite_helpers.poster_uploader import PosterUploader
     from aphrodite_helpers.metadata_tagger import MetadataTagger, get_tagging_settings
     from app.services.job import JobService
@@ -34,17 +34,13 @@ class PosterReplacementService:
         
         try:
             logger.info("Loading settings...")
-            # Try direct YAML loading instead of load_settings() which might be hanging
-            settings_path = '/app/settings.yaml' if os.path.exists('/app/settings.yaml') else 'settings.yaml'
-            logger.info(f"Trying to load settings from: {settings_path}")
-            
-            if os.path.exists(settings_path):
-                with open(settings_path, 'r') as f:
-                    self.settings = yaml.safe_load(f)
-                logger.info("Settings loaded directly from YAML")
-            else:
-                logger.warning("Settings file not found, using empty settings")
+            # Load settings from database or YAML via compatibility layer
+            self.settings = load_settings()
+            if not self.settings:
+                logger.warning("Settings could not be loaded, using empty settings")
                 self.settings = {'api_keys': {}}
+            else:
+                logger.info("Settings loaded successfully via compatibility layer")
         except Exception as e:
             logger.error(f"Error loading settings: {e}")
             self.settings = {'api_keys': {}}

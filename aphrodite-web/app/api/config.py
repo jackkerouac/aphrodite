@@ -1,5 +1,8 @@
 from flask import Blueprint, jsonify, request
 from app.services.config import ConfigService
+import logging
+
+logger = logging.getLogger(__name__)
 
 bp = Blueprint('config', __name__, url_prefix='/api/config')
 config_service = ConfigService()
@@ -72,3 +75,38 @@ def update_config(file):
         return jsonify({"error": f"Failed to update configuration file '{file}'"}), 500
     
     return jsonify({"message": f"Configuration file '{file}' updated successfully"})
+
+@bp.route('/debug/migration', methods=['POST'])
+def debug_migration():
+    """Debug endpoint to manually trigger migration and check status"""
+    try:
+        # Get current database version
+        current_version = config_service.settings_service.get_current_version()
+        logger.info(f"DEBUG: Current database version: {current_version}")
+        
+        # Force check migration
+        config_service._check_migration()
+        
+        # Get new version
+        new_version = config_service.settings_service.get_current_version()
+        logger.info(f"DEBUG: New database version: {new_version}")
+        
+        # Check what's in the database
+        api_keys = config_service.settings_service.get_api_keys()
+        
+        return jsonify({
+            "message": "Migration debug completed",
+            "old_version": current_version,
+            "new_version": new_version,
+            "api_keys_in_db": list(api_keys.keys()) if api_keys else [],
+            "migration_triggered": current_version != new_version
+        })
+        
+    except Exception as e:
+        logger.error(f"DEBUG: Error in debug migration: {e}")
+        import traceback
+        logger.error(f"DEBUG: Debug migration traceback: {traceback.format_exc()}")
+        return jsonify({
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }), 500

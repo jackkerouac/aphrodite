@@ -1,5 +1,11 @@
 <template>
   <div class="min-h-screen bg-base-200 flex" data-theme="cupcake">
+    <!-- Migration Modal -->
+    <MigrationModal 
+      :isOpen="showMigrationModal" 
+      @close="handleMigrationClose"
+      @migration-complete="handleMigrationComplete"
+    />
     <!-- Left Side Navigation -->
     <div class="drawer lg:drawer-open">
       <input id="my-drawer" type="checkbox" class="drawer-toggle" />
@@ -67,9 +73,9 @@
                 </router-link>
               </li>
               <li>
-                <router-link to="/execute" active-class="active">
+                <router-link to="/poster-manager" active-class="active">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                  Run Aphrodite
+                  Poster Manager
                 </router-link>
               </li>
               <li>
@@ -85,9 +91,9 @@
                 </router-link>
               </li>
               <li>
-                <router-link to="/poster-manager" active-class="active">
+                <router-link to="/execute" active-class="active">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                  Poster Manager
+                  Maintenance
                 </router-link>
               </li>
               <li>
@@ -129,11 +135,43 @@
 
 <script>
 import VersionChecker from './components/VersionChecker.vue';
+import MigrationModal from './components/MigrationModal.vue';
+import { useMigration } from './composables/useMigration';
 
 export default {
   name: 'App',
   components: {
-    VersionChecker
+    VersionChecker,
+    MigrationModal
+  },
+  setup() {
+    const { migrationNeeded, isChecking } = useMigration();
+    return {
+      migrationNeeded,
+      isChecking
+    };
+  },
+  data() {
+    return {
+      showMigrationModal: false
+    };
+  },
+  watch: {
+    migrationNeeded(newValue) {
+      if (newValue && !this.isChecking) {
+        this.showMigrationModal = true;
+      }
+    }
+  },
+  methods: {
+    handleMigrationClose() {
+      this.showMigrationModal = false;
+    },
+    handleMigrationComplete() {
+      // Optionally refresh the page or update app state
+      console.log('Migration completed successfully!');
+      // You could emit an event here to refresh configuration
+    }
   },
   mounted() {
     // Add event listeners for theme switching

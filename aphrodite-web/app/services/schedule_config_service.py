@@ -5,6 +5,8 @@ from pathlib import Path
 import re
 from datetime import datetime
 import pytz
+import uuid
+from app.services.settings_service import SettingsService
 
 logger = logging.getLogger(__name__)
 
@@ -23,13 +25,22 @@ class ScheduleConfigService:
             
             if is_docker:
                 self.base_dir = Path('/app')
+                db_path = '/app/data/aphrodite.db'
             else:
                 self.base_dir = Path(os.path.abspath(__file__)).parents[3]
+                db_path = os.path.join(self.base_dir, 'data', 'aphrodite.db')
         else:
             self.base_dir = Path(base_dir)
+            db_path = os.path.join(self.base_dir, 'data', 'aphrodite.db')
         
-        # Schedule configuration file
+        # Use SettingsService for database operations
+        self.settings_service = SettingsService(db_path)
+        
+        # Schedule configuration file (for migration purposes)
         self.schedules_file = self.base_dir / 'schedule_settings.yml'
+        
+        # Migrate existing YAML schedules to database if needed
+        self._migrate_yaml_schedules()
         
         logger.info(f"Schedule config service initialized with base directory: {self.base_dir}")
     
@@ -60,60 +71,44 @@ class ScheduleConfigService:
     
     def get_schedules(self):
         """Get all schedule configurations."""
-        if not self.schedules_file.exists():
-            return []
-        
         try:
-            with open(self.schedules_file, 'r') as f:
-                data = yaml.safe_load(f)
-                return data.get('schedules', [])
+            return self.settings_service.get_schedules()
         except Exception as e:
-            logger.error(f"Error reading schedules file: {e}")
+            logger.error(f"Error reading schedules from database: {e}")
             return []
     
     def save_schedules(self, schedules):
-        """Save schedule configurations."""
-        try:
-            data = {'schedules': schedules}
-            with open(self.schedules_file, 'w') as f:
-                yaml.safe_dump(data, f, default_flow_style=False, sort_keys=False)
-            return True
-        except Exception as e:
-            logger.error(f"Error saving schedules: {e}")
-            return False
+        """Save schedule configurations (deprecated - use individual methods)."""
+        logger.warning("save_schedules is deprecated - use individual create/update methods")
+        return True
     
     def add_schedule(self, schedule):
         """Add a new schedule configuration."""
-        schedules = self.get_schedules()
-        
         # Validate schedule
         validation_error = self.validate_schedule(schedule)
         if validation_error:
             raise ValueError(validation_error)
         
+        # Generate ID if not provided
+        if 'id' not in schedule or not schedule['id']:
+            schedule['id'] = str(uuid.uuid4())
+        
         # Check for duplicate IDs
-        if any(s.get('id') == schedule.get('id') for s in schedules):
-            raise ValueError(f"Schedule with ID '{schedule.get('id')}' already exists")
+        existing_schedule = self.settings_service.get_schedule(schedule['id'])
+        if existing_schedule:
+            raise ValueError(f"Schedule with ID '{schedule['id']}' already exists")
         
-        schedules.append(schedule)
-        
-        if self.save_schedules(schedules):
-            return schedule
-        else:
-            raise RuntimeError("Failed to save schedule configuration")
+        try:
+            return self.settings_service.create_schedule(schedule)
+        except Exception as e:
+            logger.error(f"Error creating schedule: {e}")
+            raise RuntimeError(f"Failed to save schedule configuration: {e}")
     
     def update_schedule(self, schedule_id, updated_schedule):
         """Update an existing schedule configuration."""
-        schedules = self.get_schedules()
-        
-        # Find the schedule to update
-        schedule_index = None
-        for i, schedule in enumerate(schedules):
-            if schedule.get('id') == schedule_id:
-                schedule_index = i
-                break
-        
-        if schedule_index is None:
+        # Check if schedule exists
+        existing_schedule = self.settings_service.get_schedule(schedule_id)
+        if not existing_schedule:
             raise ValueError(f"Schedule with ID '{schedule_id}' not found")
         
         # Validate updated schedule
@@ -124,38 +119,29 @@ class ScheduleConfigService:
         # Ensure ID matches
         updated_schedule['id'] = schedule_id
         
-        # Update the schedule
-        schedules[schedule_index] = updated_schedule
-        
-        if self.save_schedules(schedules):
-            return updated_schedule
-        else:
-            raise RuntimeError("Failed to save schedule configuration")
+        try:
+            return self.settings_service.update_schedule(schedule_id, updated_schedule)
+        except Exception as e:
+            logger.error(f"Error updating schedule: {e}")
+            raise RuntimeError(f"Failed to save schedule configuration: {e}")
     
     def remove_schedule(self, schedule_id):
         """Remove a schedule configuration."""
-        schedules = self.get_schedules()
-        
-        # Filter out the schedule to remove
-        updated_schedules = [s for s in schedules if s.get('id') != schedule_id]
-        
-        if len(updated_schedules) == len(schedules):
-            raise ValueError(f"Schedule with ID '{schedule_id}' not found")
-        
-        if self.save_schedules(updated_schedules):
-            return True
-        else:
-            raise RuntimeError("Failed to save schedule configuration")
+        try:
+            return self.settings_service.delete_schedule(schedule_id)
+        except ValueError as e:
+            raise e
+        except Exception as e:
+            logger.error(f"Error deleting schedule: {e}")
+            raise RuntimeError(f"Failed to delete schedule configuration: {e}")
     
     def get_schedule(self, schedule_id):
         """Get a specific schedule configuration."""
-        schedules = self.get_schedules()
-        
-        for schedule in schedules:
-            if schedule.get('id') == schedule_id:
-                return schedule
-        
-        return None
+        try:
+            return self.settings_service.get_schedule(schedule_id)
+        except Exception as e:
+            logger.error(f"Error getting schedule: {e}")
+            return None
     
     def validate_schedule(self, schedule):
         """Validate a schedule configuration."""
@@ -367,3 +353,57 @@ class ScheduleConfigService:
                 'name': 'Every 12 hours'
             }
         ]
+    
+    def _migrate_yaml_schedules(self):
+        """Migrate existing YAML schedules to database if needed."""
+        # Check if YAML file exists and database is empty
+        if not self.schedules_file.exists():
+            return
+        
+        try:
+            # Check if we already have schedules in the database
+            existing_schedules = self.settings_service.get_schedules()
+            if existing_schedules:
+                logger.info("Schedules already exist in database, skipping YAML migration")
+                return
+            
+            # Load schedules from YAML
+            with open(self.schedules_file, 'r') as f:
+                data = yaml.safe_load(f)
+                yaml_schedules = data.get('schedules', [])
+            
+            if not yaml_schedules:
+                logger.info("No schedules found in YAML file")
+                return
+            
+            logger.info(f"Migrating {len(yaml_schedules)} schedules from YAML to database")
+            
+            # Migrate each schedule
+            for schedule in yaml_schedules:
+                try:
+                    # Ensure schedule has an ID
+                    if 'id' not in schedule or not schedule['id']:
+                        schedule['id'] = str(uuid.uuid4())
+                    
+                    # Validate and create schedule
+                    validation_error = self.validate_schedule(schedule)
+                    if validation_error:
+                        logger.warning(f"Skipping invalid schedule '{schedule.get('name', 'unknown')}': {validation_error}")
+                        continue
+                    
+                    self.settings_service.create_schedule(schedule)
+                    logger.info(f"Migrated schedule: {schedule['name']}")
+                    
+                except Exception as e:
+                    logger.error(f"Error migrating schedule '{schedule.get('name', 'unknown')}': {e}")
+            
+            # Rename YAML file to indicate migration
+            backup_file = self.schedules_file.with_suffix('.yml.backup')
+            if not backup_file.exists():
+                self.schedules_file.rename(backup_file)
+                logger.info(f"YAML schedules file backed up to {backup_file}")
+            
+        except Exception as e:
+            logger.error(f"Error during schedule migration: {e}")
+            import traceback
+            logger.error(f"Migration traceback: {traceback.format_exc()}")

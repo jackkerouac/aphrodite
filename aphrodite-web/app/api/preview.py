@@ -13,7 +13,7 @@ from app.services.job import JobService
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 
-from aphrodite_helpers.check_jellyfin_connection import load_settings
+# Removed unused import - preview doesn't need to load main settings
 
 # Create blueprint for preview endpoints
 bp = Blueprint('preview', __name__, url_prefix='/api/preview')

@@ -10,6 +10,7 @@ import pytz
 import uuid
 import json
 from pathlib import Path
+from app.services.settings_service import SettingsService
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ class SchedulerService:
         self.scheduler = None
         self.is_running = False
         
-        # Set up base directory for job history storage
+        # Set up base directory
         if base_dir is None:
             is_docker = (
                 os.path.exists('/app') and 
@@ -31,20 +32,26 @@ class SchedulerService:
             
             if is_docker:
                 self.base_dir = Path('/app')
+                db_path = '/app/data/aphrodite.db'
             else:
                 self.base_dir = Path(os.path.abspath(__file__)).parents[3]
+                db_path = os.path.join(self.base_dir, 'data', 'aphrodite.db')
         else:
             self.base_dir = Path(base_dir)
+            db_path = os.path.join(self.base_dir, 'data', 'aphrodite.db')
         
-        # Create scheduler data directory
+        # Use SettingsService for database operations
+        self.settings_service = SettingsService(db_path)
+        
+        # Create scheduler data directory (for compatibility)
         self.scheduler_dir = self.base_dir / 'data' / 'scheduler'
         self.scheduler_dir.mkdir(parents=True, exist_ok=True)
         
-        # Job history file
+        # Job history file (for migration purposes)
         self.job_history_file = self.scheduler_dir / 'job_history.json'
         
-        # Load job history
-        self.job_history = self._load_job_history()
+        # Migrate existing job history if needed
+        self._migrate_job_history()
         
         logger.info(f"Scheduler service initialized with base directory: {self.base_dir}")
     
@@ -235,7 +242,12 @@ class SchedulerService:
         
         logger.info(f"Starting scheduled job '{schedule_id}'")
         
-        start_time = datetime.now(pytz.UTC)
+        # Create job history entry
+        job_history_id = self.settings_service.create_job_history_entry(
+            schedule_id=schedule_id,
+            status='running',
+            message=f"Starting scheduled job for '{schedule_config.get('name', schedule_id)}'"
+        )
         
         try:
             # Import workflow manager functions
@@ -274,6 +286,12 @@ class SchedulerService:
             # Add workflow to the queue
             workflow_id = add_workflow('library_batch', workflow_options)
             
+            # Update job history with workflow ID
+            self.settings_service.update_job_history_entry(
+                job_history_id,
+                message=f"Created workflow {workflow_id} for scheduled job '{schedule_id}'"
+            )
+            
             logger.info(f"Created workflow {workflow_id} for scheduled job '{schedule_id}'")
             
             # Wait for workflow to complete (with timeout)
@@ -309,8 +327,19 @@ class SchedulerService:
                 'workflow_result': final_workflow.get('result', {})
             }
             
-            # Record execution
-            self._record_job_execution(schedule_id, start_time, success, result)
+            # Update job history entry
+            self.settings_service.update_job_history_entry(
+                job_history_id,
+                status='success' if success else 'failed',
+                message=f"Scheduled job completed with status: {final_status}",
+                result_data=result
+            )
+            
+            # Update schedule's last run time
+            self.settings_service.update_schedule_runtime_info(
+                schedule_id,
+                last_run=datetime.now(pytz.UTC).isoformat()
+            )
             
             if success:
                 logger.info(f"Scheduled job '{schedule_id}' completed successfully")
@@ -318,8 +347,13 @@ class SchedulerService:
                 logger.error(f"Scheduled job '{schedule_id}' failed with status: {final_status}")
             
         except Exception as e:
-            # Record failed execution
-            self._record_job_execution(schedule_id, start_time, False, str(e))
+            # Update job history entry with error
+            self.settings_service.update_job_history_entry(
+                job_history_id,
+                status='failed',
+                message=f"Scheduled job failed: {str(e)}",
+                error_details=str(e)
+            )
             
             logger.error(f"Scheduled job '{schedule_id}' failed: {e}")
             raise
@@ -332,57 +366,90 @@ class SchedulerService:
         """Handle job error event."""
         logger.error(f"Job {event.job_id} failed with exception: {event.exception}")
     
-    def _record_job_execution(self, schedule_id, start_time, success, result):
-        """Record job execution in history."""
-        end_time = datetime.now(pytz.UTC)
-        duration = (end_time - start_time).total_seconds()
-        
-        execution_record = {
-            'schedule_id': schedule_id,
-            'start_time': start_time.isoformat(),
-            'end_time': end_time.isoformat(),
-            'duration_seconds': duration,
-            'success': success,
-            'result': result
-        }
-        
-        # Add to history (keep last 50 executions)
-        self.job_history.append(execution_record)
-        if len(self.job_history) > 50:
-            self.job_history = self.job_history[-50:]
-        
-        # Save to file
-        self._save_job_history()
-    
-    def _load_job_history(self):
-        """Load job history from file."""
-        if self.job_history_file.exists():
-            try:
-                with open(self.job_history_file, 'r') as f:
-                    return json.load(f)
-            except Exception as e:
-                logger.error(f"Error loading job history: {e}")
-        
-        return []
-    
-    def _save_job_history(self):
-        """Save job history to file."""
-        try:
-            with open(self.job_history_file, 'w') as f:
-                json.dump(self.job_history, f, indent=2)
-        except Exception as e:
-            logger.error(f"Error saving job history: {e}")
-    
     def get_job_history(self, schedule_id=None, limit=None):
         """Get job execution history."""
-        history = self.job_history
+        try:
+            return self.settings_service.get_job_history(schedule_id=schedule_id, limit=limit)
+        except Exception as e:
+            logger.error(f"Error getting job history: {e}")
+            return []
+    
+    def _migrate_job_history(self):
+        """Migrate existing JSON job history to database if needed."""
+        if not self.job_history_file.exists():
+            return
         
-        # Filter by schedule_id if provided
-        if schedule_id:
-            history = [record for record in history if record.get('schedule_id') == schedule_id]
-        
-        # Apply limit if provided
-        if limit:
-            history = history[-limit:]
-        
-        return history
+        try:
+            # Check if we already have job history in the database
+            existing_history = self.settings_service.get_job_history(limit=1)
+            if existing_history:
+                logger.info("Job history already exists in database, skipping JSON migration")
+                return
+            
+            # Load job history from JSON
+            with open(self.job_history_file, 'r') as f:
+                json_history = json.load(f)
+            
+            if not json_history:
+                logger.info("No job history found in JSON file")
+                return
+            
+            logger.info(f"Migrating {len(json_history)} job history entries from JSON to database")
+            
+            # Migrate each history entry
+            for entry in json_history:
+                try:
+                    # Map JSON format to database format
+                    schedule_id = entry.get('schedule_id')
+                    start_time = entry.get('start_time')
+                    end_time = entry.get('end_time')
+                    duration = entry.get('duration_seconds')
+                    success = entry.get('success', False)
+                    result = entry.get('result')
+                    
+                    if not schedule_id or not start_time:
+                        logger.warning(f"Skipping invalid history entry: {entry}")
+                        continue
+                    
+                    # Create history entry in database
+                    history_id = self.settings_service.create_job_history_entry(
+                        schedule_id=schedule_id,
+                        status='success' if success else 'failed',
+                        message=f"Migrated from JSON: {'Success' if success else 'Failed'}"
+                    )
+                    
+                    # Update with additional details
+                    self.settings_service.update_job_history_entry(
+                        history_id,
+                        status='success' if success else 'failed',
+                        result_data=result
+                    )
+                    
+                    # Manually update timestamps to preserve original times
+                    conn = self.settings_service._get_connection()
+                    cursor = conn.cursor()
+                    
+                    cursor.execute('''
+                    UPDATE job_history SET 
+                        started_at = ?, 
+                        completed_at = ?, 
+                        duration_seconds = ?
+                    WHERE id = ?
+                    ''', (start_time, end_time, duration, history_id))
+                    
+                    conn.commit()
+                    conn.close()
+                    
+                except Exception as e:
+                    logger.error(f"Error migrating job history entry: {e}")
+            
+            # Rename JSON file to indicate migration
+            backup_file = self.job_history_file.with_suffix('.json.backup')
+            if not backup_file.exists():
+                self.job_history_file.rename(backup_file)
+                logger.info(f"JSON job history file backed up to {backup_file}")
+            
+        except Exception as e:
+            logger.error(f"Error during job history migration: {e}")
+            import traceback
+            logger.error(f"Migration traceback: {traceback.format_exc()}")

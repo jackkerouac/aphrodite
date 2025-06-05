@@ -15,7 +15,7 @@ from typing import List, Dict, Optional
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../..')))
 
 try:
-    from aphrodite_helpers.settings_validator import load_settings
+    from aphrodite_helpers.settings_compat import load_settings
     from aphrodite_helpers.get_media_info import get_jellyfin_item_details
     logger = logging.getLogger(__name__)
 except ImportError as e:
@@ -31,17 +31,13 @@ class ExternalPosterService:
         
         try:
             logger.info("Loading settings...")
-            # Try direct YAML loading instead of load_settings() which might be hanging
-            settings_path = '/app/settings.yaml' if os.path.exists('/app/settings.yaml') else 'settings.yaml'
-            logger.info(f"Trying to load settings from: {settings_path}")
-            
-            if os.path.exists(settings_path):
-                with open(settings_path, 'r') as f:
-                    self.settings = yaml.safe_load(f)
-                logger.info("Settings loaded directly from YAML")
-            else:
-                logger.warning("Settings file not found, using empty settings")
+            # Load settings from database or YAML via compatibility layer
+            self.settings = load_settings()
+            if not self.settings:
+                logger.warning("Settings could not be loaded, using empty settings")
                 self.settings = {'api_keys': {}}
+            else:
+                logger.info("Settings loaded successfully via compatibility layer")
                 
         except Exception as e:
             logger.error(f"Error loading settings: {e}")

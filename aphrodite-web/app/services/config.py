@@ -2,6 +2,7 @@ import os
 import yaml
 import logging
 from pathlib import Path
+from app.services.settings_service import SettingsService
 
 logger = logging.getLogger(__name__)
 
@@ -25,79 +26,150 @@ class ConfigService:
             if is_docker:
                 logger.info("DEBUG: Found Docker environment, using /app paths")
                 self.base_dir = Path('/app')
-                # Check permissions
-                try:
-                    logger.info("DEBUG: Checking permissions on /app/settings.yaml")
-                    st_mode = os.stat('/app/settings.yaml').st_mode
-                    logger.info(f"DEBUG: File mode: {st_mode:o}")
-                    # Test if we can actually read the file
-                    with open('/app/settings.yaml', 'r') as f:
-                        first_line = f.readline()
-                        logger.info(f"DEBUG: Successfully read first line: {first_line[:50]}...")
-                except Exception as e:
-                    logger.error(f"DEBUG: Error accessing /app/settings.yaml: {e}")
+                db_path = '/app/data/aphrodite.db'
             else:
                 # For local development, use parents[3] to find the root directory
                 logger.info("DEBUG: Using development paths")
                 self.base_dir = Path(os.path.abspath(__file__)).parents[3]
+                db_path = os.path.join(self.base_dir, 'data', 'aphrodite.db')
         else:
             self.base_dir = Path(base_dir)
+            db_path = os.path.join(self.base_dir, 'data', 'aphrodite.db')
         
         logger.info(f"DEBUG: Config service initialized with base directory: {self.base_dir}")
+        logger.info(f"DEBUG: Using database at: {db_path}")
         
-        # List all config files in the base directory
-        logger.info("DEBUG: Checking for all config files in base directory")
-        for config_file in ['settings.yaml', 'badge_settings_audio.yml', 'badge_settings_resolution.yml', 'badge_settings_review.yml', 'badge_settings_awards.yml']:
-            file_path = self.base_dir / config_file
-            if file_path.exists():
-                logger.info(f"DEBUG: Found {config_file} at {file_path}")
-                # Check if readable
-                if os.access(file_path, os.R_OK):
-                    logger.info(f"DEBUG: {config_file} is readable")
-                else:
-                    logger.error(f"DEBUG: {config_file} exists but is NOT readable")
-            else:
-                logger.error(f"DEBUG: {config_file} not found at {file_path}")
-                # List directory contents
+        # Initialize settings service
+        self.settings_service = SettingsService(db_path)
+        
+        # Check if settings need to be migrated
+        self._check_migration()
+        
+    def _check_migration(self):
+        """Check if settings need to be migrated from YAML to SQLite"""
+        # Check if database has any settings
+        version = self.settings_service.get_current_version()
+        logger.info(f"DEBUG: _check_migration - Current database version: {version}")
+        
+        if version == 0:
+            # Database is empty, check if YAML files exist
+            settings_path = self.base_dir / 'settings.yaml'
+            logger.info(f"DEBUG: _check_migration - Checking for settings.yaml at: {settings_path}")
+            
+            if settings_path.exists():
+                logger.info("DEBUG: Found settings.yaml, attempting direct migration")
                 try:
-                    logger.info(f"DEBUG: Listing contents of {self.base_dir}:")
-                    for entry in os.listdir(self.base_dir):
-                        logger.info(f"DEBUG: {self.base_dir}/{entry}")
+                    # Load and migrate settings directly instead of importing migrate_settings
+                    import yaml
+                    
+                    with open(settings_path, 'r') as f:
+                        settings = yaml.safe_load(f)
+                    
+                    logger.info(f"DEBUG: Loaded settings from YAML: {list(settings.keys()) if settings else 'None'}")
+                    
+                    # Migrate API keys
+                    if 'api_keys' in settings:
+                        api_keys = settings['api_keys']
+                        logger.info(f"DEBUG: Migrating API keys: {list(api_keys.keys())}")
+                        for service, service_keys in api_keys.items():
+                            if isinstance(service_keys, list):
+                                self.settings_service.update_api_keys(service, service_keys)
+                                logger.info(f"DEBUG: Migrated {service} API keys")
+                            else:
+                                logger.warning(f"DEBUG: Unexpected format for {service} API keys")
+                    
+                    # Migrate other settings categories
+                    categories = ['tv_series', 'metadata_tagging', 'scheduler']
+                    for category in categories:
+                        if category in settings:
+                            logger.info(f"DEBUG: Migrating {category} settings")
+                            self.settings_service.import_from_yaml(settings, category)
+                    
+                    # Migrate badge settings
+                    badge_files = {
+                        'audio': 'badge_settings_audio.yml',
+                        'resolution': 'badge_settings_resolution.yml',
+                        'review': 'badge_settings_review.yml',
+                        'awards': 'badge_settings_awards.yml'
+                    }
+                    
+                    for badge_type, filename in badge_files.items():
+                        badge_path = self.base_dir / filename
+                        if badge_path.exists():
+                            try:
+                                with open(badge_path, 'r') as f:
+                                    badge_settings = yaml.safe_load(f)
+                                self.settings_service.update_badge_settings(badge_type, badge_settings)
+                                logger.info(f"DEBUG: Migrated {badge_type} badge settings")
+                            except Exception as e:
+                                logger.error(f"DEBUG: Error migrating {badge_type} settings: {e}")
+                    
+                    # Set version to 1 to indicate successful migration
+                    self.settings_service.set_version(1)
+                    logger.info("DEBUG: Migration completed successfully!")
+                    
                 except Exception as e:
-                    logger.error(f"DEBUG: Error listing {self.base_dir} directory: {e}")
-                    break
+                    logger.error(f"DEBUG: Error during settings migration: {e}")
+                    import traceback
+                    logger.error(f"DEBUG: Migration traceback: {traceback.format_exc()}")
+            else:
+                logger.info("DEBUG: No settings.yaml found, skipping migration")
     
     def get_config_files(self):
         """Get a list of all available configuration files."""
         yaml_files = []
         
-        # Look for settings.yaml in the root directory
-        settings_file = self.base_dir / 'settings.yaml'
-        if settings_file.exists():
+        # Check if settings exist in database
+        version = self.settings_service.get_current_version()
+        if version > 0:
+            # Database has settings, return the virtual files
             yaml_files.append('settings.yaml')
-        
-        # Look for badge settings files in the root directory
-        for badge_file in ['badge_settings_audio.yml', 'badge_settings_resolution.yml', 'badge_settings_review.yml', 'badge_settings_awards.yml']:
-            file_path = self.base_dir / badge_file
-            if file_path.exists():
-                yaml_files.append(badge_file)
+            
+            # Check which badge settings exist
+            badge_types = ['audio', 'resolution', 'review', 'awards']
+            for badge_type in badge_types:
+                settings = self.settings_service.get_badge_settings(badge_type)
+                if settings:
+                    yaml_files.append(f'badge_settings_{badge_type}.yml')
+        else:
+            # Check for actual files
+            settings_file = self.base_dir / 'settings.yaml'
+            if settings_file.exists():
+                yaml_files.append('settings.yaml')
+            
+            # Look for badge settings files in the root directory
+            for badge_file in ['badge_settings_audio.yml', 'badge_settings_resolution.yml', 'badge_settings_review.yml', 'badge_settings_awards.yml']:
+                file_path = self.base_dir / badge_file
+                if file_path.exists():
+                    yaml_files.append(badge_file)
         
         return yaml_files
     
     def get_config(self, file_name):
         """Get the content of a configuration file."""
+        logger.info(f"DEBUG: Getting config for {file_name}")
+        
+        # Check if database has settings
+        version = self.settings_service.get_current_version()
+        
+        if version > 0:
+            # Load from database
+            if file_name == 'settings.yaml':
+                # Export settings to YAML format
+                settings, _ = self.settings_service.export_to_yaml()
+                return settings
+            elif file_name.startswith('badge_settings_'):
+                # Extract badge type from filename
+                badge_type = file_name.replace('badge_settings_', '').replace('.yml', '')
+                return self.settings_service.get_badge_settings(badge_type)
+        
+        # Fall back to loading from YAML file
         file_path = self.base_dir / file_name
         
         logger.info(f"DEBUG: Attempting to load config from {file_path}")
         
         if not file_path.exists():
             logger.error(f"DEBUG: Config file not found: {file_path}")
-            try:
-                # Try to list parent directory to see what's there
-                dir_content = os.listdir(file_path.parent)
-                logger.info(f"DEBUG: Parent directory contains: {dir_content}")
-            except Exception as e:
-                logger.error(f"DEBUG: Could not list parent directory: {e}")
             return None
         
         # Check access permissions
@@ -121,13 +193,6 @@ class ConfigService:
                     logger.info(f"Raw config loaded from {file_name}: {config}")
                 except Exception as e:
                     logger.error(f"DEBUG: YAML parsing error: {e}")
-                    # Try to read the raw content to see if it's valid
-                    file.seek(0)  # Go back to the beginning of the file
-                    try:
-                        raw_content = file.read(1000)  # Read first 1000 chars
-                        logger.error(f"DEBUG: Raw file content preview: {raw_content}")
-                    except Exception as read_err:
-                        logger.error(f"DEBUG: Could not read raw content: {read_err}")
                     return None
                 
                 # Special handling for settings.yaml and aniDB structure
@@ -158,6 +223,76 @@ class ConfigService:
     
     def update_config(self, file_name, content):
         """Update the content of a configuration file."""
+        logger.info(f"DEBUG: Updating config for {file_name}")
+        logger.info(f"DEBUG: Content received: {content}")
+        
+        # Determine if we're using SQLite
+        version = self.settings_service.get_current_version()
+        logger.info(f"DEBUG: Current database version: {version}")
+        
+        if version > 0:
+            logger.info("DEBUG: Using SQLite database for storage")
+            # Save to database
+            if file_name == 'settings.yaml':
+                logger.info("DEBUG: Processing settings.yaml")
+                # Handle API keys
+                if 'api_keys' in content:
+                    logger.info("DEBUG: Processing API keys")
+                    api_keys = content['api_keys']
+                    for service, service_keys in api_keys.items():
+                        logger.info(f"DEBUG: Processing {service} API keys: {service_keys}")
+                        try:
+                            if isinstance(service_keys, list):
+                                self.settings_service.update_api_keys(service, service_keys)
+                            else:
+                                # Convert single dict to list format
+                                self.settings_service.update_api_keys(service, [service_keys])
+                            logger.info(f"DEBUG: Successfully updated {service} API keys")
+                        except Exception as e:
+                            logger.error(f"DEBUG: Error updating {service} API keys: {e}")
+                            return False
+                
+                # Handle other categories
+                categories = {
+                    'tv_series': 'tv_series',
+                    'metadata_tagging': 'metadata_tagging',
+                    'scheduler': 'scheduler'
+                }
+                
+                for yaml_key, category in categories.items():
+                    if yaml_key in content:
+                        logger.info(f"DEBUG: Processing {category} settings")
+                        try:
+                            # Clear existing settings for this category
+                            self.settings_service.delete_settings_by_category(category)
+                            
+                            # Add new settings
+                            category_data = content[yaml_key]
+                            for key, value in category_data.items():
+                                full_key = f"{category}.{key}"
+                                self.settings_service.set_setting(full_key, value, category)
+                            logger.info(f"DEBUG: Successfully updated {category} settings")
+                        except Exception as e:
+                            logger.error(f"DEBUG: Error updating {category} settings: {e}")
+                            return False
+                
+                logger.info("DEBUG: Successfully saved all settings to database")
+                return True
+            elif file_name.startswith('badge_settings_'):
+                logger.info(f"DEBUG: Processing badge settings file: {file_name}")
+                # Extract badge type from filename
+                badge_type = file_name.replace('badge_settings_', '').replace('.yml', '')
+                try:
+                    self.settings_service.update_badge_settings(badge_type, content)
+                    logger.info(f"DEBUG: Successfully updated {badge_type} badge settings")
+                    return True
+                except Exception as e:
+                    logger.error(f"DEBUG: Error updating {badge_type} badge settings: {e}")
+                    return False
+        else:
+            logger.info("DEBUG: Database version is 0, falling back to YAML file storage")
+        
+        # Fall back to saving to YAML file
         file_path = self.base_dir / file_name
         
         # Create directory if it doesn't exist

@@ -1,8 +1,4 @@
 from flask import Blueprint, jsonify, request
-import sys
-import os
-import subprocess
-from pathlib import Path
 import logging
 import requests
 
@@ -31,7 +27,7 @@ def check_api_connection():
         return handle_jellyfin_test(data)
 
 def handle_jellyfin_test(data):
-    """Handle Jellyfin connection test (legacy format)."""
+    """Handle Jellyfin connection test (legacy format) - use direct connection instead of script."""
     url = data.get('url')
     api_key = data.get('api_key')
     user_id = data.get('user_id')
@@ -40,51 +36,8 @@ def handle_jellyfin_test(data):
         logger.warning("Missing required parameters for Jellyfin connection check")
         return jsonify({"error": "Missing required parameters"}), 400
 
-    # Get the base directory and use the existing Jellyfin check script
-    base_dir = Path(os.path.abspath(__file__)).parents[3]
-    script_path = base_dir / 'aphrodite_helpers' / 'check_jellyfin_connection.py'
-
-    try:
-        cmd = [
-            sys.executable,
-            str(script_path),
-            "--url", url,
-            "--api-key", api_key,
-            "--user-id", user_id
-        ]
-
-        logger.info(f"Executing command: {' '.join(cmd)}")
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            check=False,
-            encoding='utf-8'
-        )
-
-        logger.info(f"Script stdout: {result.stdout.strip()}")
-        logger.error(f"Script stderr: {result.stderr.strip()}")
-        logger.info(f"Script return code: {result.returncode}")
-
-        if result.returncode == 0:
-            return jsonify({
-                "success": True,
-                "message": "Successfully connected to Jellyfin server",
-                "details": result.stdout.strip()
-            })
-        else:
-            return jsonify({
-                "success": False,
-                "error": "Failed to connect to Jellyfin server",
-                "details": result.stderr.strip() or result.stdout.strip()
-            }), 400
-
-    except Exception as e:
-        logger.exception("Error during Jellyfin connection check")
-        return jsonify({
-            "success": False,
-            "error": f"Error checking Jellyfin connection: {str(e)}"
-        }), 500
+    # Use direct connection test instead of calling external script
+    return test_jellyfin_direct(data)
 
 def handle_api_test(api_type, data):
     """Handle API connection tests for different providers."""
@@ -291,9 +244,13 @@ def test_anidb_connection(data):
         return jsonify({"error": "Missing AniDB username or password"}), 400
     
     try:
-        # Note: AniDB UDP API is complex and requires careful implementation
-        # For now, we'll do a basic validation that doesn't actually connect
-        # to avoid potential issues with the AniDB API rate limiting
+        import socket
+        import hashlib
+        import time
+        import random
+        
+        # AniDB UDP API connection
+        # Documentation: https://wiki.anidb.net/API
         
         # Basic validation of credentials format
         if len(username.strip()) == 0 or len(password.strip()) == 0:
@@ -302,21 +259,110 @@ def test_anidb_connection(data):
                 "error": "Invalid AniDB credentials format"
             }), 400
         
-        # For now, we'll return a warning that this is a basic check
+        if not client_name or len(client_name.strip()) == 0:
+            client_name = 'aphroditetest'
+        
+        # Create UDP socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.settimeout(10)  # 10 second timeout
+        
+        try:
+            # Connect to AniDB API server
+            server = ('api.anidb.net', 9000)
+            
+            # Generate session key (random string)
+            session_key = f"aphrodite{random.randint(10000, 99999)}"
+            
+            # Create AUTH command
+            # Format: AUTH user={username}&pass={password}&protover={version}&client={client}&clientver=1&enc=UTF8
+            # Note: AniDB requires specific client names to be registered, and protover should be 3 for current API
+            auth_command = f"AUTH user={username}&pass={password}&protover=3&client={client_name}&clientver=1&enc=UTF8&s={session_key}"
+            
+            logger.info(f"Sending AniDB AUTH command (password hidden)")
+            
+            # Send AUTH command
+            sock.sendto(auth_command.encode('utf-8'), server)
+            
+            # Receive response
+            try:
+                response_data, addr = sock.recvfrom(1024)
+                response = response_data.decode('utf-8', errors='ignore').strip()
+                
+                logger.info(f"AniDB response: {response}")
+                
+                # Parse response
+                if response.startswith('200 '):
+                    # Success - extract session info
+                    parts = response.split(' ', 2)
+                    if len(parts) >= 3:
+                        session_info = parts[2]
+                        return jsonify({
+                            "success": True,
+                            "message": f"AniDB connection successful! Session: {session_info}"
+                        })
+                    else:
+                        return jsonify({
+                            "success": True,
+                            "message": "AniDB connection successful!"
+                        })
+                elif response.startswith('500 '):
+                    return jsonify({
+                        "success": False,
+                        "error": "Invalid AniDB username or password"
+                    }), 400
+                elif response.startswith('503 '):
+                    return jsonify({
+                        "success": False,
+                        "error": "AniDB client access denied. Your client name may not be registered or approved for API access."
+                    }), 400
+                elif response.startswith('504 '):
+                    return jsonify({
+                        "success": False,
+                        "error": "AniDB client version too old or client not registered. Make sure your 'Client Name' field matches an officially registered AniDB client."
+                    }), 400
+                elif response.startswith('505 '):
+                    return jsonify({
+                        "success": False,
+                        "error": "Illegal input or access denied"
+                    }), 400
+                elif response.startswith('506 '):
+                    return jsonify({
+                        "success": False,
+                        "error": "Invalid session"
+                    }), 400
+                elif response.startswith('601 '):
+                    return jsonify({
+                        "success": False,
+                        "error": "AniDB out of service - try again later"
+                    }), 503
+                elif response.startswith('602 '):
+                    return jsonify({
+                        "success": False,
+                        "error": "AniDB server unavailable - try again later"
+                    }), 503
+                else:
+                    return jsonify({
+                        "success": False,
+                        "error": f"Unexpected AniDB response: {response}"
+                    }), 400
+                    
+            except socket.timeout:
+                return jsonify({
+                    "success": False,
+                    "error": "AniDB connection timeout - server may be busy"
+                }), 408
+                
+        finally:
+            sock.close()
+            
+    except ImportError as e:
         return jsonify({
-            "success": True,
-            "message": "AniDB credentials format validated (full connection test not implemented)"
-        })
-        
-        # TODO: Implement actual AniDB UDP API connection test
-        # This would require:
-        # 1. UDP socket connection to api.anidb.net:9000
-        # 2. AUTH command with username/password
-        # 3. LOGOUT command
-        # 4. Proper session management
-        
+            "success": False,
+            "error": "Missing required modules for AniDB connection test"
+        }), 500
     except Exception as e:
+        logger.exception("Error during AniDB connection test")
         return jsonify({
             "success": False,
             "error": f"AniDB connection test failed: {str(e)}"
-        }), 400
+        }), 500

@@ -112,6 +112,7 @@ import ResolutionSettings from '../components/settings/ResolutionSettings.vue';
 import ReviewSettings from '../components/settings/ReviewSettings.vue';
 import AwardsSettings from '../components/settings/AwardsSettings.vue';
 
+
 export default {
   name: 'SettingsView',
   components: {

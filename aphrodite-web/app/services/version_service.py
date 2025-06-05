@@ -5,6 +5,7 @@ import os
 import yaml
 from datetime import datetime, timedelta
 from pathlib import Path
+from app.services.settings_service import SettingsService
 
 logger = logging.getLogger(__name__)
 
@@ -30,64 +31,83 @@ class VersionService:
             
             if is_docker:
                 self.base_dir = Path('/app')
+                db_path = '/app/data/aphrodite.db'
             else:
                 self.base_dir = Path(os.path.abspath(__file__)).parents[3]
+                db_path = os.path.join(self.base_dir, 'data', 'aphrodite.db')
         else:
             self.base_dir = Path(base_dir)
+            db_path = os.path.join(self.base_dir, 'data', 'aphrodite.db')
             
-        self.cache_file = self.base_dir / 'version_cache.json'
-        self.version_file = self.base_dir / 'version.yml'
+        # Initialize settings service for database operations
+        self.settings_service = SettingsService(db_path)
+        
+        # Initialize current version from YAML file if not in database
+        self._initialize_current_version()
+        
         logger.info(f"VersionService initialized with base directory: {self.base_dir}")
     
-    def get_current_version(self):
-        """Get the current version of Aphrodite from version.yml."""
+    def _initialize_current_version(self):
+        """Initialize current version from YAML file if not in database"""
         try:
-            if self.version_file.exists():
-                with open(self.version_file, 'r') as f:
-                    version_data = yaml.safe_load(f)
-                    return version_data.get('version', '1.4.3')  # Fallback to 1.4.3
-            else:
-                logger.warning(f"Version file not found: {self.version_file}")
-                return '1.4.3'  # Fallback version
-        except Exception as e:
-            logger.error(f"Error reading version file: {e}")
-            return '1.4.3'  # Fallback version
-    
-    def _load_cache(self):
-        """Load cached version check data."""
-        try:
-            if self.cache_file.exists():
-                with open(self.cache_file, 'r') as f:
-                    cache_data = json.load(f)
-                    
-                # Check if cache is still valid
-                cache_time = datetime.fromisoformat(cache_data.get('timestamp', ''))
-                if datetime.now() - cache_time < timedelta(hours=self.CACHE_DURATION_HOURS):
-                    logger.info("Using cached version data")
-                    return cache_data
+            # Check if we have version info in database
+            db_version_info = self.settings_service.get_app_version_info()
+            
+            if not db_version_info:
+                # Try to get version from YAML file
+                version_file = self.base_dir / 'version.yml'
+                if version_file.exists():
+                    with open(version_file, 'r') as f:
+                        version_data = yaml.safe_load(f)
+                        current_version = version_data.get('version', '2.2.5')
                 else:
-                    logger.info("Cache expired, will fetch new data")
-            else:
-                logger.info("No cache file found")
+                    # Fallback version
+                    current_version = '2.2.5'
+                
+                # Store in database
+                self.settings_service.set_current_app_version(current_version)
+                logger.info(f"Initialized current version in database: {current_version}")
+            
         except Exception as e:
-            logger.warning(f"Error loading cache: {e}")
-        
-        return None
+            logger.error(f"Error initializing current version: {e}")
     
-    def _save_cache(self, data):
-        """Save version check data to cache."""
+    def get_current_version(self):
+        """Get the current version of Aphrodite from database or YAML fallback."""
         try:
-            cache_data = {
-                'timestamp': datetime.now().isoformat(),
-                'data': data
-            }
+            # Try database first
+            version_info = self.settings_service.get_app_version_info()
+            if version_info and version_info['current_version']:
+                return version_info['current_version']
             
-            with open(self.cache_file, 'w') as f:
-                json.dump(cache_data, f, indent=2)
+            # Fallback to YAML file
+            version_file = self.base_dir / 'version.yml'
+            if version_file.exists():
+                with open(version_file, 'r') as f:
+                    version_data = yaml.safe_load(f)
+                    version = version_data.get('version', '2.2.5')
+                    
+                    # Store in database for future use
+                    self.settings_service.set_current_app_version(version)
+                    return version
             
-            logger.info("Version data cached successfully")
+            logger.warning(f"Version file not found: {version_file}")
+            return '2.2.5'  # Fallback version
+            
         except Exception as e:
-            logger.error(f"Error saving cache: {e}")
+            logger.error(f"Error reading version: {e}")
+            return '2.2.5'  # Fallback version
+    
+    def _is_cache_valid(self, last_checked):
+        """Check if the cached data is still valid"""
+        try:
+            if not last_checked:
+                return False
+            
+            cache_time = datetime.fromisoformat(last_checked)
+            return datetime.now() - cache_time < timedelta(hours=self.CACHE_DURATION_HOURS)
+        except Exception as e:
+            logger.warning(f"Error checking cache validity: {e}")
+            return False
     
     def _fetch_latest_release(self):
         """Fetch the latest release information from GitHub."""
@@ -189,16 +209,17 @@ class VersionService:
             return False
     
     def check_for_updates(self, force_check=False):
-        """Check for available updates, using cache if available."""
+        """Check for available updates, using database cache if available."""
         try:
-            # Try to load from cache first (unless forced)
-            if not force_check:
-                cached_data = self._load_cache()
-                if cached_data:
-                    return cached_data['data']
-            
             # Get current version
             current_version = self.get_current_version()
+            
+            # Try to load from database cache first (unless forced)
+            if not force_check:
+                cached_data = self.settings_service.get_app_version_info()
+                if cached_data and self._is_cache_valid(cached_data.get('last_checked')):
+                    logger.info("Using cached version data from database")
+                    return cached_data
             
             # Fetch fresh data from GitHub
             release_info = self._fetch_latest_release()
@@ -222,8 +243,8 @@ class VersionService:
                     'last_checked': datetime.now().isoformat()
                 }
                 
-                # Cache the successful result
-                self._save_cache(result)
+                # Store the successful result in database
+                self.settings_service.update_app_version_info(result)
                 
             else:
                 # GitHub API failed, return error state
@@ -238,13 +259,16 @@ class VersionService:
                     'error': release_info['error'],
                     'last_checked': datetime.now().isoformat()
                 }
+                
+                # Store the error state in database
+                self.settings_service.update_app_version_info(result)
             
             return result
             
         except Exception as e:
             logger.error(f"Unexpected error in check_for_updates: {e}")
             current_version = self.get_current_version()
-            return {
+            result = {
                 'current_version': current_version,
                 'latest_version': None,
                 'update_available': False,
@@ -255,7 +279,25 @@ class VersionService:
                 'error': f"Unexpected error: {str(e)}",
                 'last_checked': datetime.now().isoformat()
             }
+            
+            # Store the error state in database
+            try:
+                self.settings_service.update_app_version_info(result)
+            except Exception as db_error:
+                logger.error(f"Failed to store error state in database: {db_error}")
+            
+            return result
     
     def get_version_info(self):
         """Get complete version information including update status."""
         return self.check_for_updates()
+    
+    def update_current_version(self, version):
+        """Update the current version in the database."""
+        try:
+            self.settings_service.set_current_app_version(version)
+            logger.info(f"Updated current version to: {version}")
+            return True
+        except Exception as e:
+            logger.error(f"Error updating current version: {e}")
+            return False

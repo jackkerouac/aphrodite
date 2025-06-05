@@ -1,18 +1,11 @@
 <template>
   <div class="execute">
-    <h1 class="text-2xl font-bold mb-4">Run Aphrodite</h1>
+    <h1 class="text-2xl font-bold mb-4">Maintenance</h1>
     
     <div class="mb-6">
-      <p class="mb-4">Use the forms below to process Jellyfin items with the Aphrodite script.</p>
+      <p class="mb-4">Use the tools below to check your Jellyfin connection and manage your poster files.</p>
       
       <div class="tabs tabs-boxed mb-6">
-        <a 
-          class="tab" 
-          :class="{ 'tab-active': activeTab === 'library' }"
-          @click="activeTab = 'library'"
-        >
-          Process Library
-        </a>
         <a 
           class="tab" 
           :class="{ 'tab-active': activeTab === 'check' }"
@@ -25,18 +18,12 @@
           :class="{ 'tab-active': activeTab === 'cleanup' }"
           @click="activeTab = 'cleanup'"
         >
-          Poster Management
+          Clean Up and Restore
         </a>
       </div>
       
-      <!-- Library Processing Form -->
-      <div v-if="activeTab === 'library'">
-        <WorkflowManager class="mb-6" />
-        <LibraryForm @process-submitted="handleProcessSubmitted" />
-      </div>
-      
       <!-- Connection Check Form -->
-      <div v-else-if="activeTab === 'check'">
+      <div v-if="activeTab === 'check'">
         <ConnectionCheck />
       </div>
       
@@ -180,29 +167,25 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import LibraryForm from '@/components/execute/LibraryForm.vue';
-import WorkflowManager from '@/components/execute/WorkflowManager.vue';
 import ConnectionCheck from '@/components/execute/ConnectionCheck.vue';
 import CleanupForm from '@/components/execute/CleanupForm.vue';
 
 export default {
   name: 'ExecuteView',
   components: {
-    LibraryForm,
-    WorkflowManager,
     ConnectionCheck,
     CleanupForm
   },
   setup() {
     const route = useRouter().currentRoute.value;
-    const activeTab = ref('library');
+    const activeTab = ref('check');
     const isLoading = ref(false);
     const processResult = ref(null);
     const showResults = ref(false);
     
     // Handle route query parameters
     if (route.query.tab) {
-      const validTabs = ['library', 'check', 'cleanup'];
+      const validTabs = ['check', 'cleanup'];
       if (validTabs.includes(route.query.tab)) {
         activeTab.value = route.query.tab;
       }

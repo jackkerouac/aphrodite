@@ -61,9 +61,46 @@ create_enhanced_awards_data.py
 requirements_scraper.txt
 update_version.py
 docker-compose.dev.yml
+rebuild.bat
+update*.bat
+update*.py
+update*.sh
+test*.py
+test*.sh
+test*.bat
+start-dev-local.bat
+verify_database.py
+commit_message_V2.txt
 
 # Documentation
 CRUNCHYROLL_INTEGRATION_SUMMARY.md
 DOCKER_COMPOSE_USAGE.md
 DOCKER_EXAMPLES.md
 DOCKER_README.md
+docs/*
+
+# SQLite databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Test databases specifically
+data/test_migration.db
+data/aphrodite.db
+
+# Python cache files (if not already present)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Test coverage files
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Temporary test files
+test_*.db
+*_test.db
