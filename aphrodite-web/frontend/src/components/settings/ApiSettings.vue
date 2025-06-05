@@ -5,7 +5,8 @@
     <form @submit.prevent="saveSettings" class="space-y-6">
       <!-- Jellyfin Settings -->
       <JellyfinSettings
-        v-model="jellyfin"
+        :model-value="jellyfin"
+        @update:model-value="(newValue) => { console.log('DEBUG: Manual v-model update:', newValue); Object.assign(jellyfin, newValue); }"
         :testing="connectionTesting"
         :status="connectionStatus"
         @test="testJellyfinConnection"
@@ -84,7 +85,7 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, watch } from 'vue';
 import api from '@/api/config.js';
 import JellyfinSettings from './api/JellyfinSettings.vue';
 import OmdbSettings from './api/OmdbSettings.vue';
@@ -171,11 +172,10 @@ export default {
             console.log('DEBUG: Loading Jellyfin config:', jellyfinConfig);
             console.log('DEBUG: Current jellyfin reactive object before update:', jellyfin);
             
-            Object.assign(jellyfin, {
-              url: jellyfinConfig.url || '',
-              api_key: jellyfinConfig.api_key || '',
-              user_id: jellyfinConfig.user_id || ''
-            });
+            // Update properties directly instead of using Object.assign
+            jellyfin.url = jellyfinConfig.url || '';
+            jellyfin.api_key = jellyfinConfig.api_key || '';
+            jellyfin.user_id = jellyfinConfig.user_id || '';
             
             console.log('DEBUG: Current jellyfin reactive object after update:', jellyfin);
           }
@@ -471,6 +471,13 @@ export default {
     onMounted(() => {
       loadSettings();
     });
+    
+    // Watch for changes to jellyfin object
+    watch(jellyfin, (newValue, oldValue) => {
+      console.log('DEBUG: jellyfin object changed!');
+      console.log('DEBUG: Old value:', oldValue);
+      console.log('DEBUG: New value:', newValue);
+    }, { deep: true });
     
     return {
       loading,
