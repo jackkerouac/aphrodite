@@ -68,9 +68,6 @@
     
     <!-- Main Content - Hidden during loading -->
     <div v-else>
-      <!-- Migration Status Card -->
-      <MigrationStatus />
-      
       <!-- Settings Tabs -->
       <div class="tabs tabs-boxed mb-6">
         <a 
@@ -114,7 +111,7 @@ import AudioSettings from '../components/settings/AudioSettings.vue';
 import ResolutionSettings from '../components/settings/ResolutionSettings.vue';
 import ReviewSettings from '../components/settings/ReviewSettings.vue';
 import AwardsSettings from '../components/settings/AwardsSettings.vue';
-import MigrationStatus from '../components/MigrationStatus.vue';
+
 
 export default {
   name: 'SettingsView',
@@ -123,8 +120,7 @@ export default {
     AudioSettings,
     ResolutionSettings,
     ReviewSettings,
-    AwardsSettings,
-    MigrationStatus
+    AwardsSettings
   },
   
   setup() {
