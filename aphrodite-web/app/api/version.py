@@ -65,3 +65,36 @@ def get_version_info():
             'success': False,
             'error': str(e)
         }), 500
+
+@bp.route('/update', methods=['POST'])
+def update_current_version():
+    """Update the current application version."""
+    try:
+        data = request.get_json()
+        if not data or 'version' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Version is required'
+            }), 400
+        
+        version = data['version']
+        version_service = VersionService()
+        success = version_service.update_current_version(version)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': f'Current version updated to {version}'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to update version'
+            }), 500
+        
+    except Exception as e:
+        logger.error(f"Error updating current version: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500

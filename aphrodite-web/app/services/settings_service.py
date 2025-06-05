@@ -89,6 +89,24 @@ class SettingsService:
             ''')
             logger.info("DEBUG: Created/verified settings_version table")
             
+            # Create application version table
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS app_version (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                current_version TEXT NOT NULL,
+                latest_version TEXT,
+                update_available BOOLEAN DEFAULT 0,
+                release_notes TEXT,
+                release_url TEXT,
+                published_at TEXT,
+                check_successful BOOLEAN DEFAULT 0,
+                error_message TEXT,
+                last_checked TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            ''')
+            logger.info("DEBUG: Created/verified app_version table")
+            
             conn.commit()
             conn.close()
             logger.info("DEBUG: Database initialization completed successfully")
@@ -394,7 +412,7 @@ class SettingsService:
     
     # Version methods
     
-    def get_current_version(self):
+    def get_current_settings_version(self):
         """Get the current settings version"""
         try:
             conn = self._get_connection()
@@ -418,7 +436,12 @@ class SettingsService:
                 conn.close()
             return 0
     
-    def set_version(self, version):
+    # Backward compatibility
+    def get_current_version(self):
+        """Backward compatibility method for settings version"""
+        return self.get_current_settings_version()
+    
+    def set_settings_version(self, version):
         """Set the settings version"""
         conn = self._get_connection()
         cursor = conn.cursor()
@@ -433,6 +456,11 @@ class SettingsService:
         
         conn.commit()
         conn.close()
+    
+    # Backward compatibility
+    def set_version(self, version):
+        """Backward compatibility method for settings version"""
+        return self.set_settings_version(version)
     
     # Migration helper methods
     
@@ -550,3 +578,113 @@ class SettingsService:
             badge_settings[badge_type][setting_name] = value
         
         return result, badge_settings
+    
+    # Application version methods
+    
+    def get_app_version_info(self):
+        """Get the current application version information"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT * FROM app_version ORDER BY id DESC LIMIT 1')
+        row = cursor.fetchone()
+        
+        conn.close()
+        
+        if row:
+            return {
+                'current_version': row['current_version'],
+                'latest_version': row['latest_version'],
+                'update_available': bool(row['update_available']),
+                'release_notes': row['release_notes'],
+                'release_url': row['release_url'],
+                'published_at': row['published_at'],
+                'check_successful': bool(row['check_successful']),
+                'error': row['error_message'],
+                'last_checked': row['last_checked']
+            }
+        
+        return None
+    
+    def set_app_version_info(self, version_info):
+        """Store application version information"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+        INSERT INTO app_version (
+            current_version, latest_version, update_available, 
+            release_notes, release_url, published_at, 
+            check_successful, error_message, last_checked, updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            version_info.get('current_version'),
+            version_info.get('latest_version'),
+            version_info.get('update_available', False),
+            version_info.get('release_notes'),
+            version_info.get('release_url'),
+            version_info.get('published_at'),
+            version_info.get('check_successful', False),
+            version_info.get('error'),
+            version_info.get('last_checked', datetime.datetime.now().isoformat()),
+            datetime.datetime.now().isoformat()
+        ))
+        
+        conn.commit()
+        conn.close()
+    
+    def update_app_version_info(self, version_info):
+        """Update the latest application version information"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        # Delete all previous entries and insert the new one
+        cursor.execute('DELETE FROM app_version')
+        
+        cursor.execute('''
+        INSERT INTO app_version (
+            current_version, latest_version, update_available, 
+            release_notes, release_url, published_at, 
+            check_successful, error_message, last_checked, updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            version_info.get('current_version'),
+            version_info.get('latest_version'),
+            version_info.get('update_available', False),
+            version_info.get('release_notes'),
+            version_info.get('release_url'),
+            version_info.get('published_at'),
+            version_info.get('check_successful', False),
+            version_info.get('error'),
+            version_info.get('last_checked', datetime.datetime.now().isoformat()),
+            datetime.datetime.now().isoformat()
+        ))
+        
+        conn.commit()
+        conn.close()
+    
+    def set_current_app_version(self, version):
+        """Set the current application version"""
+        # First check if we have any version info
+        existing_info = self.get_app_version_info()
+        
+        if existing_info:
+            # Update the current version
+            existing_info['current_version'] = version
+            self.update_app_version_info(existing_info)
+        else:
+            # Create new entry with just the current version
+            version_info = {
+                'current_version': version,
+                'latest_version': None,
+                'update_available': False,
+                'release_notes': None,
+                'release_url': None,
+                'published_at': None,
+                'check_successful': False,
+                'error': None,
+                'last_checked': datetime.datetime.now().isoformat()
+            }
+            self.set_app_version_info(version_info)

@@ -68,12 +68,16 @@ update*.sh
 test*.py
 test*.sh
 test*.bat
+start-dev-local.bat
+verify_database.py
+commit_message_V2.txt
 
 # Documentation
 CRUNCHYROLL_INTEGRATION_SUMMARY.md
 DOCKER_COMPOSE_USAGE.md
 DOCKER_EXAMPLES.md
 DOCKER_README.md
+docs/*
 
 # SQLite databases
 *.db

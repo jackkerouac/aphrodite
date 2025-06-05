@@ -25,7 +25,7 @@
           :class="{ 'tab-active': activeTab === 'cleanup' }"
           @click="activeTab = 'cleanup'"
         >
-          Poster Management
+          Clean Up and Restore
         </a>
       </div>
       

@@ -6,6 +6,16 @@ import os
 import argparse
 import time
 
+# Fix Unicode encoding issues on Windows
+if sys.platform == "win32":
+    import codecs
+    import io
+    # Set UTF-8 encoding for stdout and stderr
+    sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.detach(), encoding='utf-8', errors='replace')
+    # Set environment variable for subprocess communication
+    os.environ['PYTHONIOENCODING'] = 'utf-8'
+
 from aphrodite_helpers.cleanup.poster_cleanup import clean_poster_directories
 
 from aphrodite_helpers.settings_validator import run_settings_check

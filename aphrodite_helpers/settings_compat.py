@@ -11,18 +11,41 @@ logger = logging.getLogger(__name__)
 
 # Add parent directory to path to import settings service
 parent_dir = Path(__file__).parent.parent
-sys.path.append(str(parent_dir / "aphrodite-web"))
 
+# Try multiple import paths for SettingsService
+SettingsService = None
+
+# First try the full Flask-based SettingsService
 try:
+    sys.path.insert(0, str(parent_dir / "aphrodite-web"))
     from app.services.settings_service import SettingsService
-except ImportError:
-    # Fallback for different paths
+    logger.info("Successfully imported SettingsService from aphrodite-web/app/services")
+except ImportError as e:
+    logger.warning(f"Failed to import from aphrodite-web/app/services: {e}")
     try:
-        sys.path.append(str(parent_dir))
+        sys.path.insert(0, str(parent_dir))
         from aphrodite_web.app.services.settings_service import SettingsService
-    except ImportError:
-        logger.error("Could not import SettingsService")
-        SettingsService = None
+        logger.info("Successfully imported SettingsService from aphrodite_web.app.services")
+    except ImportError as e2:
+        logger.warning(f"Failed to import from aphrodite_web.app.services: {e2}")
+        try:
+            # Try direct import if we're running from the right context
+            from app.services.settings_service import SettingsService
+            logger.info("Successfully imported SettingsService from app.services")
+        except ImportError as e3:
+            logger.warning(f"Failed to import from app.services: {e3}")
+            # Try standalone version as fallback
+            try:
+                from aphrodite_helpers.standalone_settings_service import StandaloneSettingsService
+                SettingsService = StandaloneSettingsService
+                logger.info("Successfully imported StandaloneSettingsService as fallback")
+            except ImportError as e4:
+                logger.warning(f"Failed to import StandaloneSettingsService: {e4}")
+                logger.warning("Could not import any SettingsService - falling back to YAML-only mode")
+                SettingsService = None
+except Exception as e:
+    logger.error(f"Unexpected error importing SettingsService: {e}")
+    SettingsService = None
 
 class SettingsCompat:
     """Compatibility layer for YAML settings"""
@@ -45,8 +68,11 @@ class SettingsCompat:
         if SettingsService:
             try:
                 self.settings_service = SettingsService(db_path)
+                logger.info(f"Successfully initialized SettingsService with db_path: {db_path}")
             except Exception as e:
                 logger.warning(f"Could not initialize SettingsService: {e}")
+        else:
+            logger.warning("SettingsService not available - using YAML-only mode")
     
     def _get_yaml_path(self, path=None):
         """Get the path to the YAML file"""
@@ -62,40 +88,44 @@ class SettingsCompat:
         return os.path.join(root_dir, path)
     
     def load_settings(self, path=None):
-        """Load settings in YAML-compatible format"""
-        # If a specific path is provided and it exists, try to load from YAML first
-        if path is not None:
-            yaml_path = self._get_yaml_path(path)
-            if os.path.exists(yaml_path):
-                try:
-                    with open(yaml_path, 'r') as f:
-                        yaml_settings = yaml.safe_load(f)
-                        logger.info(f"Loaded settings from YAML file: {yaml_path}")
-                        return yaml_settings
-                except Exception as e:
-                    logger.warning(f"Error loading YAML settings from {yaml_path}: {e}")
+        """Load settings in YAML-compatible format (prioritize database over YAML)"""
+        logger.info(f"load_settings called with path: {path}")
         
-        # Try to load from database if settings service is available
+        # First, try to load from database if settings service is available
         if self.settings_service:
             try:
+                logger.info("Attempting to load settings from database...")
                 # Check if database has settings
                 version = self.settings_service.get_current_version()
+                logger.info(f"Database version: {version}")
                 if version > 0:
                     logger.info("Loading settings from SQLite database")
-                    return self._load_from_database()
+                    settings = self._load_from_database()
+                    if settings:
+                        logger.info("Successfully loaded settings from database")
+                        return settings
+                    else:
+                        logger.warning("Database version > 0 but no settings returned")
+                else:
+                    logger.info("Database exists but has no settings (version 0)")
             except Exception as e:
-                logger.warning(f"Error loading from database: {e}")
+                logger.warning(f"Error checking database version: {e}")
+                import traceback
+                logger.warning(f"Database error traceback: {traceback.format_exc()}")
+        else:
+            logger.info("No settings service available - falling back to YAML")
         
         # Fall back to YAML file
         yaml_path = self._get_yaml_path(path or "settings.yaml")
+        logger.info(f"Attempting to load settings from YAML: {yaml_path}")
         if os.path.exists(yaml_path):
             try:
                 with open(yaml_path, 'r') as f:
                     yaml_settings = yaml.safe_load(f)
-                    logger.info(f"Loaded settings from fallback YAML file: {yaml_path}")
+                    logger.info(f"Loaded settings from YAML file: {yaml_path}")
                     return yaml_settings
             except Exception as e:
-                logger.error(f"Error loading fallback YAML settings: {e}")
+                logger.error(f"Error loading YAML settings: {e}")
         
         logger.error("Could not load settings from database or YAML file")
         return None
@@ -144,7 +174,7 @@ class SettingsCompat:
         return result
     
     def load_badge_settings(self, badge_file):
-        """Load badge settings in YAML-compatible format"""
+        """Load badge settings in YAML-compatible format (prioritize database over YAML)"""
         # Determine badge type from filename
         badge_type = None
         if 'audio' in badge_file.lower():
@@ -185,12 +215,47 @@ class SettingsCompat:
         return None
 
 # Global instance for backward compatibility
-_settings_compat = SettingsCompat()
+try:
+    _settings_compat = SettingsCompat()
+    logger.info("Successfully created global SettingsCompat instance")
+except Exception as e:
+    logger.error(f"Error creating global SettingsCompat instance: {e}")
+    _settings_compat = None
 
 def load_settings(path="settings.yaml"):
     """Global function for backward compatibility"""
-    return _settings_compat.load_settings(path)
+    if _settings_compat:
+        return _settings_compat.load_settings(path)
+    else:
+        # Fallback to direct YAML loading
+        logger.warning("Using fallback YAML loading due to SettingsCompat initialization failure")
+        yaml_path = path
+        if not os.path.isabs(yaml_path):
+            yaml_path = os.path.join(parent_dir, path)
+        
+        if os.path.exists(yaml_path):
+            try:
+                with open(yaml_path, 'r') as f:
+                    return yaml.safe_load(f)
+            except Exception as e:
+                logger.error(f"Error loading fallback YAML: {e}")
+        return None
 
 def load_badge_settings(badge_file):
     """Global function for backward compatibility"""
-    return _settings_compat.load_badge_settings(badge_file)
+    if _settings_compat:
+        return _settings_compat.load_badge_settings(badge_file)
+    else:
+        # Fallback to direct YAML loading
+        logger.warning("Using fallback badge YAML loading due to SettingsCompat initialization failure")
+        yaml_path = badge_file
+        if not os.path.isabs(yaml_path):
+            yaml_path = os.path.join(parent_dir, yaml_path)
+        
+        if os.path.exists(yaml_path):
+            try:
+                with open(yaml_path, 'r') as f:
+                    return yaml.safe_load(f)
+            except Exception as e:
+                logger.error(f"Error loading fallback badge YAML: {e}")
+        return None

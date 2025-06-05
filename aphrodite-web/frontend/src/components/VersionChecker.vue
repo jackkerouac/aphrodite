@@ -105,7 +105,8 @@ export default {
       releaseUrl: '',
       publishedAt: '',
       showUpdateModal: false,
-      checkSuccessful: false
+      checkSuccessful: false,
+      versionCheckInterval: null
     };
   },
   computed: {
@@ -122,6 +123,18 @@ export default {
   },
   mounted() {
     this.checkForUpdates();
+    
+    // Set up periodic checks (every 24 hours)
+    this.versionCheckInterval = setInterval(() => {
+      this.checkForUpdates();
+    }, 24 * 60 * 60 * 1000); // 24 hours
+  },
+  
+  beforeUnmount() {
+    // Clean up interval
+    if (this.versionCheckInterval) {
+      clearInterval(this.versionCheckInterval);
+    }
   },
   methods: {
     async checkForUpdates(force = false) {
@@ -145,7 +158,7 @@ export default {
           
           this.currentVersion = data.current_version;
           this.latestVersion = data.latest_version;
-          this.updateAvailable = data.update_available;
+          this.updateAvailable = data.update_available && !this.isVersionSkipped(data.latest_version);
           this.releaseNotes = data.release_notes;
           this.releaseUrl = data.release_url;
           this.publishedAt = data.published_at;
@@ -156,10 +169,10 @@ export default {
             this.errorMessage = data.error || 'Unknown error';
           }
 
-          // Store last check time
+          // Store last check time in localStorage for UI persistence
           localStorage.setItem('aphrodite_last_version_check', new Date().toISOString());
           
-          // Store the check result
+          // Store the check result in localStorage for UI persistence  
           localStorage.setItem('aphrodite_version_data', JSON.stringify(data));
         } else {
           this.hasError = true;
@@ -178,14 +191,15 @@ export default {
     },
     
     shouldSkipCheck() {
-      // Check if we've checked recently (within 24 hours)
+      // Check if we've checked recently (within 1 hour for UI responsiveness)
+      // The backend handles 24-hour caching
       const lastCheck = localStorage.getItem('aphrodite_last_version_check');
       if (lastCheck) {
         const lastCheckTime = new Date(lastCheck);
         const now = new Date();
         const hoursDiff = (now - lastCheckTime) / (1000 * 60 * 60);
         
-        if (hoursDiff < 24) {
+        if (hoursDiff < 1) {
           // Load cached data
           this.loadFromLocalStorage();
           return true;

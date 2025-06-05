@@ -26,7 +26,7 @@ def create_app():
         static_folder_path = '../frontend/dist'
     
     # Set up logging to be more verbose
-    app = Flask(__name__, static_folder=static_folder_path, static_url_path='/')
+    app = Flask(__name__, static_folder=static_folder_path, static_url_path='/static')
     
     # Add early debug logging about static folder
     print(f"DEBUG: Flask app created with static_folder='{static_folder_path}'")
@@ -318,6 +318,7 @@ def create_app():
         })
     
     # Serve the frontend's index.html for all other routes
+    # This MUST be registered last to act as a catch-all
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def serve_frontend(path):
@@ -392,5 +393,28 @@ def create_app():
         content = pattern.sub(f'<head>\n    {script_tag}', content)
         
         return content
+    
+    # Initialize scheduler service
+    try:
+        from app.api.schedules import init_scheduler_service, shutdown_scheduler
+        init_scheduler_service()
+        app.logger.info("DEBUG: Scheduler service initialized")
+        
+        # Register shutdown handler
+        import atexit
+        atexit.register(shutdown_scheduler)
+        
+    except Exception as e:
+        app.logger.error(f"DEBUG: Failed to initialize scheduler: {e}")
+    
+    # Debug: Print all registered routes
+    def debug_routes():
+        app.logger.info("=== REGISTERED ROUTES ===")
+        for rule in app.url_map.iter_rules():
+            app.logger.info(f"Route: {rule.rule} -> {rule.endpoint} (methods: {rule.methods})")
+        app.logger.info("=== END ROUTES ===")
+    
+    # Call debug routes function immediately
+    debug_routes()
     
     return app

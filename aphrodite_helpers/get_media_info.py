@@ -80,18 +80,23 @@ def _extract_audio_codec_from_display_title(display_title):
     return clean_title.strip()
 
 def load_settings(path="settings.yaml"):
-    """Load settings from the settings file."""
-    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    full_path = os.path.join(root_dir, path)
+    """Load settings from the database or YAML file via compatibility layer."""
     try:
-        with open(full_path, 'r') as f:
-            return yaml.safe_load(f)
-    except FileNotFoundError:
-        print(f"❌ Error: Settings file {path} not found.")
-        return None
-    except yaml.YAMLError as e:
-        print(f"❌ Error parsing settings: {e}")
-        return None
+        from aphrodite_helpers.settings_compat import load_settings as compat_load_settings
+        return compat_load_settings(path)
+    except ImportError:
+        # Fallback to direct YAML loading if compatibility layer is not available
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        full_path = os.path.join(root_dir, path)
+        try:
+            with open(full_path, 'r') as f:
+                return yaml.safe_load(f)
+        except FileNotFoundError:
+            print(f"❌ Error: Settings file {path} not found.")
+            return None
+        except yaml.YAMLError as e:
+            print(f"❌ Error parsing settings: {e}")
+            return None
 
 # MODIFIED: Changed endpoint to include user_id
 def get_jellyfin_item_details(url, api_key, user_id, item_id):
