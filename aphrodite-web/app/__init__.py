@@ -26,6 +26,7 @@ def create_app():
         static_folder_path = '../frontend/dist'
     
     # Set up logging to be more verbose
+
     app = Flask(__name__, static_folder=static_folder_path, static_url_path='/static')
     
     # Add early debug logging about static folder

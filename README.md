@@ -76,6 +76,10 @@ mkdir -p data posters/original posters/working posters/modified
 cd aphrodite-web
 python main.py
 
+# Flask will serve the built Vue frontend from the `/static` path. If you
+# refresh a page like `/settings`, the server will automatically return
+# `index.html` so client-side routing works correctly.
+
 # Or use command line
 python aphrodite.py library YOUR_LIBRARY_ID
 ```
