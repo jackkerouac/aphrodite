@@ -11,7 +11,13 @@ from flask_cors import CORS
 def create_app():
     """Create and configure the Flask application"""
     # Set up logging to be more verbose
-    app = Flask(__name__, static_folder='../frontend/dist', static_url_path='/')
+    # Serve static files from the built frontend under /static to avoid
+    # collisions with client-side routes
+    app = Flask(
+        __name__,
+        static_folder='../frontend/dist',
+        static_url_path='/static'
+    )
     
     # Auto-repair settings before anything else
     try:
