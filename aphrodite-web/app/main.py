@@ -16,7 +16,13 @@ logger = logging.getLogger(__name__)
 
 def create_app():
     """Create and configure the Flask application"""
-    app = Flask(__name__, static_folder='../static', static_url_path='/')
+    # Serve built frontend files under /static to prevent clashes with
+    # application routes
+    app = Flask(
+        __name__,
+        static_folder='../static',
+        static_url_path='/static'
+    )
     
     # Enable CORS for all domains and routes
     from flask_cors import CORS
