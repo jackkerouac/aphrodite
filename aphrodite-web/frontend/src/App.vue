@@ -1,5 +1,11 @@
 <template>
   <div class="min-h-screen bg-base-200 flex" data-theme="cupcake">
+    <!-- Migration Modal -->
+    <MigrationModal 
+      :isOpen="showMigrationModal" 
+      @close="handleMigrationClose"
+      @migration-complete="handleMigrationComplete"
+    />
     <!-- Left Side Navigation -->
     <div class="drawer lg:drawer-open">
       <input id="my-drawer" type="checkbox" class="drawer-toggle" />
@@ -129,11 +135,42 @@
 
 <script>
 import VersionChecker from './components/VersionChecker.vue';
+import MigrationModal from './components/MigrationModal.vue';
+import { useMigration } from './composables/useMigration';
 
 export default {
   name: 'App',
   components: {
-    VersionChecker
+    VersionChecker,
+    MigrationModal
+  },
+  setup() {
+    const { migrationNeeded, isChecking } = useMigration();
+    return {
+      migrationNeeded,
+      isChecking
+    };
+  },
+  data() {
+    return {
+      showMigrationModal: false
+    };
+  },
+  watch: {
+    migrationNeeded(newValue) {
+      if (newValue && !this.isChecking) {
+        this.showMigrationModal = true;
+      }
+    }
+  },
+  methods: {
+    handleMigrationClose() {
+      this.showMigrationModal = false;
+    },
+    handleMigrationComplete() {
+      // Optionally refresh the page or update app state
+      console.log('Migration completed successfully!');
+      // You could emit an event here to refresh configuration
   },
   mounted() {
     // Add event listeners for theme switching

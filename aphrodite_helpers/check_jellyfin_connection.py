@@ -5,19 +5,8 @@ import requests
 import os
 import sys
 
-def load_settings(path="settings.yaml"):
-    """Load settings from the settings file."""
-    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    full_path = os.path.join(root_dir, path)
-    try:
-        with open(full_path, 'r') as f:
-            return yaml.safe_load(f)
-    except FileNotFoundError:
-        print(f"Error: Settings file not found: {path}")
-        return None
-    except yaml.YAMLError as e:
-        print(f"Error: Error parsing settings: {e}")
-        return None
+# Import the compatibility layer
+from aphrodite_helpers.settings_compat import load_settings
 
 def get_jellyfin_libraries(url, api_key, user_id):
     """Get all libraries (views) from Jellyfin for a specific user."""

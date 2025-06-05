@@ -202,7 +202,7 @@ def create_app():
             }), 500
     
     # Import and register blueprints - including our proxy blueprint
-    from app.api import config, jobs, libraries, images, check, workflow, schedules, preview, version, changes, poster_manager
+    from app.api import config, jobs, libraries, images, check, workflow, schedules, preview, version, changes, poster_manager, settings_migration
     app.register_blueprint(config.bp)
     app.register_blueprint(jobs.bp)
     app.register_blueprint(libraries.bp)
@@ -214,6 +214,7 @@ def create_app():
     app.register_blueprint(version.bp)
     app.register_blueprint(changes.bp)
     app.register_blueprint(poster_manager.bp)
+    app.register_blueprint(settings_migration.bp)
     
     # Proxy blueprint removed - using direct API calls
     

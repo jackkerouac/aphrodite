@@ -2,24 +2,18 @@
 
 import os
 import sys
-import yaml
 
 # Ensure the root is in sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Import the compatibility layer
+from aphrodite_helpers.settings_compat import load_badge_settings
+
 def load_yaml_from_root(filename):
     """
-    Load a YAML file from the root directory.
+    Load a YAML file from the root directory using the compatibility layer.
     """
-    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    full_path = os.path.join(root_dir, filename)
-
-    if not os.path.exists(full_path):
-        print(f"❌ File not found: {filename}")
-        return None
-
-    with open(full_path, "r") as file:
-        return yaml.safe_load(file)
+    return load_badge_settings(filename)
 
 def display_settings(settings: dict, indent=0):
     """
