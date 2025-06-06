@@ -184,7 +184,8 @@ class ReviewPreferences:
             'IMDb': 'IMDb',
             'Metacritic': 'Metacritic',
             'TMDb': 'TMDb',
-            'AniDB': 'AniDB'
+            'AniDB': 'AniDB',
+            'MyAnimeList': 'MyAnimeList'
         }
         
         # Filter reviews to only include enabled sources

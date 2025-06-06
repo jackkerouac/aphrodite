@@ -16,6 +16,13 @@ if sys.platform == "win32":
     # Set environment variable for subprocess communication
     os.environ['PYTHONIOENCODING'] = 'utf-8'
 
+# Apply enhanced anime mapping to production
+try:
+    from integrate_enhanced_anime_mapping import apply_production_enhancements
+    apply_production_enhancements()
+except Exception as e:
+    print(f"⚠️ Note: Enhanced anime mapping not available: {e}")
+
 from aphrodite_helpers.cleanup.poster_cleanup import clean_poster_directories
 
 from aphrodite_helpers.settings_validator import run_settings_check
@@ -57,7 +64,7 @@ BANNER = r"""
        | |                                    
        |_|                                    
 
-                    v2.x.x    
+                    v3.x.x    
 """
 
 def display_banner() -> None:
