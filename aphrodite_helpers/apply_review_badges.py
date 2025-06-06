@@ -18,6 +18,7 @@ from aphrodite_helpers.poster_fetcher import download_poster
 from aphrodite_helpers.get_review_info import ReviewFetcher
 from aphrodite_helpers.settings_validator import load_settings
 from aphrodite_helpers.badge_components.badge_image_handler import load_codec_image
+from aphrodite_helpers.review_preferences import ReviewPreferences
 
 def apply_badge_to_poster(
     poster_path, 
@@ -88,8 +89,15 @@ def create_review_container(reviews, settings):
     The container uses styling from the settings file, and each review
     shows a logo and rating side by side.
     """
-    # Limit reviews based on setting
-    max_badges = settings.get('General', {}).get('max_badges_to_display', 3)
+    # Get max badges from user preferences (database) if available, otherwise fallback to badge settings
+    try:
+        preferences = ReviewPreferences()
+        max_badges = preferences.get_max_badges_to_display()
+        print(f"🔍 Using database setting for max badges: {max_badges}")
+    except Exception as e:
+        print(f"⚠️ Could not load max badges from database, using badge settings: {e}")
+        max_badges = settings.get('General', {}).get('max_badges_to_display', 3)
+    
     reviews_to_process = reviews[:max_badges] if max_badges > 0 else reviews
     
     if not reviews_to_process:

@@ -15,6 +15,7 @@ sys.path.append(parent_dir)
 
 from aphrodite_helpers.settings_validator import load_settings
 from aphrodite_helpers.get_media_info import get_jellyfin_item_details
+from aphrodite_helpers.review_preferences import filter_reviews_by_preferences
 
 class ReviewFetcher:
     def __init__(self, settings):
@@ -779,7 +780,12 @@ class ReviewFetcher:
             print(f"🔍 Skipping AniDB - no settings available")
         
         # Format the collected review data
-        return self.format_review_data(review_data, show_details)
+        formatted_reviews = self.format_review_data(review_data, show_details)
+        
+        # Apply user preferences to filter and order reviews
+        filtered_reviews = filter_reviews_by_preferences(formatted_reviews, item_data)
+        
+        return filtered_reviews
 
 def display_reviews(reviews, item_title):
     """Display reviews in a human-readable format"""
