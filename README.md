@@ -94,6 +94,8 @@ Edit `settings.yaml` with your:
 Required API keys:
 - OMDB API key (free at omdbapi.com)
 - TMDB API key (free at themoviedb.org)
+- aniDB API key (free, but not required)
+- mdblist API key (free, but not required and limited to 1,000 calls per day)
 
 ## Contributing
 
