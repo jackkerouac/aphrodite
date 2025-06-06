@@ -28,5 +28,40 @@
     ],
     "skipped": [],
     "created_at": 1749162731.0524805
+  },
+  "d96bdae9-f72b-4ef0-a8d1-6635f9444d0e": {
+    "batch_id": "d96bdae9-f72b-4ef0-a8d1-6635f9444d0e",
+    "total_items": 4,
+    "valid_items": 4,
+    "skipped_items": 0,
+    "selected_badges": [
+      "resolution",
+      "review",
+      "awards"
+    ],
+    "jobs": [
+      {
+        "job_id": "f3d75804-07ee-45ff-b122-6cab1793e249",
+        "item_id": "7f60d94b6a18a8e87462a40f40c90072",
+        "item_name": "1883"
+      },
+      {
+        "job_id": "c182abd5-8fb9-4ab0-9ef9-735ce832708d",
+        "item_id": "97b48484222893b89a5557fe40e78e65",
+        "item_name": "1923"
+      },
+      {
+        "job_id": "9df1be1d-e89a-4ded-a55b-b1e81ade423d",
+        "item_id": "15e38e872ca31835c66f19daf0477738",
+        "item_name": "30 for 30"
+      },
+      {
+        "job_id": "fbeea15a-f955-40a8-a7c8-e278834849d5",
+        "item_id": "97aebb01850c36462e07be10634a0265",
+        "item_name": "Accused: Guilty or Innocent?"
+      }
+    ],
+    "skipped": [],
+    "created_at": 1749212703.2524908
   }
 }

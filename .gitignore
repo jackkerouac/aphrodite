@@ -45,6 +45,7 @@ Thumbs.db
 # Directories
 posters/
 data/cache/
+images/source/
 
 # Settings - Exclude actual settings files with credentials
 settings.yaml
