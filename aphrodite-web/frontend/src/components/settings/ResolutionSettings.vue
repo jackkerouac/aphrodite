@@ -79,24 +79,30 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="form-group">
             <label for="font" class="block text-sm font-medium text-gray-700 mb-1">Font</label>
-            <input 
+            <select 
               id="font" 
               v-model="settings.Text.font" 
-              type="text" 
               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="AvenirNextLTProBold.otf"
-            />
+            >
+              <option value="">Select a font...</option>
+              <option v-for="font in availableFonts" :key="font" :value="font">
+                {{ font }}
+              </option>
+            </select>
           </div>
           
           <div class="form-group">
             <label for="fallback-font" class="block text-sm font-medium text-gray-700 mb-1">Fallback Font</label>
-            <input 
+            <select 
               id="fallback-font" 
               v-model="settings.Text.fallback_font" 
-              type="text" 
               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="DejaVuSans.ttf"
-            />
+            >
+              <option value="">Select a font...</option>
+              <option v-for="font in availableFonts" :key="font" :value="font">
+                {{ font }}
+              </option>
+            </select>
           </div>
           
           <div class="form-group">
@@ -420,6 +426,7 @@ export default {
     const error = ref(null);
     const saving = ref(false);
     const success = ref(false);
+    const availableFonts = ref([]);
     
     // For handling image mappings
     const tempMapping = reactive({});
@@ -574,7 +581,22 @@ export default {
       }
     };
 
-    onMounted(loadSettings);
+    // Load available fonts
+    const loadFonts = async () => {
+      try {
+        const response = await api.getFonts();
+        availableFonts.value = response.data.fonts || [];
+        console.log('Loaded fonts:', availableFonts.value);
+      } catch (err) {
+        console.error('Error loading fonts:', err);
+        availableFonts.value = [];
+      }
+    };
+    
+    onMounted(async () => {
+      await loadFonts();
+      await loadSettings();
+    });
     
     return {
       loading,
@@ -582,6 +604,7 @@ export default {
       saving,
       success,
       settings,
+      availableFonts,
       saveSettings,
       tempMapping,
       newMapping,

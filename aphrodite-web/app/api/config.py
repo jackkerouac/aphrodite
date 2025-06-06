@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from app.services.config import ConfigService
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +107,77 @@ def debug_migration():
         logger.error(f"DEBUG: Error in debug migration: {e}")
         import traceback
         logger.error(f"DEBUG: Debug migration traceback: {traceback.format_exc()}")
+        return jsonify({
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }), 500
+
+@bp.route('/fonts', methods=['GET'])
+def get_available_fonts():
+    """Get list of available font files from the fonts directory."""
+    try:
+        # Use the same logic as the main app for determining base directory
+        is_docker = (
+            os.path.exists('/app') and 
+            os.path.exists('/app/settings.yaml') and 
+            os.path.exists('/.dockerenv')
+        )
+        
+        if is_docker:
+            fonts_dir = '/app/fonts'
+        else:
+            # From aphrodite-web/app/api/config.py, go up 3 levels to reach aphrodite/
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+            fonts_dir = os.path.join(base_dir, 'fonts')
+        
+        fonts_dir = os.path.abspath(fonts_dir)
+        logger.info(f"Looking for fonts in: {fonts_dir}")
+        
+        # Debug info
+        debug_info = {
+            'current_file': __file__,
+            'dirname': os.path.dirname(__file__),
+            'base_dir': base_dir if not is_docker else '/app',
+            'fonts_dir': fonts_dir,
+            'fonts_dir_exists': os.path.exists(fonts_dir),
+            'is_docker': is_docker
+        }
+        
+        if not os.path.exists(fonts_dir):
+            logger.warning(f"Fonts directory not found: {fonts_dir}")
+            return jsonify({
+                "fonts": [],
+                "debug": debug_info,
+                "error": f"Fonts directory not found: {fonts_dir}"
+            })
+        
+        # Get all font files (common font extensions)
+        font_extensions = {'.ttf', '.otf', '.woff', '.woff2'}
+        fonts = []
+        
+        try:
+            for filename in os.listdir(fonts_dir):
+                if any(filename.lower().endswith(ext) for ext in font_extensions):
+                    fonts.append(filename)
+        except Exception as e:
+            logger.error(f"Error reading fonts directory: {e}")
+            return jsonify({
+                "error": f"Error reading fonts directory: {e}",
+                "debug": debug_info
+            }), 500
+        
+        fonts.sort()  # Sort alphabetically
+        logger.info(f"Found {len(fonts)} font files: {fonts}")
+        
+        return jsonify({
+            "fonts": fonts,
+            "debug": debug_info
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting fonts: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
         return jsonify({
             "error": str(e),
             "traceback": traceback.format_exc()

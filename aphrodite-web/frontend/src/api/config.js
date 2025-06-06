@@ -146,5 +146,10 @@ export default {
   // Helper function to get a normalized image URL
   getImageUrl(imagePath) {
     return normalizeImageURL(imagePath);
+  },
+  
+  // Get available fonts from the fonts directory
+  getFonts() {
+    return apiClient.get('/api/config/fonts')
   }
 }
