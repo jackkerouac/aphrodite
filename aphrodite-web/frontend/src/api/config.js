@@ -118,6 +118,31 @@ export default {
     return apiClient.post('/api/check/', { api_type: apiType, ...credentials })
   },
   
+  // Review Sources API
+  getReviewSources() {
+    return apiClient.get('/api/review-sources')
+  },
+  
+  updateReviewSource(sourceId, sourceData) {
+    return apiClient.put(`/api/review-sources/${sourceId}`, sourceData)
+  },
+  
+  reorderReviewSources(sources) {
+    return apiClient.put('/api/review-sources/reorder', { sources })
+  },
+  
+  getReviewSettings() {
+    return apiClient.get('/api/review-settings')
+  },
+  
+  updateReviewSettings(settings) {
+    return apiClient.put('/api/review-settings', settings)
+  },
+  
+  getEnabledReviewSources() {
+    return apiClient.get('/api/review-sources/enabled')
+  },
+  
   // Helper function to get a normalized image URL
   getImageUrl(imagePath) {
     return normalizeImageURL(imagePath);

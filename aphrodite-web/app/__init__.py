@@ -223,8 +223,8 @@ def create_app():
                 'host': request.host
             }), 500
     
-    # Import and register blueprints - including our proxy blueprint
-    from app.api import config, jobs, libraries, images, check, workflow, schedules, preview, version, changes, poster_manager, settings_migration
+    # Import and register blueprints - including our review_sources blueprint
+    from app.api import config, jobs, libraries, images, check, workflow, schedules, preview, version, changes, poster_manager, settings_migration, review_sources
     app.register_blueprint(config.bp)
     app.register_blueprint(jobs.bp)
     app.register_blueprint(libraries.bp)
@@ -237,8 +237,9 @@ def create_app():
     app.register_blueprint(changes.bp)
     app.register_blueprint(poster_manager.bp)
     app.register_blueprint(settings_migration.bp)
+    app.register_blueprint(review_sources.bp)
     
-    # Proxy blueprint removed - using direct API calls
+    app.logger.info("DEBUG: All blueprints registered successfully, including review_sources")
     
     # Register the simplified process API
     from app.api import process_api
@@ -394,19 +395,6 @@ def create_app():
         content = pattern.sub(f'<head>\n    {script_tag}', content)
         
         return content
-    
-    # Initialize scheduler service
-    try:
-        from app.api.schedules import init_scheduler_service, shutdown_scheduler
-        init_scheduler_service()
-        app.logger.info("DEBUG: Scheduler service initialized")
-        
-        # Register shutdown handler
-        import atexit
-        atexit.register(shutdown_scheduler)
-        
-    except Exception as e:
-        app.logger.error(f"DEBUG: Failed to initialize scheduler: {e}")
     
     # Debug: Print all registered routes
     def debug_routes():
