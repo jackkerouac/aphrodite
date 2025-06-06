@@ -25,6 +25,10 @@
                 class="w-full rounded-lg shadow-lg"
                 @error="handleImageError"
               />
+              <!-- Loading Overlay -->
+              <div v-if="isProcessing" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
+                <span class="loading loading-spinner loading-lg text-white"></span>
+              </div>
               <!-- Status Badge -->
               <div class="absolute top-2 right-2">
                 <div 

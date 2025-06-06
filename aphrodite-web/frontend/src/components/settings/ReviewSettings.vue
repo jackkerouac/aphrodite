@@ -2,6 +2,25 @@
   <div class="review-settings">
     <h2 class="text-xl font-bold mb-4">Review Badge Settings</h2>
     
+    <!-- Review Sources Status Notice -->
+    <div class="alert alert-info mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <div>
+        <h3 class="font-bold">Review Source Availability</h3>
+        <div class="text-sm mt-1">
+          <p class="mb-2">Not all review sources are currently functional. Here are the sources that are currently working:</p>
+          <div class="flex flex-wrap gap-2">
+            <span class="badge badge-success badge-sm">IMDb</span>
+            <span class="badge badge-success badge-sm">TMDb</span>
+            <span class="badge badge-warning badge-sm">Rotten Tomatoes (Limited)</span>
+          </div>
+          <p class="mt-2 text-xs opacity-75">Other sources are included for future functionality and testing purposes.</p>
+        </div>
+      </div>
+    </div>
+    
     <form @submit.prevent="saveAllSettings" class="space-y-6">
       
       <!-- NEW: Review Sources Control -->
