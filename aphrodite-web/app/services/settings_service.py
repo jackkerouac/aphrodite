@@ -168,6 +168,60 @@ class SettingsService:
             ''')
             logger.info("DEBUG: Created/verified job_history table")
             
+            # Create review sources table
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS review_sources (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                source_name TEXT NOT NULL,
+                enabled BOOLEAN NOT NULL DEFAULT 1,
+                display_order INTEGER NOT NULL DEFAULT 0,
+                max_variants INTEGER DEFAULT 1,
+                priority INTEGER NOT NULL DEFAULT 100,
+                conditions TEXT DEFAULT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            ''')
+            logger.info("DEBUG: Created/verified review_sources table")
+            
+            # Create review settings table
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS review_settings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                setting_key TEXT NOT NULL UNIQUE,
+                setting_value TEXT NOT NULL,
+                description TEXT DEFAULT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            ''')
+            logger.info("DEBUG: Created/verified review_settings table")
+            
+            # Initialize default review sources if the table is empty
+            cursor.execute('SELECT COUNT(*) FROM review_sources')
+            if cursor.fetchone()[0] == 0:
+                logger.info("DEBUG: Initializing default review sources")
+                default_sources = [
+                    ('IMDb', 1, 1, 1, 1, None),
+                    ('Rotten Tomatoes Critics', 0, 2, 3, 2, None),
+                    ('Metacritic', 1, 3, 2, 3, None),
+                    ('TMDb', 1, 4, 3, 4, None),
+                    ('AniDB', 1, 5, 1, 5, '{"content_type": "anime"}'),
+                    ('Rotten Tomatoes Audience', 0, 6, 3, 6, None),
+                    ('Letterboxd', 0, 7, 1, 7, None),
+                    ('MyAnimeList', 1, 8, 3, 8, '{"content_type": "anime"}'),
+                    ('Trakt', 0, 9, 1, 9, None),
+                    ('MDBList', 0, 10, 1, 10, None)
+                ]
+                
+                for source in default_sources:
+                    cursor.execute('''
+                    INSERT INTO review_sources 
+                    (source_name, enabled, display_order, max_variants, priority, conditions)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    ''', source)
+                logger.info("DEBUG: Added default review sources")
+            
             conn.commit()
             conn.close()
             logger.info("DEBUG: Database initialization completed successfully")
