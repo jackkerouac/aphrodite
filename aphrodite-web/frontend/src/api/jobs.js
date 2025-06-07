@@ -68,5 +68,11 @@ export default {
 
   getImagePath: (path) => `${baseURL}/api/images/serve?path=${encodeURIComponent(path)}`,
 
-  downloadImage: (filename) => `${baseURL}/api/images/download/${filename}`
+  downloadImage: (filename) => `${baseURL}/api/images/download/${filename}`,
+
+  // Active badge processing jobs
+  getActiveBadgeJobs: () => axiosInstance.get('/api/jobs/active-badge-jobs'),
+  
+  // Clear completed badge processing batches
+  clearCompletedBatches: () => axiosInstance.post('/api/jobs/clear-completed-batches')
 };

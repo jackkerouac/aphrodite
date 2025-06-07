@@ -71,7 +71,7 @@ test*.sh
 test*.bat
 start-dev-local.bat
 verify_database.py
-commit_message_V2.txt
+cleanup_metadata.py
 
 # Documentation
 CRUNCHYROLL_INTEGRATION_SUMMARY.md

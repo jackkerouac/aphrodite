@@ -38,6 +38,11 @@
 
     <p>&nbsp;</p>
 
+    <!-- Active Badge Processing Card -->
+    <ActiveBadgeJobs @view-progress="handleViewProgress" />
+
+    <p>&nbsp;</p>
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <!-- Quick Stats Card -->
       <div class="card bg-base-100 shadow-xl">
@@ -70,6 +75,13 @@
         </div>
       </div>
     </div>
+
+    <!-- Global Progress Modal -->
+    <GlobalProgressModal 
+      :batch-id="selectedBatchId"
+      :is-visible="showProgressModal"
+      @close="closeProgressModal"
+    />
   </div>
 </template>
 
@@ -77,9 +89,15 @@
 import { reactive, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '@/api';
+import ActiveBadgeJobs from '@/components/dashboard/ActiveBadgeJobs.vue';
+import GlobalProgressModal from '@/components/dashboard/GlobalProgressModal.vue';
 
 export default {
   name: 'HomeView',
+  components: {
+    ActiveBadgeJobs,
+    GlobalProgressModal
+  },
   setup() {
     const router = useRouter();
     const jobStats = reactive({
@@ -87,6 +105,8 @@ export default {
       successRate: '0%'
     });
     const changes = ref([]);
+    const showProgressModal = ref(false);
+    const selectedBatchId = ref(null);
 
     // Navigate to Settings page
     const goToSettings = () => {
@@ -154,13 +174,29 @@ export default {
       await getChanges();
     });
 
+    // Handle viewing progress from ActiveBadgeJobs component
+    const handleViewProgress = (batchId) => {
+      selectedBatchId.value = batchId;
+      showProgressModal.value = true;
+    };
+
+    // Close progress modal
+    const closeProgressModal = () => {
+      showProgressModal.value = false;
+      selectedBatchId.value = null;
+    };
+
     return {
       jobStats,
       changes,
+      showProgressModal,
+      selectedBatchId,
       goToSettings,
       goToHistory,
       goToExecute,
-      goToPosterManager
+      goToPosterManager,
+      handleViewProgress,
+      closeProgressModal
     };
   }
 };
