@@ -14,37 +14,40 @@ def get_all_jobs():
     per_page = request.args.get('per_page', 20, type=int)
     job_type = request.args.get('type')
     
-    # Try to get jobs from the job history file first (newer approach)
-    job_history = get_job_history(page, per_page, job_type)
-    
-    if job_history['total'] > 0:
-        return jsonify({
-            'success': True,
-            'jobs': job_history['jobs'],
-            'total': job_history['total'],
-            'page': job_history['page'],
-            'per_page': job_history['per_page'],
-            'total_pages': job_history['total_pages']
-        })
-    
-    # Fall back to database if no jobs in history file
+    # Try to get jobs from the database first (newer approach)
     limit = per_page
     offset = (page - 1) * per_page
     jobs = JobService.get_all_jobs(limit, offset)
     
+    if jobs:
+        total_count = JobService.get_job_count()
+        total_pages = (total_count + per_page - 1) // per_page if total_count > 0 else 1
+        
+        return jsonify({
+            'success': True,
+            'jobs': jobs,
+            'total': total_count,
+            'page': page,
+            'per_page': per_page,
+            'total_pages': total_pages
+        })
+    
+    # Fall back to job history file if no jobs in database
+    job_history = get_job_history(page, per_page, job_type)
+    
     return jsonify({
         'success': True,
-        'jobs': jobs,
-        'total': len(jobs),  # This is not accurate for total count, but it's a fallback
-        'page': page,
-        'per_page': per_page,
-        'total_pages': 1 if jobs else 0
+        'jobs': job_history['jobs'],
+        'total': job_history['total'],
+        'page': job_history['page'],
+        'per_page': job_history['per_page'],
+        'total_pages': job_history['total_pages']
     })
 
 @bp.route('/<id>', methods=['GET'])
 def get_job(id):
-    # Try to get job from history file first
-    job = get_job_by_id(id)
+    # Try to get job from database first
+    job = JobService.get_job(id)
     
     if job:
         return jsonify({
@@ -52,8 +55,8 @@ def get_job(id):
             'job': job
         })
     
-    # Fall back to database
-    job = JobService.get_job(id)
+    # Fall back to history file
+    job = get_job_by_id(id)
     
     if not job:
         return jsonify({
@@ -68,13 +71,13 @@ def get_job(id):
 
 @bp.route('/<id>', methods=['DELETE'])
 def delete_job_by_id(id):
-    # Try to delete from history file first
-    deleted_from_history = delete_job(id)
-    
-    # Always try to delete from database too (in case it exists in both places)
+    # Try to delete from database first
     deleted_from_db = JobService.delete_job(id)
     
-    if not deleted_from_history and not deleted_from_db:
+    # Always try to delete from history file too (in case it exists in both places)
+    deleted_from_history = delete_job(id)
+    
+    if not deleted_from_db and not deleted_from_history:
         return jsonify({
             'success': False,
             'message': f'Job {id} not found'

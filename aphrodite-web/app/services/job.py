@@ -158,6 +158,20 @@ class JobService:
         return jobs
     
     @classmethod
+    def get_job_count(cls):
+        """Get total number of jobs in database"""
+        cls._init_db()
+        
+        conn = sqlite3.connect(cls.DB_FILE)
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT COUNT(*) FROM jobs')
+        count = cursor.fetchone()[0]
+        
+        conn.close()
+        return count
+    
+    @classmethod
     def delete_job(cls, job_id):
         """Delete a job by ID"""
         cls._init_db()
