@@ -5,6 +5,14 @@ Aphrodite automatically enhances your Jellyfin media library posters with qualit
 ![Example Image](https://github.com/jackkerouac/aphrodite/blob/main/example01.png)
 ![Example Image](https://github.com/jackkerouac/aphrodite/blob/main/example02.png)
 
+## IMPORTANT UPGRADE NOTICE:
+
+Beginning with v3.0.0, configuration is now stored in an embedded SQLite database instead of YAML files. When you launch v3.0.0 or later, your existing YAML settings are migrated automatically—no action required.
+
+Support for YAML will be removed entirely in v4.0.0.
+
+(And yes, **I know** the version numbers are borked. Thanks for bearing with me while I iron that out!)
+
 ## Features
 
 - **Smart Badge Detection**: Automatically adds resolution (4K, 1080p), audio codec (Atmos, DTS), and review badges to your posters

@@ -1,7 +1,7 @@
 {
   "metadata": {
     "source": "Crunchyroll Anime Awards with TMDb integration",
-    "created_date": "2025-06-04T07:46:39.557336",
+    "created_date": "2025-06-07T16:46:02.709861",
     "note": "Enhanced data with TMDb IDs for Aphrodite integration",
     "total_ceremonies": 9,
     "years_covered": "2017-2025",
@@ -224,11 +224,11 @@
         "tmdb_movie_data": null
       },
       "search_variants": [
-        "Demon Slayer  Kimetsu no Yaiba",
-        "Demon Slayer: Kimetsu no Yaiba",
-        "Kimetsu no Yaiba",
         "Demon Slayer",
-        "Demon Slayer Kimetsu no Yaiba"
+        "Demon Slayer Kimetsu no Yaiba",
+        "Kimetsu no Yaiba",
+        "Demon Slayer: Kimetsu no Yaiba",
+        "Demon Slayer  Kimetsu no Yaiba"
       ]
     },
     "Frieren: Beyond Journey's End": {
@@ -278,11 +278,11 @@
         "tmdb_movie_data": null
       },
       "search_variants": [
-        "Makeine Too Many Losing Heroines",
-        "Makeine",
         "Makeine: Too Many Losing Heroines!",
-        "Too Many Losing Heroines",
-        "Makeine  Too Many Losing Heroines"
+        "Makeine",
+        "Makeine Too Many Losing Heroines",
+        "Makeine  Too Many Losing Heroines",
+        "Too Many Losing Heroines"
       ]
     },
     "DAN DA DAN": {
@@ -311,8 +311,8 @@
         "tmdb_movie_data": null
       },
       "search_variants": [
-        "Dandadan",
-        "DAN DA DAN"
+        "DAN DA DAN",
+        "Dandadan"
       ]
     },
     "Attack on Titan": {
@@ -445,19 +445,19 @@
         }
       ],
       "identifiers": {
-        "tmdb_tv_id": 292370,
+        "tmdb_tv_id": 65930,
         "tmdb_movie_id": null,
         "tmdb_tv_data": {
-          "tmdb_id": 292370,
-          "tmdb_name": "Boku no Hero Academia Memories",
-          "first_air_date": "2024-04-06",
-          "overview": ""
+          "tmdb_id": 65930,
+          "tmdb_name": "My Hero Academia",
+          "first_air_date": "2016-04-03",
+          "overview": "For his entire life, Izuku has dreamed of being a hero—an ambitious goal for anyone, but an especially challenging one for a boy without superpowers. That’s right: in a world where 80% of the population has some sort of special gift, Izuku was unlucky enough to be born completely normal. But that won’t stop him from enrolling in one of the most prestigious hero academies in the world to learn what it truly means to be a hero."
         },
         "tmdb_movie_data": null
       },
       "search_variants": [
-        "Boku no Hero Academia",
-        "My Hero Academia"
+        "My Hero Academia",
+        "Boku no Hero Academia"
       ]
     },
     "Yuri!!! on Ice": {
@@ -511,8 +511,8 @@
         "tmdb_movie_data": null
       },
       "search_variants": [
-        "Yuri!!! on Ice",
         "Yuri    on Ice",
+        "Yuri!!! on Ice",
         "Yuri on Ice"
       ]
     }

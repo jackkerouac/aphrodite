@@ -14,9 +14,10 @@
           <div class="flex flex-wrap gap-2">
             <span class="badge badge-success badge-sm">IMDb</span>
             <span class="badge badge-success badge-sm">TMDb</span>
-            <span class="badge badge-warning badge-sm">Rotten Tomatoes (Limited)</span>
+            <span class="badge badge-success badge-sm">MyAnimeList</span>
+            <span class="badge badge-success badge-sm">aniDB</span>
           </div>
-          <p class="mt-2 text-xs opacity-75">Other sources are included for future functionality and testing purposes.</p>
+          <p class="mt-2 text-xs opacity-75">Other sources are included for future functionality and testing purposes. I will get to them, I promise!</p>
         </div>
       </div>
     </div>

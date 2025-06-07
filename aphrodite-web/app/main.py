@@ -75,7 +75,21 @@ def create_app():
     
     # Import and register blueprints
     try:
+        logger.info("Starting blueprint imports...")
         from app.api import config, jobs, libraries, images, check, workflow, process_api, preview, version, poster_manager, review_sources
+        logger.info("Basic blueprints imported successfully")
+        
+        # Import database analytics separately to catch any errors
+        try:
+            from app.api import database_analytics
+            logger.info("✅ database_analytics imported successfully")
+        except Exception as db_import_error:
+            logger.error(f"❌ Failed to import database_analytics: {db_import_error}")
+            import traceback
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            # Continue without database_analytics
+            database_analytics = None
+        
         app.register_blueprint(config.bp)
         app.register_blueprint(jobs.bp)
         app.register_blueprint(libraries.bp)
@@ -87,6 +101,14 @@ def create_app():
         app.register_blueprint(version.bp)
         app.register_blueprint(poster_manager.bp)
         app.register_blueprint(review_sources.bp)
+        
+        # Register database analytics blueprint with explicit logging
+        if database_analytics:
+            logger.info("Registering database_analytics blueprint...")
+            app.register_blueprint(database_analytics.bp)
+            logger.info("✅ Database analytics blueprint registered successfully!")
+        else:
+            logger.warning("⚠️ Skipping database analytics blueprint due to import error")
     except Exception as e:
         logger.error(f"Error registering blueprints: {e}")
         # Add a fallback route if blueprints fail to load

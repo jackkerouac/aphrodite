@@ -4,6 +4,7 @@ import jobsApi from './jobs';
 import schedulesApi from './schedules';
 import previewApi from './preview';
 import changesApi from './changes';
+import databaseApi from './database';
 
 // Get the base URL from the window object if available (injected by Flask),
 // fallback to environment variable, or relative URL if neither is available
@@ -56,6 +57,7 @@ export default {
   schedules: schedulesApi,
   preview: previewApi,
   changes: changesApi,
+  database: databaseApi,
   // Base API methods
   get: (url, config) => axiosInstance.get(url, config),
   post: (url, data, config) => axiosInstance.post(url, data, config),

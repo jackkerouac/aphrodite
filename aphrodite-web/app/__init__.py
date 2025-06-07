@@ -223,8 +223,56 @@ def create_app():
                 'host': request.host
             }), 500
     
+    # DEBUG: Add a test database endpoint directly to the main app
+    @app.route('/api/debug/database')
+    def debug_database():
+        """Debug endpoint to test database connectivity"""
+        try:
+            # Import database analytics directly
+            from app.api.database_analytics import get_database_path, get_db_connection
+            
+            db_path = get_database_path()
+            app.logger.info(f"DEBUG: Database path: {db_path}")
+            
+            if not os.path.exists(db_path):
+                return jsonify({
+                    'success': False,
+                    'message': f'Database not found at {db_path}',
+                    'database_path': db_path
+                })
+            
+            conn = get_db_connection()
+            if not conn:
+                return jsonify({
+                    'success': False,
+                    'message': 'Failed to connect to database',
+                    'database_path': db_path
+                })
+            
+            # Test basic query
+            cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+            tables = [row[0] for row in cursor.fetchall()]
+            conn.close()
+            
+            return jsonify({
+                'success': True,
+                'message': 'Database connection successful',
+                'database_path': db_path,
+                'tables': tables,
+                'processed_items_exists': 'processed_items' in tables
+            })
+            
+        except Exception as e:
+            app.logger.error(f"DEBUG: Database test error: {str(e)}")
+            import traceback
+            return jsonify({
+                'success': False,
+                'message': f'Database test failed: {str(e)}',
+                'traceback': traceback.format_exc()
+            }), 500
+    
     # Import and register blueprints - including our review_sources blueprint
-    from app.api import config, jobs, libraries, images, check, workflow, schedules, preview, version, changes, poster_manager, settings_migration, review_sources
+    from app.api import config, jobs, libraries, images, check, workflow, schedules, preview, version, changes, poster_manager, settings_migration, review_sources, database_analytics
     app.register_blueprint(config.bp)
     app.register_blueprint(jobs.bp)
     app.register_blueprint(libraries.bp)
@@ -238,8 +286,22 @@ def create_app():
     app.register_blueprint(poster_manager.bp)
     app.register_blueprint(settings_migration.bp)
     app.register_blueprint(review_sources.bp)
+    app.register_blueprint(database_analytics.bp)
     
-    app.logger.info("DEBUG: All blueprints registered successfully, including review_sources")
+    app.logger.info("DEBUG: All blueprints registered successfully, including review_sources and database_analytics")
+    
+    # DEBUG: Check if database analytics routes are actually registered
+    app.logger.info("DEBUG: Checking database analytics routes...")
+    for rule in app.url_map.iter_rules():
+        if 'database' in str(rule.rule):
+            app.logger.info(f"DEBUG: Found database route: {rule.rule} -> {rule.endpoint}")
+    
+    # DEBUG: Test importing database analytics functions directly
+    try:
+        from app.api.database_analytics import get_database_stats, get_recent_items, get_processing_trends
+        app.logger.info("DEBUG: Database analytics functions imported successfully")
+    except Exception as e:
+        app.logger.error(f"DEBUG: Failed to import database analytics functions: {e}")
     
     # Register the simplified process API
     from app.api import process_api

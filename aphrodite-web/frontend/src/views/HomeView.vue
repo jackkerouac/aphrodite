@@ -43,38 +43,8 @@
 
     <p>&nbsp;</p>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <!-- Quick Stats Card -->
-      <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-          <h2 class="card-title">Job Statistics</h2>
-          <div class="stats stats-vertical shadow bg-base-200">
-            <div class="stat">
-              <div class="stat-title">Total Jobs</div>
-              <div class="stat-value">{{ jobStats.total || 0 }}</div>
-            </div>
-            <div class="stat">
-              <div class="stat-title">Success Rate</div>
-              <div class="stat-value text-success">{{ jobStats.successRate || '0%' }}</div>
-            </div>
-          </div>
-          <div class="card-actions justify-end mt-2">
-            <button class="btn btn-sm btn-primary" @click="goToHistory">View History</button>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Quick Actions Card -->
-      <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-          <h2 class="card-title">Quick Actions</h2>
-          <div class="space-y-3">
-            <button class="btn btn-primary w-full" @click="goToPosterManager()">Poster Manager</button>
-            <button class="btn btn-secondary w-full" @click="goToExecute('check')">Check Connections</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Poster Statistics Card -->
+    <DatabaseStatsCard />
 
     <!-- Global Progress Modal -->
     <GlobalProgressModal 
@@ -86,24 +56,22 @@
 </template>
 
 <script>
-import { reactive, ref, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '@/api';
 import ActiveBadgeJobs from '@/components/dashboard/ActiveBadgeJobs.vue';
 import GlobalProgressModal from '@/components/dashboard/GlobalProgressModal.vue';
+import DatabaseStatsCard from '@/components/dashboard/DatabaseStatsCard.vue';
 
 export default {
   name: 'HomeView',
   components: {
     ActiveBadgeJobs,
-    GlobalProgressModal
+    GlobalProgressModal,
+    DatabaseStatsCard
   },
   setup() {
     const router = useRouter();
-    const jobStats = reactive({
-      total: 0,
-      successRate: '0%'
-    });
     const changes = ref([]);
     const showProgressModal = ref(false);
     const selectedBatchId = ref(null);
@@ -111,48 +79,6 @@ export default {
     // Navigate to Settings page
     const goToSettings = () => {
       router.push('/settings');
-    };
-
-    // Navigate to History page (schedules with history tab)
-    const goToHistory = () => {
-      router.push({
-        path: '/schedules',
-        query: { tab: 'history' }
-      });
-    };
-
-    // Navigate to Execute page with tab
-    const goToExecute = (tab) => {
-      router.push({
-        path: '/execute',
-        query: { tab: tab }
-      });
-    };
-
-    // Navigate to Poster Manager page
-    const goToPosterManager = () => {
-      router.push('/poster-manager');
-    };
-
-    // Get job statistics
-    const getJobStats = async () => {
-      try {
-        console.log('Getting job statistics...');
-        const response = await api.jobs.getJobs();
-        console.log('Job statistics response:', response.data);
-        
-        // Access the jobs array from the response
-        const jobs = response.data.jobs || [];
-        
-        jobStats.total = jobs.length;
-        
-        if (jobs.length > 0) {
-          const successfulJobs = jobs.filter(job => job.status === 'Success').length;
-          jobStats.successRate = `${Math.round((successfulJobs / jobs.length) * 100)}%`;
-        }
-      } catch (error) {
-        console.error('Failed to get job statistics:', error);
-      }
     };
 
     // Get changes from YAML file
@@ -170,7 +96,6 @@ export default {
 
     // Load data on component mount
     onMounted(async () => {
-      await getJobStats();
       await getChanges();
     });
 
@@ -187,14 +112,10 @@ export default {
     };
 
     return {
-      jobStats,
       changes,
       showProgressModal,
       selectedBatchId,
       goToSettings,
-      goToHistory,
-      goToExecute,
-      goToPosterManager,
       handleViewProgress,
       closeProgressModal
     };
