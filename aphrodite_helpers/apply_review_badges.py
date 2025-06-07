@@ -31,6 +31,13 @@ from aphrodite_helpers.settings_validator import load_settings
 from aphrodite_helpers.badge_components.badge_image_handler import load_codec_image
 from aphrodite_helpers.review_preferences import ReviewPreferences
 
+# 🗄️ PHASE 2: Database Integration for review tracking
+try:
+    from aphrodite_helpers.database_manager import DatabaseManager
+    REVIEW_DATABASE_TRACKING = True
+except ImportError:
+    REVIEW_DATABASE_TRACKING = False
+
 def apply_badge_to_poster(
     poster_path, 
     badge, 
@@ -454,6 +461,56 @@ def process_item_reviews(
         import traceback
         print(traceback.format_exc())
         return False
+    
+    # 🗄️ PHASE 2: Store review data in database
+    if REVIEW_DATABASE_TRACKING:
+        try:
+            db_manager = DatabaseManager()
+            
+            # Get the processed item ID from database
+            processed_item = db_manager.get_processed_item(item_id)
+            if processed_item:
+                processed_item_id = processed_item['id']
+                
+                # Prepare review data for database storage
+                review_records = []
+                for review in reviews:
+                    review_record = {
+                        'source': review.get('source', 'unknown'),
+                        'score': review.get('score'),
+                        'score_max': review.get('score_max', 10),
+                        'score_text': review.get('text', ''),
+                        'review_count': review.get('review_count'),
+                        'raw_data': review  # Store complete review data
+                    }
+                    review_records.append(review_record)
+                
+                # Insert review data
+                success = db_manager.insert_item_reviews(processed_item_id, review_records)
+                if success:
+                    print(f"🗄️ Stored {len(review_records)} reviews in database")
+                    
+                    # Update processed item with review cache info
+                    from datetime import datetime, timedelta
+                    cache_expiry = datetime.now() + timedelta(hours=24)  # Reviews expire after 24 hours
+                    
+                    scores = [r.get('score') for r in reviews if r.get('score') is not None]
+                    update_data = {
+                        'reviews_last_checked': datetime.now().isoformat(),
+                        'reviews_cache_expiry': cache_expiry.isoformat()
+                    }
+                    
+                    if scores:
+                        update_data['highest_review_score'] = max(scores)
+                        update_data['lowest_review_score'] = min(scores)
+                    
+                    db_manager.update_processed_item(item_id, update_data)
+                
+            db_manager.close()
+            
+        except Exception as e:
+            print(f"⚠️ Failed to store reviews in database: {e}")
+            # Continue processing even if database update fails
     
     try:
         # Create container with all review badges

@@ -53,6 +53,14 @@ from aphrodite_helpers.poster_uploader import PosterUploader
 from aphrodite_helpers.tv_series_aggregator import get_series_dominant_badge_info
 from aphrodite_helpers.metadata_tagger import add_aphrodite_tag, MetadataTagger, get_tagging_settings
 
+# 🗄️ PHASE 2: Database Integration imports
+try:
+    from aphrodite_helpers.database_integration import process_item_with_database_tracking
+    DATABASE_TRACKING_AVAILABLE = True
+except ImportError:
+    DATABASE_TRACKING_AVAILABLE = False
+    print("⚠️ Database tracking not available, running in legacy mode")
+
 
 BANNER = r"""
               _                   _ _ _       
@@ -71,7 +79,7 @@ def display_banner() -> None:
     print(BANNER)
 
 
-def process_single_item(jellyfin_url: str, api_key: str, user_id: str, 
+def _process_single_item_core(jellyfin_url: str, api_key: str, user_id: str, 
                         item_id: str, max_retries: int = 3,
                         add_audio: bool = True, add_resolution: bool = True,
                         add_reviews: bool = True, add_awards: bool = True,
@@ -319,6 +327,46 @@ def process_single_item(jellyfin_url: str, api_key: str, user_id: str,
     
     print(f"✅ Success: {item_name}")
     return True
+
+
+# 🗄️ PHASE 2: Database Integration Wrapper
+def process_single_item(jellyfin_url: str, api_key: str, user_id: str, 
+                        item_id: str, max_retries: int = 3,
+                        add_audio: bool = True, add_resolution: bool = True,
+                        add_reviews: bool = True, add_awards: bool = True,
+                        skip_upload: bool = False, add_metadata_tag: bool = True) -> bool:
+    """
+    Database-integrated wrapper for process_single_item.
+    
+    This function adds database tracking to the core processing function
+    while maintaining full backward compatibility.
+    """
+    
+    # Processing options for database tracking
+    processing_options = {
+        'audio': add_audio,
+        'resolution': add_resolution,
+        'reviews': add_reviews,
+        'awards': add_awards
+    }
+    
+    # Use database integration if available, otherwise fall back to core function
+    if DATABASE_TRACKING_AVAILABLE:
+        return process_item_with_database_tracking(
+            jellyfin_url, api_key, user_id, item_id,
+            processing_options,
+            _process_single_item_core,
+            jellyfin_url, api_key, user_id, item_id, max_retries,
+            add_audio, add_resolution, add_reviews, add_awards,
+            skip_upload, add_metadata_tag
+        )
+    else:
+        # Fall back to original function without database tracking
+        return _process_single_item_core(
+            jellyfin_url, api_key, user_id, item_id, max_retries,
+            add_audio, add_resolution, add_reviews, add_awards,
+            skip_upload, add_metadata_tag
+        )
 
 
 def process_library_items(jellyfin_url: str, api_key: str, user_id: str,
