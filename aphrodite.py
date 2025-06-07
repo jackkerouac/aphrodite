@@ -550,6 +550,47 @@ def main() -> int:
     reprocess_p.add_argument("--limit", type=int, help="Maximum number of items to reprocess")
     reprocess_p.add_argument("--dry-run", action="store_true", help="Show what would be reprocessed without actually doing it")
 
+    # 🗄️ PHASE 4: Enhanced Features
+    report_p = sub.add_parser("report", help="Generate comprehensive processing reports")
+    report_p.add_argument("--library", help="Filter by library ID")
+    report_p.add_argument("--days", type=int, default=30, help="Number of days to analyze (default: 30)")
+    report_p.add_argument("--export", choices=["csv", "json"], help="Export data to file")
+    report_p.add_argument("--output", help="Custom output path for export")
+
+    settings_check_p = sub.add_parser("settings-check", help="Check for badge settings changes")
+    settings_check_p.add_argument("--library", help="Filter by library ID")
+    settings_check_p.add_argument("--mark-for-reprocess", action="store_true", help="Mark affected items for reprocessing")
+    settings_check_p.add_argument("--dry-run", action="store_true", help="Show what would be marked without actually marking")
+
+    backup_p = sub.add_parser("backup", help="Database backup and restore operations")
+    backup_subparsers = backup_p.add_subparsers(dest="backup_cmd", help="Backup operations")
+    
+    # Backup subcommands
+    create_backup_p = backup_subparsers.add_parser("create", help="Create database backup")
+    create_backup_p.add_argument("--no-compress", action="store_true", help="Don't compress the backup")
+    create_backup_p.add_argument("--no-timestamp", action="store_true", help="Don't include timestamp in filename")
+    
+    restore_backup_p = backup_subparsers.add_parser("restore", help="Restore from backup")
+    restore_backup_p.add_argument("backup_path", help="Path to backup file")
+    restore_backup_p.add_argument("--confirm", action="store_true", help="Skip confirmation prompt")
+    
+    list_backups_p = backup_subparsers.add_parser("list", help="List available backups")
+    
+    export_json_p = backup_subparsers.add_parser("export", help="Export database to JSON")
+    export_json_p.add_argument("--output", help="Output path for JSON file")
+    export_json_p.add_argument("--include-sensitive", action="store_true", help="Include sensitive data like API keys")
+    
+    import_json_p = backup_subparsers.add_parser("import", help="Import database from JSON")
+    import_json_p.add_argument("json_path", help="Path to JSON file")
+    import_json_p.add_argument("--tables", nargs="+", help="Specific tables to import")
+    import_json_p.add_argument("--merge", action="store_true", help="Merge with existing data instead of replacing")
+    
+    cleanup_backups_p = backup_subparsers.add_parser("cleanup", help="Remove old backup files")
+    cleanup_backups_p.add_argument("--keep", type=int, default=10, help="Number of backups to keep (default: 10)")
+    
+    verify_backup_p = backup_subparsers.add_parser("verify", help="Verify backup integrity")
+    verify_backup_p.add_argument("backup_path", help="Path to backup file to verify")
+
     args = parser.parse_args()
     
     # Auto-repair settings before validation
@@ -824,6 +865,196 @@ def main() -> int:
         
         except Exception as e:
             print(f"❌ Error during reprocessing: {e}")
+            return 1
+        return 0
+
+    # 🗄️ PHASE 4: Enhanced Features Command Handlers
+    if args.cmd == "report":
+        try:
+            from aphrodite_helpers.reporting import ProcessingHistoryReporter
+            
+            reporter = ProcessingHistoryReporter()
+            
+            if args.export:
+                # Export data
+                export_path = reporter.export_processing_data(
+                    format=args.export,
+                    library_id=args.library,
+                    days_back=args.days
+                )
+                print(f"✅ Data exported to: {export_path}")
+            else:
+                # Generate comprehensive report
+                report = reporter.generate_comprehensive_report(
+                    library_id=args.library,
+                    days_back=args.days
+                )
+                
+                print(f"\n📊 COMPREHENSIVE PROCESSING REPORT")
+                print(f"🕒 Period: {report['period_analyzed']}")
+                print(f"📚 Library: {report['library_filter']}")
+                print(f"📅 Generated: {report['generated_at']}")
+                
+                # Summary
+                summary = report['summary']
+                if summary.get('total_processed', 0) > 0:
+                    print(f"\n📈 SUMMARY")
+                    print(f"  • Total processed: {summary['total_processed']}")
+                    print(f"  • Success rate: {summary['success_rate']}%")
+                    print(f"  • Average time: {summary['avg_processing_time']}s")
+                    print(f"  • Libraries: {summary['libraries_processed']}")
+                    print(f"  • Item types: {summary['item_types_processed']}")
+                    
+                    # Performance insights
+                    performance = report['performance']
+                    if performance.get('by_item_type'):
+                        print(f"\n⚡ PERFORMANCE BY TYPE")
+                        for ptype in performance['by_item_type'][:3]:  # Top 3
+                            print(f"  • {ptype['item_type']}: {ptype['avg_time']}s avg ({ptype['count']} items)")
+                    
+                    # Error insights
+                    errors = report['errors']
+                    if errors.get('common_errors'):
+                        print(f"\n❌ COMMON ERRORS")
+                        for error in errors['common_errors'][:3]:  # Top 3
+                            print(f"  • {error['error_message'][:60]}... ({error['count']} occurrences)")
+                    
+                    # Recommendations
+                    if report.get('recommendations'):
+                        print(f"\n💡 RECOMMENDATIONS")
+                        for rec in report['recommendations'][:3]:  # Top 3
+                            print(f"  • {rec}")
+                else:
+                    print(f"\n📭 No items processed in the specified period")
+                    
+        except ImportError:
+            print("❌ Enhanced reporting not available. Please check Phase 4 installation.")
+            return 1
+        except Exception as e:
+            print(f"❌ Error generating report: {e}")
+            return 1
+        return 0
+    
+    if args.cmd == "settings-check":
+        try:
+            from aphrodite_helpers.settings_change_detector import SettingsChangeDetector
+            
+            detector = SettingsChangeDetector()
+            
+            if args.mark_for_reprocess:
+                # Mark items for reprocessing
+                result = detector.mark_items_for_settings_reprocessing(
+                    library_id=args.library,
+                    dry_run=args.dry_run
+                )
+                
+                print(f"\n🔄 SETTINGS REPROCESSING RESULTS")
+                print(f"🔧 Settings changed: {'Yes' if result['settings_changed'] else 'No'}")
+                print(f"📋 Items found: {result['items_found']}")
+                print(f"✅ Items marked: {result['items_marked']}")
+                print(f"🔍 Dry run: {'Yes' if result['dry_run'] else 'No'}")
+                print(f"📚 Library filter: {result['library_filter'] or 'All libraries'}")
+                print(f"\n💬 {result['message']}")
+                
+                if result.get('sample_items'):
+                    print(f"\n📄 Sample affected items:")
+                    for item in result['sample_items']:
+                        print(f"  • {item['title']} ({item['item_type']})")
+            else:
+                # Just generate report
+                report = detector.get_settings_change_report(library_id=args.library)
+                
+                print(f"\n🔧 SETTINGS CHANGE REPORT")
+                print(f"📅 Generated: {report['generated_at']}")
+                print(f"📚 Library filter: {report['library_filter'] or 'All libraries'}")
+                
+                status = report['settings_status']
+                print(f"\n📊 STATUS")
+                print(f"  • Settings changed: {'Yes' if status['settings_changed'] else 'No'}")
+                print(f"  • Current hash: {status['current_hash'][:8]}...")
+                print(f"  • Stored hash: {(status['stored_hash'] or 'None')[:8] if status['stored_hash'] else 'None'}...")
+                
+                affected = report['affected_items']
+                print(f"\n📋 AFFECTED ITEMS")
+                print(f"  • Total items: {affected['count']}")
+                
+                if affected['by_type']:
+                    print(f"  • By type:")
+                    for item_type, count in affected['by_type'].items():
+                        print(f"    - {item_type}: {count}")
+                
+                if report.get('recommendations'):
+                    print(f"\n💡 RECOMMENDATIONS")
+                    for rec in report['recommendations']:
+                        print(f"  • {rec}")
+                        
+        except ImportError:
+            print("❌ Settings change detection not available. Please check Phase 4 installation.")
+            return 1
+        except Exception as e:
+            print(f"❌ Error checking settings: {e}")
+            return 1
+        return 0
+    
+    if args.cmd == "backup":
+        try:
+            from tools.database_backup import DatabaseBackup
+            
+            backup = DatabaseBackup()
+            
+            if args.backup_cmd == "create":
+                compress = not args.no_compress
+                include_timestamp = not args.no_timestamp
+                backup_path = backup.create_full_backup(compress=compress, include_timestamp=include_timestamp)
+                print(f"✅ Backup created: {backup_path}")
+                
+            elif args.backup_cmd == "restore":
+                success = backup.restore_from_backup(args.backup_path, confirm=args.confirm)
+                return 0 if success else 1
+                
+            elif args.backup_cmd == "list":
+                backups = backup.list_backups()
+                if not backups:
+                    print("📭 No backups found")
+                else:
+                    print(f"\n📦 AVAILABLE BACKUPS ({len(backups)} found)")
+                    for i, b in enumerate(backups, 1):
+                        compressed_icon = "🗜️" if b['compressed'] else "📄"
+                        print(f"  {i}. {compressed_icon} {b['filename']} ({b['size_formatted']}) - {b['created']}")
+                        
+            elif args.backup_cmd == "export":
+                export_path = backup.export_to_json(
+                    output_path=args.output,
+                    include_sensitive=args.include_sensitive
+                )
+                print(f"✅ Database exported to JSON: {export_path}")
+                
+            elif args.backup_cmd == "import":
+                success = backup.import_from_json(
+                    args.json_path,
+                    tables_to_import=args.tables,
+                    merge_mode=args.merge
+                )
+                return 0 if success else 1
+                
+            elif args.backup_cmd == "cleanup":
+                removed_count = backup.cleanup_old_backups(keep_count=args.keep)
+                print(f"✅ Cleanup complete: removed {removed_count} old backups")
+                
+            elif args.backup_cmd == "verify":
+                is_valid = backup.verify_backup(args.backup_path)
+                return 0 if is_valid else 1
+                
+            else:
+                # No subcommand provided
+                print("❌ Please specify a backup operation: create, restore, list, export, import, cleanup, or verify")
+                return 1
+                
+        except ImportError:
+            print("❌ Database backup not available. Please check Phase 4 installation.")
+            return 1
+        except Exception as e:
+            print(f"❌ Error during backup operation: {e}")
             return 1
         return 0
 

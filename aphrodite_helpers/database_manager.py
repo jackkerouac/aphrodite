@@ -616,3 +616,75 @@ class DatabaseManager:
         # Sort keys for consistent hashing
         settings_str = json.dumps(settings_data, sort_keys=True)
         return hashlib.sha256(settings_str.encode()).hexdigest()[:16]  # First 16 chars
+    
+    def get_items_with_outdated_settings(self, current_settings_hash: str, 
+                                       library_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """
+        Find items that need reprocessing due to settings changes.
+        
+        Args:
+            current_settings_hash: Hash of current settings
+            library_id: Optional library ID to filter by
+            
+        Returns:
+            List of items with outdated settings
+        """
+        conn = self.get_connection()
+        
+        where_conditions = ["settings_hash != ? OR settings_hash IS NULL"]
+        params = [current_settings_hash]
+        
+        if library_id:
+            where_conditions.append("jellyfin_library_id = ?")
+            params.append(library_id)
+        
+        where_clause = " AND ".join(where_conditions)
+        
+        cursor = conn.execute(f"""
+            SELECT jellyfin_item_id, title, item_type, settings_hash, last_processed_at
+            FROM processed_items 
+            WHERE {where_clause}
+            ORDER BY last_processed_at DESC
+        """, params)
+        
+        items = []
+        for row in cursor.fetchall():
+            items.append({
+                'jellyfin_item_id': row[0],
+                'title': row[1],
+                'item_type': row[2],
+                'old_settings_hash': row[3],
+                'last_processed_at': row[4]
+            })
+        
+        return items
+    
+    def mark_items_for_reprocessing(self, item_ids: List[str], reason: str = "settings_changed") -> int:
+        """
+        Mark specific items for reprocessing by updating their status.
+        
+        Args:
+            item_ids: List of Jellyfin item IDs to mark
+            reason: Reason for reprocessing
+            
+        Returns:
+            Number of items marked
+        """
+        if not item_ids:
+            return 0
+            
+        conn = self.get_connection()
+        
+        # Create placeholders for IN clause
+        placeholders = ",".join(["?" for _ in item_ids])
+        
+        cursor = conn.execute(f"""
+            UPDATE processed_items 
+            SET last_processing_status = 'needs_reprocessing',
+                last_error_message = ?,
+                updated_at = ?
+            WHERE jellyfin_item_id IN ({placeholders})
+        """, [reason, datetime.now().isoformat()] + item_ids)
+        
+        conn.commit()
+        return cursor.rowcount
