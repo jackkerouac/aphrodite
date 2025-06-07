@@ -527,6 +527,7 @@ class ReviewFetcher:
             Dict containing rating data or None
         """
         print(f"🔍 fetch_myanimelist_ratings called with mal_id: {mal_id}, item_name: {item_name}")
+        print(f"🔍 Item data keys: {list(item_data.keys()) if item_data else 'None'}")
         
         # Check cache first
         cache_key = f"mal_{mal_id or item_name or 'unknown'}"
@@ -545,6 +546,7 @@ class ReviewFetcher:
                 # Try to find MAL ID using AniList ID mapping
                 if item_data:
                     provider_ids = item_data.get("ProviderIds", {})
+                    print(f"🔍 Provider IDs available: {list(provider_ids.keys())}")
                     anilist_id = provider_ids.get("AniList")
                     
                     if anilist_id:
@@ -558,6 +560,7 @@ class ReviewFetcher:
                             print(f"⚠️ Could not map AniList ID to MAL ID")
                             anime_data = None
                     else:
+                        print(f"🔍 No AniList ID found in provider IDs")
                         anime_data = None
                 
                 # Fall back to title search if no MAL ID found
@@ -609,6 +612,8 @@ class ReviewFetcher:
                 
         except Exception as e:
             print(f"❌ Error fetching MyAnimeList ratings: {e}")
+            import traceback
+            print(traceback.format_exc())
             return None
     
     def find_mal_id_from_anilist(self, anilist_id):
@@ -956,14 +961,20 @@ class ReviewFetcher:
         from aphrodite_helpers.review_preferences import ReviewPreferences
         try:
             review_prefs = ReviewPreferences()
-            if review_prefs.should_include_source('MyAnimeList', item_data):
+            should_include = review_prefs.should_include_source('MyAnimeList', item_data)
+            print(f"🔍 MyAnimeList should_include_source result: {should_include}")
+            
+            if should_include:
                 item_name = item_data.get('Name')
                 print(f"🔍 Fetching MyAnimeList ratings (ID: {mal_id}, Name: {item_name})")
                 review_data["myanimelist"] = self.fetch_myanimelist_ratings(mal_id, item_name, item_data)
+                print(f"🔍 MyAnimeList fetch result: {bool(review_data.get('myanimelist'))}")
             else:
-                print(f"🔍 Skipping MyAnimeList - disabled in preferences")
+                print(f"🔍 Skipping MyAnimeList - disabled in preferences or conditions not met")
         except Exception as e:
             print(f"⚠️ Error checking MyAnimeList preferences: {e}")
+            import traceback
+            print(traceback.format_exc())
             # Fallback: fetch anyway if we can't check preferences
             item_name = item_data.get('Name')
             print(f"🔍 Fetching MyAnimeList ratings (fallback)")

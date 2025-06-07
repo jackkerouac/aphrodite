@@ -15,7 +15,18 @@ from aphrodite_helpers.badge_components.badge_generator import create_badge
 from aphrodite_helpers.badge_components.color_utils import hex_to_rgba
 from aphrodite_helpers.badge_components.font_utils import load_font
 from aphrodite_helpers.poster_fetcher import download_poster
-from aphrodite_helpers.get_review_info import ReviewFetcher
+
+# Import enhanced ReviewFetcher
+try:
+    # Try to import the enhanced version
+    from production_anime_mapping import enhance_review_fetcher
+    from aphrodite_helpers.get_review_info import ReviewFetcher as BaseReviewFetcher
+    ReviewFetcher = enhance_review_fetcher(BaseReviewFetcher)
+    print("✅ Using enhanced ReviewFetcher with comprehensive anime mapping")
+except Exception as e:
+    # Fallback to original ReviewFetcher
+    from aphrodite_helpers.get_review_info import ReviewFetcher
+    print(f"⚠️ Using original ReviewFetcher: {e}")
 from aphrodite_helpers.settings_validator import load_settings
 from aphrodite_helpers.badge_components.badge_image_handler import load_codec_image
 from aphrodite_helpers.review_preferences import ReviewPreferences
