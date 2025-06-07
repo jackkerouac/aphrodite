@@ -61,6 +61,15 @@ except ImportError:
     DATABASE_TRACKING_AVAILABLE = False
     print("⚠️ Database tracking not available, running in legacy mode")
 
+# 🗄️ PHASE 3: Database Commands imports
+try:
+    from aphrodite_helpers.database_reporter import DatabaseReporter
+    from aphrodite_helpers.review_updater import ReviewUpdater
+    DATABASE_COMMANDS_AVAILABLE = True
+except ImportError:
+    DATABASE_COMMANDS_AVAILABLE = False
+    print("⚠️ Database commands not available")
+
 
 BANNER = r"""
               _                   _ _ _       
@@ -369,6 +378,33 @@ def process_single_item(jellyfin_url: str, api_key: str, user_id: str,
         )
 
 
+def _skip_processed_legacy(items, jellyfin_url: str, api_key: str, user_id: str):
+    """
+    Legacy method for skipping processed items using metadata tags.
+    Used as fallback when database commands are not available.
+    """
+    tagging_settings = get_tagging_settings()
+    tag_name = tagging_settings.get('tag_name', 'aphrodite-overlay')
+    tagger = MetadataTagger(jellyfin_url, api_key, user_id)
+    
+    original_count = len(items)
+    unprocessed_items = []
+    
+    for item in items:
+        item_id = item.get('Id')
+        if not item_id:
+            unprocessed_items.append(item)
+            continue
+            
+        has_tag = tagger.check_aphrodite_tag(item_id, tag_name)
+        if not has_tag:
+            unprocessed_items.append(item)
+    
+    skipped_count = original_count - len(unprocessed_items)
+    print(f"📊 Metadata tag skip: {skipped_count} already processed, {len(unprocessed_items)} remaining")
+    return unprocessed_items
+
+
 def process_library_items(jellyfin_url: str, api_key: str, user_id: str,
                           library_id: str, limit: int | None,
                           max_retries: int, add_audio: bool = True, 
@@ -383,26 +419,35 @@ def process_library_items(jellyfin_url: str, api_key: str, user_id: str,
     # Filter out already processed items if skip_processed is enabled
     if skip_processed:
         print(f"🔍 Checking for already processed items...")
-        tagging_settings = get_tagging_settings()
-        tag_name = tagging_settings.get('tag_name', 'aphrodite-overlay')
-        tagger = MetadataTagger(jellyfin_url, api_key, user_id)
         
-        original_count = len(items)
-        unprocessed_items = []
-        
-        for item in items:
-            item_id = item.get('Id')
-            if not item_id:
-                unprocessed_items.append(item)
-                continue
+        # 🗄️ PHASE 3: Use database for skip-processed (much faster than API calls)
+        if DATABASE_COMMANDS_AVAILABLE:
+            try:
+                reporter = DatabaseReporter()
+                processed_item_ids = reporter.get_database_processed_items(library_id)
+                reporter.close()
                 
-            has_tag = tagger.check_aphrodite_tag(item_id, tag_name)
-            if not has_tag:
-                unprocessed_items.append(item)
-        
-        skipped_count = original_count - len(unprocessed_items)
-        print(f"📊 Skipped {skipped_count} already processed items, {len(unprocessed_items)} remaining")
-        items = unprocessed_items
+                original_count = len(items)
+                unprocessed_items = []
+                
+                for item in items:
+                    item_id = item.get('Id')
+                    if item_id and item_id not in processed_item_ids:
+                        unprocessed_items.append(item)
+                    elif not item_id:
+                        unprocessed_items.append(item)  # Include items without ID
+                
+                skipped_count = original_count - len(unprocessed_items)
+                print(f"📊 Database-powered skip: {skipped_count} already processed, {len(unprocessed_items)} remaining")
+                items = unprocessed_items
+                
+            except Exception as e:
+                print(f"⚠️ Database skip failed, falling back to metadata tags: {e}")
+                # Fall back to original metadata tag method
+                items = _skip_processed_legacy(items, jellyfin_url, api_key, user_id)
+        else:
+            # Fall back to original metadata tag method
+            items = _skip_processed_legacy(items, jellyfin_url, api_key, user_id)
 
     if limit:
         items = items[:limit]
@@ -486,6 +531,24 @@ def main() -> int:
     lib_p.add_argument("--no-metadata-tag", action="store_true", help="Don't add metadata tag to track processing")
     lib_p.add_argument("--skip-processed", action="store_true", help="Skip items that already have the aphrodite-overlay tag")
     lib_p.add_argument("--cleanup", action="store_true", help="Clean up poster directories after processing")
+
+    # 🗄️ PHASE 3: Database Commands
+    db_status_p = sub.add_parser("db-status", help="Show database processing statistics")
+    db_status_p.add_argument("--library", help="Filter by library ID")
+    db_status_p.add_argument("--detailed", action="store_true", help="Show detailed item list")
+
+    check_reviews_p = sub.add_parser("check-reviews", help="Check which items need review updates")
+    check_reviews_p.add_argument("library_id", help="Library ID to check")
+    check_reviews_p.add_argument("--hours", type=int, default=24, help="Hours since last review check (default: 24)")
+    check_reviews_p.add_argument("--update", action="store_true", help="Actually update reviews for items that need it")
+    check_reviews_p.add_argument("--limit", type=int, help="Maximum number of items to update")
+
+    reprocess_p = sub.add_parser("reprocess", help="Reprocess items based on criteria")
+    reprocess_p.add_argument("--failed-only", action="store_true", help="Only reprocess failed items")
+    reprocess_p.add_argument("--older-than", type=int, help="Reprocess items older than X days")
+    reprocess_p.add_argument("--library", help="Library ID to process")
+    reprocess_p.add_argument("--limit", type=int, help="Maximum number of items to reprocess")
+    reprocess_p.add_argument("--dry-run", action="store_true", help="Show what would be reprocessed without actually doing it")
 
     args = parser.parse_args()
     
@@ -626,6 +689,142 @@ def main() -> int:
             skip_upload=skip_upload, add_metadata_tag=add_metadata_tag,
             skip_processed=skip_processed
         )
+        return 0
+
+    # 🗄️ PHASE 3: Database Command Handlers
+    if args.cmd == "db-status":
+        if not DATABASE_COMMANDS_AVAILABLE:
+            print("❌ Database commands not available. Please check Phase 3 installation.")
+            return 1
+        
+        try:
+            reporter = DatabaseReporter()
+            reporter.print_status_report(library_id=args.library, detailed=args.detailed)
+            reporter.close()
+        except Exception as e:
+            print(f"❌ Error generating database status: {e}")
+            return 1
+        return 0
+    
+    if args.cmd == "check-reviews":
+        if not DATABASE_COMMANDS_AVAILABLE:
+            print("❌ Database commands not available. Please check Phase 3 installation.")
+            return 1
+        
+        try:
+            updater = ReviewUpdater(url, api_key, user_id)
+            
+            if args.update:
+                # Actually update reviews
+                items_needing_update = updater.check_items_needing_review_update(
+                    args.library_id, args.hours
+                )
+                
+                if not items_needing_update:
+                    print("✅ All items have current review data")
+                else:
+                    item_ids = [item['jellyfin_item_id'] for item in items_needing_update]
+                    if args.limit:
+                        item_ids = item_ids[:args.limit]
+                    
+                    print(f"🔄 Updating reviews for {len(item_ids)} items...")
+                    stats = updater.bulk_update_reviews(item_ids, rate_limit_seconds=1.5, max_items=args.limit)
+                    print(f"\n📊 Update complete: {stats['successful']} successful, {stats['failed']} failed")
+            else:
+                # Just show summary
+                summary = updater.get_review_update_summary(args.library_id, args.hours)
+                
+                print(f"\n📊 REVIEW UPDATE SUMMARY for Library {args.library_id}")
+                print(f"🕒 Threshold: {args.hours} hours")
+                print(f"📋 Total items needing update: {summary['total_items']}")
+                print("\n📂 Breakdown:")
+                print(f"  • Never checked: {summary['categories']['never_checked']}")
+                print(f"  • Very stale (>7d): {summary['categories']['very_stale']}")
+                print(f"  • Stale (>1d): {summary['categories']['stale']}")
+                print(f"  • Recent: {summary['categories']['recent']}")
+                
+                if summary['total_items'] > 0:
+                    print(f"\n💡 Run with --update to actually update these {summary['total_items']} items")
+            
+            updater.close()
+        except Exception as e:
+            print(f"❌ Error checking reviews: {e}")
+            return 1
+        return 0
+    
+    if args.cmd == "reprocess":
+        if not DATABASE_COMMANDS_AVAILABLE:
+            print("❌ Database commands not available. Please check Phase 3 installation.")
+            return 1
+        
+        try:
+            reporter = DatabaseReporter()
+            
+            # Get items that meet reprocessing criteria
+            items_to_reprocess = reporter.get_items_for_reprocessing(
+                failed_only=args.failed_only,
+                older_than_days=args.older_than,
+                library_id=args.library
+            )
+            
+            if args.limit:
+                items_to_reprocess = items_to_reprocess[:args.limit]
+            
+            reporter.close()
+            
+            if not items_to_reprocess:
+                print("✅ No items found matching reprocessing criteria")
+                return 0
+            
+            print(f"\n📋 Found {len(items_to_reprocess)} items matching criteria:")
+            for i, item in enumerate(items_to_reprocess[:10], 1):  # Show first 10
+                status_icon = "❌" if item['status'] == 'failed' else "⚠️"
+                print(f"  {i}. {status_icon} {item['title']} ({item['type']}) - {item['status']}")
+            
+            if len(items_to_reprocess) > 10:
+                print(f"  ... and {len(items_to_reprocess) - 10} more items")
+            
+            if args.dry_run:
+                print(f"\n🔍 DRY RUN: Would reprocess {len(items_to_reprocess)} items")
+                return 0
+            
+            # Ask for confirmation
+            print(f"\n⚠️  This will reprocess {len(items_to_reprocess)} items.")
+            confirm = input("Continue? (y/N): ").lower().strip()
+            if confirm != 'y':
+                print("❌ Reprocessing cancelled")
+                return 0
+            
+            # Process items
+            print(f"\n🚀 Starting reprocessing of {len(items_to_reprocess)} items...")
+            successful = 0
+            failed = 0
+            
+            for i, item in enumerate(items_to_reprocess, 1):
+                print(f"\n[{i}/{len(items_to_reprocess)}] Reprocessing: {item['title']}")
+                
+                # Determine badge settings (use defaults for reprocessing)
+                success = process_single_item(
+                    url, api_key, user_id, item['item_id'], max_retries=3,
+                    add_audio=True, add_resolution=True, add_reviews=True, add_awards=True,
+                    skip_upload=False, add_metadata_tag=True
+                )
+                
+                if success:
+                    successful += 1
+                    print("✅ Success")
+                else:
+                    failed += 1
+                    print("❌ Failed")
+                
+                # Small delay between items
+                time.sleep(1)
+            
+            print(f"\n📊 Reprocessing complete: {successful} successful, {failed} failed")
+        
+        except Exception as e:
+            print(f"❌ Error during reprocessing: {e}")
+            return 1
         return 0
 
     parser.print_help()

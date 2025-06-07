@@ -86,16 +86,15 @@ python aphrodite.py library YOUR_LIBRARY_ID
 
 ## Configuration
 
-Edit `settings.yaml` with your:
-- **Jellyfin URL and API key**
-- **API keys for OMDB, TMDB** (for ratings)
+1. Install via Docker
+2. Visit http://localhost:2125 (or wherever you installed it)
+3. Visit the Settings page and enter your:
+- **Jellyfin URL, API key and User ID**
+- **API keys for OMDB, TMDB, aniDB, mdblist** (for ratings)
 - **Badge preferences** (which types to apply)
 
-Required API keys:
-- OMDB API key (free at omdbapi.com)
-- TMDB API key (free at themoviedb.org)
-- aniDB API key (free, but not required)
-- mdblist API key (free, but not required and limited to 1,000 calls per day)
+### Notes on API keys:
+- **Most** APIs are free to use, but some have limits (i.e. 1,000 calls per day, etc.)
 
 ## Contributing
 
