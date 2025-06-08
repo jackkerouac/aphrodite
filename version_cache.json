@@ -1,8 +1,8 @@
 {
   "timestamp": "2025-06-05T20:18:09.117181",
   "data": {
-    "current_version": "2.2.5",
-    "latest_version": "2.2.5",
+    "current_version": "3.5.0",
+    "latest_version": "3.5.0",
     "update_available": false,
     "release_notes": "- added mdblist to settings\r\n- added tests to each API\r\n- investigating converting settings.yaml to sqlite3 database",
     "release_url": "https://github.com/jackkerouac/aphrodite/releases/tag/v2.2.5",
