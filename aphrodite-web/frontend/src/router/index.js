@@ -8,6 +8,11 @@ const routes = [
     component: HomeView
   },
   {
+    path: '/analytics',
+    name: 'analytics',
+    component: () => import('../views/DatabaseView.vue')
+  },
+  {
     path: '/settings',
     name: 'settings',
     // Lazy-loaded component

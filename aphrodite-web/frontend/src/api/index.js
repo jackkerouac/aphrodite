@@ -5,10 +5,11 @@ import schedulesApi from './schedules';
 import previewApi from './preview';
 import changesApi from './changes';
 import databaseApi from './database';
+import * as databaseExtendedApi from './database-extended';
 
 // Get the base URL from the window object if available (injected by Flask),
 // fallback to environment variable, or relative URL if neither is available
-const getBaseURL = () => {
+export const getApiBaseUrl = () => {
   if (window.APHRODITE_BASE_URL) {
     return window.APHRODITE_BASE_URL;
   }
@@ -20,7 +21,7 @@ const getBaseURL = () => {
   return '';
 };
 
-const baseURL = getBaseURL();
+const baseURL = getApiBaseUrl();
 
 // Create axios instance
 const axiosInstance = axios.create({
@@ -58,6 +59,7 @@ export default {
   preview: previewApi,
   changes: changesApi,
   database: databaseApi,
+  databaseExtended: databaseExtendedApi,
   // Base API methods
   get: (url, config) => axiosInstance.get(url, config),
   post: (url, data, config) => axiosInstance.post(url, data, config),

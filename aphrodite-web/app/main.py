@@ -90,6 +90,19 @@ def create_app():
             # Continue without database_analytics
             database_analytics = None
         
+        # Import extended database analytics
+        database_analytics_extended = None
+        try:
+            from app.api import database_analytics_extended
+            logger.info("✅ database_analytics_extended imported successfully")
+            logger.info(f"✅ Extended module object: {database_analytics_extended}")
+            logger.info(f"✅ Extended blueprint: {database_analytics_extended.bp}")
+        except Exception as db_ext_import_error:
+            logger.error(f"❌ Failed to import database_analytics_extended: {db_ext_import_error}")
+            import traceback
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            database_analytics_extended = None
+        
         app.register_blueprint(config.bp)
         app.register_blueprint(jobs.bp)
         app.register_blueprint(libraries.bp)
@@ -109,6 +122,41 @@ def create_app():
             logger.info("✅ Database analytics blueprint registered successfully!")
         else:
             logger.warning("⚠️ Skipping database analytics blueprint due to import error")
+        
+        # Register extended database analytics blueprint
+        # FORCE EXTENDED BLUEPRINT REGISTRATION - Phase B Fix
+        logger.info(f"🔍 CHECKING EXTENDED BLUEPRINT: database_analytics_extended = {database_analytics_extended}")
+        if database_analytics_extended:
+            logger.info("🔄 REGISTERING database_analytics_extended blueprint...")
+            try:
+                app.register_blueprint(database_analytics_extended.bp)
+                logger.info("✅ EXTENDED DATABASE ANALYTICS BLUEPRINT REGISTERED SUCCESSFULLY!")
+                
+                # Verify registration by checking routes
+                extended_routes = []
+                for rule in app.url_map.iter_rules():
+                    if rule.rule.startswith('/api/database/') and ('comprehensive-report' in rule.rule or 'processed-items' in rule.rule or 'libraries' in rule.rule):
+                        extended_routes.append(rule.rule)
+                logger.info(f"✅ VERIFIED EXTENDED ROUTES: {extended_routes}")
+                
+            except Exception as reg_error:
+                logger.error(f"❌ FAILED TO REGISTER EXTENDED BLUEPRINT: {reg_error}")
+                import traceback
+                logger.error(f"Registration traceback: {traceback.format_exc()}")
+        else:
+            logger.error("❌ EXTENDED BLUEPRINT IS NONE - CANNOT REGISTER")
+            # Try to re-import
+            try:
+                logger.info("🔄 ATTEMPTING RE-IMPORT...")
+                from app.api import database_analytics_extended as db_ext_reimport
+                if db_ext_reimport:
+                    logger.info("✅ RE-IMPORT SUCCESSFUL - REGISTERING...")
+                    app.register_blueprint(db_ext_reimport.bp)
+                    logger.info("✅ EXTENDED BLUEPRINT REGISTERED AFTER RE-IMPORT!")
+                else:
+                    logger.error("❌ RE-IMPORT ALSO RETURNED NONE")
+            except Exception as reimport_error:
+                logger.error(f"❌ RE-IMPORT FAILED: {reimport_error}")
     except Exception as e:
         logger.error(f"Error registering blueprints: {e}")
         # Add a fallback route if blueprints fail to load
