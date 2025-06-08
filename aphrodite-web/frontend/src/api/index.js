@@ -7,6 +7,7 @@ import previewApi from './preview';
 import changesApi from './changes';
 import databaseApi from './database';
 import * as databaseExtendedApi from './database-extended';
+import { databaseOperations } from './database-operations';
 
 // Get the base URL from the window object if available (injected by Flask),
 // fallback to environment variable, or relative URL if neither is available
@@ -81,6 +82,7 @@ export default {
   changes: changesApi,
   database: databaseApi,
   databaseExtended: databaseExtendedApi,
+  databaseOperations: databaseOperations,
   // Base API methods
   get: (url, config) => axiosInstance.get(url, config),
   post: (url, data, config) => axiosInstance.post(url, data, config),

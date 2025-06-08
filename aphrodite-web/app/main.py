@@ -103,6 +103,17 @@ def create_app():
             logger.error(f"Full traceback: {traceback.format_exc()}")
             database_analytics_extended = None
         
+        # Import database operations
+        database_operations = None
+        try:
+            from app.api import database_operations
+            logger.info("✅ database_operations imported successfully")
+        except Exception as db_ops_import_error:
+            logger.error(f"❌ Failed to import database_operations: {db_ops_import_error}")
+            import traceback
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            database_operations = None
+        
         app.register_blueprint(config.bp)
         app.register_blueprint(jobs.bp)
         app.register_blueprint(jobs_extended.bp)
@@ -158,6 +169,17 @@ def create_app():
                     logger.error("❌ RE-IMPORT ALSO RETURNED NONE")
             except Exception as reimport_error:
                 logger.error(f"❌ RE-IMPORT FAILED: {reimport_error}")
+        
+        # Register database operations blueprint
+        if database_operations:
+            logger.info("Registering database_operations blueprint...")
+            try:
+                app.register_blueprint(database_operations.database_operations)
+                logger.info("✅ Database operations blueprint registered successfully!")
+            except Exception as reg_error:
+                logger.error(f"❌ Failed to register database operations blueprint: {reg_error}")
+        else:
+            logger.warning("⚠️ Skipping database operations blueprint due to import error")
     except Exception as e:
         logger.error(f"Error registering blueprints: {e}")
         # Add a fallback route if blueprints fail to load

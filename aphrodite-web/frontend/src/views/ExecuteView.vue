@@ -20,6 +20,13 @@
         >
           Clean Up and Restore
         </a>
+        <a 
+          class="tab" 
+          :class="{ 'tab-active': activeTab === 'database' }"
+          @click="activeTab = 'database'"
+        >
+          Database Operations
+        </a>
       </div>
       
       <!-- Connection Check Form -->
@@ -30,6 +37,11 @@
       <!-- Poster Management Form -->
       <div v-else-if="activeTab === 'cleanup'">
         <CleanupForm @cleanup-submitted="handleProcessSubmitted" />
+      </div>
+      
+      <!-- Database Operations Form -->
+      <div v-else-if="activeTab === 'database'">
+        <DatabaseOperationsPanel @operation-completed="handleDatabaseOperation" />
       </div>
     </div>
     
@@ -169,12 +181,14 @@ import { useRouter } from 'vue-router';
 
 import ConnectionCheck from '@/components/execute/ConnectionCheck.vue';
 import CleanupForm from '@/components/execute/CleanupForm.vue';
+import DatabaseOperationsPanel from '@/components/database/DatabaseOperationsPanel.vue';
 
 export default {
   name: 'ExecuteView',
   components: {
     ConnectionCheck,
-    CleanupForm
+    CleanupForm,
+    DatabaseOperationsPanel
   },
   setup() {
     const route = useRouter().currentRoute.value;
@@ -185,7 +199,7 @@ export default {
     
     // Handle route query parameters
     if (route.query.tab) {
-      const validTabs = ['check', 'cleanup'];
+      const validTabs = ['check', 'cleanup', 'database'];
       if (validTabs.includes(route.query.tab)) {
         activeTab.value = route.query.tab;
       }
@@ -197,12 +211,19 @@ export default {
       isLoading.value = false;
     };
     
+    const handleDatabaseOperation = (result) => {
+      processResult.value = result;
+      showResults.value = true;
+      isLoading.value = false;
+    };
+    
     return {
       activeTab,
       isLoading,
       processResult,
       showResults,
-      handleProcessSubmitted
+      handleProcessSubmitted,
+      handleDatabaseOperation
     };
   }
 }
