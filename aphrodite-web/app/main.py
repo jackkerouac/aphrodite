@@ -76,7 +76,7 @@ def create_app():
     # Import and register blueprints
     try:
         logger.info("Starting blueprint imports...")
-        from app.api import config, jobs, libraries, images, check, workflow, process_api, preview, version, poster_manager, review_sources
+        from app.api import config, jobs, jobs_extended, libraries, images, check, workflow, process_api, preview, version, poster_manager, review_sources
         logger.info("Basic blueprints imported successfully")
         
         # Import database analytics separately to catch any errors
@@ -105,6 +105,7 @@ def create_app():
         
         app.register_blueprint(config.bp)
         app.register_blueprint(jobs.bp)
+        app.register_blueprint(jobs_extended.bp)
         app.register_blueprint(libraries.bp)
         app.register_blueprint(images.bp)
         app.register_blueprint(check.bp)

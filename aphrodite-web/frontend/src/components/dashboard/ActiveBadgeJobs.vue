@@ -1,18 +1,20 @@
 <template>
-  <div v-if="activeBatches.length > 0" class="card bg-base-100 shadow-xl">
+  <div v-if="activeBatches.length > 0 || activeWorkflows.length > 0" class="card bg-base-100 shadow-xl">
     <div class="card-body">
       <h2 class="card-title">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        Active Badge Processing
+        Active Processing
       </h2>
       
       <div class="space-y-3">
+        <!-- Active Poster Badge Batches -->
         <div v-for="batch in activeBatches" :key="batch.batch_id" class="border border-base-300 rounded-lg p-3">
           <div class="flex justify-between items-start mb-2">
             <div>
               <div class="font-medium text-sm">
+                <span class="badge badge-primary badge-sm mr-2">Poster Badges</span>
                 {{ batch.total_jobs }} poster{{ batch.total_jobs !== 1 ? 's' : '' }}
               </div>
               <div class="text-xs opacity-60">
@@ -48,18 +50,63 @@
             View Progress
           </button>
         </div>
+        
+        <!-- Active Scheduled Workflows -->
+        <div v-for="workflow in activeWorkflows" :key="workflow.workflow_id" class="border border-base-300 rounded-lg p-3">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <div class="font-medium text-sm">
+                <span class="badge badge-accent badge-sm mr-2">Scheduled Job</span>
+                {{ workflow.name }}
+              </div>
+              <div class="text-xs opacity-60">
+                <span v-if="workflow.badge_types.length > 0">Badges: {{ workflow.badge_types.join(', ') }}</span>
+                <span v-else>Library processing</span>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-sm">
+                <span class="badge" :class="getStatusBadgeClass(workflow.status)">
+                  {{ workflow.status }}
+                </span>
+              </div>
+              <div v-if="workflow.queue_position" class="text-xs opacity-60">
+                Position: {{ workflow.queue_position }}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Progress Bar (indeterminate for workflows) -->
+          <progress v-if="workflow.status === 'Running'" class="progress progress-accent w-full h-2 mb-2"></progress>
+          <div v-else-if="workflow.status === 'Queued'" class="bg-base-200 w-full h-2 mb-2 rounded"></div>
+          
+          <!-- Action Button -->
+          <button 
+            class="btn btn-xs btn-outline btn-accent w-full"
+            @click="viewWorkflowDetails(workflow.workflow_id)"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            View Details
+          </button>
+        </div>
       </div>
       
       <!-- Summary -->
       <div class="flex justify-between items-center mt-3">
         <div class="stats stats-horizontal shadow bg-base-200 flex-1">
           <div class="stat py-2">
-            <div class="stat-title text-xs">Total Batches</div>
+            <div class="stat-title text-xs">Badge Batches</div>
             <div class="stat-value text-sm">{{ activeBatches.length }}</div>
           </div>
           <div class="stat py-2">
-            <div class="stat-title text-xs">Active Jobs</div>
-            <div class="stat-value text-sm text-warning">{{ totalActiveJobs }}</div>
+            <div class="stat-title text-xs">Scheduled Jobs</div>
+            <div class="stat-value text-sm text-accent">{{ activeWorkflows.length }}</div>
+          </div>
+          <div class="stat py-2">
+            <div class="stat-title text-xs">Total Active</div>
+            <div class="stat-value text-sm text-warning">{{ totalActiveJobs + totalActiveWorkflows }}</div>
           </div>
         </div>
         
@@ -76,6 +123,76 @@
           </svg>
           {{ isClearing ? 'Clearing...' : 'Clear Completed' }}
         </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Workflow Details Modal -->
+  <div v-if="showWorkflowModal" class="modal modal-open">
+    <div class="modal-box max-w-2xl">
+      <h3 class="font-bold text-lg mb-4">Scheduled Job Details</h3>
+      
+      <div v-if="selectedWorkflowDetails" class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <div class="text-sm font-medium opacity-70">Workflow ID</div>
+            <div class="font-mono text-xs">{{ selectedWorkflowDetails.id }}</div>
+          </div>
+          <div>
+            <div class="text-sm font-medium opacity-70">Status</div>
+            <div>
+              <span class="badge" :class="getStatusBadgeClass(selectedWorkflowDetails.status)">
+                {{ selectedWorkflowDetails.status }}
+              </span>
+            </div>
+          </div>
+          <div>
+            <div class="text-sm font-medium opacity-70">Type</div>
+            <div>{{ selectedWorkflowDetails.type }}</div>
+          </div>
+          <div>
+            <div class="text-sm font-medium opacity-70">Created</div>
+            <div class="text-sm">{{ formatDateTime(selectedWorkflowDetails.created_at) }}</div>
+          </div>
+        </div>
+        
+        <div v-if="selectedWorkflowDetails.options">
+          <div class="text-sm font-medium opacity-70 mb-2">Processing Options</div>
+          <div class="bg-base-200 p-3 rounded">
+            <div v-if="selectedWorkflowDetails.options.libraryIds" class="mb-2">
+              <span class="text-xs font-medium">Libraries:</span>
+              <div class="flex flex-wrap gap-1 mt-1">
+                <span v-for="libId in selectedWorkflowDetails.options.libraryIds" :key="libId" class="badge badge-sm">
+                  {{ libId }}
+                </span>
+              </div>
+            </div>
+            <div v-if="selectedWorkflowDetails.options.badgeTypes" class="mb-2">
+              <span class="text-xs font-medium">Badge Types:</span>
+              <div class="flex flex-wrap gap-1 mt-1">
+                <span v-for="badge in selectedWorkflowDetails.options.badgeTypes" :key="badge" class="badge badge-primary badge-sm">
+                  {{ badge }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div v-if="selectedWorkflowDetails.result" class="space-y-2">
+          <div class="text-sm font-medium opacity-70">Results</div>
+          <div class="bg-base-200 p-3 rounded max-h-60 overflow-y-auto">
+            <pre class="text-xs">{{ JSON.stringify(selectedWorkflowDetails.result, null, 2) }}</pre>
+          </div>
+        </div>
+      </div>
+      
+      <div v-else class="text-center py-8">
+        <span class="loading loading-spinner loading-lg"></span>
+        <p class="mt-4">Loading workflow details...</p>
+      </div>
+      
+      <div class="modal-action">
+        <button class="btn" @click="closeWorkflowModal">Close</button>
       </div>
     </div>
   </div>
@@ -107,25 +224,33 @@ export default {
   emits: ['view-progress'],
   setup() {
     const activeBatches = ref([])
+    const activeWorkflows = ref([])
     const totalActiveJobs = ref(0)
+    const totalActiveWorkflows = ref(0)
     const pollInterval = ref(null)
     const showClearDialog = ref(false)
     const isClearing = ref(false)
+    const showWorkflowModal = ref(false)
+    const selectedWorkflowDetails = ref(null)
     
-    const fetchActiveBadgeJobs = async () => {
+    const fetchActiveJobsWithWorkflows = async () => {
       try {
-        const response = await api.jobs.getActiveBadgeJobs()
+        const response = await api.jobsExtended.getActiveJobsWithWorkflows()
         const data = response.data
         
         if (data.success) {
           activeBatches.value = data.active_batches || []
+          activeWorkflows.value = data.active_workflows || []
           totalActiveJobs.value = data.total_active_jobs || 0
+          totalActiveWorkflows.value = data.total_active_workflows || 0
         }
       } catch (error) {
-        console.error('Error fetching active badge jobs:', error)
+        console.error('Error fetching active jobs with workflows:', error)
         // Set empty arrays to avoid component errors
         activeBatches.value = []
+        activeWorkflows.value = []
         totalActiveJobs.value = 0
+        totalActiveWorkflows.value = 0
       }
     }
     
@@ -139,6 +264,51 @@ export default {
     })
     
     // Methods
+    const formatDateTime = (dateString) => {
+      if (!dateString) return 'N/A'
+      const date = new Date(dateString)
+      return date.toLocaleString()
+    }
+    
+    const getStatusBadgeClass = (status) => {
+      switch (status) {
+        case 'Running':
+          return 'badge-warning'
+        case 'Queued':
+          return 'badge-info'
+        case 'Success':
+        case 'Completed':
+          return 'badge-success'
+        case 'Failed':
+          return 'badge-error'
+        default:
+          return 'badge-ghost'
+      }
+    }
+    
+    const viewWorkflowDetails = async (workflowId) => {
+      try {
+        selectedWorkflowDetails.value = null
+        showWorkflowModal.value = true
+        
+        const response = await api.jobsExtended.getWorkflowDetails(workflowId)
+        const data = response.data
+        
+        if (data.success) {
+          selectedWorkflowDetails.value = data.workflow
+        } else {
+          console.error('Failed to load workflow details:', data.message)
+        }
+      } catch (error) {
+        console.error('Error loading workflow details:', error)
+      }
+    }
+    
+    const closeWorkflowModal = () => {
+      showWorkflowModal.value = false
+      selectedWorkflowDetails.value = null
+    }
+    
     const showClearConfirmation = () => {
       showClearDialog.value = true
     }
@@ -151,7 +321,7 @@ export default {
         
         if (data.success) {
           // Refresh the active batches immediately
-          await fetchActiveBadgeJobs()
+          await fetchActiveJobsWithWorkflows()
           showClearDialog.value = false
           
           // Optional: Show success message
@@ -168,7 +338,7 @@ export default {
     
     const startPolling = () => {
       // Poll every 3 seconds
-      pollInterval.value = setInterval(fetchActiveBadgeJobs, 3000)
+      pollInterval.value = setInterval(fetchActiveJobsWithWorkflows, 3000)
     }
     
     const stopPolling = () => {
@@ -179,7 +349,7 @@ export default {
     }
     
     onMounted(() => {
-      fetchActiveBadgeJobs()
+      fetchActiveJobsWithWorkflows()
       startPolling()
     })
     
@@ -189,11 +359,19 @@ export default {
     
     return {
       activeBatches,
+      activeWorkflows,
       totalActiveJobs,
+      totalActiveWorkflows,
       hasCompletedBatches,
       completedBatchCount,
       showClearDialog,
       isClearing,
+      showWorkflowModal,
+      selectedWorkflowDetails,
+      formatDateTime,
+      getStatusBadgeClass,
+      viewWorkflowDetails,
+      closeWorkflowModal,
       showClearConfirmation,
       clearCompletedBatches
     }

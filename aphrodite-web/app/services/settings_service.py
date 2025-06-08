@@ -893,7 +893,7 @@ class SettingsService:
             
             # Insert processing options
             processing_options = schedule_data.get('processing_options', {})
-            target_directories = processing_options.pop('target_directories', [])
+            target_directories = processing_options.get('target_directories', [])
             
             for option_name, option_value in processing_options.items():
                 cursor.execute('''
@@ -944,7 +944,7 @@ class SettingsService:
             
             # Insert new processing options
             processing_options = schedule_data.get('processing_options', {})
-            target_directories = processing_options.pop('target_directories', [])
+            target_directories = processing_options.get('target_directories', [])
             
             for option_name, option_value in processing_options.items():
                 cursor.execute('''

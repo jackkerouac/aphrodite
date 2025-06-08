@@ -264,6 +264,9 @@ class SchedulerService:
                 # For now, we'll create a placeholder workflow that indicates all libraries
                 target_directories = ['all']
             
+            # Convert library names to IDs if needed
+            library_ids = self._convert_library_names_to_ids(target_directories)
+            
             # Convert badge settings to badgeTypes format
             badge_types = []
             if processing_options.get('audio_badges', True):
@@ -275,7 +278,7 @@ class SchedulerService:
             
             # Build workflow options
             workflow_options = {
-                'libraryIds': target_directories,
+                'libraryIds': library_ids,
                 'badgeTypes': badge_types,
                 'skipUpload': False,  # Always upload for scheduled jobs
                 'skipProcessed': not processing_options.get('force_refresh', False),
@@ -453,3 +456,77 @@ class SchedulerService:
             logger.error(f"Error during job history migration: {e}")
             import traceback
             logger.error(f"Migration traceback: {traceback.format_exc()}")
+    
+    def _convert_library_names_to_ids(self, target_directories):
+        """Convert library names to library IDs using Jellyfin API"""
+        if not target_directories or target_directories == ['all']:
+            return target_directories
+        
+        try:
+            import requests
+            from app.services.config import ConfigService
+            
+            config_service = ConfigService()
+            config = config_service.get_config('settings.yaml')
+            
+            # Get Jellyfin configuration
+            jellyfin_configs = config.get('api_keys', {}).get('Jellyfin', [])
+            if not jellyfin_configs:
+                logger.warning("No Jellyfin configuration found, using library names as-is")
+                return target_directories
+            
+            jellyfin_config = jellyfin_configs[0]  # Use first configuration
+            url = jellyfin_config.get('url')
+            api_key = jellyfin_config.get('api_key')
+            user_id = jellyfin_config.get('user_id')
+            
+            if not all([url, api_key, user_id]):
+                logger.warning("Incomplete Jellyfin configuration, using library names as-is")
+                return target_directories
+            
+            # Fetch libraries from Jellyfin
+            headers = {
+                'X-Emby-Authorization': f'MediaBrowser Client="Aphrodite", Device="Server", DeviceId="aphrodite-server", Version="1.0", Token="{api_key}"'
+            }
+            
+            # Get user's library folders
+            libraries_url = f"{url.rstrip('/')}/Users/{user_id}/Items"
+            params = {
+                'ParentId': '',
+                'IncludeItemTypes': 'CollectionFolder',
+                'Recursive': False
+            }
+            
+            response = requests.get(libraries_url, headers=headers, params=params, timeout=10)
+            response.raise_for_status()
+            
+            data = response.json()
+            name_to_id = {}
+            
+            for item in data.get('Items', []):
+                name = item.get('Name')
+                lib_id = item.get('Id')
+                if name and lib_id:
+                    name_to_id[name] = lib_id
+            
+            # Convert names to IDs
+            library_ids = []
+            for target in target_directories:
+                if target in name_to_id:
+                    library_ids.append(name_to_id[target])
+                    logger.info(f"Converted library name '{target}' to ID '{name_to_id[target]}'")
+                elif target in name_to_id.values():
+                    # Already an ID
+                    library_ids.append(target)
+                    logger.info(f"Library '{target}' is already an ID")
+                else:
+                    # Unknown library, keep as-is and log warning
+                    library_ids.append(target)
+                    logger.warning(f"Unknown library '{target}', using as-is")
+            
+            return library_ids
+            
+        except Exception as e:
+            logger.error(f"Error converting library names to IDs: {e}")
+            logger.warning("Using library names as-is due to conversion error")
+            return target_directories

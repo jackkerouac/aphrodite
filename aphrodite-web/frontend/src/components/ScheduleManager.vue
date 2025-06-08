@@ -62,13 +62,39 @@
                     </div>
                   </div>
                   
-                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                     <div>
                       <div class="font-medium opacity-70">Schedule</div>
                       <div class="font-mono">{{ schedule.cron }}</div>
                       <div class="text-xs opacity-60">{{ getCronDescription(schedule.cron) }}</div>
                     </div>
                     
+                    <div>
+                      <div class="font-medium opacity-70">Target Libraries</div>
+                      <div v-if="schedule.processing_options.target_directories?.length > 0" class="flex flex-wrap gap-1 mt-1">
+                        <div 
+                          v-for="dir in schedule.processing_options.target_directories" 
+                          :key="dir"
+                          class="badge badge-xs badge-primary"
+                        >
+                          {{ dir }}
+                        </div>
+                      </div>
+                      <div v-else class="text-xs opacity-60">No libraries selected</div>
+                    </div>
+                    
+                    <div>
+                      <div class="font-medium opacity-70">Badge Types</div>
+                      <div class="flex flex-wrap gap-1 mt-1">
+                        <div v-if="schedule.processing_options.audio_badges" class="badge badge-xs badge-secondary">Audio</div>
+                        <div v-if="schedule.processing_options.resolution_badges" class="badge badge-xs badge-accent">Resolution</div>
+                        <div v-if="schedule.processing_options.review_badges" class="badge badge-xs badge-info">Review</div>
+                        <div v-if="schedule.processing_options.awards_badges" class="badge badge-xs badge-warning">Awards</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-4">
                     <div>
                       <div class="font-medium opacity-70">Next Run</div>
                       <div>{{ formatDateTime(schedule.next_run) }}</div>
@@ -77,28 +103,6 @@
                     <div>
                       <div class="font-medium opacity-70">Last Run</div>
                       <div>{{ schedule.last_run ? formatDateTime(schedule.last_run) : 'Never' }}</div>
-                    </div>
-                    
-                    <div>
-                      <div class="font-medium opacity-70">Badge Types</div>
-                      <div class="flex flex-wrap gap-1 mt-1">
-                        <div v-if="schedule.processing_options.audio_badges" class="badge badge-xs badge-primary">Audio</div>
-                        <div v-if="schedule.processing_options.resolution_badges" class="badge badge-xs badge-secondary">Resolution</div>
-                        <div v-if="schedule.processing_options.review_badges" class="badge badge-xs badge-accent">Review</div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div v-if="schedule.processing_options.target_directories?.length > 0" class="mt-2">
-                    <div class="text-sm font-medium opacity-70">Target Directories</div>
-                    <div class="flex flex-wrap gap-1 mt-1">
-                      <div 
-                        v-for="dir in schedule.processing_options.target_directories" 
-                        :key="dir"
-                        class="badge badge-xs badge-outline"
-                      >
-                        {{ dir }}
-                      </div>
                     </div>
                   </div>
                 </div>

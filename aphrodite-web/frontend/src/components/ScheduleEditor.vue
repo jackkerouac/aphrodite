@@ -294,7 +294,7 @@ export default {
         review_badges: true,
         awards_badges: false,
         force_refresh: false,
-        target_directories: ['movies', 'tv']
+        target_directories: []
       }
     }
     

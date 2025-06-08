@@ -1,1 +1,116 @@
-[]
+[
+  {
+    "id": "b2245b30-4b9b-4766-9094-7b5a781e6d6f",
+    "type": "library",
+    "status": "Failed",
+    "options": {
+      "libraryId": "Television",
+      "workflow_id": "3ac5bb54-88fd-445d-a621-02e375d4f530",
+      "badgeTypes": [
+        "resolution",
+        "review"
+      ],
+      "limit": null,
+      "skipUpload": false,
+      "skipProcessed": true
+    },
+    "start_time": "2025-06-08T12:07:16.606500",
+    "items": [],
+    "end_time": "2025-06-08T12:07:17.518749",
+    "result": {
+      "stdout": "\u2705 Successfully applied enhanced anime mapping to production\n\ud83c\udfaf Features enabled:\n   \u2022 Comprehensive AniDB\u2192MAL mapping (13,000+ anime)\n   \u2022 Enhanced AniList\u2192MAL mapping (18,000+ anime)\n   \u2022 Graceful fallbacks for unmapped anime\n   \u2022 Automatic MyAnimeList badge generation\n\u2705 Using enhanced ReviewFetcher with comprehensive anime mapping\n\n              _                   _ _ _       \n             | |                 | (_) |      \n   __ _ _ __ | |__  _ __ ___   __| |_| |_ ___ \n  / _` | '_ \\| '_ \\| '__/ _ \\ / _` | | __/ _ \\\n | (_| | |_) | | | | | | (_) | (_| | | ||  __/\n  \\__,_| .__/|_| |_|_|  \\___/ \\__,_|_|\\__\\___|\n       | |                                    \n       |_|                                    \n\n                    v3.x.x    \n\n\ud83d\udd27 Auto-repairing settings file...\n\ud83d\udd27 Validating settings file: E:\\programming\\aphrodite\\settings.yaml\n\ud83d\udcd6 Loaded existing settings with 4 top-level sections\n\ud83d\udd27 Merging settings with defaults...\n\u2705 Settings file is already complete, no changes needed\n\ud83d\udccb Current settings sections: api_keys, tv_series, metadata_tagging, scheduler\n\ud83d\udcfa TV series dominant badges: True\nLibrary type detected: \n",
+      "stderr": "2025-06-08 12:07:17,337 - aphrodite_helpers.settings_compat - INFO - load_settings called with path: settings.yaml\n2025-06-08 12:07:17,337 - aphrodite_helpers.settings_compat - INFO - Attempting to load settings from database...\n2025-06-08 12:07:17,339 - app.services.settings_service - INFO - DEBUG: Current database version: 1\n2025-06-08 12:07:17,339 - aphrodite_helpers.settings_compat - INFO - Database version: 1\n2025-06-08 12:07:17,339 - aphrodite_helpers.settings_compat - INFO - Loading settings from SQLite database\n2025-06-08 12:07:17,343 - aphrodite_helpers.settings_compat - INFO - Successfully loaded settings from database\n2025-06-08 12:07:17,343 - aphrodite_helpers.settings_compat - INFO - load_settings called with path: settings.yaml\n2025-06-08 12:07:17,343 - aphrodite_helpers.settings_compat - INFO - Attempting to load settings from database...\n2025-06-08 12:07:17,344 - app.services.settings_service - INFO - DEBUG: Current database version: 1\n2025-06-08 12:07:17,344 - aphrodite_helpers.settings_compat - INFO - Database version: 1\n2025-06-08 12:07:17,344 - aphrodite_helpers.settings_compat - INFO - Loading settings from SQLite database\n2025-06-08 12:07:17,344 - aphrodite_helpers.settings_compat - INFO - Successfully loaded settings from database\nTraceback (most recent call last):\n  File \"E:\\programming\\aphrodite\\aphrodite.py\", line 1067, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"E:\\programming\\aphrodite\\aphrodite.py\", line 726, in main\n    process_library_items(\n    ~~~~~~~~~~~~~~~~~~~~~^\n        url, api_key, user_id, args.library_id, args.limit, args.retries,\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    ...<3 lines>...\n        skip_processed=skip_processed\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"E:\\programming\\aphrodite\\aphrodite.py\", line 414, in process_library_items\n    items = get_library_items(jellyfin_url, api_key, user_id, library_id)\n  File \"E:\\programming\\aphrodite\\aphrodite_helpers\\check_jellyfin_connection.py\", line 91, in get_library_items\n    count_resp.raise_for_status()\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"C:\\Users\\Patrick\\AppData\\Roaming\\Python\\Python313\\site-packages\\requests\\models.py\", line 1021, in raise_for_status\n    raise HTTPError(http_error_msg, response=self)\nrequests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://192.168.0.110:8096/Users/484068279393441885f9272eba479ccd/Items?ParentId=Television&StartIndex=0&Limit=1&Recursive=true\n",
+      "returnCode": 1
+    }
+  },
+  {
+    "id": "340f472d-105f-4cfe-bac6-82bf2d0ba558",
+    "type": "library",
+    "status": "Failed",
+    "options": {
+      "libraryId": "Television",
+      "workflow_id": "c332dc00-7359-4df2-afd3-fca09fe46739",
+      "badgeTypes": [
+        "resolution",
+        "review"
+      ],
+      "limit": null,
+      "skipUpload": false,
+      "skipProcessed": true
+    },
+    "start_time": "2025-06-08T12:10:11.193393",
+    "items": [],
+    "end_time": "2025-06-08T12:10:12.092801",
+    "result": {
+      "stdout": "\u2705 Successfully applied enhanced anime mapping to production\n\ud83c\udfaf Features enabled:\n   \u2022 Comprehensive AniDB\u2192MAL mapping (13,000+ anime)\n   \u2022 Enhanced AniList\u2192MAL mapping (18,000+ anime)\n   \u2022 Graceful fallbacks for unmapped anime\n   \u2022 Automatic MyAnimeList badge generation\n\u2705 Using enhanced ReviewFetcher with comprehensive anime mapping\n\n              _                   _ _ _       \n             | |                 | (_) |      \n   __ _ _ __ | |__  _ __ ___   __| |_| |_ ___ \n  / _` | '_ \\| '_ \\| '__/ _ \\ / _` | | __/ _ \\\n | (_| | |_) | | | | | | (_) | (_| | | ||  __/\n  \\__,_| .__/|_| |_|_|  \\___/ \\__,_|_|\\__\\___|\n       | |                                    \n       |_|                                    \n\n                    v3.x.x    \n\n\ud83d\udd27 Auto-repairing settings file...\n\ud83d\udd27 Validating settings file: E:\\programming\\aphrodite\\settings.yaml\n\ud83d\udcd6 Loaded existing settings with 4 top-level sections\n\ud83d\udd27 Merging settings with defaults...\n\u2705 Settings file is already complete, no changes needed\n\ud83d\udccb Current settings sections: api_keys, tv_series, metadata_tagging, scheduler\n\ud83d\udcfa TV series dominant badges: True\nLibrary type detected: \n",
+      "stderr": "2025-06-08 12:10:11,915 - aphrodite_helpers.settings_compat - INFO - load_settings called with path: settings.yaml\n2025-06-08 12:10:11,915 - aphrodite_helpers.settings_compat - INFO - Attempting to load settings from database...\n2025-06-08 12:10:11,917 - app.services.settings_service - INFO - DEBUG: Current database version: 1\n2025-06-08 12:10:11,917 - aphrodite_helpers.settings_compat - INFO - Database version: 1\n2025-06-08 12:10:11,917 - aphrodite_helpers.settings_compat - INFO - Loading settings from SQLite database\n2025-06-08 12:10:11,920 - aphrodite_helpers.settings_compat - INFO - Successfully loaded settings from database\n2025-06-08 12:10:11,920 - aphrodite_helpers.settings_compat - INFO - load_settings called with path: settings.yaml\n2025-06-08 12:10:11,920 - aphrodite_helpers.settings_compat - INFO - Attempting to load settings from database...\n2025-06-08 12:10:11,921 - app.services.settings_service - INFO - DEBUG: Current database version: 1\n2025-06-08 12:10:11,921 - aphrodite_helpers.settings_compat - INFO - Database version: 1\n2025-06-08 12:10:11,921 - aphrodite_helpers.settings_compat - INFO - Loading settings from SQLite database\n2025-06-08 12:10:11,922 - aphrodite_helpers.settings_compat - INFO - Successfully loaded settings from database\nTraceback (most recent call last):\n  File \"E:\\programming\\aphrodite\\aphrodite.py\", line 1067, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"E:\\programming\\aphrodite\\aphrodite.py\", line 726, in main\n    process_library_items(\n    ~~~~~~~~~~~~~~~~~~~~~^\n        url, api_key, user_id, args.library_id, args.limit, args.retries,\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    ...<3 lines>...\n        skip_processed=skip_processed\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"E:\\programming\\aphrodite\\aphrodite.py\", line 414, in process_library_items\n    items = get_library_items(jellyfin_url, api_key, user_id, library_id)\n  File \"E:\\programming\\aphrodite\\aphrodite_helpers\\check_jellyfin_connection.py\", line 91, in get_library_items\n    count_resp.raise_for_status()\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"C:\\Users\\Patrick\\AppData\\Roaming\\Python\\Python313\\site-packages\\requests\\models.py\", line 1021, in raise_for_status\n    raise HTTPError(http_error_msg, response=self)\nrequests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://192.168.0.110:8096/Users/484068279393441885f9272eba479ccd/Items?ParentId=Television&StartIndex=0&Limit=1&Recursive=true\n",
+      "returnCode": 1
+    }
+  },
+  {
+    "id": "80e35249-fcd1-4c24-a47f-f5ba0812fb13",
+    "type": "library",
+    "status": "Failed",
+    "options": {
+      "libraryId": "Anime",
+      "workflow_id": "76b61b3a-1b88-4ccc-ab84-3fbe09f04d24",
+      "badgeTypes": [
+        "resolution",
+        "review"
+      ],
+      "limit": null,
+      "skipUpload": false,
+      "skipProcessed": true
+    },
+    "start_time": "2025-06-08T12:13:19.700529",
+    "items": [],
+    "end_time": "2025-06-08T12:13:20.583715",
+    "result": {
+      "stdout": "\u2705 Successfully applied enhanced anime mapping to production\n\ud83c\udfaf Features enabled:\n   \u2022 Comprehensive AniDB\u2192MAL mapping (13,000+ anime)\n   \u2022 Enhanced AniList\u2192MAL mapping (18,000+ anime)\n   \u2022 Graceful fallbacks for unmapped anime\n   \u2022 Automatic MyAnimeList badge generation\n\u2705 Using enhanced ReviewFetcher with comprehensive anime mapping\n\n              _                   _ _ _       \n             | |                 | (_) |      \n   __ _ _ __ | |__  _ __ ___   __| |_| |_ ___ \n  / _` | '_ \\| '_ \\| '__/ _ \\ / _` | | __/ _ \\\n | (_| | |_) | | | | | | (_) | (_| | | ||  __/\n  \\__,_| .__/|_| |_|_|  \\___/ \\__,_|_|\\__\\___|\n       | |                                    \n       |_|                                    \n\n                    v3.x.x    \n\n\ud83d\udd27 Auto-repairing settings file...\n\ud83d\udd27 Validating settings file: E:\\programming\\aphrodite\\settings.yaml\n\ud83d\udcd6 Loaded existing settings with 4 top-level sections\n\ud83d\udd27 Merging settings with defaults...\n\u2705 Settings file is already complete, no changes needed\n\ud83d\udccb Current settings sections: api_keys, tv_series, metadata_tagging, scheduler\n\ud83d\udcfa TV series dominant badges: True\nLibrary type detected: \n",
+      "stderr": "2025-06-08 12:13:20,390 - aphrodite_helpers.settings_compat - INFO - load_settings called with path: settings.yaml\n2025-06-08 12:13:20,390 - aphrodite_helpers.settings_compat - INFO - Attempting to load settings from database...\n2025-06-08 12:13:20,392 - app.services.settings_service - INFO - DEBUG: Current database version: 1\n2025-06-08 12:13:20,392 - aphrodite_helpers.settings_compat - INFO - Database version: 1\n2025-06-08 12:13:20,392 - aphrodite_helpers.settings_compat - INFO - Loading settings from SQLite database\n2025-06-08 12:13:20,395 - aphrodite_helpers.settings_compat - INFO - Successfully loaded settings from database\n2025-06-08 12:13:20,396 - aphrodite_helpers.settings_compat - INFO - load_settings called with path: settings.yaml\n2025-06-08 12:13:20,396 - aphrodite_helpers.settings_compat - INFO - Attempting to load settings from database...\n2025-06-08 12:13:20,396 - app.services.settings_service - INFO - DEBUG: Current database version: 1\n2025-06-08 12:13:20,397 - aphrodite_helpers.settings_compat - INFO - Database version: 1\n2025-06-08 12:13:20,397 - aphrodite_helpers.settings_compat - INFO - Loading settings from SQLite database\n2025-06-08 12:13:20,397 - aphrodite_helpers.settings_compat - INFO - Successfully loaded settings from database\nTraceback (most recent call last):\n  File \"E:\\programming\\aphrodite\\aphrodite.py\", line 1067, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"E:\\programming\\aphrodite\\aphrodite.py\", line 726, in main\n    process_library_items(\n    ~~~~~~~~~~~~~~~~~~~~~^\n        url, api_key, user_id, args.library_id, args.limit, args.retries,\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    ...<3 lines>...\n        skip_processed=skip_processed\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"E:\\programming\\aphrodite\\aphrodite.py\", line 414, in process_library_items\n    items = get_library_items(jellyfin_url, api_key, user_id, library_id)\n  File \"E:\\programming\\aphrodite\\aphrodite_helpers\\check_jellyfin_connection.py\", line 91, in get_library_items\n    count_resp.raise_for_status()\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"C:\\Users\\Patrick\\AppData\\Roaming\\Python\\Python313\\site-packages\\requests\\models.py\", line 1021, in raise_for_status\n    raise HTTPError(http_error_msg, response=self)\nrequests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://192.168.0.110:8096/Users/484068279393441885f9272eba479ccd/Items?ParentId=Anime&StartIndex=0&Limit=1&Recursive=true\n",
+      "returnCode": 1
+    }
+  },
+  {
+    "id": "e297819d-5f3e-4751-8cd3-794b527b0919",
+    "type": "library",
+    "status": "Failed",
+    "options": {
+      "libraryId": "Television",
+      "workflow_id": "66ef4b99-1a9e-4a10-9a02-475f824b00ff",
+      "badgeTypes": [
+        "resolution",
+        "review"
+      ],
+      "limit": null,
+      "skipUpload": false,
+      "skipProcessed": true
+    },
+    "start_time": "2025-06-08T12:13:51.299228",
+    "items": [],
+    "end_time": "2025-06-08T12:13:52.191633",
+    "result": {
+      "stdout": "\u2705 Successfully applied enhanced anime mapping to production\n\ud83c\udfaf Features enabled:\n   \u2022 Comprehensive AniDB\u2192MAL mapping (13,000+ anime)\n   \u2022 Enhanced AniList\u2192MAL mapping (18,000+ anime)\n   \u2022 Graceful fallbacks for unmapped anime\n   \u2022 Automatic MyAnimeList badge generation\n\u2705 Using enhanced ReviewFetcher with comprehensive anime mapping\n\n              _                   _ _ _       \n             | |                 | (_) |      \n   __ _ _ __ | |__  _ __ ___   __| |_| |_ ___ \n  / _` | '_ \\| '_ \\| '__/ _ \\ / _` | | __/ _ \\\n | (_| | |_) | | | | | | (_) | (_| | | ||  __/\n  \\__,_| .__/|_| |_|_|  \\___/ \\__,_|_|\\__\\___|\n       | |                                    \n       |_|                                    \n\n                    v3.x.x    \n\n\ud83d\udd27 Auto-repairing settings file...\n\ud83d\udd27 Validating settings file: E:\\programming\\aphrodite\\settings.yaml\n\ud83d\udcd6 Loaded existing settings with 4 top-level sections\n\ud83d\udd27 Merging settings with defaults...\n\u2705 Settings file is already complete, no changes needed\n\ud83d\udccb Current settings sections: api_keys, tv_series, metadata_tagging, scheduler\n\ud83d\udcfa TV series dominant badges: True\nLibrary type detected: \n",
+      "stderr": "2025-06-08 12:13:52,005 - aphrodite_helpers.settings_compat - INFO - load_settings called with path: settings.yaml\n2025-06-08 12:13:52,005 - aphrodite_helpers.settings_compat - INFO - Attempting to load settings from database...\n2025-06-08 12:13:52,006 - app.services.settings_service - INFO - DEBUG: Current database version: 1\n2025-06-08 12:13:52,006 - aphrodite_helpers.settings_compat - INFO - Database version: 1\n2025-06-08 12:13:52,006 - aphrodite_helpers.settings_compat - INFO - Loading settings from SQLite database\n2025-06-08 12:13:52,010 - aphrodite_helpers.settings_compat - INFO - Successfully loaded settings from database\n2025-06-08 12:13:52,010 - aphrodite_helpers.settings_compat - INFO - load_settings called with path: settings.yaml\n2025-06-08 12:13:52,010 - aphrodite_helpers.settings_compat - INFO - Attempting to load settings from database...\n2025-06-08 12:13:52,011 - app.services.settings_service - INFO - DEBUG: Current database version: 1\n2025-06-08 12:13:52,011 - aphrodite_helpers.settings_compat - INFO - Database version: 1\n2025-06-08 12:13:52,011 - aphrodite_helpers.settings_compat - INFO - Loading settings from SQLite database\n2025-06-08 12:13:52,011 - aphrodite_helpers.settings_compat - INFO - Successfully loaded settings from database\nTraceback (most recent call last):\n  File \"E:\\programming\\aphrodite\\aphrodite.py\", line 1067, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"E:\\programming\\aphrodite\\aphrodite.py\", line 726, in main\n    process_library_items(\n    ~~~~~~~~~~~~~~~~~~~~~^\n        url, api_key, user_id, args.library_id, args.limit, args.retries,\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    ...<3 lines>...\n        skip_processed=skip_processed\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"E:\\programming\\aphrodite\\aphrodite.py\", line 414, in process_library_items\n    items = get_library_items(jellyfin_url, api_key, user_id, library_id)\n  File \"E:\\programming\\aphrodite\\aphrodite_helpers\\check_jellyfin_connection.py\", line 91, in get_library_items\n    count_resp.raise_for_status()\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"C:\\Users\\Patrick\\AppData\\Roaming\\Python\\Python313\\site-packages\\requests\\models.py\", line 1021, in raise_for_status\n    raise HTTPError(http_error_msg, response=self)\nrequests.exceptions.HTTPError: 400 Client Error: Bad Request for url: http://192.168.0.110:8096/Users/484068279393441885f9272eba479ccd/Items?ParentId=Television&StartIndex=0&Limit=1&Recursive=true\n",
+      "returnCode": 1
+    }
+  },
+  {
+    "id": "70e2c4a1-46ec-45fa-bf74-125e344f937e",
+    "type": "library",
+    "status": "Running",
+    "options": {
+      "libraryId": "dba3068c2cd7abdbee3dbaf18d7e1831",
+      "workflow_id": "5c93d840-afaa-4a01-8709-8ec9966972ec",
+      "badgeTypes": [
+        "resolution",
+        "review"
+      ],
+      "limit": null,
+      "skipUpload": false,
+      "skipProcessed": true
+    },
+    "start_time": "2025-06-08T12:27:48.195482",
+    "items": []
+  }
+]

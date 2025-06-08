@@ -1,6 +1,7 @@
 import axios from 'axios';
 import configApi from './config';
 import jobsApi from './jobs';
+import jobsExtendedApi from './jobs-extended';
 import schedulesApi from './schedules';
 import previewApi from './preview';
 import changesApi from './changes';
@@ -55,6 +56,7 @@ axiosInstance.interceptors.response.use(response => {
 export default {
   config: configApi,
   jobs: jobsApi,
+  jobsExtended: jobsExtendedApi,
   schedules: schedulesApi,
   preview: previewApi,
   changes: changesApi,
