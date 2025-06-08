@@ -109,21 +109,6 @@
             </div>
           </div>
         </div>
-        
-        <!-- Review Insights -->
-        <div v-if="stats.review_insights.items_with_reviews > 0" class="mb-4">
-          <h3 class="text-lg font-semibold mb-2">Review Insights</h3>
-          <div class="grid grid-cols-2 gap-2">
-            <div class="stat bg-base-200 rounded-lg">
-              <div class="stat-title">Items with Reviews</div>
-              <div class="stat-value text-sm">{{ stats.review_insights.items_with_reviews }}</div>
-            </div>
-            <div class="stat bg-base-200 rounded-lg">
-              <div class="stat-title">Avg Score</div>
-              <div class="stat-value text-sm">{{ stats.review_insights.avg_review_score }}/10</div>
-            </div>
-          </div>
-        </div>
       </div>
       
       <!-- Action Button -->

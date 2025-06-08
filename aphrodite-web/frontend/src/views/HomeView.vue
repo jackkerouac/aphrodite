@@ -5,39 +5,6 @@
       Welcome to Aphrodite - a tool for enhancing Jellyfin media posters with informational badges for audio codecs, resolution, review scores, and award recognition.
     </p>
 
-    <h2 class="text-x1 font-bold mb-2">Latest Updates</h2>
-
-    <!-- Dynamic changes from YAML file -->
-    <div v-if="changes.length > 0">
-      <div 
-        v-for="(change, index) in changes" 
-        :key="index"
-        class="collapse collapse-arrow bg-base-100 border border-base-300 mb-2"
-      >
-        <input type="radio" name="my-accordion-2" :checked="index === 0" />
-        <div class="collapse-title font-semibold">
-          <span class="capitalize">{{ change.category }}</span> - {{ change.title }}
-          <span class="text-xs text-gray-500 ml-2">({{ change.date }})</span>
-        </div>
-        <div class="collapse-content text-sm">
-          <p><strong>{{ change.title }}</strong> - {{ change.description }}</p>
-          <div v-if="change.details && change.details.length > 0">
-            <p v-for="(detail, detailIndex) in change.details" :key="detailIndex">
-              &nbsp;&nbsp;&nbsp;&middot; {{ detail }}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Loading state -->
-    <div v-else class="text-center py-4">
-      <span class="loading loading-spinner loading-md"></span>
-      <p class="text-gray-500 mt-2">Loading latest updates...</p>
-    </div>
-
-    <p>&nbsp;</p>
-
     <!-- Active Badge Processing Card -->
     <ActiveBadgeJobs @view-progress="handleViewProgress" />
 

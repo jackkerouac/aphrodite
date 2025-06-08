@@ -30,7 +30,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
-          <span>Warning: Cleanup operations cannot be undone!</span>
+          <span><strong>Warning:</strong> Cleanup operations cannot be undone! Deleting Orignal Posters has <strong>dire</strong> consequences, <strong><em>dire!</em></strong> </span>
         </div>
         
         <!-- Cleanup Options -->
@@ -91,18 +91,10 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span>This will replace all modified posters with their original versions. Badge modifications will be lost.</span>
+          <span>This will replace all modified posters with their original versions. Badge modifications will be lost and Aphrodite-specific metadata will be removed.</span>
         </div>
         
-        <div class="form-control mb-4">
-          <label class="label">
-            <span class="label-text">Restore Action</span>
-          </label>
-          <p class="text-sm opacity-70 mb-2">
-            This operation will copy all files from the 'original' directory to the 'modified' directory, 
-            effectively removing any badge modifications that have been applied to your posters.
-          </p>
-        </div>
+        
         
         <!-- Submit Button -->
         <div class="card-actions justify-end">
