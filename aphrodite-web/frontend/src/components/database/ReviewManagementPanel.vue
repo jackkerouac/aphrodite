@@ -1,13 +1,13 @@
 <template>
-  <div class="space-y-6">
-    <!-- Header -->
-    <div>
-      <h2 class="text-2xl font-bold">Review Management</h2>
-      <p class="text-base-content/70">Monitor and update review data for processed items</p>
-    </div>
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+      <h2 class="card-title">Review Management</h2>
+      <p class="mb-4">Monitor and update review data for processed items</p>
+      
+      <div class="space-y-6">
 
-    <!-- Controls -->
-    <div class="card bg-base-100 shadow">
+        <!-- Controls -->
+        <div class="card bg-base-100 shadow">
       <div class="card-body">
         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div class="form-control">
@@ -38,19 +38,19 @@
       </div>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="loading" class="flex justify-center py-12">
+        <!-- Loading State -->
+        <div v-if="loading" class="flex justify-center py-12">
       <span class="loading loading-spinner loading-lg"></span>
     </div>
 
-    <!-- Error State -->
-    <div v-else-if="error" class="alert alert-error">
+        <!-- Error State -->
+        <div v-else-if="error" class="alert alert-error">
       <span>{{ error }}</span>
       <button @click="loadReviewData" class="btn btn-sm">Retry</button>
     </div>
 
-    <!-- Review Management Content -->
-    <div v-else class="space-y-6">
+        <!-- Review Management Content -->
+        <div v-else class="space-y-6">
       <!-- Summary Stats -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="stats-card bg-base-100 p-4 rounded-lg shadow">
@@ -95,14 +95,17 @@
           <span v-if="updating" class="loading loading-spinner loading-sm"></span>
           <span v-else>Update Stale Reviews</span>
         </button>
+        <span class="text-sm text-base-content/60">⚠️ Not currently functional</span>
         
-        <button 
-          class="btn btn-info"
-          :disabled="updating"
-          v-if="mockStats.never_checked > 0"
-        >
-          Process Never Checked
-        </button>
+        <div class="flex items-center gap-2" v-if="mockStats.never_checked > 0">
+          <button 
+            class="btn btn-info"
+            :disabled="updating"
+          >
+            Process Never Checked
+          </button>
+          <span class="text-sm text-base-content/60">⚠️ Not currently functional</span>
+        </div>
       </div>
 
       <!-- Information Cards -->
@@ -178,12 +181,14 @@
       </div>
     </div>
 
-    <!-- No Data State -->
-    <div v-if="!loading && !error && totalItems === 0" class="text-center py-12">
+        <!-- No Data State -->
+        <div v-if="!loading && !error && totalItems === 0" class="text-center py-12">
       <div class="text-base-content/50 mb-4">
         <div class="text-6xl mb-4">⭐</div>
         <h3 class="text-lg font-semibold mb-2">No Review Data Available</h3>
         <p>Process some items with review badges to see review management options here.</p>
+      </div>
+        </div>
       </div>
     </div>
   </div>
