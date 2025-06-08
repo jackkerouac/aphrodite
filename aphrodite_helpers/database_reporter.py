@@ -329,6 +329,85 @@ class DatabaseReporter:
         
         return [row[0] for row in cursor.fetchall()]
     
+
+    def get_processed_items_hybrid(self, library_id: str, jellyfin_url: str, 
+                                  api_key: str, user_id: str) -> List[str]:
+        """
+        Get list of item IDs that have been processed using BOTH database records 
+        AND metadata tags for complete accuracy.
+        
+        This hybrid approach ensures we catch:
+        1. Items processed and recorded in database 
+        2. Items processed before database tracking (have metadata tags only)
+        3. Items that may have failed database recording but have tags
+        
+        Args:
+            library_id: Library ID to check
+            jellyfin_url: Jellyfin server URL
+            api_key: Jellyfin API key  
+            user_id: Jellyfin user ID
+            
+        Returns:
+            List of Jellyfin item IDs that have been processed
+        """
+        processed_items = set()
+        
+        # 1. Get items from database (fast)
+        try:
+            conn = self.db_manager.get_connection()
+            cursor = conn.execute("""
+                SELECT jellyfin_item_id 
+                FROM processed_items 
+                WHERE jellyfin_library_id = ? 
+                AND last_processing_status IN ('success', 'partial_success')
+            """, (library_id,))
+            
+            db_items = {row[0] for row in cursor.fetchall()}
+            processed_items.update(db_items)
+            print(f"📊 Database found {len(db_items)} processed items")
+            
+        except Exception as e:
+            print(f"⚠️ Database check failed: {e}")
+            db_items = set()
+        
+        # 2. Get items with metadata tags (thorough but slower)
+        try:
+            from aphrodite_helpers.metadata_tagger import MetadataTagger, get_tagging_settings
+            
+            tagging_settings = get_tagging_settings()
+            tag_name = tagging_settings.get('tag_name', 'aphrodite-overlay')
+            tagger = MetadataTagger(jellyfin_url, api_key, user_id)
+            
+            # Get all items in library
+            from aphrodite_helpers.check_jellyfin_connection import get_library_items
+            all_items = get_library_items(jellyfin_url, api_key, user_id, library_id)
+            
+            if all_items:
+                tag_items = set()
+                for item in all_items:
+                    item_id = item.get('Id')
+                    if item_id and tagger.check_aphrodite_tag(item_id, tag_name):
+                        tag_items.add(item_id)
+                
+                processed_items.update(tag_items)
+                print(f"📊 Metadata tags found {len(tag_items)} processed items")
+                
+                # Report any discrepancies for debugging
+                db_only = db_items - tag_items
+                tag_only = tag_items - db_items
+                
+                if db_only:
+                    print(f"📝 Note: {len(db_only)} items in database but no metadata tag")
+                if tag_only:
+                    print(f"📝 Note: {len(tag_only)} items with metadata tag but not in database")
+                    
+        except Exception as e:
+            print(f"⚠️ Metadata tag check failed: {e}")
+        
+        total_processed = list(processed_items)
+        print(f"📊 Hybrid method found {len(total_processed)} total processed items")
+        return total_processed
+
     def export_processing_data(self, library_id: Optional[str] = None, 
                              format: str = 'json') -> Dict[str, Any]:
         """

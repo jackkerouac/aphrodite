@@ -420,11 +420,16 @@ def process_library_items(jellyfin_url: str, api_key: str, user_id: str,
     if skip_processed:
         print(f"🔍 Checking for already processed items...")
         
-        # 🗄️ PHASE 3: Use database for skip-processed (much faster than API calls)
+        # 🗄️ PHASE 3: Use hybrid database+metadata approach for skip-processed
         if DATABASE_COMMANDS_AVAILABLE:
             try:
                 reporter = DatabaseReporter()
-                processed_item_ids = reporter.get_database_processed_items(library_id)
+                
+                # Use hybrid method that checks BOTH database AND metadata tags
+                # This ensures we catch all processed items regardless of when they were processed
+                processed_item_ids = reporter.get_processed_items_hybrid(
+                    library_id, jellyfin_url, api_key, user_id
+                )
                 reporter.close()
                 
                 original_count = len(items)
@@ -438,7 +443,7 @@ def process_library_items(jellyfin_url: str, api_key: str, user_id: str,
                         unprocessed_items.append(item)  # Include items without ID
                 
                 skipped_count = original_count - len(unprocessed_items)
-                print(f"📊 Database-powered skip: {skipped_count} already processed, {len(unprocessed_items)} remaining")
+                print(f"📊 Hybrid skip (DB + metadata tags): {skipped_count} already processed, {len(unprocessed_items)} remaining")
                 items = unprocessed_items
                 
             except Exception as e:

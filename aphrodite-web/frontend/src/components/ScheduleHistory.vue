@@ -203,6 +203,20 @@
           </div>
         </div>
         
+        <div v-if="selectedJob.workflow_id" class="mb-4">
+          <div class="text-sm font-medium opacity-70 mb-2">Workflow ID</div>
+          <div class="font-mono text-sm">
+            {{ selectedJob.workflow_id }}
+          </div>
+        </div>
+        
+        <div v-if="selectedJob.result_data" class="mb-4">
+          <div class="text-sm font-medium opacity-70 mb-2">Processing Results</div>
+          <div class="bg-base-200 p-3 rounded text-sm font-mono whitespace-pre-wrap max-h-48 overflow-y-auto">
+            {{ formatResultData(selectedJob.result_data) }}
+          </div>
+        </div>
+        
         <div class="modal-action">
           <button @click="selectedJob = null" class="btn btn-primary">Close</button>
         </div>
@@ -331,14 +345,32 @@ export default {
     const formatDuration = (duration) => {
       if (!duration) return 'N/A'
       
-      if (duration < 60) {
-        return `${Math.round(duration)}s`
-      } else if (duration < 3600) {
-        return `${Math.round(duration / 60)}m ${Math.round(duration % 60)}s`
+      const durationNum = typeof duration === 'string' ? parseFloat(duration) : duration
+      if (isNaN(durationNum)) return 'N/A'
+      
+      if (durationNum < 60) {
+        return `${Math.round(durationNum)}s`
+      } else if (durationNum < 3600) {
+        return `${Math.round(durationNum / 60)}m ${Math.round(durationNum % 60)}s`
       } else {
-        const hours = Math.floor(duration / 3600)
-        const minutes = Math.floor((duration % 3600) / 60)
+        const hours = Math.floor(durationNum / 3600)
+        const minutes = Math.floor((durationNum % 3600) / 60)
         return `${hours}h ${minutes}m`
+      }
+    }
+    
+    const formatResultData = (resultData) => {
+      if (!resultData) return 'No result data'
+      
+      try {
+        if (typeof resultData === 'string') {
+          const parsed = JSON.parse(resultData)
+          return JSON.stringify(parsed, null, 2)
+        } else {
+          return JSON.stringify(resultData, null, 2)
+        }
+      } catch (e) {
+        return resultData.toString()
       }
     }
     
@@ -350,12 +382,48 @@ export default {
           api.schedules.getSchedules()
         ])
         
-        // Ensure we have valid data
-        jobHistory.value = Array.isArray(historyResponse.data) ? historyResponse.data : []
-        schedules.value = Array.isArray(schedulesResponse.data) ? schedulesResponse.data : []
+        // Process job history data to map database fields to frontend expectations
+        let rawHistory = []
+        if (historyResponse.data && historyResponse.data.history) {
+          rawHistory = historyResponse.data.history
+        } else if (Array.isArray(historyResponse.data)) {
+          rawHistory = historyResponse.data
+        } else {
+          rawHistory = []
+        }
         
-        console.log('Job history loaded:', jobHistory.value)
-        console.log('Schedules loaded:', schedules.value)
+        // Map database fields to frontend expected fields
+        jobHistory.value = rawHistory.map(job => ({
+          id: job.id,
+          schedule_id: job.schedule_id,
+          status: job.status,
+          started_at: job.started_at,
+          duration: job.duration_seconds || job.duration,  // Map duration_seconds → duration
+          message: job.message,
+          error: job.error_details || job.error,  // Map error_details → error
+          // Additional fields available but not displayed in UI
+          completed_at: job.completed_at,
+          workflow_id: job.workflow_id,
+          result_data: job.result_data,
+          job_id: job.job_id
+        }))
+        
+        // Process schedules data
+        let rawSchedules = []
+        if (schedulesResponse.data && schedulesResponse.data.schedules) {
+          rawSchedules = schedulesResponse.data.schedules
+        } else if (Array.isArray(schedulesResponse.data)) {
+          rawSchedules = schedulesResponse.data
+        } else {
+          rawSchedules = []
+        }
+        schedules.value = rawSchedules
+        
+        console.log('Job history loaded:', jobHistory.value.length, 'records')
+        console.log('Schedules loaded:', schedules.value.length, 'schedules')
+        if (jobHistory.value.length > 0) {
+          console.log('Sample job record:', jobHistory.value[0])
+        }
       } catch (error) {
         console.error('Error fetching job history:', error)
         // Set defaults on error
@@ -408,6 +476,7 @@ export default {
       getStatusClass,
       formatDateTime,
       formatDuration,
+      formatResultData,
       refreshHistory,
       viewJobDetails,
       retryJob
