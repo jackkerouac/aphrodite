@@ -52,6 +52,25 @@ axiosInstance.interceptors.response.use(response => {
   return Promise.reject(error);
 });
 
+/**
+ * Calculate dynamic timeout based on item count for bulk operations
+ * @param {number} itemCount - Number of items being processed
+ * @returns {number} Timeout in milliseconds
+ */
+const calculateBulkTimeout = (itemCount) => {
+  // Base timeout for small operations
+  const baseTimeout = 10000; // 10 seconds
+  
+  // Additional time per item (1.5 seconds per item for safety)
+  const timePerItem = 1500;
+  
+  // Calculate timeout with buffer
+  const calculated = baseTimeout + (itemCount * timePerItem);
+  
+  // Minimum 10s, maximum 2 minutes for reasonable limits
+  return Math.max(10000, Math.min(calculated, 120000));
+};
+
 // Export API methods
 export default {
   config: configApi,
@@ -69,5 +88,11 @@ export default {
   delete: (url, config) => axiosInstance.delete(url, config),
   // Process API methods
   processSingleItem: (data) => axiosInstance.post('/api/process/item', data),
-  processLibrary: (data) => axiosInstance.post('/api/process/library', data)
+  processLibrary: (data) => axiosInstance.post('/api/process/library', data),
+  // Bulk operations with dynamic timeout
+  postBulkOperation: (url, data, itemCount = 1) => {
+    const timeout = calculateBulkTimeout(itemCount);
+    console.log(`Bulk operation for ${itemCount} items using timeout: ${timeout}ms (${timeout/1000}s)`);
+    return axiosInstance.post(url, data, { timeout });
+  }
 };

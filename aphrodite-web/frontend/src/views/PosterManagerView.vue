@@ -556,10 +556,13 @@ export default {
       
       try {
         const itemIds = Array.from(selectedPosters.value);
-        const response = await api.post('/api/poster-manager/bulk/reprocess', {
+        const itemCount = itemIds.length;
+        
+        // Use dynamic timeout for bulk badge processing too
+        const response = await api.postBulkOperation('/api/poster-manager/bulk/reprocess', {
           item_ids: itemIds,
           badge_types: selectedBadges
-        });
+        }, itemCount);
         
         const data = response.data;
         if (data.success) {
@@ -601,10 +604,13 @@ export default {
       
       try {
         const itemIds = Array.from(selectedPosters.value);
-        const response = await api.post('/api/poster-manager/bulk/tags', {
+        const itemCount = itemIds.length;
+        
+        // Use the new bulk operation method with dynamic timeout
+        const response = await api.postBulkOperation('/api/poster-manager/bulk/tags', {
           item_ids: itemIds,
           action: tagAction.value
-        });
+        }, itemCount);
         
         const data = response.data;
         if (data.success) {
