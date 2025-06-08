@@ -1,11 +1,15 @@
 // Database operations API service for Aphrodite Web UI
 
 const getBaseUrl = () => {
-  // Handle different environments - same logic as other API files
-  if (typeof window !== 'undefined') {
-    return window.location.origin;
+  // Use the same logic as other API files
+  if (window.APHRODITE_BASE_URL) {
+    return window.APHRODITE_BASE_URL;
   }
-  return 'http://localhost:5000';
+  if (process.env.VUE_APP_API_URL) {
+    return process.env.VUE_APP_API_URL;
+  }
+  // Fallback to empty string (relative URLs)
+  return '';
 };
 
 const BASE_URL = getBaseUrl();
@@ -94,6 +98,27 @@ export const databaseOperations = {
       body: JSON.stringify(options),
     });
     return response.json();
+  },
+
+  /**
+   * Download an exported database file
+   * @param {string} filename - Name of the export file to download
+   */
+  downloadExportFile(filename) {
+    // Debug: log the base URL being used
+    console.log('Database operations BASE_URL:', BASE_URL);
+    console.log('window.APHRODITE_BASE_URL:', window.APHRODITE_BASE_URL);
+    
+    // Create a download link and trigger it
+    const downloadUrl = `${BASE_URL}/api/database/download/${filename}`;
+    console.log('Download URL:', downloadUrl);
+    
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   },
 
   /**

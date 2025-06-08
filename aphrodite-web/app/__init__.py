@@ -283,7 +283,7 @@ def create_app():
             }), 500
     
     # Import and register blueprints - including our review_sources blueprint
-    from app.api import config, jobs, libraries, images, check, workflow, schedules, preview, version, changes, poster_manager, settings_migration, review_sources, database_analytics, database_analytics_extended
+    from app.api import config, jobs, libraries, images, check, workflow, schedules, preview, version, changes, poster_manager, settings_migration, review_sources, database_analytics, database_analytics_extended, database_operations
     app.register_blueprint(config.bp)
     app.register_blueprint(jobs.bp)
     app.register_blueprint(libraries.bp)
@@ -299,8 +299,9 @@ def create_app():
     app.register_blueprint(review_sources.bp)
     app.register_blueprint(database_analytics.bp)
     app.register_blueprint(database_analytics_extended.bp)
+    app.register_blueprint(database_operations.bp)
     
-    app.logger.info("DEBUG: All blueprints registered successfully, including review_sources, database_analytics, and database_analytics_extended")
+    app.logger.info("DEBUG: All blueprints registered successfully, including review_sources, database_analytics, database_analytics_extended, and database_operations")
     
     # DEBUG: Check if database analytics routes are actually registered
     app.logger.info("DEBUG: Checking database analytics routes...")

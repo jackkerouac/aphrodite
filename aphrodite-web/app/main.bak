@@ -174,8 +174,17 @@ def create_app():
         if database_operations:
             logger.info("Registering database_operations blueprint...")
             try:
-                app.register_blueprint(database_operations.database_operations)
+                # Use the standard 'bp' blueprint pattern
+                app.register_blueprint(database_operations.bp)
                 logger.info("✅ Database operations blueprint registered successfully!")
+            except AttributeError as attr_error:
+                logger.error(f"❌ Blueprint attribute error: {attr_error}")
+                # Fallback - try direct registration if the module itself is a blueprint
+                try:
+                    app.register_blueprint(database_operations)
+                    logger.info("✅ Database operations blueprint registered successfully (direct registration)!")
+                except Exception as direct_error:
+                    logger.error(f"❌ Direct registration failed: {direct_error}")
             except Exception as reg_error:
                 logger.error(f"❌ Failed to register database operations blueprint: {reg_error}")
         else:

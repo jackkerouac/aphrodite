@@ -208,6 +208,11 @@
               Export to JSON
             </button>
           </div>
+          <div class="label">
+            <span class="label-text-alt text-info">
+              💾 The exported file will be automatically downloaded to your browser
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -447,6 +452,14 @@ export default {
               include_sensitive: response.include_sensitive
             }
           });
+          
+          // Automatically download the exported file
+          if (response.download_url) {
+            // Small delay to let the success message show
+            setTimeout(() => {
+              databaseOperations.downloadExportFile(response.export_filename);
+            }, 500);
+          }
         } else {
           emit('operation-completed', {
             success: false,

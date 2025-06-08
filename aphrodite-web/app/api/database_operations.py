@@ -21,7 +21,7 @@ except ImportError as e:
     print(f"Warning: Could not import DatabaseBackup: {e}")
     DatabaseBackup = None
 
-database_operations = Blueprint('database_operations', __name__)
+bp = Blueprint('database_operations', __name__)
 
 
 def get_database_path():
@@ -41,7 +41,7 @@ def get_database_path():
         return os.path.join(base_dir, 'data', 'aphrodite.db')
 
 
-@database_operations.route('/api/database/backup/info', methods=['GET'])
+@bp.route('/api/database/backup/info', methods=['GET'])
 def get_backup_info():
     """Get database and backup information."""
     try:
@@ -100,7 +100,7 @@ def get_backup_info():
         }), 500
 
 
-@database_operations.route('/api/database/backup/create', methods=['POST'])
+@bp.route('/api/database/backup/create', methods=['POST'])
 def create_backup():
     """Create a new database backup."""
     try:
@@ -148,7 +148,7 @@ def create_backup():
         }), 500
 
 
-@database_operations.route('/api/database/backup/verify', methods=['POST'])
+@bp.route('/api/database/backup/verify', methods=['POST'])
 def verify_backup():
     """Verify a backup file integrity."""
     try:
@@ -193,7 +193,7 @@ def verify_backup():
         }), 500
 
 
-@database_operations.route('/api/database/backup/restore', methods=['POST'])
+@bp.route('/api/database/backup/restore', methods=['POST'])
 def restore_backup():
     """Restore database from backup."""
     try:
@@ -243,7 +243,7 @@ def restore_backup():
         }), 500
 
 
-@database_operations.route('/api/database/backup/cleanup', methods=['POST'])
+@bp.route('/api/database/backup/cleanup', methods=['POST'])
 def cleanup_backups():
     """Clean up old backup files."""
     try:
@@ -282,9 +282,9 @@ def cleanup_backups():
         }), 500
 
 
-@database_operations.route('/api/database/export', methods=['POST'])
+@bp.route('/api/database/export', methods=['POST'])
 def export_database():
-    """Export database to JSON format."""
+    """Export database to JSON format and return download URL."""
     try:
         data = request.get_json() or {}
         include_sensitive = data.get('include_sensitive', False)
@@ -303,30 +303,178 @@ def export_database():
                 'error': f'Database not found: {db_path}'
             }), 404
         
-        backup_manager = DatabaseBackup(db_path)
-        export_path = backup_manager.export_to_json(include_sensitive=include_sensitive)
+        # Create backup manager with correct working directory
+        # Get the base directory (same as get_database_path logic)
+        is_docker = (
+            os.path.exists('/app') and 
+            os.path.exists('/app/settings.yaml') and 
+            os.path.exists('/.dockerenv')
+        )
+        
+        if is_docker:
+            base_dir = '/app'
+        else:
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+        
+        print(f"DEBUG EXPORT: Base directory: {base_dir}")
+        print(f"DEBUG EXPORT: Current working directory: {os.getcwd()}")
+        print(f"DEBUG EXPORT: Database path: {db_path}")
+        
+        # Change to the correct working directory before creating backup manager
+        original_cwd = os.getcwd()
+        os.chdir(base_dir)
+        print(f"DEBUG EXPORT: Changed to working directory: {os.getcwd()}")
+        
+        try:
+            backup_manager = DatabaseBackup(db_path)
+            print(f"DEBUG EXPORT: Backup manager backup_dir: {backup_manager.backup_dir}")
+            print(f"DEBUG EXPORT: Absolute backup_dir: {os.path.abspath(backup_manager.backup_dir)}")
+            
+            export_path = backup_manager.export_to_json(include_sensitive=include_sensitive)
+            print(f"DEBUG EXPORT: Export path returned: {export_path}")
+            print(f"DEBUG EXPORT: Absolute export path: {os.path.abspath(export_path)}")
+            print(f"DEBUG EXPORT: Export file exists: {os.path.exists(export_path)}")
+            
+            # Convert to absolute path before changing back to original directory
+            export_path = os.path.abspath(export_path)
+            print(f"DEBUG EXPORT: Converted to absolute path: {export_path}")
+            
+        finally:
+            # Always restore original working directory
+            os.chdir(original_cwd)
+            print(f"DEBUG EXPORT: Restored working directory: {os.getcwd()}")
         
         # Get export file info
         export_size = os.path.getsize(export_path)
+        export_filename = os.path.basename(export_path)
         
         return jsonify({
             'success': True,
             'message': 'Database exported to JSON successfully',
             'export_path': export_path,
-            'export_filename': os.path.basename(export_path),
+            'export_filename': export_filename,
             'export_size': export_size,
             'export_size_formatted': backup_manager._format_size(export_size),
-            'include_sensitive': include_sensitive
+            'include_sensitive': include_sensitive,
+            'download_url': f'/api/database/download/{export_filename}'
         })
         
     except Exception as e:
+        # Restore working directory in case of error
+        if 'original_cwd' in locals():
+            os.chdir(original_cwd)
+        print(f"ERROR EXPORT: Exception in export_database: {e}")
+        import traceback
+        print(f"TRACEBACK EXPORT: {traceback.format_exc()}")
         return jsonify({
             'success': False,
             'error': str(e)
         }), 500
 
 
-@database_operations.route('/api/database/integrity-check', methods=['GET'])
+@bp.route('/api/database/download/<filename>', methods=['GET'])
+def download_export_file(filename):
+    """Download an exported database file."""
+    try:
+        print(f"DEBUG: Download request for file: {filename}")
+        
+        if not DatabaseBackup:
+            print("ERROR: DatabaseBackup not available")
+            return jsonify({
+                'success': False,
+                'error': 'Database backup functionality not available'
+            }), 500
+        
+        db_path = get_database_path()
+        print(f"DEBUG: Database path: {db_path}")
+        
+        # Create backup manager with correct paths
+        backup_manager = DatabaseBackup(db_path)
+        
+        # The backup manager uses relative paths, but we need absolute paths
+        # Get the base directory (same as get_database_path logic)
+        is_docker = (
+            os.path.exists('/app') and 
+            os.path.exists('/app/settings.yaml') and 
+            os.path.exists('/.dockerenv')
+        )
+        
+        if is_docker:
+            base_dir = '/app'
+        else:
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+        
+        # Construct the correct export directory path
+        export_dir = os.path.join(base_dir, 'data', 'backups')
+        file_path = os.path.join(export_dir, filename)
+        
+        print(f"DEBUG: Base directory: {base_dir}")
+        print(f"DEBUG: Export directory: {export_dir}")
+        print(f"DEBUG: Looking for file: {file_path}")
+        print(f"DEBUG: File exists: {os.path.exists(file_path)}")
+        
+        # Security check: ensure the file is actually an export file
+        if not filename.startswith('aphrodite_export_') or not filename.endswith('.json'):
+            print(f"ERROR: Invalid filename format: {filename}")
+            return jsonify({
+                'success': False,
+                'error': 'Invalid export filename'
+            }), 400
+        
+        # Check if file exists
+        if not os.path.exists(file_path):
+            print(f"ERROR: File not found: {file_path}")
+            # List files in directory for debugging
+            if os.path.exists(export_dir):
+                files = os.listdir(export_dir)
+                print(f"DEBUG: Files in export directory: {files}")
+            else:
+                print(f"DEBUG: Export directory does not exist: {export_dir}")
+                # Try the backup manager's directory
+                manager_dir = backup_manager.backup_dir
+                abs_manager_dir = os.path.abspath(manager_dir)
+                print(f"DEBUG: Backup manager directory (relative): {manager_dir}")
+                print(f"DEBUG: Backup manager directory (absolute): {abs_manager_dir}")
+                if os.path.exists(abs_manager_dir):
+                    files = os.listdir(abs_manager_dir)
+                    print(f"DEBUG: Files in manager directory: {files}")
+                    # Try using the manager's directory instead
+                    file_path = os.path.join(abs_manager_dir, filename)
+                    print(f"DEBUG: Trying manager directory file path: {file_path}")
+                    if os.path.exists(file_path):
+                        print(f"DEBUG: Found file in manager directory!")
+                    else:
+                        return jsonify({
+                            'success': False,
+                            'error': f'Export file not found: {filename}'
+                        }), 404
+                else:
+                    return jsonify({
+                        'success': False,
+                        'error': f'Export file not found: {filename}'
+                    }), 404
+        
+        print(f"DEBUG: Sending file: {file_path}")
+        
+        # Send the file as a download
+        return send_file(
+            file_path,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='application/json'
+        )
+        
+    except Exception as e:
+        print(f"ERROR: Exception in download_export_file: {e}")
+        import traceback
+        print(f"TRACEBACK: {traceback.format_exc()}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@bp.route('/api/database/integrity-check', methods=['GET'])
 def check_database_integrity():
     """Check database integrity."""
     try:
