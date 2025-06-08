@@ -11,6 +11,10 @@ Beginning with v3.0.0, configuration is now stored in an embedded SQLite databas
 
 Support for YAML will be removed entirely in v4.0.0.
 
+## IMPORTANT CYA
+
+It is also important to note that Aphrodite is **Beta software** (no matter what the version number), so please be **patient** with bug fixes and features. I am a team of one, and I work on Aphrodite in my spare time.
+
 (And yes, **I know** the version numbers are borked. Thanks for bearing with me while I iron that out!)
 
 ## Features

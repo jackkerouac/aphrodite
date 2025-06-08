@@ -14,7 +14,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../.
 
 from aphrodite_helpers.check_jellyfin_connection import load_settings
 from app.services.job import JobService
+from app.services.settings_service import SettingsService
 from .utils import get_jellyfin_item_details, get_enhanced_poster_status, run_aphrodite_command
+from aphrodite_helpers.metadata_tagger import MetadataTagger
 
 def register_bulk_routes(bp):
     """Register bulk processing routes"""
@@ -44,16 +46,30 @@ def register_bulk_routes(bp):
                     'message': 'At least one badge type must be selected'
                 }), 400
             
-            # Load settings for Jellyfin connection
-            settings = load_settings()
-            if not settings:
-                return jsonify({
-                    'success': False,
-                    'message': 'Failed to load settings'
-                }), 500
+            # Load Jellyfin settings with database priority
+            url, api_key, user_id = None, None, None
             
-            jf = settings["api_keys"]["Jellyfin"][0]
-            url, api_key, user_id = jf["url"], jf["api_key"], jf["user_id"]
+            try:
+                settings_service = SettingsService()
+                jellyfin_keys = settings_service.get_api_keys('Jellyfin')
+                
+                if jellyfin_keys and len(jellyfin_keys) > 0:
+                    jf = jellyfin_keys[0]
+                    url, api_key, user_id = jf.get('url'), jf.get('api_key'), jf.get('user_id')
+                    logger.info(f'Loaded Jellyfin settings from database for bulk processing')
+            except Exception:
+                pass
+            
+            if not all([url, api_key, user_id]):
+                settings = load_settings()
+                if not settings or 'api_keys' not in settings or 'Jellyfin' not in settings['api_keys']:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Failed to load Jellyfin settings'
+                    }), 500
+                
+                jf = settings["api_keys"]["Jellyfin"][0]
+                url, api_key, user_id = jf["url"], jf["api_key"], jf["user_id"]
             
             # Create batch ID
             batch_id = str(uuid.uuid4())
@@ -267,6 +283,111 @@ def register_bulk_routes(bp):
             return jsonify({
                 'success': False,
                 'message': f'Error getting batch status: {str(e)}'
+            }), 500
+
+    @bp.route('/bulk/tags', methods=['POST'])
+    def bulk_manage_tags():
+        """Add or remove aphrodite-overlay tags from multiple items"""
+        try:
+            # Get request data
+            data = request.get_json() or {}
+            item_ids = data.get('item_ids', [])
+            action = data.get('action', 'add')  # 'add' or 'remove'
+            
+            if not item_ids:
+                return jsonify({
+                    'success': False,
+                    'message': 'No items provided for tag management'
+                }), 400
+            
+            if action not in ['add', 'remove']:
+                return jsonify({
+                    'success': False,
+                    'message': 'Action must be "add" or "remove"'
+                }), 400
+            
+            # Load Jellyfin settings
+            url, api_key, user_id = None, None, None
+            
+            try:
+                settings_service = SettingsService()
+                jellyfin_keys = settings_service.get_api_keys('Jellyfin')
+                
+                if jellyfin_keys and len(jellyfin_keys) > 0:
+                    jf = jellyfin_keys[0]
+                    url, api_key, user_id = jf.get('url'), jf.get('api_key'), jf.get('user_id')
+                    logger.info(f'Loaded Jellyfin settings from database for tag management')
+            except Exception:
+                pass
+            
+            if not all([url, api_key, user_id]):
+                settings = load_settings()
+                if not settings or 'api_keys' not in settings or 'Jellyfin' not in settings['api_keys']:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Failed to load Jellyfin settings'
+                    }), 500
+                
+                jf = settings["api_keys"]["Jellyfin"][0]
+                url, api_key, user_id = jf["url"], jf["api_key"], jf["user_id"]
+            
+            # Initialize metadata tagger
+            tagger = MetadataTagger(url, api_key, user_id)
+            
+            # Process each item
+            results = []
+            success_count = 0
+            
+            for item_id in item_ids:
+                try:
+                    # Get item details for name
+                    item_info = get_jellyfin_item_details(url, api_key, user_id, item_id)
+                    item_name = item_info.get('name', 'Unknown') if item_info else 'Unknown'
+                    
+                    if action == 'add':
+                        success = tagger.add_aphrodite_tag(item_id)
+                        action_text = 'added'
+                    else:  # remove
+                        success = tagger.remove_aphrodite_tag(item_id)
+                        action_text = 'removed'
+                    
+                    if success:
+                        success_count += 1
+                        logger.info(f"Successfully {action_text} tag for item {item_id} ({item_name})")
+                    
+                    results.append({
+                        'item_id': item_id,
+                        'item_name': item_name,
+                        'success': success,
+                        'action': action
+                    })
+                    
+                except Exception as e:
+                    logger.error(f"Error processing tag {action} for item {item_id}: {e}")
+                    results.append({
+                        'item_id': item_id,
+                        'item_name': 'Unknown',
+                        'success': False,
+                        'error': str(e),
+                        'action': action
+                    })
+            
+            action_text = 'added' if action == 'add' else 'removed'
+            return jsonify({
+                'success': True,
+                'message': f'Tag {action} completed: {success_count}/{len(item_ids)} items processed successfully',
+                'action': action,
+                'total_items': len(item_ids),
+                'successful_items': success_count,
+                'failed_items': len(item_ids) - success_count,
+                'results': results
+            })
+            
+        except Exception as e:
+            logger.error(f"Error in bulk_manage_tags: {e}")
+            return jsonify({
+                'success': False,
+                'message': f'Error managing tags: {str(e)}'
             }), 500
 
 

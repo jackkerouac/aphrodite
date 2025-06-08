@@ -340,6 +340,24 @@ export default {
           success: true,
           message: response.data.message || 'Connection successful!'
         };
+        
+        // Auto-save settings when connection test succeeds
+        try {
+          console.log('DEBUG: Connection test successful, auto-saving settings...');
+          await saveSettings();
+          
+          // Update the success message to indicate auto-save
+          connectionStatus.value = {
+            success: true,
+            message: (response.data.message || 'Connection successful!') + ' - Settings saved automatically!'
+          };
+        } catch (saveError) {
+          console.error('DEBUG: Auto-save failed:', saveError);
+          connectionStatus.value = {
+            success: true,
+            message: (response.data.message || 'Connection successful!') + ' - Warning: Auto-save failed, please save manually.'
+          };
+        }
       } catch (err) {
         connectionStatus.value = {
           success: false,

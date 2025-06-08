@@ -103,7 +103,6 @@
                     <th>Status</th>
                     <th>Processed</th>
                     <th>Duration</th>
-                    <th>Review Score</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -130,13 +129,6 @@
                     </td>
                     <td>
                       <span v-if="item.duration">{{ item.duration }}s</span>
-                      <span v-else class="opacity-50">-</span>
-                    </td>
-                    <td>
-                      <div v-if="item.review_score" class="flex items-center">
-                        <span class="text-warning mr-1">★</span>
-                        {{ item.review_score }}
-                      </div>
                       <span v-else class="opacity-50">-</span>
                     </td>
                   </tr>

@@ -124,16 +124,47 @@
               Deselect All
             </button>
           </div>
-          <button 
-            class="btn btn-accent"
-            @click="showBulkConfirmation"
-            :disabled="selectedPosters.size === 0"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            Apply Badges to Selected
-          </button>
+          <div class="flex gap-2">
+            <button 
+              class="btn btn-accent"
+              @click="showBulkConfirmation"
+              :disabled="selectedPosters.size === 0"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Apply Badges to Selected
+            </button>
+            <div class="dropdown dropdown-end">
+              <label tabindex="0" class="btn btn-outline btn-warning" :class="{ 'btn-disabled': selectedPosters.size === 0 }">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.997 1.997 0 013 12V7a2 2 0 012-2z" />
+                </svg>
+                Manage Tags
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </label>
+              <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52 z-50">
+                <li>
+                  <a @click="manageTags('add')" :class="selectedPosters.size === 0 ? 'disabled' : ''">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Add aphrodite-overlay tag
+                  </a>
+                </li>
+                <li>
+                  <a @click="manageTags('remove')" :class="selectedPosters.size === 0 ? 'disabled' : ''">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                    </svg>
+                    Remove aphrodite-overlay tag
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -295,6 +326,18 @@
       :batch-id="bulkJobId"
       @close="handleBulkComplete"
     />
+
+    <!-- Tag Management Modal -->
+    <TagManagementModal
+      v-if="showTagModal"
+      ref="tagModal"
+      :show="showTagModal"
+      :action="tagAction"
+      :selected-count="selectedPosters.size"
+      @confirm="executeTagManagement"
+      @cancel="showTagModal = false"
+      @close="showTagModal = false"
+    />
   </div>
 </template>
 
@@ -304,6 +347,7 @@ import { debounce } from 'lodash';
 import ItemDetailsModal from '@/components/poster-manager/ItemDetailsModal.vue';
 import BulkConfirmationDialog from '@/components/poster-manager/BulkConfirmationDialog.vue';
 import BulkProgressModal from '@/components/poster-manager/BulkProgressModal.vue';
+import TagManagementModal from '@/components/poster-manager/TagManagementModal.vue';
 import api from '@/api';
 
 export default {
@@ -311,7 +355,8 @@ export default {
   components: {
     ItemDetailsModal,
     BulkConfirmationDialog,
-    BulkProgressModal
+    BulkProgressModal,
+    TagManagementModal
   },
   setup() {
     const libraries = ref([]);
@@ -331,6 +376,12 @@ export default {
     const showBulkDialog = ref(false);
     const showBulkProgress = ref(false);
     const bulkJobId = ref(null);
+    const isManagingTags = ref(false);
+    
+    // Tag management modal state
+    const showTagModal = ref(false);
+    const tagAction = ref('add');
+    const tagModal = ref(null);
 
     // Computed properties
     const filteredItems = computed(() => {
@@ -533,6 +584,79 @@ export default {
       loadLibraryPosters();
     };
 
+    const manageTags = (action) => {
+      if (selectedPosters.value.size === 0) return;
+      
+      tagAction.value = action;
+      showTagModal.value = true;
+    };
+    
+    const executeTagManagement = async () => {
+      if (selectedPosters.value.size === 0) return;
+      
+      // Show processing state in modal
+      if (tagModal.value) {
+        tagModal.value.showProcessing();
+      }
+      
+      try {
+        const itemIds = Array.from(selectedPosters.value);
+        const response = await api.post('/api/poster-manager/bulk/tags', {
+          item_ids: itemIds,
+          action: tagAction.value
+        });
+        
+        const data = response.data;
+        if (data.success) {
+          // Show results in modal
+          if (tagModal.value) {
+            tagModal.value.showResults(data);
+          }
+          
+          // Clear selection and refresh gallery after a short delay
+          setTimeout(() => {
+            selectedPosters.value.clear();
+            selectMode.value = false;
+            loadLibraryPosters();
+          }, 1000);
+        } else {
+          // Show error results
+          if (tagModal.value) {
+            tagModal.value.showResults({
+              success: false,
+              total_items: itemIds.length,
+              successful_items: 0,
+              failed_items: itemIds.length,
+              results: itemIds.map(id => ({
+                item_id: id,
+                item_name: 'Unknown',
+                success: false,
+                error: data.message || 'Unknown error'
+              }))
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error managing tags:', error);
+        // Show error in modal
+        if (tagModal.value) {
+          const itemIds = Array.from(selectedPosters.value);
+          tagModal.value.showResults({
+            success: false,
+            total_items: itemIds.length,
+            successful_items: 0,
+            failed_items: itemIds.length,
+            results: itemIds.map(id => ({
+              item_id: id,
+              item_name: 'Unknown',
+              success: false,
+              error: error.message || 'Network error'
+            }))
+          });
+        }
+      }
+    };
+
     // Watch for filter changes to reset pagination and clear selection
     watch([mediaTypeFilter, badgeStatusFilter], () => {
       currentPage.value = 1;
@@ -579,6 +703,11 @@ export default {
       bulkJobId,
       isAllSelected,
       isSomeSelected,
+      isManagingTags,
+      // Tag management
+      showTagModal,
+      tagAction,
+      tagModal,
       loadLibraryPosters,
       applyFilters,
       debouncedSearch,
@@ -593,7 +722,9 @@ export default {
       deselectAll,
       showBulkConfirmation,
       handleBulkConfirm,
-      handleBulkComplete
+      handleBulkComplete,
+      manageTags,
+      executeTagManagement
     };
   }
 }

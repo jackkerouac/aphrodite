@@ -14,6 +14,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../.
 
 from aphrodite_helpers.check_jellyfin_connection import load_settings
 from app.services.job import JobService
+from app.services.settings_service import SettingsService
 from aphrodite_helpers.metadata_tagger import MetadataTagger, get_tagging_settings
 from .utils import get_jellyfin_item_details, get_enhanced_poster_status, get_badge_history, run_aphrodite_command
 
@@ -24,17 +25,45 @@ def register_item_routes(bp):
     def get_item_details(item_id):
         """Get detailed information about a specific item's poster"""
         try:
-            # Load settings to get paths
-            settings = load_settings()
-            if not settings:
+            # Load Jellyfin settings directly from database (preferred) or fallback to YAML
+            url, api_key, user_id = None, None, None
+            
+            try:
+                # Try to load from database first (most up-to-date)
+                settings_service = SettingsService()
+                jellyfin_keys = settings_service.get_api_keys('Jellyfin')
+                
+                if jellyfin_keys and len(jellyfin_keys) > 0:
+                    jf = jellyfin_keys[0]
+                    url = jf.get('url')
+                    api_key = jf.get('api_key') 
+                    user_id = jf.get('user_id')
+                    logger.info(f'Successfully loaded Jellyfin settings from database: {url}')
+                else:
+                    logger.warning('No Jellyfin settings found in database')
+            except Exception as db_error:
+                logger.warning(f'Failed to load from database: {db_error}')
+            
+            # Fallback to YAML if database load failed or returned empty
+            if not all([url, api_key, user_id]):
+                logger.info('Falling back to YAML settings...')
+                settings = load_settings()
+                if not settings or 'api_keys' not in settings or 'Jellyfin' not in settings['api_keys']:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Failed to load Jellyfin settings from database or YAML'
+                    }), 500
+                
+                jf = settings["api_keys"]["Jellyfin"][0]
+                url, api_key, user_id = jf["url"], jf["api_key"], jf["user_id"]
+                logger.info(f'Successfully loaded Jellyfin settings from YAML: {url}')
+            
+            # Validate that we have all required settings
+            if not all([url, api_key, user_id]):
                 return jsonify({
                     'success': False,
-                    'message': 'Failed to load settings'
+                    'message': 'Incomplete Jellyfin configuration (missing URL, API key, or user ID)'
                 }), 500
-            
-            # Get Jellyfin connection details
-            jf = settings["api_keys"]["Jellyfin"][0]
-            url, api_key, user_id = jf["url"], jf["api_key"], jf["user_id"]
             
             # Get item information from Jellyfin (with metadata tags)
             item_info = get_jellyfin_item_details(url, api_key, user_id, item_id)
@@ -62,17 +91,30 @@ def register_item_routes(bp):
     def reprocess_item_badges(item_id):
         """Re-apply badges to a single item (only if it doesn't already have badges)"""
         try:
-            # Load settings
-            settings = load_settings()
-            if not settings:
-                return jsonify({
-                    'success': False,
-                    'message': 'Failed to load settings'
-                }), 500
+            # Load Jellyfin settings with database priority
+            url, api_key, user_id = None, None, None
             
-            # Get Jellyfin connection details
-            jf = settings["api_keys"]["Jellyfin"][0]
-            url, api_key, user_id = jf["url"], jf["api_key"], jf["user_id"]
+            try:
+                settings_service = SettingsService()
+                jellyfin_keys = settings_service.get_api_keys('Jellyfin')
+                
+                if jellyfin_keys and len(jellyfin_keys) > 0:
+                    jf = jellyfin_keys[0]
+                    url, api_key, user_id = jf.get('url'), jf.get('api_key'), jf.get('user_id')
+                    logger.info(f'Loaded Jellyfin settings from database for reprocess')
+            except Exception:
+                pass
+            
+            if not all([url, api_key, user_id]):
+                settings = load_settings()
+                if not settings or 'api_keys' not in settings or 'Jellyfin' not in settings['api_keys']:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Failed to load Jellyfin settings'
+                    }), 500
+                
+                jf = settings["api_keys"]["Jellyfin"][0]
+                url, api_key, user_id = jf["url"], jf["api_key"], jf["user_id"]
             
             # Get request data for badge selection
             data = request.get_json() or {}
@@ -147,17 +189,30 @@ def register_item_routes(bp):
     def revert_item_to_original(item_id):
         """Revert a single item's poster to its original state"""
         try:
-            # Load settings
-            settings = load_settings()
-            if not settings:
-                return jsonify({
-                    'success': False,
-                    'message': 'Failed to load settings'
-                }), 500
+            # Load Jellyfin settings with database priority
+            url, api_key, user_id = None, None, None
             
-            # Get Jellyfin connection details
-            jf = settings["api_keys"]["Jellyfin"][0]
-            url, api_key, user_id = jf["url"], jf["api_key"], jf["user_id"]
+            try:
+                settings_service = SettingsService()
+                jellyfin_keys = settings_service.get_api_keys('Jellyfin')
+                
+                if jellyfin_keys and len(jellyfin_keys) > 0:
+                    jf = jellyfin_keys[0]
+                    url, api_key, user_id = jf.get('url'), jf.get('api_key'), jf.get('user_id')
+                    logger.info(f'Loaded Jellyfin settings from database for revert')
+            except Exception:
+                pass
+            
+            if not all([url, api_key, user_id]):
+                settings = load_settings()
+                if not settings or 'api_keys' not in settings or 'Jellyfin' not in settings['api_keys']:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Failed to load Jellyfin settings'
+                    }), 500
+                
+                jf = settings["api_keys"]["Jellyfin"][0]
+                url, api_key, user_id = jf["url"], jf["api_key"], jf["user_id"]
             
             # Get item information
             item_info = get_jellyfin_item_details(url, api_key, user_id, item_id)

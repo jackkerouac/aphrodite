@@ -37,10 +37,10 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
           <div>
-            <div class="font-medium">Scheduler Status: {{ schedulerStatus.status || 'Unknown' }}</div>
+            <div class="font-medium">Scheduler Status: {{ getSchedulerStatusText() }}</div>
             <div class="text-sm opacity-70">
-              {{ schedulerStatus.running_jobs || 0 }} running jobs, 
-              {{ schedulerStatus.active_schedules || 0 }} active schedules
+              {{ schedulerStatus.job_count || 0 }} running jobs, 
+              {{ getActiveSchedulesCount() }} active schedules
             </div>
           </div>
         </div>
@@ -177,32 +177,77 @@
         </div>
       </div>
     </div>
+    
+    <!-- Confirmation Modal -->
+    <ConfirmationModal
+      :is-open="confirmModal.isOpen"
+      :title="confirmModal.title"
+      :message="confirmModal.message"
+      :confirm-text="confirmModal.confirmText"
+      :variant="confirmModal.variant"
+      :loading="confirmModal.loading"
+      @confirm="handleConfirmAction"
+      @cancel="hideConfirmModal"
+      @close="hideConfirmModal"
+    />
+    
+    <!-- Notification Modal -->
+    <NotificationModal
+      :is-open="notificationModal.isOpen"
+      :title="notificationModal.title"
+      :message="notificationModal.message"
+      :variant="notificationModal.variant"
+      @close="hideNotification"
+    />
   </div>
 </template>
 
 <script>
 import { ref, computed, onMounted } from 'vue'
 import api from '@/api'
+import ConfirmationModal from '@/components/ConfirmationModal.vue'
+import NotificationModal from '@/components/NotificationModal.vue'
 
 export default {
   name: 'ScheduleManager',
+  components: {
+    ConfirmationModal,
+    NotificationModal
+  },
   emits: ['create-schedule', 'edit-schedule'],
   setup(_, { emit }) {
     const loading = ref(false)
     const schedules = ref([])
     const schedulerStatus = ref({})
     
+    // Confirmation modal state
+    const confirmModal = ref({
+      isOpen: false,
+      title: '',
+      message: '',
+      confirmText: 'Confirm',
+      variant: 'primary',
+      loading: false,
+      action: null
+    })
+    
+    // Notification modal state
+    const notificationModal = ref({
+      isOpen: false,
+      title: '',
+      message: '',
+      variant: 'success'
+    })
+    
     // Computed properties
     const schedulerStatusClass = computed(() => {
-      switch (schedulerStatus.value.status) {
-        case 'running':
-          return 'alert-success'
-        case 'stopped':
-          return 'alert-error'
-        case 'paused':
-          return 'alert-warning'
-        default:
-          return 'alert-info'
+      // Use the 'running' field from the API response
+      if (schedulerStatus.value.running === true) {
+        return 'alert-success'
+      } else if (schedulerStatus.value.running === false) {
+        return 'alert-error'
+      } else {
+        return 'alert-info'
       }
     })
     
@@ -226,6 +271,66 @@ export default {
       }
       
       return commonPatterns[cron] || 'Custom schedule'
+    }
+    
+    const getSchedulerStatusText = () => {
+      if (schedulerStatus.value.running === true) {
+        return 'Running'
+      } else if (schedulerStatus.value.running === false) {
+        return 'Stopped'
+      } else {
+        return 'Unknown'
+      }
+    }
+    
+    const getActiveSchedulesCount = () => {
+      // Count enabled schedules
+      return schedules.value.filter(schedule => schedule.enabled).length
+    }
+    
+    // Modal helper methods
+    const showConfirmModal = (options) => {
+      confirmModal.value = {
+        isOpen: true,
+        title: options.title || 'Confirm Action',
+        message: options.message,
+        confirmText: options.confirmText || 'Confirm',
+        variant: options.variant || 'primary',
+        loading: false,
+        action: options.action
+      }
+    }
+    
+    const hideConfirmModal = () => {
+      confirmModal.value.isOpen = false
+      confirmModal.value.loading = false
+      confirmModal.value.action = null
+    }
+    
+    const showNotification = (options) => {
+      notificationModal.value = {
+        isOpen: true,
+        title: options.title,
+        message: options.message,
+        variant: options.variant || 'success'
+      }
+    }
+    
+    const hideNotification = () => {
+      notificationModal.value.isOpen = false
+    }
+    
+    const handleConfirmAction = async () => {
+      if (confirmModal.value.action) {
+        confirmModal.value.loading = true
+        try {
+          await confirmModal.value.action()
+        } catch (error) {
+          console.error('Error executing confirmed action:', error)
+        } finally {
+          hideConfirmModal()
+        }
+      }
     }
     
     const refreshSchedules = async () => {
@@ -264,8 +369,20 @@ export default {
         await api.schedules.runSchedule(schedule.id)
         // Refresh schedules to update status
         await refreshSchedules()
+        
+        // Show success notification
+        showNotification({
+          title: 'Schedule Started',
+          message: `Successfully started "${schedule.name}".`,
+          variant: 'success'
+        })
       } catch (error) {
         console.error('Error running schedule:', error)
+        showNotification({
+          title: 'Error',
+          message: `Failed to start schedule: ${error.message}`,
+          variant: 'error'
+        })
       }
     }
     
@@ -288,16 +405,33 @@ export default {
     }
     
     const deleteSchedule = async (schedule) => {
-      if (!confirm(`Are you sure you want to delete the schedule "${schedule.name}"?`)) {
-        return
-      }
-      
-      try {
-        await api.schedules.deleteSchedule(schedule.id)
-        await refreshSchedules()
-      } catch (error) {
-        console.error('Error deleting schedule:', error)
-      }
+      showConfirmModal({
+        title: 'Delete Schedule',
+        message: `Are you sure you want to delete the schedule "${schedule.name}"? This action cannot be undone.`,
+        confirmText: 'Delete',
+        variant: 'error',
+        action: async () => {
+          try {
+            await api.schedules.deleteSchedule(schedule.id)
+            await refreshSchedules()
+            
+            // Show success notification
+            showNotification({
+              title: 'Schedule Deleted',
+              message: `Successfully deleted "${schedule.name}".`,
+              variant: 'success'
+            })
+          } catch (error) {
+            console.error('Error deleting schedule:', error)
+            showNotification({
+              title: 'Error',
+              message: `Failed to delete schedule: ${error.message}`,
+              variant: 'error'
+            })
+            throw error
+          }
+        }
+      })
     }
     
     // Load data on mount
@@ -312,13 +446,22 @@ export default {
       schedulerStatusClass,
       formatDateTime,
       getCronDescription,
+      getSchedulerStatusText,
+      getActiveSchedulesCount,
       refreshSchedules,
       showCreateForm,
       editSchedule,
       runSchedule,
       pauseSchedule,
       resumeSchedule,
-      deleteSchedule
+      deleteSchedule,
+      // Modal state and methods
+      confirmModal,
+      hideConfirmModal,
+      handleConfirmAction,
+      notificationModal,
+      showNotification,
+      hideNotification
     }
   }
 }

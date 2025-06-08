@@ -10,6 +10,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../.
 
 from aphrodite_helpers.check_jellyfin_connection import load_settings
 from app.api.jellyfin_helpers import get_library_items_with_posters
+from app.services.settings_service import SettingsService
 
 def register_library_routes(bp):
     """Register library-related routes"""
@@ -18,17 +19,46 @@ def register_library_routes(bp):
     def get_library_posters(library_id):
         """Get all items with poster information for a specific library"""
         try:
-            # Load Jellyfin settings
-            settings = load_settings()
-            if not settings:
+            # Load Jellyfin settings directly from database (preferred) or fallback to YAML
+            url, api_key, user_id = None, None, None
+            
+            try:
+                # Try to load from database first (most up-to-date)
+                logger.info(f'Loading Jellyfin settings from database for library {library_id}...')
+                settings_service = SettingsService()
+                jellyfin_keys = settings_service.get_api_keys('Jellyfin')
+                
+                if jellyfin_keys and len(jellyfin_keys) > 0:
+                    jf = jellyfin_keys[0]
+                    url = jf.get('url')
+                    api_key = jf.get('api_key') 
+                    user_id = jf.get('user_id')
+                    logger.info(f'Successfully loaded Jellyfin settings from database: {url}')
+                else:
+                    logger.warning('No Jellyfin settings found in database')
+            except Exception as db_error:
+                logger.warning(f'Failed to load from database: {db_error}')
+            
+            # Fallback to YAML if database load failed or returned empty
+            if not all([url, api_key, user_id]):
+                logger.info('Falling back to YAML settings...')
+                settings = load_settings()
+                if not settings or 'api_keys' not in settings or 'Jellyfin' not in settings['api_keys']:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Failed to load Jellyfin settings from database or YAML'
+                    }), 500
+                
+                jf = settings["api_keys"]["Jellyfin"][0]
+                url, api_key, user_id = jf["url"], jf["api_key"], jf["user_id"]
+                logger.info(f'Successfully loaded Jellyfin settings from YAML: {url}')
+            
+            # Validate that we have all required settings
+            if not all([url, api_key, user_id]):
                 return jsonify({
                     'success': False,
-                    'message': 'Failed to load settings'
+                    'message': 'Incomplete Jellyfin configuration (missing URL, API key, or user ID)'
                 }), 500
-            
-            # Get Jellyfin connection details
-            jf = settings["api_keys"]["Jellyfin"][0]
-            url, api_key, user_id = jf["url"], jf["api_key"], jf["user_id"]
             
             # Get search query parameters
             search_query = request.args.get('search', '').lower()

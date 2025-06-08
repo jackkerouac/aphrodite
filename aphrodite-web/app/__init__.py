@@ -17,13 +17,24 @@ def create_app():
         os.path.exists('/.dockerenv')
     )
     
-    # Set static folder path based on environment
+    # Set static folder path based on environment - Docker vs Development
     if is_docker:
-        # In Docker, the built frontend is at /app/aphrodite-web/frontend/dist
+        # Docker: Use absolute Docker path (unchanged)
         static_folder_path = '/app/aphrodite-web/frontend/dist'
     else:
-        # In development, use relative path
-        static_folder_path = '../frontend/dist'
+        # Development: Calculate absolute path to ensure Flask can find the files
+        # This goes from /aphrodite/aphrodite-web/app to /aphrodite/aphrodite-web/frontend/dist
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        static_folder_path = os.path.join(current_dir, '..', 'frontend', 'dist')
+        static_folder_path = os.path.abspath(static_folder_path)
+        
+        # Verify the path exists in development
+        if not os.path.exists(static_folder_path):
+            # Fallback to original relative path if our calculation is wrong
+            static_folder_path = '../frontend/dist'
+            print(f"WARNING: Calculated static path doesn't exist, using fallback: {static_folder_path}")
+        else:
+            print(f"INFO: Using calculated static path: {static_folder_path}")
     
     # Set up logging to be more verbose
 
