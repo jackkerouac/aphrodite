@@ -5,6 +5,9 @@
       Welcome to Aphrodite - a tool for enhancing Jellyfin media posters with informational badges for audio codecs, resolution, review scores, and award recognition.
     </p>
 
+    <!-- Random Quote Card -->
+    <QuoteCard />
+
     <!-- Active Badge Processing Card -->
     <ActiveBadgeJobs @view-progress="handleViewProgress" />
 
@@ -29,13 +32,15 @@ import api from '@/api';
 import ActiveBadgeJobs from '@/components/dashboard/ActiveBadgeJobs.vue';
 import GlobalProgressModal from '@/components/dashboard/GlobalProgressModal.vue';
 import DatabaseStatsCard from '@/components/dashboard/DatabaseStatsCard.vue';
+import QuoteCard from '@/components/dashboard/QuoteCard.vue';
 
 export default {
   name: 'HomeView',
   components: {
     ActiveBadgeJobs,
     GlobalProgressModal,
-    DatabaseStatsCard
+    DatabaseStatsCard,
+    QuoteCard
   },
   setup() {
     const router = useRouter();
