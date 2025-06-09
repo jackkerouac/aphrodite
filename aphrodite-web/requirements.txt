@@ -9,6 +9,8 @@ Flask-RESTful==0.3.10
 itsdangerous==2.2.0
 Jinja2==3.1.6
 MarkupSafe==3.0.2
+packaging>=21.0
+psutil>=5.9.0
 pytz==2025.2
 PyYAML==6.0.2
 requests==2.31.0

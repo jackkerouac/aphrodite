@@ -5,5 +5,7 @@ Flask>=3.0.0
 Flask-CORS>=5.0.0
 beautifulsoup4>=4.12.0
 APScheduler>=3.10.0
+psutil>=5.9.0
+packaging>=21.0
 pytz>=2023.3
 lxml>=4.9.0
