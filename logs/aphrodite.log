@@ -1,0 +1,12 @@
+2025-06-09 15:40:27 - ERROR - Test error message
+2025-06-09 15:40:27 - WARNING - Test warning message
+2025-06-09 15:40:27 - CRITICAL - Test critical message
+2025-06-09 15:40:27 - WARNING - MILESTONE: Test milestone message
+2025-06-09 15:40:27 - WARNING - STARTED: Test successful operation
+2025-06-09 15:40:27 - WARNING - COMPLETED: Test successful operation
+2025-06-09 15:40:27 - WARNING - STARTED: Test failed operation
+2025-06-09 15:40:27 - ERROR - FAILED: Test failed operation - Simulated error
+2025-06-09 15:40:27 - WARNING - Test message from aphrodite module
+2025-06-09 15:40:27 - WARNING - Test message from badge_processor module
+2025-06-09 15:40:27 - WARNING - Test message from review_fetcher module
+2025-06-09 15:40:27 - WARNING - Test message from database module
