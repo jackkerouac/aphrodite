@@ -5,7 +5,7 @@
     "latest_version": "3.5.0",
     "update_available": false,
     "release_notes": "- added mdblist to settings\r\n- added tests to each API\r\n- investigating converting settings.yaml to sqlite3 database",
-    "release_url": "https://github.com/jackkerouac/aphrodite/releases/tag/v2.2.5",
+    "release_url": "https://github.com/jackkerouac/aphrodite/releases/tag/v3.5.0",
     "published_at": "2025-06-05T02:55:55Z",
     "check_successful": true,
     "error": null,
