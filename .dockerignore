@@ -49,7 +49,10 @@ data/backups/
 data/config/
 data/scheduler/
 data/jobs.db.backup
-# Keep these static files: data/quotes.json, data/awards_mapping.json, data/anime-offline-database-minified.json
+# Keep these static files explicitly:
+!data/quotes.json
+!data/awards_mapping.json
+!data/anime-offline-database-minified.json
 
 # Editor directories
 .idea/

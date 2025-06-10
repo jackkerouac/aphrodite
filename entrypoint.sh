@@ -32,9 +32,27 @@ setup_user() {
         usermod -o -u "${PUID}" -g "${PGID}" aphrodite
     fi
     
-    # Create required directories
+    # Create required directories but preserve existing files
     log_msg "Creating required directories..."
-    mkdir -p /app/posters/original /app/posters/working /app/posters/modified /app/data /app/config
+    mkdir -p /app/posters/original /app/posters/working /app/posters/modified /app/config
+    
+    # Only create /app/data if it doesn't exist (preserve built-in files)
+    if [ ! -d "/app/data" ]; then
+        mkdir -p /app/data
+        log_msg "Created new /app/data directory"
+    else
+        log_msg "Using existing /app/data directory (preserving built-in files)"
+    fi
+    
+    # Ensure essential built-in data files exist
+    log_msg "Checking for essential data files..."
+    for data_file in quotes.json awards_mapping.json anime-offline-database-minified.json; do
+        if [ ! -f "/app/data/$data_file" ]; then
+            log_msg "WARNING: Missing essential data file: $data_file"
+        else
+            log_msg "Found essential data file: $data_file"
+        fi
+    done
     
     # Set ownership and permissions only for necessary directories (not the entire /app)
     log_msg "Setting ownership for mounted directories..."
