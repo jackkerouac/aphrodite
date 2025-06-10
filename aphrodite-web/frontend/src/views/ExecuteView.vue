@@ -27,6 +27,13 @@
         >
           Database Operations
         </a>
+        <a 
+          class="tab" 
+          :class="{ 'tab-active': activeTab === 'logs' }"
+          @click="activeTab = 'logs'"
+        >
+          Logs
+        </a>
       </div>
       
       <!-- Connection Check Form -->
@@ -42,6 +49,11 @@
       <!-- Database Operations Form -->
       <div v-else-if="activeTab === 'database'">
         <DatabaseOperationsPanel @operation-completed="handleDatabaseOperation" />
+      </div>
+      
+      <!-- Logs Panel -->
+      <div v-else-if="activeTab === 'logs'">
+        <LogsPanel />
       </div>
     </div>
     
@@ -182,13 +194,15 @@ import { useRouter } from 'vue-router';
 import ConnectionCheck from '@/components/execute/ConnectionCheck.vue';
 import CleanupForm from '@/components/execute/CleanupForm.vue';
 import DatabaseOperationsPanel from '@/components/database/DatabaseOperationsPanel.vue';
+import LogsPanel from '@/components/execute/LogsPanel.vue';
 
 export default {
   name: 'ExecuteView',
   components: {
     ConnectionCheck,
     CleanupForm,
-    DatabaseOperationsPanel
+    DatabaseOperationsPanel,
+    LogsPanel
   },
   setup() {
     const route = useRouter().currentRoute.value;
@@ -199,7 +213,7 @@ export default {
     
     // Handle route query parameters
     if (route.query.tab) {
-      const validTabs = ['check', 'cleanup', 'database'];
+      const validTabs = ['check', 'cleanup', 'database', 'logs'];
       if (validTabs.includes(route.query.tab)) {
         activeTab.value = route.query.tab;
       }

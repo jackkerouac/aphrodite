@@ -1,0 +1,11 @@
+2025-06-10 10:30:15 - INFO - Application started successfully
+2025-06-10 10:30:16 - WARNING - Configuration file missing optional settings
+2025-06-10 10:30:17 - ERROR - Failed to connect to external API: Connection timeout
+2025-06-10 10:30:18 - INFO - Processing item: Movie Title Example
+2025-06-10 10:30:19 - DEBUG - Checking cache for movie data
+2025-06-10 10:30:20 - INFO - Cache hit: Movie data found
+2025-06-10 10:30:21 - WARNING - Poster quality is below recommended threshold
+2025-06-10 10:30:22 - ERROR - Database connection failed: Access denied
+2025-06-10 10:30:23 - CRITICAL - System memory usage exceeds 90%
+2025-06-10 10:30:24 - INFO - Badge applied successfully to poster
+2025-06-10 10:30:25 - INFO - Processing completed successfully
