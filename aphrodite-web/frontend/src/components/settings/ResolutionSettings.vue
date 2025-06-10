@@ -4,198 +4,259 @@
     
     <form @submit.prevent="saveSettings" class="space-y-6">
       <!-- General Settings -->
-      <div class="bg-white shadow rounded-lg p-4 border border-gray-200">
-        <h3 class="text-lg font-medium mb-3">General Settings</h3>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="form-group">
-            <label for="badge-size" class="block text-sm font-medium text-gray-700 mb-1">Badge Size</label>
-            <input 
-              id="badge-size" 
-              v-model.number="settings.General.general_badge_size" 
-              type="number" 
-              min="10"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="100"
-            />
-          </div>
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h3 class="card-title">General Settings</h3>
           
-          <div class="form-group">
-            <label for="edge-padding" class="block text-sm font-medium text-gray-700 mb-1">Edge Padding</label>
-            <input 
-              id="edge-padding" 
-              v-model.number="settings.General.general_edge_padding" 
-              type="number" 
-              min="0"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="30"
-            />
-          </div>
-          
-          <div class="form-group">
-            <label for="badge-position" class="block text-sm font-medium text-gray-700 mb-1">Badge Position</label>
-            <select 
-              id="badge-position" 
-              v-model="settings.General.general_badge_position" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="top-left">Top Left</option>
-              <option value="top-right">Top Right</option>
-              <option value="bottom-left">Bottom Left</option>
-              <option value="bottom-right">Bottom Right</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label for="text-padding" class="block text-sm font-medium text-gray-700 mb-1">Text Padding</label>
-            <input 
-              id="text-padding" 
-              v-model.number="settings.General.general_text_padding" 
-              type="number" 
-              min="0"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="12"
-            />
-          </div>
-          
-          <div class="form-group col-span-full">
-            <div class="flex items-center">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="form-control w-full">
+              <label class="label" for="badge-size">
+                <span class="label-text">Badge Size</span>
+              </label>
               <input 
-                id="dynamic-sizing" 
-                v-model="settings.General.use_dynamic_sizing" 
-                type="checkbox" 
-                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                id="badge-size" 
+                v-model.number="settings.General.general_badge_size" 
+                type="number" 
+                min="10"
+                class="input input-bordered w-full"
+                placeholder="100"
               />
-              <label for="dynamic-sizing" class="ml-2 block text-sm text-gray-700">Use Dynamic Sizing</label>
+            </div>
+            
+            <div class="form-control w-full">
+              <label class="label" for="edge-padding">
+                <span class="label-text">Edge Padding</span>
+              </label>
+              <input 
+                id="edge-padding" 
+                v-model.number="settings.General.general_edge_padding" 
+                type="number" 
+                min="0"
+                class="input input-bordered w-full"
+                placeholder="30"
+              />
+            </div>
+            
+            <div class="form-control w-full">
+              <label class="label" for="badge-position">
+                <span class="label-text">Badge Position</span>
+              </label>
+              <select 
+                id="badge-position" 
+                v-model="settings.General.general_badge_position" 
+                class="select select-bordered w-full"
+              >
+                <option value="top-left">Top Left</option>
+                <option value="top-right">Top Right</option>
+                <option value="bottom-left">Bottom Left</option>
+                <option value="bottom-right">Bottom Right</option>
+              </select>
+            </div>
+            
+            <div class="form-control w-full">
+              <label class="label" for="text-padding">
+                <span class="label-text">Text Padding</span>
+              </label>
+              <input 
+                id="text-padding" 
+                v-model.number="settings.General.general_text_padding" 
+                type="number" 
+                min="0"
+                class="input input-bordered w-full"
+                placeholder="12"
+              />
+            </div>
+            
+            <div class="form-control col-span-full">
+              <label class="label cursor-pointer justify-start">
+                <input 
+                  id="dynamic-sizing" 
+                  v-model="settings.General.use_dynamic_sizing" 
+                  type="checkbox" 
+                  class="checkbox checkbox-primary"
+                />
+                <span class="label-text ml-2">Use Dynamic Sizing</span>
+              </label>
             </div>
           </div>
         </div>
       </div>
       
       <!-- Text Settings -->
-      <div class="bg-white shadow rounded-lg p-4 border border-gray-200">
-        <h3 class="text-lg font-medium mb-3">Text Settings</h3>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="form-group">
-            <label for="font" class="block text-sm font-medium text-gray-700 mb-1">Font</label>
-            <select 
-              id="font" 
-              v-model="settings.Text.font" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Select a font...</option>
-              <option v-for="font in availableFonts" :key="font" :value="font">
-                {{ font }}
-              </option>
-            </select>
-          </div>
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h3 class="card-title">Text Settings</h3>
           
-          <div class="form-group">
-            <label for="fallback-font" class="block text-sm font-medium text-gray-700 mb-1">Fallback Font</label>
-            <select 
-              id="fallback-font" 
-              v-model="settings.Text.fallback_font" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Select a font...</option>
-              <option v-for="font in availableFonts" :key="font" :value="font">
-                {{ font }}
-              </option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label for="text-color" class="block text-sm font-medium text-gray-700 mb-1">Text Color</label>
-            <input 
-              id="text-color" 
-              v-model="settings.Text['text-color']" 
-              type="color" 
-              class="w-full h-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-          
-          <div class="form-group">
-            <label for="text-size" class="block text-sm font-medium text-gray-700 mb-1">Text Size</label>
-            <input 
-              id="text-size" 
-              v-model.number="settings.Text['text-size']" 
-              type="number" 
-              min="10"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="90"
-            />
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="form-control w-full">
+              <label class="label" for="font">
+                <span class="label-text">Font</span>
+              </label>
+              <select 
+                id="font" 
+                v-model="settings.Text.font" 
+                class="select select-bordered w-full"
+              >
+                <option value="">Select a font...</option>
+                <option v-for="font in availableFonts" :key="font" :value="font">
+                  {{ font }}
+                </option>
+              </select>
+            </div>
+            
+            <div class="form-control w-full">
+              <label class="label" for="fallback-font">
+                <span class="label-text">Fallback Font</span>
+              </label>
+              <select 
+                id="fallback-font" 
+                v-model="settings.Text.fallback_font" 
+                class="select select-bordered w-full"
+              >
+                <option value="">Select a font...</option>
+                <option v-for="font in availableFonts" :key="font" :value="font">
+                  {{ font }}
+                </option>
+              </select>
+            </div>
+            
+            <div class="form-control w-full">
+              <label class="label" for="text-color">
+                <span class="label-text">Text Color</span>
+              </label>
+              <div class="join w-full">
+                <input 
+                  id="text-color-picker" 
+                  type="color" 
+                  v-model="settings.Text['text-color']" 
+                  class="input input-bordered join-item w-16"
+                />
+                <input 
+                  id="text-color" 
+                  v-model="settings.Text['text-color']" 
+                  type="text" 
+                  class="input input-bordered join-item flex-1"
+                  placeholder="#FFFFFF"
+                />
+              </div>
+            </div>
+            
+            <div class="form-control w-full">
+              <label class="label" for="text-size">
+                <span class="label-text">Text Size</span>
+              </label>
+              <input 
+                id="text-size" 
+                v-model.number="settings.Text['text-size']" 
+                type="number" 
+                min="10"
+                class="input input-bordered w-full"
+                placeholder="90"
+              />
+            </div>
           </div>
         </div>
       </div>
       
       <!-- Background Settings -->
-      <div class="bg-white shadow rounded-lg p-4 border border-gray-200">
-        <h3 class="text-lg font-medium mb-3">Background Settings</h3>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="form-group">
-            <label for="bg-color" class="block text-sm font-medium text-gray-700 mb-1">Background Color</label>
-            <input 
-              id="bg-color" 
-              v-model="settings.Background['background-color']" 
-              type="color" 
-              class="w-full h-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h3 class="card-title">Background Settings</h3>
           
-          <div class="form-group">
-            <label for="bg-opacity" class="block text-sm font-medium text-gray-700 mb-1">Background Opacity (%)</label>
-            <input 
-              id="bg-opacity" 
-              v-model.number="settings.Background.background_opacity" 
-              type="number" 
-              min="0"
-              max="100"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="40"
-            />
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="form-control w-full">
+              <label class="label" for="background-color">
+                <span class="label-text">Background Color</span>
+              </label>
+              <div class="join w-full">
+                <input 
+                  id="background-color-picker" 
+                  type="color" 
+                  v-model="settings.Background['background-color']" 
+                  class="input input-bordered join-item w-16"
+                />
+                <input 
+                  id="background-color" 
+                  v-model="settings.Background['background-color']" 
+                  type="text" 
+                  class="input input-bordered join-item flex-1"
+                  placeholder="#000000"
+                />
+              </div>
+            </div>
+            
+            <div class="form-control w-full">
+              <label class="label" for="background-opacity">
+                <span class="label-text">Background Opacity (%)</span>
+              </label>
+              <input 
+                id="background-opacity" 
+                v-model.number="settings.Background.background_opacity" 
+                type="number" 
+                min="0"
+                max="100"
+                class="input input-bordered w-full"
+                placeholder="40"
+              />
+            </div>
           </div>
         </div>
       </div>
       
       <!-- Border Settings -->
-      <div class="bg-white shadow rounded-lg p-4 border border-gray-200">
-        <h3 class="text-lg font-medium mb-3">Border Settings</h3>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="form-group">
-            <label for="border-color" class="block text-sm font-medium text-gray-700 mb-1">Border Color</label>
-            <input 
-              id="border-color" 
-              v-model="settings.Border['border-color']" 
-              type="color" 
-              class="w-full h-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h3 class="card-title">Border Settings</h3>
           
-          <div class="form-group">
-            <label for="border-width" class="block text-sm font-medium text-gray-700 mb-1">Border Width</label>
-            <input 
-              id="border-width" 
-              v-model.number="settings.Border.border_width" 
-              type="number" 
-              min="0"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="1"
-            />
-          </div>
-          
-          <div class="form-group">
-            <label for="border-radius" class="block text-sm font-medium text-gray-700 mb-1">Border Radius</label>
-            <input 
-              id="border-radius" 
-              v-model.number="settings.Border.border_radius" 
-              type="number" 
-              min="0"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="10"
-            />
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="form-control w-full">
+              <label class="label" for="border-color">
+                <span class="label-text">Border Color</span>
+              </label>
+              <div class="join w-full">
+                <input 
+                  id="border-color-picker" 
+                  type="color" 
+                  v-model="settings.Border['border-color']" 
+                  class="input input-bordered join-item w-16"
+                />
+                <input 
+                  id="border-color" 
+                  v-model="settings.Border['border-color']" 
+                  type="text" 
+                  class="input input-bordered join-item flex-1"
+                  placeholder="#000000"
+                />
+              </div>
+            </div>
+            
+            <div class="form-control w-full">
+              <label class="label" for="border-width">
+                <span class="label-text">Border Width</span>
+              </label>
+              <input 
+                id="border-width" 
+                v-model.number="settings.Border.border_width" 
+                type="number" 
+                min="0"
+                class="input input-bordered w-full"
+                placeholder="1"
+              />
+            </div>
+            
+            <div class="form-control w-full">
+              <label class="label" for="border-radius">
+                <span class="label-text">Border Radius</span>
+              </label>
+              <input 
+                id="border-radius" 
+                v-model.number="settings.Border.border_radius" 
+                type="number" 
+                min="0"
+                class="input input-bordered w-full"
+                placeholder="10"
+              />
+            </div>
           </div>
         </div>
       </div>
