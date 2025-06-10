@@ -11,17 +11,6 @@ import json
 
 from aphrodite_helpers.database_manager import DatabaseManager
 
-# Minimal logging for database operations
-try:
-    from aphrodite_helpers.minimal_logger import (
-        log_error, log_warning, log_milestone
-    )
-except ImportError:
-    # Fallback if minimal_logger not available
-    def log_error(msg, module="db_reporter"): pass
-    def log_warning(msg, module="db_reporter"): pass
-    def log_milestone(msg, module="db_reporter"): pass
-
 
 class DatabaseReporter:
     """
@@ -375,10 +364,10 @@ class DatabaseReporter:
             
             db_items = {row[0] for row in cursor.fetchall()}
             processed_items.update(db_items)
-            # Silent operation - database items found
+            print(f"📊 Database found {len(db_items)} processed items")
             
         except Exception as e:
-            log_warning(f"Database check failed: {e}")
+            print(f"⚠️ Database check failed: {e}")
             db_items = set()
         
         # 2. Get items with metadata tags (thorough but slower)
@@ -401,24 +390,22 @@ class DatabaseReporter:
                         tag_items.add(item_id)
                 
                 processed_items.update(tag_items)
-                # Silent operation - metadata tags found
+                print(f"📊 Metadata tags found {len(tag_items)} processed items")
                 
                 # Report any discrepancies for debugging
                 db_only = db_items - tag_items
                 tag_only = tag_items - db_items
                 
                 if db_only:
-                    # Silent operation - database/tag discrepancy noted
-                    pass
+                    print(f"📝 Note: {len(db_only)} items in database but no metadata tag")
                 if tag_only:
-                    # Silent operation - tag/database discrepancy noted
-                    pass
+                    print(f"📝 Note: {len(tag_only)} items with metadata tag but not in database")
                     
         except Exception as e:
-            log_warning(f"Metadata tag check failed: {e}")
+            print(f"⚠️ Metadata tag check failed: {e}")
         
         total_processed = list(processed_items)
-        # Silent operation - hybrid method complete
+        print(f"📊 Hybrid method found {len(total_processed)} total processed items")
         return total_processed
 
     def export_processing_data(self, library_id: Optional[str] = None, 

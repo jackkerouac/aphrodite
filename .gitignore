@@ -105,3 +105,7 @@ htmlcov/
 # Temporary test files
 test_*.db
 *_test.db
+
+# Logs
+logs/
+*.log

@@ -25,6 +25,9 @@ except Exception as e:
 
 from aphrodite_helpers.cleanup.poster_cleanup import clean_poster_directories
 
+# Import minimal logging
+from aphrodite_helpers.minimal_logger import log_error, log_warning, log_critical, log_milestone, LoggedOperation
+
 from aphrodite_helpers.settings_validator import run_settings_check
 from aphrodite_helpers.config_auto_repair import validate_and_repair_settings
 from aphrodite_helpers.check_jellyfin_connection import (
@@ -93,52 +96,32 @@ def _process_single_item_core(jellyfin_url: str, api_key: str, user_id: str,
                         add_audio: bool = True, add_resolution: bool = True,
                         add_reviews: bool = True, add_awards: bool = True,
                         skip_upload: bool = False, add_metadata_tag: bool = True) -> bool:
-    print(f"\n📋 Processing item {item_id}")
 
     if not add_audio and not add_resolution and not add_reviews and not add_awards:
-        print("⚠️ No badge types selected. At least one badge type must be enabled.")
+        log_warning("No badge types selected. At least one badge type must be enabled.", "process")
         return False
 
     # Check if this is a TV series and get dominant badge info if applicable
-    print(f"🔍 Checking if item {item_id} is a TV series...")
-    
-    # Add more detailed debugging
     from aphrodite_helpers.tv_series_aggregator import get_jellyfin_item_details, is_tv_series, should_use_dominant_badges
     
-    print(f"🔧 Debug: Checking TV series settings...")
     tv_enabled = should_use_dominant_badges()
-    print(f"🔧 Debug: TV series dominant badges enabled: {tv_enabled}")
     
     if tv_enabled:
-        print(f"🔧 Debug: Getting item details for {item_id}...")
         item_details = get_jellyfin_item_details(jellyfin_url, api_key, user_id, item_id)
-        if item_details:
-            item_type = item_details.get('Type', 'Unknown')
-            print(f"🔧 Debug: Item type: {item_type}")
-            is_series = is_tv_series(item_details)
-            print(f"🔧 Debug: Is TV series: {is_series}")
-        else:
-            print(f"🔧 Debug: Failed to get item details")
+        if not item_details:
+            log_warning(f"Failed to get item details for {item_id}", "tv_series")
     
     series_badge_info = get_series_dominant_badge_info(jellyfin_url, api_key, user_id, item_id)
-    
-    if series_badge_info:
-        print(f"✅ TV series detected: {series_badge_info['name']}")
-        print(f"📊 Dominant audio codec: {series_badge_info['audio_codec']}")
-        print(f"📊 Dominant resolution: {series_badge_info['resolution']}")
-    else:
-        print(f"ℹ️ Not a TV series or TV series analysis disabled")
     
     # 1. Download poster (we'll need this for any badge type)
     poster_path = download_poster(jellyfin_url, api_key, item_id)
     if not poster_path:
-        print("❌ Failed to download poster")
+        log_error(f"Failed to download poster for item {item_id}", "poster")
         return False
 
     # Get item name for display purposes
     if series_badge_info:
         item_name = series_badge_info['name']
-        print(f"📺 Processing TV series: {item_name}")
     else:
         item_info = get_media_stream_info(jellyfin_url, api_key, user_id, item_id)
         if not item_info:
@@ -159,10 +142,9 @@ def _process_single_item_core(jellyfin_url: str, api_key: str, user_id: str,
     # Resize the poster to ensure consistent badge placement
     resize_success = resize_image(poster_path, resized_path, target_width=1000)
     if not resize_success:
-        print("⚠️ Failed to resize poster, continuing with original size")
+        log_warning(f"Failed to resize poster for {item_name}, continuing with original size", "poster")
         working_poster_path = poster_path
     else:
-        print("✅ Resized poster to 1000px width")
         working_poster_path = resized_path
         
     # Ensure output directories exist
@@ -175,29 +157,27 @@ def _process_single_item_core(jellyfin_url: str, api_key: str, user_id: str,
         # Use series dominant codec if available, otherwise get individual item codec
         if series_badge_info:
             codec = series_badge_info['audio_codec']
-            print(f"📢 Using dominant audio codec: {codec} for TV series {item_name}")
         else:
             # Media info for non-series items
             audio_info = get_media_stream_info(jellyfin_url, api_key, user_id, item_id)
             if not audio_info:
-                print("❌ Failed to retrieve audio information")
+                log_error(f"Failed to retrieve audio information for {item_name}", "audio")
                 return False
 
             codec = get_primary_audio_codec(audio_info)
-            print(f"📢 Found audio codec: {codec} for {item_name}")
         
         # Skip adding audio badge if codec is UNKNOWN
         if codec.upper() == "UNKNOWN":
-            print("⚠️ Skipping audio badge as codec is unknown")
+            log_warning(f"Skipping audio badge for {item_name} - codec unknown", "audio")
         else:
-            # Create audio badge
+            # Create audio badge - YAML DEPENDENCY: badge_settings_audio.yml
             audio_settings = load_badge_settings("badge_settings_audio.yml")
             audio_badge = create_badge(audio_settings, codec)
             
             # Apply audio badge to poster
             output_path = apply_badge_to_poster(working_poster_path, audio_badge, audio_settings)
             if not output_path:
-                print("❌ Failed to apply audio badge to poster")
+                log_error(f"Failed to apply audio badge to poster for {item_name}", "badge")
                 return False
             
             # Update working_poster_path to point to the poster with audio badge
@@ -208,29 +188,27 @@ def _process_single_item_core(jellyfin_url: str, api_key: str, user_id: str,
         # Use series dominant resolution if available, otherwise get individual item resolution
         if series_badge_info:
             resolution_text = series_badge_info['resolution']
-            print(f"📏 Using dominant resolution: {resolution_text} for TV series {item_name}")
         else:
             # Get resolution info for non-series items
             resolution_info = get_media_resolution_info(jellyfin_url, api_key, user_id, item_id)
             if not resolution_info:
-                print("❌ Failed to retrieve resolution information")
+                log_error(f"Failed to retrieve resolution information for {item_name}", "resolution")
                 return False
 
             resolution_text = get_resolution_badge_text(resolution_info)
-            print(f"📏 Found resolution: {resolution_text} for {item_name}")
 
         # Skip adding resolution badge if it's UNKNOWN
         if resolution_text.upper() == "UNKNOWN":
-            print("⚠️ Skipping resolution badge as resolution is unknown")
+            log_warning(f"Skipping resolution badge for {item_name} - resolution unknown", "resolution")
         else:
-            # Create resolution badge
+            # Create resolution badge - YAML DEPENDENCY: badge_settings_resolution.yml
             resolution_settings = load_badge_settings("badge_settings_resolution.yml")
             resolution_badge = create_badge(resolution_settings, resolution_text)
             
             # Apply resolution badge to poster (which may already have an audio badge)
             output_path = apply_badge_to_poster(working_poster_path, resolution_badge, resolution_settings)
             if not output_path:
-                print("❌ Failed to apply resolution badge to poster")
+                log_error(f"Failed to apply resolution badge to poster for {item_name}", "badge")
                 return False
                 
             # Update working_poster_path to point to the poster with resolution badge
@@ -238,42 +216,36 @@ def _process_single_item_core(jellyfin_url: str, api_key: str, user_id: str,
     
     # 3.5. Process Awards Badge if requested
     if add_awards:
-        print(f"🏆 Checking for awards badges for {item_name}")
         from aphrodite_helpers.get_awards_info import AwardsFetcher
         
         try:
-            # Load settings and check for awards
+            # Load settings and check for awards - YAML DEPENDENCY: settings.yaml
             settings = load_settings()
             awards_fetcher = AwardsFetcher(settings)
             awards_info = awards_fetcher.get_media_awards_info(jellyfin_url, api_key, user_id, item_id)
             
             if awards_info:
                 award_type = awards_info['award_type']
-                print(f"🏆 Found award: {award_type} for {item_name}")
                 
-                # Create awards badge
+                # Create awards badge - YAML DEPENDENCY: badge_settings_awards.yml
                 awards_settings = load_badge_settings("badge_settings_awards.yml")
                 awards_badge = create_badge(awards_settings, award_type)
                 
                 # Apply awards badge to poster
                 output_path = apply_badge_to_poster(working_poster_path, awards_badge, awards_settings)
                 if not output_path:
-                    print("❌ Failed to apply awards badge to poster")
+                    log_error(f"Failed to apply awards badge to poster for {item_name}", "badge")
                     # Don't return False here - awards are optional
                 else:
                     # Update working_poster_path to point to the poster with awards badge
                     working_poster_path = output_path
-                    print(f"✅ Added {award_type} award badge")
-            else:
-                print(f"ℹ️ No awards found for {item_name}")
                 
         except Exception as e:
-            print(f"⚠️ Error processing awards badge: {e}")
+            log_warning(f"Error processing awards badge for {item_name}: {e}", "awards")
             # Don't fail the entire processing for awards errors
     
     # 4. Process Review Badges if requested
     if add_reviews:
-        print(f"📊 Adding review badges for {item_name}")
         # We want to add the review badges to the current version of the poster 
         # (which may already have audio and resolution badges)
         review_success = process_item_reviews(
@@ -281,13 +253,13 @@ def _process_single_item_core(jellyfin_url: str, api_key: str, user_id: str,
             jellyfin_url, 
             api_key, 
             user_id,
-            "badge_settings_review.yml",
+            "badge_settings_review.yml",  # YAML DEPENDENCY: badge_settings_review.yml
             "posters/modified",  # Save directly to modified directory
             working_poster_path  # Pass the current working poster path
         )
         
         if not review_success:
-            print("⚠️ No reviews found or failed to create review badges")
+            log_warning(f"No reviews found or failed to create review badges for {item_name}", "reviews")
         else:
             # Update output_path to point to the review badge output
             review_output_path = os.path.join(
@@ -299,42 +271,27 @@ def _process_single_item_core(jellyfin_url: str, api_key: str, user_id: str,
             if os.path.exists(review_output_path):
                 output_path = review_output_path
                 working_poster_path = output_path  # Update working path too
-                print(f"✅ Added review badges")
             else:
-                print(f"⚠️ Review badges were processed but output not found at {review_output_path}")
+                log_warning(f"Review badges were processed but output not found for {item_name}", "reviews")
 
     # 5. Upload the final modified poster (unless skipped)
     if not skip_upload:
         # Check if we have a valid output path before attempting to upload
         if not output_path:
-            print("⚠️ No modified poster was created, skipping upload")
+            log_warning(f"No modified poster was created for {item_name}, skipping upload", "upload")
             return False
             
         uploader = PosterUploader(jellyfin_url, api_key, user_id)
         if not uploader.upload_poster(item_id, output_path, max_retries):
-            print("❌ Failed to upload modified poster")
+            log_error(f"Failed to upload modified poster for {item_name}", "upload")
             return False
-        print(f"✅ Uploaded poster for: {item_name}")
-    else:
-        if output_path:
-            print(f"📤 Skipping upload, poster saved at: {output_path}")
-        else:
-            print("⚠️ No modified poster was created, nothing to upload")
 
     # 6. Add metadata tag to mark this item as processed by Aphrodite
     if output_path and add_metadata_tag:  # Only tag if we actually processed something and tagging is enabled
-        print(f"🏷️ Adding Aphrodite metadata tag...")
         tag_success = add_aphrodite_tag(jellyfin_url, api_key, user_id, item_id)  # Uses settings for tag name
-        if tag_success:
-            print(f"✅ Added metadata tag to track processing")
-        else:
-            print(f"⚠️ Failed to add metadata tag (processing was still successful)")
-    elif output_path and not add_metadata_tag:
-        print(f"🏷️ Skipping metadata tag (disabled via command line)")
-    elif not output_path:
-        print(f"🏷️ Skipping metadata tag (no processing occurred)")
+        if not tag_success:
+            log_warning(f"Failed to add metadata tag for {item_name} (processing was still successful)", "metadata")
     
-    print(f"✅ Success: {item_name}")
     return True
 
 
@@ -383,6 +340,7 @@ def _skip_processed_legacy(items, jellyfin_url: str, api_key: str, user_id: str)
     Legacy method for skipping processed items using metadata tags.
     Used as fallback when database commands are not available.
     """
+    # YAML DEPENDENCY: settings.yaml for tag configuration
     tagging_settings = get_tagging_settings()
     tag_name = tagging_settings.get('tag_name', 'aphrodite-overlay')
     tagger = MetadataTagger(jellyfin_url, api_key, user_id)
@@ -390,18 +348,20 @@ def _skip_processed_legacy(items, jellyfin_url: str, api_key: str, user_id: str)
     original_count = len(items)
     unprocessed_items = []
     
-    for item in items:
-        item_id = item.get('Id')
-        if not item_id:
-            unprocessed_items.append(item)
-            continue
-            
-        has_tag = tagger.check_aphrodite_tag(item_id, tag_name)
-        if not has_tag:
-            unprocessed_items.append(item)
+    with LoggedOperation(f"Legacy skip check for {original_count} items", "skip_legacy"):
+        for item in items:
+            item_id = item.get('Id')
+            if not item_id:
+                unprocessed_items.append(item)
+                continue
+                
+            has_tag = tagger.check_aphrodite_tag(item_id, tag_name)
+            if not has_tag:
+                unprocessed_items.append(item)
+        
+        skipped_count = original_count - len(unprocessed_items)
+        log_milestone(f"Metadata tag skip: {skipped_count} already processed, {len(unprocessed_items)} remaining", "skip_legacy")
     
-    skipped_count = original_count - len(unprocessed_items)
-    print(f"📊 Metadata tag skip: {skipped_count} already processed, {len(unprocessed_items)} remaining")
     return unprocessed_items
 
 
@@ -411,85 +371,85 @@ def process_library_items(jellyfin_url: str, api_key: str, user_id: str,
                           add_resolution: bool = True, add_reviews: bool = True,
                           add_awards: bool = True, skip_upload: bool = False,
                           add_metadata_tag: bool = True, skip_processed: bool = False) -> None:
-    items = get_library_items(jellyfin_url, api_key, user_id, library_id)
-    if not items:
-        print("⚠️  No items found in library")
-        return
+    
+    with LoggedOperation(f"Library processing for library {library_id}", "library"):
+        items = get_library_items(jellyfin_url, api_key, user_id, library_id)
+        if not items:
+            log_warning(f"No items found in library {library_id}", "library")
+            return
 
-    # Filter out already processed items if skip_processed is enabled
-    if skip_processed:
-        print(f"🔍 Checking for already processed items...")
+        # Filter out already processed items if skip_processed is enabled
+        if skip_processed:
+            log_milestone("Checking for already processed items", "library")
         
-        # 🗄️ PHASE 3: Use hybrid database+metadata approach for skip-processed
-        if DATABASE_COMMANDS_AVAILABLE:
-            try:
-                reporter = DatabaseReporter()
-                
-                # Use hybrid method that checks BOTH database AND metadata tags
-                # This ensures we catch all processed items regardless of when they were processed
-                processed_item_ids = reporter.get_processed_items_hybrid(
-                    library_id, jellyfin_url, api_key, user_id
-                )
-                reporter.close()
-                
-                original_count = len(items)
-                unprocessed_items = []
-                
-                for item in items:
-                    item_id = item.get('Id')
-                    if item_id and item_id not in processed_item_ids:
-                        unprocessed_items.append(item)
-                    elif not item_id:
-                        unprocessed_items.append(item)  # Include items without ID
-                
-                skipped_count = original_count - len(unprocessed_items)
-                print(f"📊 Hybrid skip (DB + metadata tags): {skipped_count} already processed, {len(unprocessed_items)} remaining")
-                items = unprocessed_items
-                
-            except Exception as e:
-                print(f"⚠️ Database skip failed, falling back to metadata tags: {e}")
+            # 🗄️ PHASE 3: Use hybrid database+metadata approach for skip-processed
+            if DATABASE_COMMANDS_AVAILABLE:
+                try:
+                    reporter = DatabaseReporter()
+                    
+                    # Use hybrid method that checks BOTH database AND metadata tags
+                    # This ensures we catch all processed items regardless of when they were processed
+                    processed_item_ids = reporter.get_processed_items_hybrid(
+                        library_id, jellyfin_url, api_key, user_id
+                    )
+                    reporter.close()
+                    
+                    original_count = len(items)
+                    unprocessed_items = []
+                    
+                    for item in items:
+                        item_id = item.get('Id')
+                        if item_id and item_id not in processed_item_ids:
+                            unprocessed_items.append(item)
+                        elif not item_id:
+                            unprocessed_items.append(item)  # Include items without ID
+                    
+                    skipped_count = original_count - len(unprocessed_items)
+                    log_milestone(f"Hybrid skip (DB + metadata tags): {skipped_count} already processed, {len(unprocessed_items)} remaining", "library")
+                    items = unprocessed_items
+                    
+                except Exception as e:
+                    log_warning(f"Database skip failed, falling back to metadata tags: {e}", "library")
+                    # Fall back to original metadata tag method
+                    items = _skip_processed_legacy(items, jellyfin_url, api_key, user_id)
+            else:
                 # Fall back to original metadata tag method
                 items = _skip_processed_legacy(items, jellyfin_url, api_key, user_id)
-        else:
-            # Fall back to original metadata tag method
-            items = _skip_processed_legacy(items, jellyfin_url, api_key, user_id)
 
-    if limit:
-        items = items[:limit]
-    print(f"Found {len(items)} items to process in library")
+        if limit:
+            items = items[:limit]
+        
+        log_milestone(f"Found {len(items)} items to process in library {library_id}", "library")
 
-    successful_items = 0
-    failed_items = 0
+        successful_items = 0
+        failed_items = 0
 
-    for i, item in enumerate(items, 1):
-        try:
-            name = item.get("Name", "Unknown")
-            item_id = item["Id"]
-            print(f"\n[{i}/{len(items)}] {name}")
-            
-            success = process_single_item(jellyfin_url, api_key, user_id,
-                                item_id, max_retries, add_audio, add_resolution, 
-                                add_reviews, add_awards, skip_upload, add_metadata_tag)
-            
-            if success:
-                successful_items += 1
-            else:
-                failed_items += 1
-                print("⚠️ Failed to process item, continuing with next item")
+        for i, item in enumerate(items, 1):
+            try:
+                name = item.get("Name", "Unknown")
+                item_id = item["Id"]
+                # Silent processing - no per-item status messages
                 
-            # Small delay between items
-            time.sleep(1)
-            
-        except Exception as e:
-            failed_items += 1
-            print(f"❌ Error processing item: {str(e)}")
-            print("⚠️ Continuing with next item")
-            import traceback
-            print(traceback.format_exc())
-            time.sleep(1)
-    
-    # Summary at the end
-    print(f"\n✨ Library processing complete: {successful_items} successful, {failed_items} failed out of {len(items)} total items")
+                success = process_single_item(jellyfin_url, api_key, user_id,
+                                    item_id, max_retries, add_audio, add_resolution, 
+                                    add_reviews, add_awards, skip_upload, add_metadata_tag)
+                
+                if success:
+                    successful_items += 1
+                else:
+                    failed_items += 1
+                    log_warning(f"Failed to process item {name} ({item_id})", "library")
+                    
+                # Small delay between items
+                time.sleep(1)
+                
+            except Exception as e:
+                failed_items += 1
+                log_error(f"Error processing item {item.get('Name', 'Unknown')}: {str(e)}", "library")
+                time.sleep(1)
+        
+        # Summary at the end
+        log_milestone(f"Library processing complete: {successful_items} successful, {failed_items} failed out of {len(items)} total items", "library")
 
 
 
@@ -598,158 +558,242 @@ def main() -> int:
 
     args = parser.parse_args()
     
-    # Auto-repair settings before validation
+    # Auto-repair settings before validation - keep user feedback
     print("🔧 Auto-repairing settings file...")
-    validate_and_repair_settings()
+    with LoggedOperation("Settings auto-repair", "setup"):
+        try:
+            validate_and_repair_settings()
+            log_milestone("Settings auto-repair completed", "setup")
+        except Exception as e:
+            log_error(f"Settings auto-repair failed: {e}", "setup")
     
-    run_settings_check()
+    with LoggedOperation("Settings validation", "setup"):
+        try:
+            run_settings_check()
+            log_milestone("Settings validation completed", "setup")
+        except Exception as e:
+            log_error(f"Settings validation failed: {e}", "setup")
 
     settings = load_settings()
     if not settings:
+        log_critical("Failed to load settings", "setup")
         print("❌ Failed to load settings")
         return 1
+    
     jf = settings["api_keys"]["Jellyfin"][0]
     url, api_key, user_id = jf["url"], jf["api_key"], jf["user_id"]
+    log_milestone(f"Loaded Jellyfin connection: {url}", "setup")
 
     if args.cmd == "check":
-        print(f"📡 Connecting to Jellyfin at {url}")
-        libs = get_jellyfin_libraries(url, api_key, user_id)
-        for lib in libs:
-            print(f"  - {lib['Name']} ({lib['Id']}): "
-                  f"{get_library_item_count(url, api_key, user_id, lib['Id'])} items")
+        with LoggedOperation("Connection check command", "check"):
+            # Keep essential CLI feedback for connection check
+            print(f"📡 Connecting to Jellyfin at {url}")
+            try:
+                libs = get_jellyfin_libraries(url, api_key, user_id)
+                for lib in libs:
+                    count = get_library_item_count(url, api_key, user_id, lib['Id'])
+                    print(f"  - {lib['Name']} ({lib['Id']}): {count} items")
+                log_milestone(f"Connection check successful: {len(libs)} libraries found", "check")
+            except Exception as e:
+                log_error(f"Connection check failed: {e}", "check")
+                print(f"❌ Connection failed: {e}")
+                return 1
+        
         # Clean up posters if requested
         if hasattr(args, 'cleanup') and args.cleanup:
-            print("\n🧹 Cleaning up poster directories...")
-            clean_poster_directories(
-                clean_modified=True,
-                clean_working=True,
-                clean_original=True,
-                verbose=True
-            )
+            with LoggedOperation("Poster cleanup after check", "cleanup"):
+                print("\n🧹 Cleaning up poster directories...")
+                try:
+                    clean_poster_directories(
+                        clean_modified=True,
+                        clean_working=True,
+                        clean_original=True,
+                        verbose=True
+                    )
+                    log_milestone("Poster cleanup completed", "cleanup")
+                except Exception as e:
+                    log_error(f"Poster cleanup failed: {e}", "cleanup")
+                    return 1
             
         return 0
     
     if args.cmd == "status":
         from aphrodite_helpers.metadata_tagger import MetadataTagger, get_tagging_settings
         
-        print(f"📊 Checking processing status for library {args.library_id}")
-        
-        # Get tag from settings if not specified
-        tag_to_check = args.tag
-        if tag_to_check is None:
-            tagging_settings = get_tagging_settings()
-            tag_to_check = tagging_settings.get('tag_name', 'aphrodite-overlay')
-        
-        # Get all items in the library
-        items = get_library_items(url, api_key, user_id, args.library_id)
-        if not items:
-            print("⚠️  No items found in library")
-            return 1
-        
-        tagger = MetadataTagger(url, api_key, user_id)
-        processed_count = 0
-        unprocessed_count = 0
-        
-        print(f"\nProcessing status for {len(items)} items:")
-        print(f"Tag: '{tag_to_check}'\n")
-        
-        for item in items:
-            item_id = item.get('Id')
-            item_name = item.get('Name', 'Unknown')
+        with LoggedOperation(f"Status check for library {args.library_id}", "status"):
+            # Keep essential CLI feedback for status command
+            print(f"📊 Checking processing status for library {args.library_id}")
             
-            if not item_id:
-                continue
+            try:
+                # Get tag from settings if not specified
+                tag_to_check = args.tag
+                if tag_to_check is None:
+                    tagging_settings = get_tagging_settings()
+                    tag_to_check = tagging_settings.get('tag_name', 'aphrodite-overlay')
                 
-            has_tag = tagger.check_aphrodite_tag(item_id, tag_to_check)
-            
-            if has_tag:
-                processed_count += 1
-                if not args.unprocessed_only:
-                    print(f"✅ {item_name} (Processed)")
-            else:
-                unprocessed_count += 1
-                print(f"⚪ {item_name} (Not processed)")
-        
-        print(f"\n📈 Summary:")
-        print(f"  Processed: {processed_count}/{len(items)} ({processed_count/len(items)*100:.1f}%)")
-        print(f"  Unprocessed: {unprocessed_count}/{len(items)} ({unprocessed_count/len(items)*100:.1f}%)")
+                # Get all items in the library
+                items = get_library_items(url, api_key, user_id, args.library_id)
+                if not items:
+                    log_warning(f"No items found in library {args.library_id}", "status")
+                    print("⚠️  No items found in library")
+                    return 1
+                
+                tagger = MetadataTagger(url, api_key, user_id)
+                processed_count = 0
+                unprocessed_count = 0
+                
+                print(f"\nProcessing status for {len(items)} items:")
+                print(f"Tag: '{tag_to_check}'\n")
+                
+                for item in items:
+                    item_id = item.get('Id')
+                    item_name = item.get('Name', 'Unknown')
+                    
+                    if not item_id:
+                        continue
+                        
+                    has_tag = tagger.check_aphrodite_tag(item_id, tag_to_check)
+                    
+                    if has_tag:
+                        processed_count += 1
+                        if not args.unprocessed_only:
+                            print(f"✅ {item_name} (Processed)")
+                    else:
+                        unprocessed_count += 1
+                        print(f"⚪ {item_name} (Not processed)")
+                
+                # Keep summary for user
+                print(f"\n📈 Summary:")
+                print(f"  Processed: {processed_count}/{len(items)} ({processed_count/len(items)*100:.1f}%)")
+                print(f"  Unprocessed: {unprocessed_count}/{len(items)} ({unprocessed_count/len(items)*100:.1f}%)")
+                
+                log_milestone(f"Status check complete: {processed_count} processed, {unprocessed_count} unprocessed", "status")
+                
+            except Exception as e:
+                log_error(f"Status check failed: {e}", "status")
+                print(f"❌ Status check failed: {e}")
+                return 1
         
         return 0
         
     if args.cmd == "cleanup":
-        # Invert the no-* arguments for the clean_* parameters
-        clean_modified = not (hasattr(args, 'no_modified') and args.no_modified)
-        clean_working = not (hasattr(args, 'no_working') and args.no_working)
-        clean_original = not (hasattr(args, 'no_original') and args.no_original)
-        verbose = not (hasattr(args, 'quiet') and args.quiet)
-        
-        success, message = clean_poster_directories(
-            clean_modified=clean_modified,
-            clean_working=clean_working,
-            clean_original=clean_original,
-            verbose=verbose
-        )
-        return 0 if success else 1
+        with LoggedOperation("Poster cleanup command", "cleanup"):
+            # Invert the no-* arguments for the clean_* parameters
+            clean_modified = not (hasattr(args, 'no_modified') and args.no_modified)
+            clean_working = not (hasattr(args, 'no_working') and args.no_working)
+            clean_original = not (hasattr(args, 'no_original') and args.no_original)
+            verbose = not (hasattr(args, 'quiet') and args.quiet)
+            
+            try:
+                success, message = clean_poster_directories(
+                    clean_modified=clean_modified,
+                    clean_working=clean_working,
+                    clean_original=clean_original,
+                    verbose=verbose
+                )
+                
+                if success:
+                    log_milestone(f"Poster cleanup successful: {message}", "cleanup")
+                else:
+                    log_error(f"Poster cleanup failed: {message}", "cleanup")
+                    
+                return 0 if success else 1
+                
+            except Exception as e:
+                log_error(f"Poster cleanup error: {e}", "cleanup")
+                return 1
 
     if args.cmd == "item":
-        # By default, all badge types are ON
-        add_audio = not (hasattr(args, 'no_audio') and args.no_audio)
-        add_resolution = not (hasattr(args, 'no_resolution') and args.no_resolution)
-        add_reviews = not (hasattr(args, 'no_reviews') and args.no_reviews)
-        add_awards = not (hasattr(args, 'no_awards') and args.no_awards)
-        skip_upload = hasattr(args, 'no_upload') and args.no_upload
-        add_metadata_tag = not (hasattr(args, 'no_metadata_tag') and args.no_metadata_tag)
-        
-        ok = process_single_item(
-            url, api_key, user_id, args.item_id, args.retries,
-            add_audio=add_audio, add_resolution=add_resolution,
-            add_reviews=add_reviews, add_awards=add_awards,
-            skip_upload=skip_upload, add_metadata_tag=add_metadata_tag
-        )
-        # Clean up posters if requested
-        if hasattr(args, 'cleanup') and args.cleanup:
-            print("\n🧹 Cleaning up poster directories...")
-            clean_poster_directories(
-                clean_modified=True,
-                clean_working=True,
-                clean_original=True,
-                verbose=True
-            )
+        with LoggedOperation(f"Item processing command for {args.item_id}", "item"):
+            # By default, all badge types are ON
+            add_audio = not (hasattr(args, 'no_audio') and args.no_audio)
+            add_resolution = not (hasattr(args, 'no_resolution') and args.no_resolution)
+            add_reviews = not (hasattr(args, 'no_reviews') and args.no_reviews)
+            add_awards = not (hasattr(args, 'no_awards') and args.no_awards)
+            skip_upload = hasattr(args, 'no_upload') and args.no_upload
+            add_metadata_tag = not (hasattr(args, 'no_metadata_tag') and args.no_metadata_tag)
             
-        return 0 if ok else 1
+            try:
+                # Silent processing - core function already handles logging
+                ok = process_single_item(
+                    url, api_key, user_id, args.item_id, args.retries,
+                    add_audio=add_audio, add_resolution=add_resolution,
+                    add_reviews=add_reviews, add_awards=add_awards,
+                    skip_upload=skip_upload, add_metadata_tag=add_metadata_tag
+                )
+                
+                if ok:
+                    log_milestone(f"Item {args.item_id} processed successfully", "item")
+                else:
+                    log_error(f"Item {args.item_id} processing failed", "item")
+                
+                # Clean up posters if requested
+                if hasattr(args, 'cleanup') and args.cleanup:
+                    with LoggedOperation("Poster cleanup after item processing", "cleanup"):
+                        print("\n🧹 Cleaning up poster directories...")
+                        try:
+                            clean_poster_directories(
+                                clean_modified=True,
+                                clean_working=True,
+                                clean_original=True,
+                                verbose=True
+                            )
+                            log_milestone("Post-processing cleanup completed", "cleanup")
+                        except Exception as e:
+                            log_error(f"Post-processing cleanup failed: {e}", "cleanup")
+                            return 1
+                        
+                return 0 if ok else 1
+                
+            except Exception as e:
+                log_error(f"Item processing command error: {e}", "item")
+                return 1
 
     if args.cmd == "library":
-        # By default, all badge types are ON
-        add_audio = not (hasattr(args, 'no_audio') and args.no_audio)
-        add_resolution = not (hasattr(args, 'no_resolution') and args.no_resolution)
-        add_reviews = not (hasattr(args, 'no_reviews') and args.no_reviews)
-        add_awards = not (hasattr(args, 'no_awards') and args.no_awards)
-        skip_upload = hasattr(args, 'no_upload') and args.no_upload
-        add_metadata_tag = not (hasattr(args, 'no_metadata_tag') and args.no_metadata_tag)
-        skip_processed = hasattr(args, 'skip_processed') and args.skip_processed
-        
-        process_library_items(
-            url, api_key, user_id, args.library_id, args.limit, args.retries,
-            add_audio=add_audio, add_resolution=add_resolution,
-            add_reviews=add_reviews, add_awards=add_awards,
-            skip_upload=skip_upload, add_metadata_tag=add_metadata_tag,
-            skip_processed=skip_processed
-        )
-        return 0
+        with LoggedOperation(f"Library processing command for {args.library_id}", "library_cmd"):
+            # By default, all badge types are ON
+            add_audio = not (hasattr(args, 'no_audio') and args.no_audio)
+            add_resolution = not (hasattr(args, 'no_resolution') and args.no_resolution)
+            add_reviews = not (hasattr(args, 'no_reviews') and args.no_reviews)
+            add_awards = not (hasattr(args, 'no_awards') and args.no_awards)
+            skip_upload = hasattr(args, 'no_upload') and args.no_upload
+            add_metadata_tag = not (hasattr(args, 'no_metadata_tag') and args.no_metadata_tag)
+            skip_processed = hasattr(args, 'skip_processed') and args.skip_processed
+            
+            try:
+                # Silent processing - library function already handles logging
+                process_library_items(
+                    url, api_key, user_id, args.library_id, args.limit, args.retries,
+                    add_audio=add_audio, add_resolution=add_resolution,
+                    add_reviews=add_reviews, add_awards=add_awards,
+                    skip_upload=skip_upload, add_metadata_tag=add_metadata_tag,
+                    skip_processed=skip_processed
+                )
+                
+                log_milestone(f"Library {args.library_id} processing command completed", "library_cmd")
+                return 0
+                
+            except Exception as e:
+                log_error(f"Library processing command error: {e}", "library_cmd")
+                return 1
 
     # 🗄️ PHASE 3: Database Command Handlers
     if args.cmd == "db-status":
         if not DATABASE_COMMANDS_AVAILABLE:
+            log_error("Database commands not available - check Phase 3 installation", "db_status")
             print("❌ Database commands not available. Please check Phase 3 installation.")
             return 1
         
-        try:
-            reporter = DatabaseReporter()
-            reporter.print_status_report(library_id=args.library, detailed=args.detailed)
-            reporter.close()
-        except Exception as e:
-            print(f"❌ Error generating database status: {e}")
-            return 1
+        with LoggedOperation("Database status command", "db_status"):
+            try:
+                reporter = DatabaseReporter()
+                reporter.print_status_report(library_id=args.library, detailed=args.detailed)
+                reporter.close()
+                log_milestone("Database status report generated", "db_status")
+            except Exception as e:
+                log_error(f"Database status generation failed: {e}", "db_status")
+                print(f"❌ Error generating database status: {e}")
+                return 1
         return 0
     
     if args.cmd == "check-reviews":

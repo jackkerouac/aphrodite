@@ -4,69 +4,78 @@
     
     <form @submit.prevent="saveSettings" class="space-y-6">
       <!-- General Settings -->
-      <div class="bg-white shadow rounded-lg p-4 border border-gray-200">
-        <h3 class="text-lg font-medium mb-3">General Settings</h3>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="form-group col-span-full">
-            <div class="flex items-center">
-              <input 
-                id="awards-enabled" 
-                v-model="settings.General.enabled" 
-                type="checkbox" 
-                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label for="awards-enabled" class="ml-2 block text-sm text-gray-700">Enable Awards Badges</label>
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h3 class="card-title">General Settings</h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="form-control col-span-full">
+              <label class="label cursor-pointer justify-start">
+                <input
+                  id="awards-enabled"
+                  v-model="settings.General.enabled"
+                  type="checkbox"
+                  class="checkbox checkbox-primary"
+                />
+                <span class="label-text ml-2">Enable Awards Badges</span>
+              </label>
+              <p class="text-xs opacity-70 mt-1">Awards badges appear flush in the bottom-right corner when media has won specific awards</p>
             </div>
-            <p class="text-xs text-gray-500 mt-1">Awards badges appear flush in the bottom-right corner when media has won specific awards</p>
-          </div>
-          
-          <div class="form-group">
-            <label for="badge-size" class="block text-sm font-medium text-gray-700 mb-1">Badge Size</label>
-            <input 
-              id="badge-size" 
-              v-model.number="settings.General.general_badge_size" 
-              type="number" 
-              min="50"
-              max="200"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="120"
-              :disabled="!settings.General.enabled"
-            />
-            <p class="text-xs text-gray-500 mt-1">Recommended: 120px for ribbon visibility</p>
-          </div>
-          
-          <div class="form-group">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Badge Position</label>
-            <div class="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
-              <strong>Bottom-Right Flush</strong>
-              <p class="text-xs mt-1">Awards badges are always positioned flush to the bottom-right corner with no padding for optimal ribbon appearance</p>
+
+            <div class="form-control w-full">
+              <label class="label" for="badge-size">
+                <span class="label-text">Badge Size</span>
+              </label>
+              <input
+                id="badge-size"
+                v-model.number="settings.General.general_badge_size"
+                type="number"
+                min="50"
+                max="200"
+                class="input input-bordered w-full"
+                placeholder="120"
+                :disabled="!settings.General.enabled"
+              />
+              <p class="text-xs opacity-70 mt-1">Recommended: 120px for ribbon visibility</p>
+            </div>
+
+            <div class="form-control w-full">
+              <label class="label">
+                <span class="label-text">Badge Position</span>
+              </label>
+              <div class="text-sm opacity-80 bg-base-200 p-3 rounded">
+                <strong>Bottom-Right Flush</strong>
+                <p class="text-xs mt-1">Awards badges are always positioned flush to the bottom-right corner with no padding for optimal ribbon appearance</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
       
       <!-- Awards Configuration -->
-      <div class="bg-white shadow rounded-lg p-4 border border-gray-200">
-        <h3 class="text-lg font-medium mb-3">Awards Configuration</h3>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- Color Scheme Selection -->
-          <div class="form-group">
-            <label class="block text-sm font-medium text-gray-700 mb-3">Color Scheme</label>
-            <div class="grid grid-cols-2 gap-3">
-              <div v-for="color in colorSchemes" :key="color.value" class="relative">
-                <input 
-                  :id="`color-${color.value}`"
-                  v-model="settings.Awards.color_scheme" 
-                  :value="color.value"
-                  type="radio" 
-                  class="peer sr-only"
-                  :disabled="!settings.General.enabled"
-                />
-                <label 
-                  :for="`color-${color.value}`" 
-                  class="flex items-center justify-center p-3 border rounded-lg cursor-pointer transition-all"
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h3 class="card-title">Awards Configuration</h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Color Scheme Selection -->
+            <div class="form-control">
+              <label class="label mb-3">
+                <span class="label-text">Color Scheme</span>
+              </label>
+              <div class="grid grid-cols-2 gap-3">
+                <div v-for="color in colorSchemes" :key="color.value" class="relative">
+                  <input
+                    :id="`color-${color.value}`"
+                    v-model="settings.Awards.color_scheme"
+                    :value="color.value"
+                    type="radio"
+                    class="peer sr-only"
+                    :disabled="!settings.General.enabled"
+                  />
+                  <label
+                    :for="`color-${color.value}`"
+                    class="flex items-center justify-center p-3 border rounded-lg cursor-pointer transition-all"
                   :class="[
                     'peer-checked:border-blue-500 peer-checked:bg-blue-50',
                     !settings.General.enabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-gray-400',
@@ -82,102 +91,111 @@
                   </div>
                 </label>
               </div>
-            </div>
-            
-            <!-- Color Preview -->
-            <div v-if="settings.General.enabled && selectedColorPreview" class="mt-4 p-3 bg-gray-50 rounded-md">
-              <p class="text-sm font-medium text-gray-700 mb-2">Preview:</p>
-              <div class="flex items-center space-x-2">
-                <img 
-                  :src="selectedColorPreview" 
-                  :alt="`${settings.Awards.color_scheme} award preview`"
-                  class="h-8 object-contain"
-                  @error="handleImageError"
-                />
-                <span class="text-sm text-gray-600">{{ settings.Awards.color_scheme }} scheme</span>
               </div>
-            </div>
-          </div>
-          
-          <!-- Award Sources Selection -->
-          <div class="form-group">
-            <label class="block text-sm font-medium text-gray-700 mb-3">Award Sources</label>
-            <div class="max-h-64 overflow-y-auto border border-gray-300 rounded-md p-3">
-              <div class="space-y-2">
-                <div v-for="source in awardSources" :key="source.value" class="flex items-center">
-                  <input 
-                    :id="`award-${source.value}`"
-                    :value="source.value"
-                    type="checkbox" 
-                    v-model="settings.Awards.award_sources"
-                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    :disabled="!settings.General.enabled"
+
+              <!-- Color Preview -->
+              <div v-if="settings.General.enabled && selectedColorPreview" class="mt-4 p-3 bg-base-200 rounded">
+                <p class="text-sm font-medium mb-2">Preview:</p>
+                <div class="flex items-center space-x-2">
+                  <img
+                    :src="selectedColorPreview"
+                    :alt="`${settings.Awards.color_scheme} award preview`"
+                    class="h-8 object-contain"
+                    @error="handleImageError"
                   />
-                  <label 
-                    :for="`award-${source.value}`" 
-                    class="ml-2 block text-sm"
-                    :class="!settings.General.enabled ? 'text-gray-400' : 'text-gray-700'"
-                  >
-                    {{ source.label }}
-                  </label>
-                  <span v-if="source.priority" class="ml-auto text-xs text-gray-500">({{ source.priority }})</span>
+                  <span class="text-sm opacity-80">{{ settings.Awards.color_scheme }} scheme</span>
                 </div>
               </div>
             </div>
-            <p class="text-xs text-gray-500 mt-2">
-              Selected awards will be detected automatically. Priority order: Oscars → Cannes → Golden Globe → BAFTA → Emmy → Others
-            </p>
+
+            <!-- Award Sources Selection -->
+            <div class="form-control">
+              <label class="label mb-3">
+                <span class="label-text">Award Sources</span>
+              </label>
+              <div class="max-h-64 overflow-y-auto border border-base-300 rounded p-3">
+                <div class="space-y-2">
+                  <div v-for="source in awardSources" :key="source.value" class="flex items-center">
+                    <input
+                      :id="`award-${source.value}`"
+                      :value="source.value"
+                      type="checkbox"
+                      v-model="settings.Awards.award_sources"
+                      class="checkbox checkbox-primary"
+                      :disabled="!settings.General.enabled"
+                    />
+                    <label
+                      :for="`award-${source.value}`"
+                      class="ml-2 text-sm"
+                      :class="!settings.General.enabled ? 'opacity-50' : ''"
+                    >
+                      {{ source.label }}
+                    </label>
+                    <span v-if="source.priority" class="ml-auto text-xs opacity-70">({{ source.priority }})</span>
+                  </div>
+                </div>
+              </div>
+              <p class="text-xs opacity-70 mt-2">
+                Selected awards will be detected automatically. Priority order: Oscars → Cannes → Golden Globe → BAFTA → Emmy → Others
+              </p>
+            </div>
           </div>
         </div>
       </div>
       
       <!-- Image Badge Settings -->
-      <div class="bg-white shadow rounded-lg p-4 border border-gray-200">
-        <h3 class="text-lg font-medium mb-3">Image Settings</h3>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="form-group col-span-full">
-            <label for="awards-image-directory" class="block text-sm font-medium text-gray-700 mb-1">Awards Image Directory</label>
-            <input 
-              id="awards-image-directory" 
-              v-model="settings.ImageBadges.codec_image_directory" 
-              type="text" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="images/awards"
-              :disabled="!settings.General.enabled"
-              readonly
-            />
-            <p class="text-xs text-gray-500 mt-1">This directory contains color-coded subdirectories (black, gray, red, yellow)</p>
-          </div>
-          
-          <div class="form-group">
-            <div class="flex items-center">
-              <input 
-                id="enable-image-badges" 
-                v-model="settings.ImageBadges.enable_image_badges" 
-                type="checkbox" 
-                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h3 class="card-title">Image Settings</h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="form-control col-span-full">
+              <label class="label" for="awards-image-directory">
+                <span class="label-text">Awards Image Directory</span>
+              </label>
+              <input
+                id="awards-image-directory"
+                v-model="settings.ImageBadges.codec_image_directory"
+                type="text"
+                class="input input-bordered w-full"
+                placeholder="images/awards"
                 :disabled="!settings.General.enabled"
                 readonly
               />
-              <label for="enable-image-badges" class="ml-2 block text-sm text-gray-700">Enable Image Badges</label>
+              <p class="text-xs opacity-70 mt-1">This directory contains color-coded subdirectories (black, gray, red, yellow)</p>
             </div>
-            <p class="text-xs text-gray-500 mt-1">Awards are image-only (no text fallback)</p>
-          </div>
-          
-          <div class="form-group">
-            <label for="image-padding" class="block text-sm font-medium text-gray-700 mb-1">Image Padding</label>
-            <input 
-              id="image-padding" 
-              v-model.number="settings.ImageBadges.image_padding" 
-              type="number" 
-              min="0"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="0"
-              :disabled="!settings.General.enabled"
-              readonly
-            />
-            <p class="text-xs text-gray-500 mt-1">Awards use 0 padding for flush positioning</p>
+
+            <div class="form-control">
+              <label class="label cursor-pointer justify-start">
+                <input
+                  id="enable-image-badges"
+                  v-model="settings.ImageBadges.enable_image_badges"
+                  type="checkbox"
+                  class="checkbox checkbox-primary"
+                  :disabled="!settings.General.enabled"
+                  readonly
+                />
+                <span class="label-text ml-2">Enable Image Badges</span>
+              </label>
+              <p class="text-xs opacity-70 mt-1">Awards are image-only (no text fallback)</p>
+            </div>
+
+            <div class="form-control">
+              <label class="label" for="image-padding">
+                <span class="label-text">Image Padding</span>
+              </label>
+              <input
+                id="image-padding"
+                v-model.number="settings.ImageBadges.image_padding"
+                type="number"
+                min="0"
+                class="input input-bordered w-full"
+                placeholder="0"
+                :disabled="!settings.General.enabled"
+                readonly
+              />
+              <p class="text-xs opacity-70 mt-1">Awards use 0 padding for flush positioning</p>
+            </div>
           </div>
         </div>
       </div>
@@ -212,8 +230,9 @@
         <button
           @click="saveSettings"
           :disabled="saving || !settings.General.enabled"
-          class="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+          class="btn btn-primary"
         >
+          <span v-if="saving" class="loading loading-spinner loading-sm mr-2"></span>
           {{ saving ? 'Saving…' : 'Save Awards Settings' }}
         </button>
         

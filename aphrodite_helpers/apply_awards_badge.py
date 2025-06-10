@@ -14,60 +14,63 @@ from aphrodite_helpers.get_awards_info import AwardsFetcher
 from aphrodite_helpers.badge_components.badge_generator import create_badge
 from aphrodite_helpers.badge_components.badge_applicator import apply_badge_to_poster
 
+# Import minimal logging
+from aphrodite_helpers.minimal_logger import (
+    log_error, log_warning, log_milestone, LoggedOperation
+)
+
 def process_item_awards(item_id, jellyfin_url, api_key, user_id, settings_file, working_poster_path):
     """Process and apply awards badge to a poster"""
-    try:
-        print(f"🏆 Processing awards badge for item: {item_id}")
-        
-        # Load settings
-        settings = load_settings()
-        
-        # Load awards badge settings
-        awards_settings = load_awards_badge_settings(settings_file)
-        if not awards_settings:
-            print("⚠️ Awards badge settings not found")
-            return False
-        
-        # Check if awards badges are enabled
-        if not awards_settings.get("General", {}).get("enabled", True):
-            print("ℹ️ Awards badges are disabled")
-            return True  # Not an error, just disabled
-        
-        # Create awards fetcher
-        awards_fetcher = AwardsFetcher(settings)
-        
-        # Get awards information
-        awards_info = awards_fetcher.get_media_awards_info(jellyfin_url, api_key, user_id, item_id)
-        
-        if not awards_info:
-            print("ℹ️ No awards found for this item")
-            return True  # Not an error, just no awards
-        
-        award_type = awards_info["award_type"]
-        print(f"🏆 Found award: {award_type}")
-        
-        # Get color scheme from settings
-        color_scheme = awards_settings.get("Awards", {}).get("color_scheme", "black")
-        
-        # Create badge
-        badge_image = create_badge(awards_settings, award_type)
-        if not badge_image:
-            print(f"❌ Failed to create badge for award: {award_type}")
-            return False
-        
-        # Apply badge with flush positioning
-        result_path = apply_awards_badge_flush(working_poster_path, badge_image, color_scheme)
-        
-        if result_path and os.path.exists(result_path):
-            print(f"✅ Awards badge applied successfully")
-            return result_path
-        else:
-            print(f"❌ Failed to apply awards badge")
-            return False
+    with LoggedOperation(f"Process awards badge for item {item_id}", "awards_badge"):
+        try:
+            # Load settings
+            settings = load_settings()
             
-    except Exception as e:
-        print(f"❌ Error processing awards badge: {e}")
-        return False
+            # Load awards badge settings
+            awards_settings = load_awards_badge_settings(settings_file)
+            if not awards_settings:
+                log_warning("Awards badge settings not found", "awards_badge")
+                return False
+            
+            # Check if awards badges are enabled
+            if not awards_settings.get("General", {}).get("enabled", True):
+                # Silent return when disabled - not an error
+                return True
+            
+            # Create awards fetcher
+            awards_fetcher = AwardsFetcher(settings)
+            
+            # Get awards information
+            awards_info = awards_fetcher.get_media_awards_info(jellyfin_url, api_key, user_id, item_id)
+            
+            if not awards_info:
+                # Silent return when no awards - not an error
+                return True
+            
+            award_type = awards_info["award_type"]
+            log_milestone(f"Found award: {award_type} for item {item_id}", "awards_badge")
+            
+            # Get color scheme from settings
+            color_scheme = awards_settings.get("Awards", {}).get("color_scheme", "black")
+            
+            # Create badge
+            badge_image = create_badge(awards_settings, award_type)
+            if not badge_image:
+                log_error(f"Failed to create badge for award: {award_type}", "awards_badge")
+                return False
+            
+            # Apply badge with flush positioning
+            result_path = apply_awards_badge_flush(working_poster_path, badge_image, color_scheme)
+            
+            if result_path and os.path.exists(result_path):
+                return result_path
+            else:
+                log_error("Failed to apply awards badge", "awards_badge")
+                return False
+                
+        except Exception as e:
+            log_error(f"Error processing awards badge: {e}", "awards_badge")
+            return False
 
 def apply_awards_badge_flush(poster_path, badge_image, color_scheme):
     """Apply awards badge flush to bottom-right corner"""
@@ -96,12 +99,11 @@ def apply_awards_badge_flush(poster_path, badge_image, color_scheme):
         
         # Save the result
         poster.save(poster_path)
-        print(f"🏆 Awards badge applied at position ({x}, {y}) with flush positioning")
         
         return poster_path
         
     except Exception as e:
-        print(f"❌ Error applying awards badge: {e}")
+        log_error(f"Error applying awards badge: {e}", "awards_badge")
         return None
 
 def load_awards_badge_settings(settings_file="badge_settings_awards.yml"):
@@ -114,7 +116,7 @@ def load_awards_badge_settings(settings_file="badge_settings_awards.yml"):
             import yaml
             return yaml.safe_load(f)
     except Exception as e:
-        print(f"⚠️ Warning: Could not load awards badge settings: {e}")
+        log_warning(f"Could not load awards badge settings: {e}", "awards_badge")
         return None
 
 def validate_awards_badge_image(award_type, color_scheme="black"):
@@ -125,7 +127,7 @@ def validate_awards_badge_image(award_type, color_scheme="black"):
         
         return os.path.exists(image_path)
     except Exception as e:
-        print(f"⚠️ Error validating awards badge image: {e}")
+        log_warning(f"Error validating awards badge image: {e}", "awards_badge")
         return False
 
 def get_available_award_images(color_scheme="black"):
@@ -146,7 +148,7 @@ def get_available_award_images(color_scheme="black"):
         return award_images
         
     except Exception as e:
-        print(f"⚠️ Error getting available award images: {e}")
+        log_warning(f"Error getting available award images: {e}", "awards_badge")
         return []
 
 def test_awards_badge_system():
@@ -179,7 +181,7 @@ def test_awards_badge_system():
         return True
         
     except Exception as e:
-        print(f"❌ Error testing awards badge system: {e}")
+        log_error(f"Error testing awards badge system: {e}", "awards_badge")
         return False
 
 if __name__ == "__main__":
