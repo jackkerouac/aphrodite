@@ -37,10 +37,19 @@ docker-compose.yml
 node_modules/
 npm-debug.log
 
-# Application data
+# Application data - exclude runtime data but include static reference files
 posters/
-data/
-*.db
+
+# Exclude data directory contents except static reference files
+data/aphrodite.db
+data/*.db
+data/aphrodite.log
+data/*.log
+data/backups/
+data/config/
+data/scheduler/
+data/jobs.db.backup
+# Keep these static files: data/quotes.json, data/awards_mapping.json, data/anime-offline-database-minified.json
 
 # Editor directories
 .idea/
