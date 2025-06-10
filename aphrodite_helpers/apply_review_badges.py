@@ -22,14 +22,20 @@ try:
     from production_anime_mapping import enhance_review_fetcher
     from aphrodite_helpers.get_review_info import ReviewFetcher as BaseReviewFetcher
     ReviewFetcher = enhance_review_fetcher(BaseReviewFetcher)
-    print("✅ Using enhanced ReviewFetcher with comprehensive anime mapping")
+    # Silent success - no print needed
 except Exception as e:
     # Fallback to original ReviewFetcher
     from aphrodite_helpers.get_review_info import ReviewFetcher
-    print(f"⚠️ Using original ReviewFetcher: {e}")
+    # Import warning handled by minimal logger below
+
 from aphrodite_helpers.settings_validator import load_settings
 from aphrodite_helpers.badge_components.badge_image_handler import load_codec_image
 from aphrodite_helpers.review_preferences import ReviewPreferences
+
+# Import minimal logging
+from aphrodite_helpers.minimal_logger import (
+    log_error, log_warning, log_milestone, LoggedOperation
+)
 
 # 🗄️ PHASE 2: Database Integration for review tracking
 try:
@@ -58,7 +64,7 @@ def apply_badge_to_poster(
     try:
         poster = Image.open(poster_path).convert("RGBA")
     except Exception as e:
-        print(f"❌ Error opening poster file {poster_path}: {e}")
+        log_error(f"Error opening poster file {poster_path}: {e}", "review_badge")
         return None
     
     # Get badge settings
@@ -94,11 +100,10 @@ def apply_badge_to_poster(
         
         # Save the modified poster
         poster.convert("RGB").save(output_path, "JPEG")
-        print(f"✅ Badge applied to {os.path.basename(poster_path)}")
         
         return output_path
     except Exception as e:
-        print(f"❌ Error applying badge to {os.path.basename(poster_path)}: {e}")
+        log_error(f"Error applying badge to {os.path.basename(poster_path)}: {e}", "review_badge")
         return None
 
 def create_review_container(reviews, settings):
@@ -111,15 +116,13 @@ def create_review_container(reviews, settings):
     try:
         preferences = ReviewPreferences()
         max_badges = preferences.get_max_badges_to_display()
-        print(f"🔍 Using database setting for max badges: {max_badges}")
     except Exception as e:
-        print(f"⚠️ Could not load max badges from database, using badge settings: {e}")
+        log_warning(f"Could not load max badges from database, using badge settings: {e}", "review_badge")
         max_badges = settings.get('General', {}).get('max_badges_to_display', 3)
     
     reviews_to_process = reviews[:max_badges] if max_badges > 0 else reviews
     
     if not reviews_to_process:
-        print(f"⚠️ No reviews to display")
         return None
     
     # Get settings for the container
@@ -157,15 +160,13 @@ def create_review_container(reviews, settings):
         rating = review.get("text", "")
         image_key = review.get("image_key", None)
         
-        print(f"🔍 Processing review for {source}: {rating} with image_key={image_key}")
-        
         # Try to load the logo
         logo_image = None
         if image_key:
             try:
                 logo_image = load_codec_image(image_key, settings)
             except Exception as e:
-                print(f"⚠️ Error loading logo for {source}: {e}")
+                log_warning(f"Error loading logo for {source}: {e}", "review_badge")
         
         if logo_image:
             review_elements.append({
@@ -175,7 +176,6 @@ def create_review_container(reviews, settings):
             })
     
     if not review_elements:
-        print(f"⚠️ No review elements could be created")
         return None
     
     # Calculate container dimensions
@@ -202,7 +202,7 @@ def create_review_container(reviews, settings):
                 rating_width = rating_bbox[2] - rating_bbox[0]
                 rating_height = rating_bbox[3] - rating_bbox[1]
             except Exception as e:
-                print(f"⚠️ Error measuring text: {e}")
+                log_warning(f"Error measuring text: {e}", "review_badge")
                 rating_width = font_size * len(rating_text) * 0.6
                 rating_height = font_size * 1.2
             
@@ -242,7 +242,7 @@ def create_review_container(reviews, settings):
                 rating_width = rating_bbox[2] - rating_bbox[0]
                 rating_height = rating_bbox[3] - rating_bbox[1]
             except Exception as e:
-                print(f"⚠️ Error measuring text: {e}")
+                log_warning(f"Error measuring text: {e}", "review_badge")
                 rating_width = font_size * len(rating_text) * 0.6
                 rating_height = font_size * 1.2
             
@@ -434,153 +434,147 @@ def process_item_reviews(
     input_poster=None  # New parameter to accept an already processed poster
 ):
     """Process reviews for a Jellyfin item, create badges, and apply to poster."""
-    try:
-        # Load badge settings
-        badge_settings = load_badge_settings(settings_file)
-        if not badge_settings:
-            print(f"❌ Failed to load badge settings from {settings_file}")
-            return False
-        
-        # Create review fetcher
-        settings = load_settings()
-        if not settings:
-            print(f"❌ Failed to load main settings")
-            return False
-            
-        review_fetcher = ReviewFetcher(settings)
-        
-        # Get reviews
-        reviews = review_fetcher.get_reviews(item_id)
-        if not reviews:
-            print(f"❌ No reviews found for item ID: {item_id}")
-            return False
-        
-        print(f"✅ Found {len(reviews)} reviews")
-    except Exception as e:
-        print(f"❌ Error during review setup: {str(e)}")
-        import traceback
-        print(traceback.format_exc())
-        return False
-    
-    # 🗄️ PHASE 2: Store review data in database
-    if REVIEW_DATABASE_TRACKING:
+    with LoggedOperation(f"Process review badges for item {item_id}", "review_badge"):
         try:
-            db_manager = DatabaseManager()
+            # Load badge settings
+            badge_settings = load_badge_settings(settings_file)
+            if not badge_settings:
+                log_error(f"Failed to load badge settings from {settings_file}", "review_badge")
+                return False
             
-            # Get the processed item ID from database
-            processed_item = db_manager.get_processed_item(item_id)
-            if processed_item:
-                processed_item_id = processed_item['id']
+            # Create review fetcher
+            settings = load_settings()
+            if not settings:
+                log_error("Failed to load main settings", "review_badge")
+                return False
                 
-                # Prepare review data for database storage
-                review_records = []
-                for review in reviews:
-                    review_record = {
-                        'source': review.get('source', 'unknown'),
-                        'score': review.get('score'),
-                        'score_max': review.get('score_max', 10),
-                        'score_text': review.get('text', ''),
-                        'review_count': review.get('review_count'),
-                        'raw_data': review  # Store complete review data
-                    }
-                    review_records.append(review_record)
-                
-                # Insert review data
-                success = db_manager.insert_item_reviews(processed_item_id, review_records)
-                if success:
-                    print(f"🗄️ Stored {len(review_records)} reviews in database")
-                    
-                    # Update processed item with review cache info
-                    from datetime import datetime, timedelta
-                    cache_expiry = datetime.now() + timedelta(hours=24)  # Reviews expire after 24 hours
-                    
-                    scores = [r.get('score') for r in reviews if r.get('score') is not None]
-                    update_data = {
-                        'reviews_last_checked': datetime.now().isoformat(),
-                        'reviews_cache_expiry': cache_expiry.isoformat()
-                    }
-                    
-                    if scores:
-                        update_data['highest_review_score'] = max(scores)
-                        update_data['lowest_review_score'] = min(scores)
-                    
-                    db_manager.update_processed_item(item_id, update_data)
-                
-            db_manager.close()
+            review_fetcher = ReviewFetcher(settings)
             
+            # Get reviews
+            reviews = review_fetcher.get_reviews(item_id)
+            if not reviews:
+                # Silent return when no reviews - not an error
+                return False
+            
+            log_milestone(f"Found {len(reviews)} reviews for item {item_id}", "review_badge")
         except Exception as e:
-            print(f"⚠️ Failed to store reviews in database: {e}")
-            # Continue processing even if database update fails
-    
-    try:
-        # Create container with all review badges
-        container_badge = create_review_container(reviews, badge_settings)
-        if not container_badge:
-            print(f"❌ Failed to create review container")
+            log_error(f"Error during review setup: {str(e)}", "review_badge")
             return False
         
-        # Use the provided poster if available, otherwise download from Jellyfin
-        poster_path = input_poster
-        if not poster_path or not os.path.exists(poster_path):
-            # Download poster
-            poster_path = download_poster(jellyfin_url, api_key, item_id)
-            if not poster_path:
-                print(f"❌ Failed to download poster for item ID: {item_id}")
+        # 🗄️ PHASE 2: Store review data in database
+        if REVIEW_DATABASE_TRACKING:
+            try:
+                db_manager = DatabaseManager()
+                
+                # Get the processed item ID from database
+                processed_item = db_manager.get_processed_item(item_id)
+                if processed_item:
+                    processed_item_id = processed_item['id']
+                    
+                    # Prepare review data for database storage
+                    review_records = []
+                    for review in reviews:
+                        review_record = {
+                            'source': review.get('source', 'unknown'),
+                            'score': review.get('score'),
+                            'score_max': review.get('score_max', 10),
+                            'score_text': review.get('text', ''),
+                            'review_count': review.get('review_count'),
+                            'raw_data': review  # Store complete review data
+                        }
+                        review_records.append(review_record)
+                    
+                    # Insert review data
+                    success = db_manager.insert_item_reviews(processed_item_id, review_records)
+                    if success:
+                        log_milestone(f"Stored {len(review_records)} reviews in database", "review_badge")
+                        
+                        # Update processed item with review cache info
+                        from datetime import datetime, timedelta
+                        cache_expiry = datetime.now() + timedelta(hours=24)  # Reviews expire after 24 hours
+                        
+                        scores = [r.get('score') for r in reviews if r.get('score') is not None]
+                        update_data = {
+                            'reviews_last_checked': datetime.now().isoformat(),
+                            'reviews_cache_expiry': cache_expiry.isoformat()
+                        }
+                        
+                        if scores:
+                            update_data['highest_review_score'] = max(scores)
+                            update_data['lowest_review_score'] = min(scores)
+                        
+                        db_manager.update_processed_item(item_id, update_data)
+                    
+                db_manager.close()
+                
+            except Exception as e:
+                log_warning(f"Failed to store reviews in database: {e}", "review_badge")
+                # Continue processing even if database update fails
+        
+        try:
+            # Create container with all review badges
+            container_badge = create_review_container(reviews, badge_settings)
+            if not container_badge:
+                log_error("Failed to create review container", "review_badge")
                 return False
             
-            # If we downloaded a new poster (not using the input one), resize it
-            try:
-                # Create a path for the resized poster
-                resized_path = os.path.join(
-                    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                    "posters", "working",
-                    os.path.basename(poster_path)
-                )
+            # Use the provided poster if available, otherwise download from Jellyfin
+            poster_path = input_poster
+            if not poster_path or not os.path.exists(poster_path):
+                # Download poster
+                poster_path = download_poster(jellyfin_url, api_key, item_id)
+                if not poster_path:
+                    log_error(f"Failed to download poster for item ID: {item_id}", "review_badge")
+                    return False
                 
-                # Import resize function only when needed to avoid circular imports
-                from aphrodite_helpers.resize_posters import resize_image
-                
-                # Resize the poster for consistent badge sizing
-                resize_success = resize_image(poster_path, resized_path, target_width=1000)
-                if resize_success:
-                    print(f"✅ Resized downloaded poster to 1000px width")
-                    poster_path = resized_path
-            except Exception as e:
-                print(f"⚠️ Error resizing poster: {str(e)}. Continuing with original size.")
-                # Continue with original poster path
-        
-        # Verify we have a valid poster path before proceeding
-        if not poster_path or not os.path.exists(poster_path):
-            print(f"❌ Invalid or missing poster path")
-            return False
-        
-        # Apply container badge to poster
-        result = apply_badge_to_poster(
-            poster_path=poster_path,
-            badge=container_badge,
-            settings=badge_settings,
-            working_dir="posters/working",  # Explicitly set working directory
-            output_dir=output_dir           # Use output dir from parameters
-        )
-        
-        print(f"\nReview badge output path: {result}")
-        
-        # Check if the result is None, which indicates an error
-        if result is None:
-            print(f"❌ Error applying review badge to poster")
-            return False
-        else:
-            # Ensure the output file exists
-            if os.path.exists(result):
-                return True
-            else:
-                print(f"❌ Review badge was created but the output file doesn't exist: {result}")
+                # If we downloaded a new poster (not using the input one), resize it
+                try:
+                    # Create a path for the resized poster
+                    resized_path = os.path.join(
+                        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                        "posters", "working",
+                        os.path.basename(poster_path)
+                    )
+                    
+                    # Import resize function only when needed to avoid circular imports
+                    from aphrodite_helpers.resize_posters import resize_image
+                    
+                    # Resize the poster for consistent badge sizing
+                    resize_success = resize_image(poster_path, resized_path, target_width=1000)
+                    if resize_success:
+                        poster_path = resized_path
+                except Exception as e:
+                    log_warning(f"Error resizing poster: {str(e)}. Continuing with original size.", "review_badge")
+                    # Continue with original poster path
+            
+            # Verify we have a valid poster path before proceeding
+            if not poster_path or not os.path.exists(poster_path):
+                log_error("Invalid or missing poster path", "review_badge")
                 return False
-    except Exception as e:
-        print(f"❌ Unexpected error during review badge processing: {str(e)}")
-        import traceback
-        print(traceback.format_exc())
-        return False
+            
+            # Apply container badge to poster
+            result = apply_badge_to_poster(
+                poster_path=poster_path,
+                badge=container_badge,
+                settings=badge_settings,
+                working_dir="posters/working",  # Explicitly set working directory
+                output_dir=output_dir           # Use output dir from parameters
+            )
+            
+            # Check if the result is None, which indicates an error
+            if result is None:
+                log_error("Error applying review badge to poster", "review_badge")
+                return False
+            else:
+                # Ensure the output file exists
+                if os.path.exists(result):
+                    return True
+                else:
+                    log_error(f"Review badge was created but the output file doesn't exist: {result}", "review_badge")
+                    return False
+        except Exception as e:
+            log_error(f"Unexpected error during review badge processing: {str(e)}", "review_badge")
+            return False
 
 def main():
     parser = argparse.ArgumentParser(description="Apply review badges to Jellyfin media posters")

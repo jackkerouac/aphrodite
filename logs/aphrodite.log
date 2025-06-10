@@ -14,8 +14,4 @@
 2025-06-09 16:01:04 - WARNING - MILESTONE: Chunk 2 conversion test completed
 2025-06-09 16:12:54 - WARNING - MILESTONE: Chunk 3 conversion test completed
 2025-06-09 20:19:16 - WARNING - MILESTONE: Phase 3 modular conversion test started
-2025-06-09 20:19:16 - WARNING - This is a test warning
-2025-06-09 20:19:16 - WARNING - STARTED: Test operation
-2025-06-09 20:19:16 - WARNING - COMPLETED: Test operation
-2025-06-09 20:21:53 - ERROR - Could not retrieve item data from Jellyfin
-2025-06-09 20:22:17 - ERROR - Could not retrieve item data from Jellyfin
+
