@@ -13,40 +13,49 @@ class ReviewFormatterMixin:
         if review_data.get("omdb"):
             omdb_data = review_data["omdb"]
             
-            # IMDB Rating - Convert to percentage
+            # IMDB Rating - Convert to percentage (FIXED: Priority-based selection)
             if "imdbRating" in omdb_data and omdb_data["imdbRating"] != "N/A":
                 try:
                     # Convert rating from 0-10 scale to percentage
                     imdb_rating = float(omdb_data["imdbRating"])
                     percentage_rating = int(round(imdb_rating * 10))
                     
-                    formatted_reviews.append({
-                        "source": "IMDb",
-                        "rating": f"{percentage_rating}%",  # Display as percentage
-                        "original_rating": omdb_data["imdbRating"],  # Keep original for reference
-                        "max_rating": "100%",  # Standardize max rating
-                        "votes": omdb_data.get("imdbVotes", "N/A"),
-                        "image_key": "IMDb"
-                    })
-                    
-                    # Check if in top listings based on rating and votes
+                    # Get vote count for Top badge qualification
                     imdb_votes_str = omdb_data.get("imdbVotes", "0").replace(",", "")
                     imdb_votes = int(imdb_votes_str) if imdb_votes_str.isdigit() else 0
                     
-                    if imdb_rating >= 8.0 and imdb_votes >= 100000:
-                        # Add top badge based on rating
-                        if imdb_rating >= 8.5 and imdb_votes >= 250000:
-                            formatted_reviews.append({
-                                "source": "IMDb Top 250",
-                                "rating": f"{percentage_rating}%",
-                                "image_key": "IMDbTop250"
-                            })
-                        elif imdb_rating >= 8.0 and imdb_votes >= 100000:
-                            formatted_reviews.append({
-                                "source": "IMDb Top 1000",
-                                "rating": f"{percentage_rating}%",
-                                "image_key": "IMDbTop1000"
-                            })
+                    # PRIORITY-BASED SELECTION: Only one IMDb badge per movie
+                    # Priority: Top 250 > Top 1000 > Regular IMDb
+                    if imdb_rating >= 8.5 and imdb_votes >= 250000:
+                        # Top 250 takes priority
+                        formatted_reviews.append({
+                            "source": "IMDb Top 250",
+                            "rating": f"{percentage_rating}%",
+                            "original_rating": omdb_data["imdbRating"],
+                            "max_rating": "100%",
+                            "votes": omdb_data.get("imdbVotes", "N/A"),
+                            "image_key": "IMDbTop250"
+                        })
+                    elif imdb_rating >= 8.0 and imdb_votes >= 100000:
+                        # Top 1000 takes priority over regular
+                        formatted_reviews.append({
+                            "source": "IMDb Top 1000",
+                            "rating": f"{percentage_rating}%",
+                            "original_rating": omdb_data["imdbRating"],
+                            "max_rating": "100%",
+                            "votes": omdb_data.get("imdbVotes", "N/A"),
+                            "image_key": "IMDbTop1000"
+                        })
+                    else:
+                        # Regular IMDb badge
+                        formatted_reviews.append({
+                            "source": "IMDb",
+                            "rating": f"{percentage_rating}%",
+                            "original_rating": omdb_data["imdbRating"],
+                            "max_rating": "100%",
+                            "votes": omdb_data.get("imdbVotes", "N/A"),
+                            "image_key": "IMDb"
+                        })
                 except (ValueError, TypeError):
                     pass
                 

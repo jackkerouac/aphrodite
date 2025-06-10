@@ -92,3 +92,15 @@ class ReviewFetcher:
         mal_id = provider_ids.get("MyAnimeList")
         
         return mal_id
+    
+    def fetch_anidb_ratings(self, anidb_id, item_name=None, item_data=None):
+        """Fetch ratings from AniDB (stub implementation)"""
+        # AniDB integration not implemented yet
+        # Return None to avoid AttributeError
+        return None
+    
+    def fetch_myanimelist_ratings(self, mal_id, item_name=None, item_data=None):
+        """Fetch ratings from MyAnimeList (stub implementation)"""
+        # MyAnimeList integration not implemented yet
+        # Return None to avoid AttributeError
+        return None
