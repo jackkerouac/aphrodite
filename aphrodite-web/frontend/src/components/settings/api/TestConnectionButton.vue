@@ -1,16 +1,28 @@
 <template>
-  <div class="form-group">
+  <div class="form-control w-full">
     <button 
       type="button" 
       @click="handleTest" 
-      class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+      class="btn btn-success btn-outline"
       :disabled="testing"
     >
+      <span v-if="testing" class="loading loading-spinner loading-sm"></span>
       {{ testing ? 'Testing...' : 'Test Connection' }}
     </button>
-    <span v-if="status" :class="status.success ? 'text-green-600' : 'text-red-600'" class="ml-2">
-      {{ status.message }}
-    </span>
+    <div v-if="status" class="mt-2">
+      <div v-if="status.success" class="alert alert-success">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>{{ status.message }}</span>
+      </div>
+      <div v-else class="alert alert-error">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>{{ status.message }}</span>
+      </div>
+    </div>
   </div>
 </template>
 
