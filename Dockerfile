@@ -75,7 +75,8 @@ RUN if [ ! -f "/app/version.yml" ]; then \
     fi
 
 # Create necessary directories with correct permissions
-RUN mkdir -p /app/posters/original /app/posters/working /app/posters/modified /app/data /app/config && \
+# Note: /app/data comes from COPY . . and should not be recreated
+RUN mkdir -p /app/posters/original /app/posters/working /app/posters/modified /app/config && \
     chmod -R 775 /app/posters /app/data /app/config
 
 # Create a default user and group (will be modified at runtime if PUID/PGID specified)
