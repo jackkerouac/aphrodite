@@ -80,7 +80,7 @@ export function Sidebar() {
         
         {/* Footer with avatar, theme switcher, and links */}
         <div className="flex items-center justify-between mt-8 p-4">
-          <Avatar className="w-12 h-12">
+          <Avatar className="w-8 h-8">
             <AvatarImage 
               src="/images/professor_relaxing.png" 
               alt="Professor Relaxing Avatar"
@@ -91,12 +91,12 @@ export function Sidebar() {
           <div className="flex gap-3 items-center">
             <ThemeSwitcher />
             <a 
-              href="https://github.com/jackkerouac" 
+              href="https://github.com/jackkerouac/aphrodite" 
               target="_blank" 
               rel="noopener noreferrer"
               className="hover:opacity-80 transition-opacity"
             >
-              <img src="/images/github.webp" alt="GitHub" className="w-8 h-8 dark:bg-transparent dark:mix-blend-screen" />
+              <img src="/images/github_light.png" alt="GitHub" className="w-8 h-8" />
             </a>
             <a 
               href="https://ko-fi.com/jackkerouac" 

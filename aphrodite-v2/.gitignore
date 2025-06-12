@@ -112,3 +112,13 @@ dump.rdb
 # PostgreSQL
 *.sql
 pg_data/
+
+# Exclude all images in api/static directory
+api/static/
+api/static/*
+api/static/*/*
+
+# Exclude backups and logs
+data/backups/
+data/logs/
+.env.development
