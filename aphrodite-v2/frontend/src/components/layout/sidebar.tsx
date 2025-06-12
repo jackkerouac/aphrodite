@@ -15,6 +15,8 @@ import {
   Github,
   Coffee
 } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
@@ -35,11 +37,11 @@ export function Sidebar() {
       <div className="px-4 py-6">
         {/* Logo Section */}
         <div className="flex flex-col items-center mb-6">
-          <div className="w-24 h-24 rounded-2xl flex items-center justify-center bg-muted">
+          <div className="flex items-center justify-center">
             <img 
               src="/images/android-chrome-192x192.png" 
               alt="Aphrodite logo"
-              className="w-20 h-20 rounded-xl"
+              className="w-20 h-20"
             />
           </div>
           <h2 className="mt-2 text-xl font-bold">Aphrodite</h2>
@@ -76,23 +78,25 @@ export function Sidebar() {
         {/* Divider */}
         <div className="my-8 border-t" />
         
-        {/* Footer with avatars and links */}
+        {/* Footer with avatar, theme switcher, and links */}
         <div className="flex items-center justify-between mt-8 p-4">
-          <div className="w-12 h-12 rounded-2xl overflow-hidden bg-muted">
-            <img 
+          <Avatar className="w-12 h-12">
+            <AvatarImage 
               src="/images/professor_relaxing.png" 
-              alt="Avatar"
-              className="w-full h-full object-cover"
+              alt="Professor Relaxing Avatar"
             />
-          </div>
-          <div className="flex gap-4">
+            <AvatarFallback>PR</AvatarFallback>
+          </Avatar>
+          
+          <div className="flex gap-3 items-center">
+            <ThemeSwitcher />
             <a 
               href="https://github.com/jackkerouac" 
               target="_blank" 
               rel="noopener noreferrer"
               className="hover:opacity-80 transition-opacity"
             >
-              <img src="/images/github.webp" alt="GitHub" className="w-8 h-8" />
+              <img src="/images/github.webp" alt="GitHub" className="w-8 h-8 dark:bg-transparent dark:mix-blend-screen" />
             </a>
             <a 
               href="https://ko-fi.com/jackkerouac" 

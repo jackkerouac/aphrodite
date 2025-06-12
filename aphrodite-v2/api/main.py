@@ -31,7 +31,7 @@ from app.middleware.logging import LoggingMiddleware
 from app.middleware.correlation import CorrelationMiddleware
 
 # Import routes
-from app.routes import health, media, jobs, config
+from app.routes import health, media, jobs, config, system, maintenance, preview
 
 # Import exception handlers
 from app.core.exceptions import register_exception_handlers
@@ -122,6 +122,9 @@ def create_application() -> FastAPI:
     app.include_router(media.router, prefix="/api/v1/media", tags=["Media"])
     app.include_router(jobs.router, prefix="/api/v1/jobs", tags=["Jobs"])
     app.include_router(config.router, prefix="/api/v1/config", tags=["Configuration"])
+    app.include_router(system.router, tags=["System"])
+    app.include_router(maintenance.router, tags=["Maintenance"])
+    app.include_router(preview.router, prefix="/api/v1/preview", tags=["Preview"])
     
     # Root endpoint
     @app.get("/", response_model=BaseResponse)

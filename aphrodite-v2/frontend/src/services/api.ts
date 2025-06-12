@@ -97,6 +97,45 @@ export const apiService = {
     return handleResponse(response);
   },
 
+  // Preview endpoints
+  async getPreviewBadgeTypes() {
+    const response = await fetch(`${API_BASE_URL}/api/v1/preview/badge-types`);
+    return handleResponse(response);
+  },
+
+  async generatePreview(request: { badgeTypes: string[] }) {
+    const response = await fetch(`${API_BASE_URL}/api/v1/preview/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+    return handleResponse(response);
+  },
+
+  async getPreviewLibraries() {
+    const response = await fetch(`${API_BASE_URL}/api/v1/preview/libraries`);
+    return handleResponse(response);
+  },
+
+  async getPreviewMedia(params?: {
+    library_id?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const searchParams = new URLSearchParams();
+    if (params?.library_id) searchParams.set('library_id', params.library_id);
+    if (params?.search) searchParams.set('search', params.search);
+    if (params?.page) searchParams.set('page', params.page.toString());
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+
+    const url = `${API_BASE_URL}/api/v1/preview/media${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    const response = await fetch(url);
+    return handleResponse(response);
+  },
+
   // Media endpoints
   async getMedia(params?: {
     page?: number;
