@@ -16,6 +16,7 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import time
 import uuid
@@ -125,6 +126,11 @@ def create_application() -> FastAPI:
     app.include_router(system.router, tags=["System"])
     app.include_router(maintenance.router, tags=["Maintenance"])
     app.include_router(preview.router, prefix="/api/v1/preview", tags=["Preview"])
+    
+    # Mount static files
+    static_path = Path(__file__).parent / "static"
+    if static_path.exists():
+        app.mount("/api/v1/static", StaticFiles(directory=str(static_path)), name="static")
     
     # Root endpoint
     @app.get("/", response_model=BaseResponse)

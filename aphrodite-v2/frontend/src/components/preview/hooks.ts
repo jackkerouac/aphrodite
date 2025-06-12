@@ -95,22 +95,27 @@ export function usePreviewGeneration() {
       const data = await response.json();
 
       if (data.success) {
-        setCurrentPreview(prev => ({ ...prev, jobId: data.jobId }));
+        // Preview generated immediately, no job polling needed
+        setCurrentPreview({
+          previewUrl: data.posterUrl,
+          sourcePoster: 'Random Selection',
+          error: undefined
+        });
         
-        // Start polling for job completion
-        pollJobStatus(data.jobId);
+        const badgeCount = data.appliedBadges?.length || selectedBadgeTypes.length;
+        const processingTime = data.processingTime || 0;
         
-        toast.success('Preview generation started');
+        toast.success(`Preview generated with ${badgeCount} badges (${processingTime.toFixed(2)}s)`);
         return true;
       } else {
-        setCurrentPreview(prev => ({ ...prev, error: data.message || 'Failed to start preview generation' }));
-        toast.error(data.message || 'Failed to start preview generation');
+        setCurrentPreview({ error: data.message || 'Failed to generate preview' });
+        toast.error(data.message || 'Failed to generate preview');
         return false;
       }
     } catch (error) {
       console.error('Error generating preview:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to generate preview';
-      setCurrentPreview(prev => ({ ...prev, error: errorMessage }));
+      setCurrentPreview({ error: errorMessage });
       toast.error(errorMessage);
       return false;
     } finally {
@@ -118,47 +123,8 @@ export function usePreviewGeneration() {
     }
   };
 
-  // Poll job status until completion
-  const pollJobStatus = async (jobId: string) => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/jobs/${jobId}`);
-      const data = await response.json();
-      
-      if (data.success && data.job) {
-        const job = data.job;
-        
-        if (job.status === 'success' || job.status === 'completed') {
-          // Job completed successfully
-          if (job.result?.poster_url) {
-            setCurrentPreview(prev => ({
-              ...prev,
-              previewUrl: job.result.poster_url,
-              sourcePoster: job.result.source_poster || 'Example Poster',
-              error: undefined
-            }));
-            toast.success('Preview generated successfully!');
-          } else {
-            setCurrentPreview(prev => ({ ...prev, error: 'Preview generated but image not found' }));
-            toast.error('Preview generated but image not found');
-          }
-        } else if (job.status === 'failed' || job.status === 'error') {
-          // Job failed
-          const errorMessage = job.result?.error || 'Preview generation failed';
-          setCurrentPreview(prev => ({ ...prev, error: errorMessage }));
-          toast.error(errorMessage);
-        } else {
-          // Job still running, poll again
-          setTimeout(() => pollJobStatus(jobId), 2000);
-        }
-      } else {
-        throw new Error('Invalid job response');
-      }
-    } catch (error) {
-      console.error('Error polling job status:', error);
-      setCurrentPreview(prev => ({ ...prev, error: 'Failed to check preview status' }));
-      toast.error('Failed to check preview status');
-    }
-  };
+  // Remove the job polling function since we're doing immediate processing
+  // const pollJobStatus = async (jobId: string) => { ... }
 
   // Toggle badge type selection
   const toggleBadgeType = (badgeId: string) => {

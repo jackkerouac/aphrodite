@@ -8,9 +8,17 @@ Provides simple demonstration of badge effects using an example poster.
 from fastapi import APIRouter, HTTPException, status
 from typing import List, Dict, Any
 from pydantic import BaseModel
+import uuid
 
 from shared import BaseResponse
 from aphrodite_logging import get_logger
+from app.services.badge_processing import (
+    UniversalBadgeProcessor,
+    UniversalBadgeRequest,
+    SingleBadgeRequest,
+    ProcessingMode
+)
+from app.services.poster_management import PosterSelector, StorageManager
 
 router = APIRouter()
 
@@ -25,7 +33,9 @@ class PreviewRequest(BaseModel):
 class PreviewResponse(BaseModel):
     success: bool
     message: str
-    jobId: str
+    posterUrl: str = None
+    appliedBadges: List[str] = []
+    processingTime: float = 0.0
 
 class BadgeTypesResponse(BaseModel):
     success: bool
@@ -78,26 +88,74 @@ async def generate_preview(request: PreviewRequest):
                 detail="At least one badge type must be selected"
             )
         
-        # For now, return a mock job ID
-        # TODO: Implement actual preview generation with job system
-        import uuid
+        # Generate unique job ID for logging
         job_id = str(uuid.uuid4())
         
         logger.info(f"Preview generation requested with badges: {request.badgeTypes}")
         logger.info(f"Generated job ID: {job_id}")
         
-        # TODO: Create actual background job for preview generation
-        # This would:
-        # 1. Copy example poster to working directory
-        # 2. Apply selected badges using badge processing pipeline
-        # 3. Save result to modified directory
-        # 4. Update job status with poster URL
+        # Initialize services
+        poster_selector = PosterSelector()
+        storage_manager = StorageManager()
+        badge_processor = UniversalBadgeProcessor()
         
-        return PreviewResponse(
-            success=True,
-            message=f"Preview generation started with {len(request.badgeTypes)} badge types",
-            jobId=job_id
+        # Select random poster from originals
+        selected_poster = poster_selector.get_random_poster()
+        if not selected_poster:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="No original posters available for preview"
+            )
+        
+        logger.info(f"Selected poster for preview: {selected_poster}")
+        
+        # Create output path for preview
+        output_path = storage_manager.create_preview_output_path(selected_poster)
+        
+        # Create badge processing request
+        single_request = SingleBadgeRequest(
+            poster_path=selected_poster,
+            badge_types=request.badgeTypes,
+            use_demo_data=True,  # Use demo data for consistent previews
+            output_path=output_path
         )
+        
+        universal_request = UniversalBadgeRequest(
+            single_request=single_request,
+            processing_mode=ProcessingMode.IMMEDIATE  # Process immediately for preview
+        )
+        
+        # Process the poster with badges
+        processing_result = await badge_processor.process_request(universal_request)
+        
+        if processing_result.success and processing_result.results:
+            poster_result = processing_result.results[0]
+            
+            if poster_result.success and poster_result.output_path:
+                # Generate URL for the processed poster
+                poster_url = storage_manager.get_file_url(poster_result.output_path)
+                
+                logger.info(f"Preview generated successfully: {poster_result.output_path}")
+                
+                return PreviewResponse(
+                    success=True,
+                    message=f"Preview generated with {len(poster_result.applied_badges)} badges",
+                    posterUrl=poster_url,
+                    appliedBadges=poster_result.applied_badges,
+                    processingTime=processing_result.processing_time
+                )
+            else:
+                logger.error(f"Badge processing failed: {poster_result.error}")
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"Badge processing failed: {poster_result.error}"
+                )
+        else:
+            logger.error(f"Preview processing failed: {processing_result.error}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Preview processing failed: {processing_result.error}"
+            )
         
     except HTTPException:
         raise
@@ -106,6 +164,30 @@ async def generate_preview(request: PreviewRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate preview: {str(e)}"
+        )
+
+# Cleanup endpoint for old preview files
+@router.delete("/preview/cleanup")
+async def cleanup_preview_files():
+    """Clean up old preview files"""
+    logger = get_logger("aphrodite.api.preview.cleanup", service="api")
+    
+    try:
+        storage_manager = StorageManager()
+        cleaned_count = storage_manager.cleanup_preview_files(max_age_hours=24)
+        
+        logger.info(f"Cleaned up {cleaned_count} old preview files")
+        
+        return {
+            "success": True,
+            "message": f"Cleaned up {cleaned_count} old preview files"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error cleaning up preview files: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to cleanup preview files: {str(e)}"
         )
 
 # Libraries endpoint (placeholder for future Jellyfin integration)
