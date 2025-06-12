@@ -1,0 +1,37 @@
+# Development Logging Configuration
+# Simple development-specific settings
+
+version: 1
+disable_existing_loggers: false
+
+formatters:
+  dev_console:
+    format: "🚀 %(asctime)s [%(levelname)s] %(name)s: %(message)s"
+    datefmt: "%H:%M:%S"
+
+handlers:
+  console_dev:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: dev_console
+    stream: ext://sys.stdout
+
+loggers:
+  aphrodite:
+    level: DEBUG
+    handlers: [console_dev]
+    propagate: false
+  
+  fastapi:
+    level: INFO
+    handlers: [console_dev]
+    propagate: false
+  
+  uvicorn:
+    level: INFO
+    handlers: [console_dev]
+    propagate: false
+
+root:
+  level: INFO
+  handlers: [console_dev]

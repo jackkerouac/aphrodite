@@ -1,0 +1,278 @@
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Badge } from '@/components/ui/badge';
+import { Move, Layout, Spacing } from 'lucide-react';
+import { ReviewSettings } from './types';
+
+interface PositionTabProps {
+  settings: ReviewSettings;
+  updateSetting: (section: keyof ReviewSettings, key: string, value: any) => void;
+}
+
+export function PositionTab({ settings, updateSetting }: PositionTabProps) {
+  return (
+    <div className="space-y-6">
+      {/* Badge Alignment */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Move className="h-5 w-5" />
+            Badge Alignment
+          </CardTitle>
+          <CardDescription>
+            Configure how review badges are aligned within their container
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="badge-alignment">Badge Alignment</Label>
+              <Select
+                value={settings.Position.badge_alignment}
+                onValueChange={(value) => updateSetting('Position', 'badge_alignment', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="left">Left</SelectItem>
+                  <SelectItem value="center">Center</SelectItem>
+                  <SelectItem value="right">Right</SelectItem>
+                  <SelectItem value="justify">Justify</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="stack-direction">Stack Direction</Label>
+              <Select
+                value={settings.Position.stack_direction}
+                onValueChange={(value) => updateSetting('Position', 'stack_direction', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="top-to-bottom">Top to Bottom</SelectItem>
+                  <SelectItem value="bottom-to-top">Bottom to Top</SelectItem>
+                  <SelectItem value="left-to-right">Left to Right</SelectItem>
+                  <SelectItem value="right-to-left">Right to Left</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Multi-Badge Layout */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Layout className="h-5 w-5" />
+            Multi-Badge Layout
+          </CardTitle>
+          <CardDescription>
+            Configure how multiple review badges are arranged when showing multiple scores
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="multi-badge-layout">Layout Style</Label>
+            <Select
+              value={settings.Position.multi_badge_layout}
+              onValueChange={(value) => updateSetting('Position', 'multi_badge_layout', value)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="horizontal">Horizontal Row</SelectItem>
+                <SelectItem value="vertical">Vertical Stack</SelectItem>
+                <SelectItem value="grid">Grid Layout</SelectItem>
+                <SelectItem value="overlay">Overlapping</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Layout Preview */}
+          <div className="mt-4 p-4 border rounded-lg bg-muted/30">
+            <h4 className="font-medium mb-3">Layout Preview:</h4>
+            <div className="flex justify-center">
+              {settings.Position.multi_badge_layout === 'horizontal' && (
+                <div className="flex gap-2">
+                  <Badge>IMDb 8.5</Badge>
+                  <Badge>RT 85%</Badge>
+                  <Badge>MC 78</Badge>
+                </div>
+              )}
+              {settings.Position.multi_badge_layout === 'vertical' && (
+                <div className="flex flex-col gap-2">
+                  <Badge>IMDb 8.5</Badge>
+                  <Badge>RT 85%</Badge>
+                  <Badge>MC 78</Badge>
+                </div>
+              )}
+              {settings.Position.multi_badge_layout === 'grid' && (
+                <div className="grid grid-cols-2 gap-2">
+                  <Badge>IMDb 8.5</Badge>
+                  <Badge>RT 85%</Badge>
+                  <Badge>MC 78</Badge>
+                  <Badge>TMDb 8.2</Badge>
+                </div>
+              )}
+              {settings.Position.multi_badge_layout === 'overlay' && (
+                <div className="relative">
+                  <Badge className="relative z-10">IMDb 8.5</Badge>
+                  <Badge className="absolute top-1 left-4 z-20">RT 85%</Badge>
+                  <Badge className="absolute top-2 left-8 z-30">MC 78</Badge>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Spacing Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Spacing className="h-5 w-5" />
+            Spacing & Margins
+          </CardTitle>
+          <CardDescription>
+            Fine-tune the spacing between badges and their positioning margins
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="spacing-between-badges">
+                Badge Spacing: {settings.Position.spacing_between_badges}px
+              </Label>
+              <Slider
+                id="spacing-between-badges"
+                min={0}
+                max={50}
+                step={1}
+                value={[settings.Position.spacing_between_badges]}
+                onValueChange={(value) => updateSetting('Position', 'spacing_between_badges', value[0])}
+                className="w-full"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="margin-x">
+                Horizontal Margin: {settings.Position.margin_x}px
+              </Label>
+              <Slider
+                id="margin-x"
+                min={0}
+                max={100}
+                step={1}
+                value={[settings.Position.margin_x]}
+                onValueChange={(value) => updateSetting('Position', 'margin_x', value[0])}
+                className="w-full"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="margin-y">
+                Vertical Margin: {settings.Position.margin_y}px
+              </Label>
+              <Slider
+                id="margin-y"
+                min={0}
+                max={100}
+                step={1}
+                value={[settings.Position.margin_y]}
+                onValueChange={(value) => updateSetting('Position', 'margin_y', value[0])}
+                className="w-full"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Position Preview */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Position Preview</CardTitle>
+          <CardDescription>
+            Visual representation of your badge positioning and spacing settings
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Preview Container */}
+            <div 
+              className="relative border-2 border-dashed border-muted-foreground rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 min-h-[200px] flex items-center justify-center"
+              style={{
+                padding: `${settings.Position.margin_y}px ${settings.Position.margin_x}px`
+              }}
+            >
+              {/* Badge Container */}
+              <div 
+                className={`flex ${
+                  settings.Position.multi_badge_layout === 'horizontal' ? 'flex-row' :
+                  settings.Position.multi_badge_layout === 'vertical' ? 'flex-col' :
+                  settings.Position.multi_badge_layout === 'grid' ? 'grid grid-cols-2' :
+                  'relative'
+                } ${
+                  settings.Position.badge_alignment === 'left' ? 'justify-start' :
+                  settings.Position.badge_alignment === 'center' ? 'justify-center' :
+                  settings.Position.badge_alignment === 'right' ? 'justify-end' :
+                  'justify-between'
+                }`}
+                style={{
+                  gap: settings.Position.multi_badge_layout !== 'overlay' ? `${settings.Position.spacing_between_badges}px` : '0'
+                }}
+              >
+                {settings.Position.multi_badge_layout === 'overlay' ? (
+                  <>
+                    <Badge className="relative z-10">IMDb 8.5</Badge>
+                    <Badge className="absolute top-1 left-4 z-20">RT 85%</Badge>
+                    <Badge className="absolute top-2 left-8 z-30">MC 78</Badge>
+                  </>
+                ) : (
+                  <>
+                    <Badge>IMDb 8.5</Badge>
+                    <Badge>RT 85%</Badge>
+                    <Badge>MC 78</Badge>
+                    {settings.Position.multi_badge_layout === 'grid' && <Badge>TMDb 8.2</Badge>}
+                  </>
+                )}
+              </div>
+            </div>
+            
+            {/* Settings Summary */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div className="p-2 bg-muted rounded">
+                <div className="font-medium">Alignment</div>
+                <div className="text-muted-foreground capitalize">{settings.Position.badge_alignment}</div>
+              </div>
+              <div className="p-2 bg-muted rounded">
+                <div className="font-medium">Layout</div>
+                <div className="text-muted-foreground capitalize">{settings.Position.multi_badge_layout}</div>
+              </div>
+              <div className="p-2 bg-muted rounded">
+                <div className="font-medium">Badge Spacing</div>
+                <div className="text-muted-foreground">{settings.Position.spacing_between_badges}px</div>
+              </div>
+              <div className="p-2 bg-muted rounded">
+                <div className="font-medium">Margins</div>
+                <div className="text-muted-foreground">{settings.Position.margin_x}×{settings.Position.margin_y}px</div>
+              </div>
+            </div>
+            
+            <div className="text-sm text-muted-foreground">
+              The preview above shows how your review badges will be positioned and spaced on movie posters.
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

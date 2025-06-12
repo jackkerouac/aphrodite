@@ -1,0 +1,27 @@
+2025-06-10 23:43:22 - WARNING - STARTED: Settings auto-repair
+2025-06-10 23:43:22 - WARNING - MILESTONE: Settings auto-repair completed
+2025-06-10 23:43:22 - WARNING - COMPLETED: Settings auto-repair
+2025-06-10 23:43:22 - WARNING - STARTED: Settings validation
+2025-06-10 23:43:22 - WARNING - MILESTONE: Settings validation completed
+2025-06-10 23:43:22 - WARNING - COMPLETED: Settings validation
+2025-06-10 23:43:22 - WARNING - MILESTONE: Loaded Jellyfin connection: https://jellyfin.okaymedia.ca
+2025-06-10 23:43:22 - WARNING - STARTED: Item processing command for 7ee43bc224402c17c28f4f6b284f81e8
+2025-06-10 23:43:23 - WARNING - STARTED: Get series dominant badge info for 7ee43bc224402c17c28f4f6b284f81e8
+2025-06-10 23:43:23 - WARNING - MILESTONE: Processing TV series: Undercover High School
+2025-06-10 23:43:23 - WARNING - STARTED: Analyze audio codecs for series 7ee43bc224402c17c28f4f6b284f81e8
+2025-06-10 23:43:25 - WARNING - MILESTONE: Successfully fetched 12 episodes for series 7ee43bc224402c17c28f4f6b284f81e8
+2025-06-10 23:43:25 - WARNING - Series has 12 episodes, analyzing first 5 for performance
+2025-06-10 23:43:27 - WARNING - MILESTONE: Dominant audio codec: EAC3 2.0 (5/5 episodes)
+2025-06-10 23:43:27 - WARNING - COMPLETED: Analyze audio codecs for series 7ee43bc224402c17c28f4f6b284f81e8
+2025-06-10 23:43:27 - WARNING - STARTED: Analyze resolutions for series 7ee43bc224402c17c28f4f6b284f81e8
+2025-06-10 23:43:28 - WARNING - MILESTONE: Successfully fetched 12 episodes for series 7ee43bc224402c17c28f4f6b284f81e8
+2025-06-10 23:43:28 - WARNING - Series has 12 episodes, analyzing first 5 for performance
+2025-06-10 23:43:31 - WARNING - MILESTONE: Dominant resolution: 1080p (5/5 episodes)
+2025-06-10 23:43:31 - WARNING - COMPLETED: Analyze resolutions for series 7ee43bc224402c17c28f4f6b284f81e8
+2025-06-10 23:43:31 - WARNING - COMPLETED: Get series dominant badge info for 7ee43bc224402c17c28f4f6b284f81e8
+2025-06-10 23:43:33 - WARNING - STARTED: Process review badges for item 7ee43bc224402c17c28f4f6b284f81e8
+2025-06-10 23:43:35 - WARNING - MILESTONE: Found 2 reviews for item 7ee43bc224402c17c28f4f6b284f81e8
+2025-06-10 23:43:35 - WARNING - MILESTONE: Stored 2 reviews in database
+2025-06-10 23:43:35 - WARNING - COMPLETED: Process review badges for item 7ee43bc224402c17c28f4f6b284f81e8
+2025-06-10 23:43:38 - WARNING - MILESTONE: Item 7ee43bc224402c17c28f4f6b284f81e8 processed successfully
+2025-06-10 23:43:38 - WARNING - COMPLETED: Item processing command for 7ee43bc224402c17c28f4f6b284f81e8

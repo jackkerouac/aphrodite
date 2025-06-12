@@ -1,0 +1,81 @@
+export interface ResolutionSettings {
+  General: {
+    general_badge_size: number;
+    general_edge_padding: number;
+    general_badge_position: string;
+    general_text_padding: number;
+    use_dynamic_sizing: boolean;
+  };
+  Text: {
+    font: string;
+    fallback_font: string;
+    'text-color': string;
+    'text-size': number;
+  };
+  Background: {
+    'background-color': string;
+    background_opacity: number;
+  };
+  Border: {
+    'border-color': string;
+    'border-radius': number;
+    border_width: number;
+  };
+  Shadow: {
+    shadow_enable: boolean;
+    shadow_blur: number;
+    shadow_offset_x: number;
+    shadow_offset_y: number;
+  };
+  ImageBadges: {
+    enable_image_badges: boolean;
+    codec_image_directory: string;
+    fallback_to_text: boolean;
+    image_padding: number;
+    image_mapping: Record<string, string>;
+  };
+}
+
+export const defaultResolutionSettings: ResolutionSettings = {
+  General: {
+    general_badge_size: 100,
+    general_edge_padding: 30,
+    general_badge_position: 'top-right',
+    general_text_padding: 12,
+    use_dynamic_sizing: true
+  },
+  Text: {
+    font: 'AvenirNextLTProBold.otf',
+    fallback_font: 'DejaVuSans.ttf',
+    'text-color': '#FFFFFF',
+    'text-size': 90
+  },
+  Background: {
+    'background-color': '#000000',
+    background_opacity: 40
+  },
+  Border: {
+    'border-color': '#000000',
+    'border-radius': 10,
+    border_width: 1
+  },
+  Shadow: {
+    shadow_enable: false,
+    shadow_blur: 8,
+    shadow_offset_x: 2,
+    shadow_offset_y: 2
+  },
+  ImageBadges: {
+    enable_image_badges: true,
+    codec_image_directory: 'images/resolution',
+    fallback_to_text: true,
+    image_padding: 20,
+    image_mapping: {
+      '4K': '4K.png',
+      '1080p': '1080p.png',
+      '720p': '720p.png',
+      '480p': '480p.png',
+      'SD': 'SD.png'
+    }
+  }
+};

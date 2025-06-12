@@ -1,0 +1,223 @@
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Slider } from '@/components/ui/slider';
+import { RotateCcw, Trophy, Star, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { ReviewSettings } from './types';
+
+interface ThresholdsTabProps {
+  settings: ReviewSettings;
+  updateSetting: (section: keyof ReviewSettings, key: string, value: any) => void;
+  resetThresholds: () => void;
+}
+
+export function ThresholdsTab({ settings, updateSetting, resetThresholds }: ThresholdsTabProps) {
+  const thresholdRanges = [
+    {
+      key: 'excellent',
+      name: 'Excellent',
+      icon: Trophy,
+      color: settings.Thresholds.excellent_color,
+      min: settings.Thresholds.excellent_min,
+      description: 'Outstanding scores that deserve gold treatment'
+    },
+    {
+      key: 'good',
+      name: 'Good',
+      icon: Star,
+      color: settings.Thresholds.good_color,
+      min: settings.Thresholds.good_min,
+      description: 'High quality scores'
+    },
+    {
+      key: 'average',
+      name: 'Average',
+      icon: ThumbsUp,
+      color: settings.Thresholds.average_color,
+      min: settings.Thresholds.average_min,
+      description: 'Moderate scores'
+    },
+    {
+      key: 'poor',
+      name: 'Poor',
+      icon: ThumbsDown,
+      color: settings.Thresholds.poor_color,
+      max: settings.Thresholds.poor_max,
+      description: 'Low scores'
+    }
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Score Ranges */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Score Thresholds</CardTitle>
+          <CardDescription>
+            Define score ranges and their corresponding colors and styling
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="custom-ranges"
+                checked={settings.Thresholds.use_custom_ranges}
+                onCheckedChange={(checked) => updateSetting('Thresholds', 'use_custom_ranges', checked)}
+              />
+              <Label htmlFor="custom-ranges">Use Custom Score Ranges</Label>
+            </div>
+            <Button variant="outline" size="sm" onClick={resetThresholds}>
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Reset to Defaults
+            </Button>
+          </div>
+
+          {thresholdRanges.map((range) => {
+            const Icon = range.icon;
+            const isPoor = range.key === 'poor';
+            
+            return (
+              <div key={range.key} className="p-4 border rounded-lg space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Icon className="h-5 w-5" />
+                    <div>
+                      <h4 className="font-semibold">{range.name}</h4>
+                      <p className="text-sm text-muted-foreground">{range.description}</p>
+                    </div>
+                  </div>
+                  <Badge 
+                    style={{ backgroundColor: range.color }} 
+                    className="text-white"
+                  >
+                    {range.key === 'poor' 
+                      ? `0 - ${range.max}%`
+                      : range.key === 'excellent'
+                      ? `${range.min} - 100%`
+                      : range.key === 'good'
+                      ? `${range.min} - ${settings.Thresholds.excellent_min - 1}%`
+                      : `${range.min} - ${settings.Thresholds.good_min - 1}%`
+                    }
+                  </Badge>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Threshold Value */}
+                  <div className="space-y-2">
+                    <Label>
+                      {isPoor ? 'Maximum Score' : 'Minimum Score'}
+                    </Label>
+                    <div className="space-y-2">
+                      <Slider
+                        value={[isPoor ? range.max! : range.min!]}
+                        onValueChange={(value) => {
+                          const key = isPoor ? 'poor_max' : `${range.key}_min`;
+                          updateSetting('Thresholds', key, value[0]);
+                        }}
+                        max={100}
+                        min={0}
+                        step={1}
+                        className="flex-1"
+                      />
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={isPoor ? range.max : range.min}
+                        onChange={(e) => {
+                          const key = isPoor ? 'poor_max' : `${range.key}_min`;
+                          updateSetting('Thresholds', key, parseInt(e.target.value) || 0);
+                        }}
+                        className="w-20"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Color Picker */}
+                  <div className="space-y-2">
+                    <Label>Badge Color</Label>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="color"
+                        value={range.color}
+                        onChange={(e) => updateSetting('Thresholds', `${range.key}_color`, e.target.value)}
+                        className="w-12 h-10 border rounded cursor-pointer"
+                      />
+                      <Input
+                        type="text"
+                        value={range.color}
+                        onChange={(e) => updateSetting('Thresholds', `${range.key}_color`, e.target.value)}
+                        className="flex-1"
+                        placeholder="#FFFFFF"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
+
+      {/* Threshold Preview */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Threshold Preview</CardTitle>
+          <CardDescription>
+            Visual representation of your score ranges and colors
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="w-full h-12 rounded-lg overflow-hidden flex">
+              <div 
+                className="flex items-center justify-center text-white text-sm font-semibold"
+                style={{ 
+                  backgroundColor: settings.Thresholds.poor_color,
+                  width: `${settings.Thresholds.poor_max + 1}%`
+                }}
+              >
+                Poor (0-{settings.Thresholds.poor_max}%)
+              </div>
+              <div 
+                className="flex items-center justify-center text-white text-sm font-semibold"
+                style={{ 
+                  backgroundColor: settings.Thresholds.average_color,
+                  width: `${settings.Thresholds.good_min - settings.Thresholds.average_min}%`
+                }}
+              >
+                Average ({settings.Thresholds.average_min}-{settings.Thresholds.good_min - 1}%)
+              </div>
+              <div 
+                className="flex items-center justify-center text-white text-sm font-semibold"
+                style={{ 
+                  backgroundColor: settings.Thresholds.good_color,
+                  width: `${settings.Thresholds.excellent_min - settings.Thresholds.good_min}%`
+                }}
+              >
+                Good ({settings.Thresholds.good_min}-{settings.Thresholds.excellent_min - 1}%)
+              </div>
+              <div 
+                className="flex items-center justify-center text-white text-sm font-semibold"
+                style={{ 
+                  backgroundColor: settings.Thresholds.excellent_color,
+                  width: `${100 - settings.Thresholds.excellent_min + 1}%`
+                }}
+              >
+                Excellent ({settings.Thresholds.excellent_min}-100%)
+              </div>
+            </div>
+            
+            <div className="text-sm text-muted-foreground">
+              This preview shows how scores will be categorized and colored based on your threshold settings.
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

@@ -1,0 +1,273 @@
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Badge } from '@/components/ui/badge';
+import { Type, Palette, Square } from 'lucide-react';
+import { ReviewSettings } from './types';
+
+interface StylingTabProps {
+  settings: ReviewSettings;
+  updateSetting: (section: keyof ReviewSettings, key: string, value: any) => void;
+}
+
+export function StylingTab({ settings, updateSetting }: StylingTabProps) {
+  const fontOptions = [
+    'AvenirNextLTProBold.otf',
+    'DejaVuSans.ttf',
+    'Arial',
+    'Helvetica',
+    'Times New Roman',
+    'Courier New'
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Typography */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Type className="h-5 w-5" />
+            Typography Settings
+          </CardTitle>
+          <CardDescription>
+            Configure font, size, and text appearance for review badges
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="font">Primary Font</Label>
+              <Select
+                value={settings.Styling.font}
+                onValueChange={(value) => updateSetting('Styling', 'font', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {fontOptions.map((font) => (
+                    <SelectItem key={font} value={font}>
+                      {font}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="fallback-font">Fallback Font</Label>
+              <Select
+                value={settings.Styling.fallback_font}
+                onValueChange={(value) => updateSetting('Styling', 'fallback_font', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {fontOptions.map((font) => (
+                    <SelectItem key={font} value={font}>
+                      {font}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="text-size">Text Size: {settings.Styling['text-size']}</Label>
+              <Slider
+                id="text-size"
+                min={20}
+                max={200}
+                step={5}
+                value={[settings.Styling['text-size']]}
+                onValueChange={(value) => updateSetting('Styling', 'text-size', value[0])}
+                className="w-full"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="text-color">Text Color</Label>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="color"
+                  value={settings.Styling['text-color']}
+                  onChange={(e) => updateSetting('Styling', 'text-color', e.target.value)}
+                  className="w-12 h-10 border rounded cursor-pointer"
+                />
+                <Input
+                  type="text"
+                  value={settings.Styling['text-color']}
+                  onChange={(e) => updateSetting('Styling', 'text-color', e.target.value)}
+                  className="flex-1"
+                  placeholder="#FFFFFF"
+                />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Background */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Square className="h-5 w-5" />
+            Background Settings
+          </CardTitle>
+          <CardDescription>
+            Configure background color and opacity for review badges
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="background-color">Background Color</Label>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="color"
+                  value={settings.Styling['background-color']}
+                  onChange={(e) => updateSetting('Styling', 'background-color', e.target.value)}
+                  className="w-12 h-10 border rounded cursor-pointer"
+                />
+                <Input
+                  type="text"
+                  value={settings.Styling['background-color']}
+                  onChange={(e) => updateSetting('Styling', 'background-color', e.target.value)}
+                  className="flex-1"
+                  placeholder="#000000"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="background-opacity">
+                Background Opacity: {settings.Styling.background_opacity}%
+              </Label>
+              <Slider
+                id="background-opacity"
+                min={0}
+                max={100}
+                step={5}
+                value={[settings.Styling.background_opacity]}
+                onValueChange={(value) => updateSetting('Styling', 'background_opacity', value[0])}
+                className="w-full"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Border */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Palette className="h-5 w-5" />
+            Border Settings
+          </CardTitle>
+          <CardDescription>
+            Configure border appearance for review badges
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="border-color">Border Color</Label>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="color"
+                  value={settings.Styling['border-color']}
+                  onChange={(e) => updateSetting('Styling', 'border-color', e.target.value)}
+                  className="w-12 h-10 border rounded cursor-pointer"
+                />
+                <Input
+                  type="text"
+                  value={settings.Styling['border-color']}
+                  onChange={(e) => updateSetting('Styling', 'border-color', e.target.value)}
+                  className="flex-1"
+                  placeholder="#000000"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="border-width">
+                Border Width: {settings.Styling.border_width}px
+              </Label>
+              <Slider
+                id="border-width"
+                min={0}
+                max={10}
+                step={1}
+                value={[settings.Styling.border_width]}
+                onValueChange={(value) => updateSetting('Styling', 'border_width', value[0])}
+                className="w-full"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="border-radius">
+                Border Radius: {settings.Styling['border-radius']}px
+              </Label>
+              <Slider
+                id="border-radius"
+                min={0}
+                max={50}
+                step={1}
+                value={[settings.Styling['border-radius']]}
+                onValueChange={(value) => updateSetting('Styling', 'border-radius', value[0])}
+                className="w-full"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Style Preview */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Style Preview</CardTitle>
+          <CardDescription>
+            Preview how your styling settings will look on actual badges
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-4">
+              {[
+                { score: '95%', label: 'Excellent', bgColor: '#FFD700' },
+                { score: '75%', label: 'Good', bgColor: '#32CD32' },
+                { score: '55%', label: 'Average', bgColor: '#FFA500' },
+                { score: '25%', label: 'Poor', bgColor: '#FF4444' }
+              ].map((badge) => (
+                <div
+                  key={badge.label}
+                  className="inline-flex items-center justify-center px-3 py-2 text-center"
+                  style={{
+                    backgroundColor: `${settings.Styling['background-color']}${Math.round(settings.Styling.background_opacity * 2.55).toString(16).padStart(2, '0')}`,
+                    color: settings.Styling['text-color'],
+                    fontSize: `${settings.Styling['text-size'] / 4}px`,
+                    fontFamily: settings.Styling.font,
+                    borderWidth: `${settings.Styling.border_width}px`,
+                    borderColor: settings.Styling['border-color'],
+                    borderStyle: 'solid',
+                    borderRadius: `${settings.Styling['border-radius']}px`,
+                    minWidth: '60px'
+                  }}
+                >
+                  {badge.score}
+                </div>
+              ))}
+            </div>
+            
+            <div className="text-sm text-muted-foreground">
+              These preview badges show how your styling settings will appear across different score ranges.
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

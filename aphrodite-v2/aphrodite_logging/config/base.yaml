@@ -1,0 +1,50 @@
+# Simple Development Logging Configuration
+# Basic setup without custom formatters for initial testing
+
+version: 1
+disable_existing_loggers: false
+
+formatters:
+  simple:
+    format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+    datefmt: "%Y-%m-%d %H:%M:%S"
+  
+  detailed:
+    format: "%(asctime)s [%(levelname)s] %(name)s:%(lineno)d: %(message)s"
+    datefmt: "%Y-%m-%d %H:%M:%S"
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: simple
+    stream: ext://sys.stdout
+  
+  file:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: detailed
+    filename: logs/aphrodite-v2.log
+    maxBytes: 10485760  # 10MB
+    backupCount: 5
+    encoding: utf8
+
+loggers:
+  aphrodite:
+    level: DEBUG
+    handlers: [console, file]
+    propagate: false
+  
+  fastapi:
+    level: INFO
+    handlers: [console, file]
+    propagate: false
+  
+  sqlalchemy:
+    level: WARNING
+    handlers: [console, file]
+    propagate: false
+
+root:
+  level: INFO
+  handlers: [console, file]

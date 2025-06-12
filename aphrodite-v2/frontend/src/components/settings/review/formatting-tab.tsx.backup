@@ -1,0 +1,271 @@
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Percent, Hash, Star, Type } from 'lucide-react';
+import { ReviewSettings } from './types';
+
+interface FormattingTabProps {
+  settings: ReviewSettings;
+  updateSetting: (section: keyof ReviewSettings, key: string, value: any) => void;
+}
+
+export function FormattingTab({ settings, updateSetting }: FormattingTabProps) {
+  const formatExamples = {
+    percentage: '85%',
+    decimal: '8.5',
+    stars: '★★★★☆',
+    letter: 'B+'
+  };
+
+  const getPreviewScore = () => {
+    const score = 85;
+    const { display_format, decimal_precision, score_prefix, score_suffix } = settings.Formatting;
+    
+    switch (display_format) {
+      case 'percentage':
+        return `${score_prefix}${score}${score_suffix}`;
+      case 'decimal':
+        return `${score_prefix}${(score / 10).toFixed(decimal_precision)}${score_suffix}`;
+      case 'stars':
+        const stars = Math.round(score / 20);
+        return '★'.repeat(stars) + '☆'.repeat(5 - stars);
+      case 'letter':
+        if (score >= 90) return 'A+';
+        if (score >= 85) return 'A';
+        if (score >= 80) return 'B+';
+        if (score >= 75) return 'B';
+        if (score >= 70) return 'C+';
+        if (score >= 65) return 'C';
+        if (score >= 60) return 'D+';
+        if (score >= 55) return 'D';
+        return 'F';
+      default:
+        return `${score}%`;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Display Format */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Score Display Format</CardTitle>
+          <CardDescription>
+            Choose how review scores are formatted and displayed on badges
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {Object.entries(formatExamples).map(([format, example]) => {
+              const isSelected = settings.Formatting.display_format === format;
+              const icons = {
+                percentage: Percent,
+                decimal: Hash,
+                stars: Star,
+                letter: Type
+              };
+              const Icon = icons[format as keyof typeof icons];
+              
+              return (
+                <div
+                  key={format}
+                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                    isSelected ? 'border-primary bg-primary/5' : 'hover:border-muted-foreground'
+                  }`}
+                  onClick={() => updateSetting('Formatting', 'display_format', format)}
+                >
+                  <div className="flex flex-col items-center space-y-2">
+                    <Icon className="h-6 w-6" />
+                    <span className="font-medium capitalize">{format}</span>
+                    <Badge variant={isSelected ? 'default' : 'outline'}>
+                      {example}
+                    </Badge>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          
+          <div className="mt-4 p-3 bg-muted rounded-lg">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Preview:</span>
+              <Badge className="text-lg px-3 py-1">
+                {getPreviewScore()}
+              </Badge>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Format Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Format Configuration</CardTitle>
+          <CardDescription>
+            Customize the appearance and precision of score displays
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Decimal Precision */}
+            {settings.Formatting.display_format === 'decimal' && (
+              <div className="space-y-2">
+                <Label htmlFor="decimal-precision">Decimal Precision</Label>
+                <Select
+                  value={settings.Formatting.decimal_precision.toString()}
+                  onValueChange={(value) => updateSetting('Formatting', 'decimal_precision', parseInt(value))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">0 (8)</SelectItem>
+                    <SelectItem value="1">1 (8.5)</SelectItem>
+                    <SelectItem value="2">2 (8.50)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            
+            {/* Score Prefix */}
+            <div className="space-y-2">
+              <Label htmlFor="score-prefix">Score Prefix</Label>
+              <Input
+                id="score-prefix"
+                value={settings.Formatting.score_prefix}
+                onChange={(e) => updateSetting('Formatting', 'score_prefix', e.target.value)}
+                placeholder="e.g., IMDb: "
+              />
+            </div>
+            
+            {/* Score Suffix */}
+            <div className="space-y-2">
+              <Label htmlFor="score-suffix">Score Suffix</Label>
+              <Input
+                id="score-suffix"
+                value={settings.Formatting.score_suffix}
+                onChange={(e) => updateSetting('Formatting', 'score_suffix', e.target.value)}
+                placeholder="e.g., % or /10"
+              />
+            </div>
+            
+            {/* Fallback Text */}
+            <div className="space-y-2">
+              <Label htmlFor="fallback-text">Fallback Text</Label>
+              <Input
+                id="fallback-text"
+                value={settings.Formatting.fallback_text}
+                onChange={(e) => updateSetting('Formatting', 'fallback_text', e.target.value)}
+                placeholder="Text when no score available"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Source Display Options */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Source Display Options</CardTitle>
+          <CardDescription>
+            Configure how review source information is displayed alongside scores
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="show-source-logo"
+                checked={settings.Formatting.show_source_logo}
+                onCheckedChange={(checked) => updateSetting('Formatting', 'show_source_logo', checked)}
+              />
+              <Label htmlFor="show-source-logo">Show Source Logo</Label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="show-source-name"
+                checked={settings.Formatting.show_source_name}
+                onCheckedChange={(checked) => updateSetting('Formatting', 'show_source_name', checked)}
+              />
+              <Label htmlFor="show-source-name">Show Source Name</Label>
+            </div>
+          </div>
+          
+          {/* Preview Example */}
+          <div className="mt-4 p-4 border rounded-lg bg-muted/30">
+            <h4 className="font-medium mb-2">Display Preview:</h4>
+            <div className="flex items-center space-x-2">
+              {settings.Formatting.show_source_logo && (
+                <div className="w-6 h-6 bg-yellow-500 rounded flex items-center justify-center text-xs font-bold text-white">
+                  I
+                </div>
+              )}
+              {settings.Formatting.show_source_name && (
+                <span className="text-sm font-medium">IMDb</span>
+              )}
+              <Badge>
+                {getPreviewScore()}
+              </Badge>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Format Examples */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Format Examples</CardTitle>
+          <CardDescription>
+            See how different scores would appear with your current settings
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[95, 75, 55, 25].map((score) => {
+              const getFormattedScore = (value: number) => {
+                const { display_format, decimal_precision, score_prefix, score_suffix } = settings.Formatting;
+                
+                switch (display_format) {
+                  case 'percentage':
+                    return `${score_prefix}${value}${score_suffix}`;
+                  case 'decimal':
+                    return `${score_prefix}${(value / 10).toFixed(decimal_precision)}${score_suffix}`;
+                  case 'stars':
+                    const stars = Math.round(value / 20);
+                    return '★'.repeat(stars) + '☆'.repeat(5 - stars);
+                  case 'letter':
+                    if (value >= 90) return 'A+';
+                    if (value >= 85) return 'A';
+                    if (value >= 80) return 'B+';
+                    if (value >= 75) return 'B';
+                    if (value >= 70) return 'C+';
+                    if (value >= 65) return 'C';
+                    if (value >= 60) return 'D+';
+                    if (value >= 55) return 'D';
+                    return 'F';
+                  default:
+                    return `${value}%`;
+                }
+              };
+              
+              return (
+                <div key={score} className="p-3 border rounded-lg text-center">
+                  <div className="text-sm text-muted-foreground mb-1">
+                    {score}% score
+                  </div>
+                  <Badge variant="outline" className="text-base">
+                    {getFormattedScore(score)}
+                  </Badge>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
