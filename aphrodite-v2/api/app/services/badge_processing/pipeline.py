@@ -100,8 +100,23 @@ class UniversalBadgeProcessor:
     async def _process_single_with_session(self, request: SingleBadgeRequest, db_session: AsyncSession) -> ProcessingResult:
         """Process single poster with database session"""
         from pathlib import Path
+        from .poster_resizer import poster_resizer
         
-        # Initialize badge processors
+        # Step 1: Resize poster to standard 1,000px width
+        self.logger.debug(f"Resizing poster to standard dimensions: {request.poster_path}")
+        resized_poster_path = poster_resizer.resize_poster(request.poster_path)
+        
+        if not resized_poster_path:
+            self.logger.error(f"Failed to resize poster: {request.poster_path}")
+            return ProcessingResult(
+                success=False,
+                results=[],
+                error="Failed to resize poster to standard dimensions"
+            )
+        
+        self.logger.info(f"Poster resized to standard dimensions: {resized_poster_path}")
+        
+        # Step 2: Initialize badge processors
         processors = {
             "audio": AudioBadgeProcessor(),
             "resolution": ResolutionBadgeProcessor(),
@@ -109,10 +124,11 @@ class UniversalBadgeProcessor:
             "awards": AwardsBadgeProcessor()
         }
         
-        current_poster_path = request.poster_path
+        # Start with the resized poster
+        current_poster_path = resized_poster_path
         applied_badges = []
         
-        self.logger.info(f"Processing poster {request.poster_path} with badges: {request.badge_types}")
+        self.logger.info(f"Processing resized poster {resized_poster_path} with badges: {request.badge_types}")
         
         # Apply badges sequentially
         for i, badge_type in enumerate(request.badge_types):
@@ -132,7 +148,8 @@ class UniversalBadgeProcessor:
                 current_poster_path,
                 output_path,
                 request.use_demo_data,
-                db_session
+                db_session,
+                request.jellyfin_id
             )
             
             if result.success:
@@ -142,6 +159,15 @@ class UniversalBadgeProcessor:
             else:
                 self.logger.error(f"Failed to apply {badge_type} badge: {result.error}")
                 # Continue with other badges even if one fails
+        
+        # Step 3: Clean up temporary resized poster if it's different from original
+        if resized_poster_path != request.poster_path and current_poster_path != resized_poster_path:
+            # Only clean up if we're not using the resized poster as final output
+            try:
+                Path(resized_poster_path).unlink(missing_ok=True)
+                self.logger.debug(f"Cleaned up temporary resized poster: {resized_poster_path}")
+            except Exception as e:
+                self.logger.warning(f"Failed to clean up temporary poster: {e}")
         
         # Create final result
         if applied_badges:
@@ -153,26 +179,34 @@ class UniversalBadgeProcessor:
             )
             self.logger.info(f"Successfully processed poster with {len(applied_badges)} badges")
         else:
-            # No badges were applied - fall back to copying original
-            from pathlib import Path
-            import shutil
-            
-            source_path = Path(request.poster_path)
+            # No badges were applied - use the resized poster or copy original
             if request.output_path:
                 output_path = Path(request.output_path)
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+                
+                if resized_poster_path != request.poster_path:
+                    # Use the resized poster as output
+                    import shutil
+                    shutil.copy2(resized_poster_path, output_path)
+                    # Clean up temp resized poster
+                    Path(resized_poster_path).unlink(missing_ok=True)
+                else:
+                    # Original was already correct size, copy it
+                    import shutil
+                    shutil.copy2(request.poster_path, output_path)
+                
+                final_output_path = str(output_path)
             else:
-                output_path = source_path.parent / f"processed_{source_path.name}"
-            
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source_path, output_path)
+                # Use resized poster directly
+                final_output_path = resized_poster_path
             
             final_result = PosterResult(
                 source_path=request.poster_path,
-                output_path=str(output_path),
+                output_path=final_output_path,
                 applied_badges=[],
                 success=True
             )
-            self.logger.warning("No badges applied, copied original poster")
+            self.logger.warning("No badges applied, using resized poster")
         
         return ProcessingResult(success=True, results=[final_result])
 

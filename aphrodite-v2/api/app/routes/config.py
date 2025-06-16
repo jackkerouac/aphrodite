@@ -97,7 +97,8 @@ async def get_config_files():
         "badge_settings_audio.yml",
         "badge_settings_resolution.yml", 
         "badge_settings_review.yml",
-        "badge_settings_awards.yml"
+        "badge_settings_awards.yml",
+        "review_source_settings"
     ]
     
     logger.info(f"Returning {len(config_files)} available config files")
@@ -463,3 +464,83 @@ async def update_badge_config(
     logger.info(f"Updating badge configuration: {badge_type}")
     
     return BaseResponse(message=f"Badge configuration {badge_type} updated successfully")
+
+@router.get("/review_source_settings", response_model=ConfigData)
+async def get_review_source_settings(
+    db: AsyncSession = Depends(get_db_session)
+):
+    """Get review source settings configuration"""
+    logger = get_logger("aphrodite.api.config.review_source_settings.get", service="api")
+    
+    try:
+        # Query the database for the review source settings
+        stmt = select(SystemConfigModel).where(SystemConfigModel.key == "review_source_settings")
+        result = await db.execute(stmt)
+        config_model = result.scalar_one_or_none()
+        
+        if config_model is None:
+            # Return default review source settings
+            logger.info("Review source settings not found, returning defaults")
+            default_settings = {
+                "max_badges_display": 4,
+                "source_selection_mode": "priority",
+                "show_percentage_only": True,
+                "group_related_sources": True,
+                "anime_sources_for_anime_only": True
+            }
+            return ConfigData(config=default_settings)
+        
+        logger.info("Retrieved review source settings")
+        return ConfigData(config=config_model.value or {})
+        
+    except Exception as e:
+        logger.error(f"Error retrieving review source settings: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve review source settings: {str(e)}"
+        )
+
+@router.put("/review_source_settings", response_model=BaseResponse)
+async def update_review_source_settings(
+    config_data: Dict[str, Any],
+    db: AsyncSession = Depends(get_db_session)
+):
+    """Update review source settings configuration"""
+    logger = get_logger("aphrodite.api.config.review_source_settings.update", service="api")
+    
+    try:
+        # Check if configuration exists
+        stmt = select(SystemConfigModel).where(SystemConfigModel.key == "review_source_settings")
+        result = await db.execute(stmt)
+        existing_config = result.scalar_one_or_none()
+        
+        if existing_config:
+            # Update existing configuration
+            update_stmt = (
+                update(SystemConfigModel)
+                .where(SystemConfigModel.key == "review_source_settings")
+                .values(value=config_data)
+            )
+            await db.execute(update_stmt)
+            logger.info("Updated existing review source settings")
+        else:
+            # Create new configuration
+            insert_stmt = insert(SystemConfigModel).values(
+                key="review_source_settings",
+                value=config_data
+            )
+            await db.execute(insert_stmt)
+            logger.info("Created new review source settings")
+        
+        await db.commit()
+        
+        logger.info(f"Review source settings saved: {config_data}")
+        return BaseResponse(message="Review source settings saved successfully")
+        
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error saving review source settings: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save review source settings: {str(e)}"
+        )

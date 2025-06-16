@@ -23,6 +23,7 @@ kombu==5.3.4
 # HTTP client
 httpx==0.25.2
 aiohttp==3.9.1
+requests==2.31.0
 aiofiles==23.2.1
 
 # Image processing

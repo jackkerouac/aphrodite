@@ -99,8 +99,8 @@ async def generate_preview(request: PreviewRequest):
         storage_manager = StorageManager()
         badge_processor = UniversalBadgeProcessor()
         
-        # Select random poster from originals
-        selected_poster = poster_selector.get_random_poster()
+        # Select random poster from Jellyfin or originals
+        selected_poster = await poster_selector.get_random_poster_async()
         if not selected_poster:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -116,7 +116,7 @@ async def generate_preview(request: PreviewRequest):
         single_request = SingleBadgeRequest(
             poster_path=selected_poster,
             badge_types=request.badgeTypes,
-            use_demo_data=True,  # Use demo data for consistent previews
+            use_demo_data=False,  # Use real Jellyfin metadata instead of demo data
             output_path=output_path
         )
         
@@ -188,6 +188,30 @@ async def cleanup_preview_files():
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to cleanup preview files: {str(e)}"
+        )
+
+# Cleanup endpoint for cached Jellyfin posters
+@router.delete("/cache/cleanup")
+async def cleanup_cached_posters():
+    """Clean up old cached Jellyfin posters"""
+    logger = get_logger("aphrodite.api.preview.cache_cleanup", service="api")
+    
+    try:
+        poster_selector = PosterSelector()
+        cleaned_count = poster_selector.cleanup_cached_posters(max_age_hours=24)
+        
+        logger.info(f"Cleaned up {cleaned_count} old cached posters")
+        
+        return {
+            "success": True,
+            "message": f"Cleaned up {cleaned_count} old cached Jellyfin posters"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error cleaning up cached posters: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to cleanup cached posters: {str(e)}"
         )
 
 # Libraries endpoint (placeholder for future Jellyfin integration)

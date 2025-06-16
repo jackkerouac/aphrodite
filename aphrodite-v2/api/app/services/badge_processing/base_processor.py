@@ -24,7 +24,9 @@ class BaseBadgeProcessor(ABC):
         self, 
         poster_path: str, 
         output_path: Optional[str] = None,
-        use_demo_data: bool = False
+        use_demo_data: bool = False,
+        db_session = None,
+        jellyfin_id: Optional[str] = None
     ) -> PosterResult:
         """Process a single poster with this badge type"""
         pass

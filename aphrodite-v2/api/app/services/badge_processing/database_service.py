@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.models.config import SystemConfigModel
-from app.core.database import async_session_factory
 from aphrodite_logging import get_logger
 
 class BadgeSettingsService:
@@ -112,6 +111,10 @@ class BadgeSettingsService:
     async def get_audio_settings_standalone(self, force_reload: bool = False) -> Optional[Dict[str, Any]]:
         """Get audio badge settings using internal session"""
         try:
+            from app.core.database import async_session_factory
+            if async_session_factory is None:
+                self.logger.error("Database session factory not initialized")
+                return None
             async with async_session_factory() as db:
                 return await self.get_audio_settings(db, force_reload=force_reload)
         except Exception as e:
@@ -121,6 +124,10 @@ class BadgeSettingsService:
     async def get_resolution_settings_standalone(self, force_reload: bool = False) -> Optional[Dict[str, Any]]:
         """Get resolution badge settings using internal session"""
         try:
+            from app.core.database import async_session_factory
+            if async_session_factory is None:
+                self.logger.error("Database session factory not initialized")
+                return None
             async with async_session_factory() as db:
                 return await self.get_resolution_settings(db, force_reload=force_reload)
         except Exception as e:
@@ -130,19 +137,136 @@ class BadgeSettingsService:
     async def get_review_settings_standalone(self, force_reload: bool = False) -> Optional[Dict[str, Any]]:
         """Get review badge settings using internal session"""
         try:
+            from app.core.database import async_session_factory
+            if async_session_factory is None:
+                self.logger.error("Database session factory not initialized")
+                return None
             async with async_session_factory() as db:
                 return await self.get_review_settings(db, force_reload=force_reload)
         except Exception as e:
             self.logger.error(f"Error getting review settings standalone: {e}", exc_info=True)
             return None
     
+    async def get_review_source_settings(self, db: AsyncSession, force_reload: bool = False) -> Optional[Dict[str, Any]]:
+        """Get review source settings (separate from main badge settings)"""
+        try:
+            cache_key = "review_source_settings"
+            
+            # Check cache first (unless force_reload is True)
+            if not force_reload and cache_key in self._cache:
+                self.logger.debug("Using cached review source settings")
+                return self._cache[cache_key]
+            
+            # Force reload: clear cache
+            if force_reload and cache_key in self._cache:
+                del self._cache[cache_key]
+                self.logger.debug("Cleared cache for review source settings due to force_reload")
+            
+            self.logger.debug(f"Loading review source settings from database (force_reload: {force_reload})")
+            
+            # Query database for review source settings
+            stmt = select(SystemConfigModel).where(SystemConfigModel.key == "review_source_settings")
+            result = await db.execute(stmt)
+            config_model = result.scalar_one_or_none()
+            
+            if not config_model or not config_model.value:
+                self.logger.warning("No review source settings found in system_config")
+                return None
+            
+            settings = config_model.value
+            
+            # Cache the settings
+            self._cache[cache_key] = settings
+            
+            self.logger.info("Successfully loaded review source settings from system_config")
+            self.logger.debug(f"Review source settings: {settings}")
+            
+            return settings
+            
+        except Exception as e:
+            self.logger.error(f"Error loading review source settings: {e}", exc_info=True)
+            return None
+    
+    async def get_review_source_settings_standalone(self, force_reload: bool = False) -> Optional[Dict[str, Any]]:
+        """Get review source settings using internal session"""
+        try:
+            # Import the session factory properly
+            from app.core.database import async_session_factory
+            
+            if async_session_factory is None:
+                self.logger.error("Database session factory not initialized")
+                return None
+                
+            async with async_session_factory() as db:
+                return await self.get_review_source_settings(db, force_reload=force_reload)
+        except Exception as e:
+            self.logger.error(f"Error getting review source settings standalone: {e}", exc_info=True)
+            return None
+    
     async def get_awards_settings_standalone(self, force_reload: bool = False) -> Optional[Dict[str, Any]]:
         """Get awards badge settings using internal session"""
         try:
+            from app.core.database import async_session_factory
+            if async_session_factory is None:
+                self.logger.error("Database session factory not initialized")
+                return None
             async with async_session_factory() as db:
                 return await self.get_awards_settings(db, force_reload=force_reload)
         except Exception as e:
             self.logger.error(f"Error getting awards settings standalone: {e}", exc_info=True)
+            return None
+    
+    async def get_poster_manager_settings_standalone(self, force_reload: bool = False) -> Optional[Dict[str, Any]]:
+        """Get poster manager settings using internal session"""
+        try:
+            from app.core.database import async_session_factory
+            if async_session_factory is None:
+                self.logger.error("Database session factory not initialized")
+                return None
+            async with async_session_factory() as db:
+                return await self.get_poster_manager_settings(db, force_reload=force_reload)
+        except Exception as e:
+            self.logger.error(f"Error getting poster manager settings standalone: {e}", exc_info=True)
+            return None
+    
+    async def get_poster_manager_settings(self, db: AsyncSession, force_reload: bool = False) -> Optional[Dict[str, Any]]:
+        """Get poster manager settings from database"""
+        try:
+            cache_key = "poster_manager_settings"
+            
+            # Check cache first (unless force_reload is True)
+            if not force_reload and cache_key in self._cache:
+                self.logger.debug("Using cached poster manager settings")
+                return self._cache[cache_key]
+            
+            # Force reload: clear cache
+            if force_reload and cache_key in self._cache:
+                del self._cache[cache_key]
+                self.logger.debug("Cleared cache for poster manager settings due to force_reload")
+            
+            self.logger.debug(f"Loading poster manager settings from database (force_reload: {force_reload})")
+            
+            # Query database for poster manager settings
+            stmt = select(SystemConfigModel).where(SystemConfigModel.key == "poster_manager_settings")
+            result = await db.execute(stmt)
+            config_model = result.scalar_one_or_none()
+            
+            if not config_model or not config_model.value:
+                self.logger.warning("No poster manager settings found in system_config")
+                return None
+            
+            settings = config_model.value
+            
+            # Cache the settings
+            self._cache[cache_key] = settings
+            
+            self.logger.info("Successfully loaded poster manager settings from system_config")
+            self.logger.debug(f"Poster manager settings: {settings}")
+            
+            return settings
+            
+        except Exception as e:
+            self.logger.error(f"Error loading poster manager settings: {e}", exc_info=True)
             return None
     
     def clear_cache(self):

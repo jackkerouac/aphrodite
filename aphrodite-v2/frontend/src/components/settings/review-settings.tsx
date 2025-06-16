@@ -41,7 +41,7 @@ export function ReviewSettings() {
     const loadAllData = async () => {
       await loadFonts();
       await loadSettings();
-      await loadReviewSources();
+      // REMOVED: await loadReviewSources(); - This was overwriting synced data
     };
     loadAllData();
   }, []);

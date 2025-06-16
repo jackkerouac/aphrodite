@@ -7,10 +7,14 @@ Handles resolution badge creation and application using v1 logic ported to v2 ar
 from typing import Dict, Any, Optional, List
 from pathlib import Path
 import yaml
+import json
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from aphrodite_logging import get_logger
 from .base_processor import BaseBadgeProcessor
 from .types import PosterResult
+from .database_service import badge_settings_service
+from app.core.database import async_session_factory
 
 
 class ResolutionBadgeProcessor(BaseBadgeProcessor):
@@ -24,14 +28,16 @@ class ResolutionBadgeProcessor(BaseBadgeProcessor):
         self, 
         poster_path: str, 
         output_path: Optional[str] = None,
-        use_demo_data: bool = False
+        use_demo_data: bool = False,
+        db_session: Optional[AsyncSession] = None,
+        jellyfin_id: Optional[str] = None
     ) -> PosterResult:
         """Process a single poster with resolution badge"""
         try:
             self.logger.debug(f"Processing resolution badge for: {poster_path}")
             
             # Load resolution badge settings
-            settings = await self._load_settings()
+            settings = await self._load_settings(db_session)
             if not settings:
                 return PosterResult(
                     source_path=poster_path,
@@ -39,13 +45,13 @@ class ResolutionBadgeProcessor(BaseBadgeProcessor):
                     error="Failed to load resolution badge settings"
                 )
             
-            # Get resolution data
+            # Get resolution data - NO DEMO DATA, only real resolution detection
             if use_demo_data:
-                resolution_data = "4K HDR"  # Demo resolution for consistent previews
-                self.logger.debug("Using demo resolution: 4K HDR")
-            else:
-                resolution_data = await self._get_resolution_info(poster_path)
-                self.logger.debug(f"Detected resolution: {resolution_data}")
+                self.logger.warning("Demo data mode disabled - using real data only")
+            
+            self.logger.debug(f"Getting real resolution for jellyfin_id: {jellyfin_id}")
+            resolution_data = await self._get_resolution_from_jellyfin_id(jellyfin_id)
+            self.logger.debug(f"Detected real resolution: {resolution_data}")
             
             if not resolution_data:
                 self.logger.warning("No resolution detected, skipping resolution badge")
@@ -87,7 +93,8 @@ class ResolutionBadgeProcessor(BaseBadgeProcessor):
         self,
         poster_paths: List[str],
         output_directory: Optional[str] = None,
-        use_demo_data: bool = False
+        use_demo_data: bool = False,
+        db_session: Optional[AsyncSession] = None
     ) -> List[PosterResult]:
         """Process multiple posters with resolution badges"""
         results = []
@@ -104,7 +111,7 @@ class ResolutionBadgeProcessor(BaseBadgeProcessor):
                 output_path = str(Path(output_directory) / poster_name)
             
             # Process single poster
-            result = await self.process_single(poster_path, output_path, use_demo_data)
+            result = await self.process_single(poster_path, output_path, use_demo_data, db_session)
             results.append(result)
             
             # Log progress for bulk operations
@@ -116,25 +123,52 @@ class ResolutionBadgeProcessor(BaseBadgeProcessor):
         
         return results
     
-    async def _load_settings(self) -> Optional[Dict[str, Any]]:
-        """Load resolution badge settings from v1 YAML or v2 database"""
+    async def _load_settings(self, db_session: Optional[AsyncSession] = None) -> Optional[Dict[str, Any]]:
+        """Load resolution badge settings from v2 database or v1 YAML fallback"""
         try:
-            # First try to load from v1 settings file for compatibility
+            # First try to load from v2 database
+            if db_session:
+                self.logger.debug("Loading resolution settings from v2 database (force reload for fresh settings)")
+                settings = await badge_settings_service.get_resolution_settings(db_session, force_reload=True)
+                if settings:
+                    # Validate settings structure
+                    if await badge_settings_service.validate_settings(settings, "resolution"):
+                        self.logger.info("Successfully loaded resolution settings from v2 database")
+                        return settings
+                    else:
+                        self.logger.warning("v2 database settings failed validation")
+                else:
+                    self.logger.warning("No resolution settings found in v2 database")
+            
+            # Try to get a database session if not provided
+            if not db_session:
+                try:
+                    self.logger.debug("Attempting to get database session for settings loading (force reload)")
+                    async with async_session_factory() as db:
+                        settings = await badge_settings_service.get_resolution_settings(db, force_reload=True)
+                        if settings and await badge_settings_service.validate_settings(settings, "resolution"):
+                            self.logger.info("Successfully loaded resolution settings from v2 database (new session)")
+                            return settings
+                except Exception as db_error:
+                    self.logger.warning(f"Could not load from database: {db_error}")
+            
+            # Fall back to v1 settings file for compatibility
             v1_settings_path = Path("E:/programming/aphrodite/badge_settings_resolution.yml")
             
             if v1_settings_path.exists():
                 self.logger.debug(f"Loading v1 resolution settings from: {v1_settings_path}")
                 with open(v1_settings_path, 'r', encoding='utf-8') as f:
                     settings = yaml.safe_load(f)
+                self.logger.info("Successfully loaded resolution settings from v1 YAML file")
                 return settings
             
-            # TODO: Load from v2 database when available
-            self.logger.warning("v1 resolution settings not found, using default settings")
+            # Last resort: use default settings
+            self.logger.warning("Using default resolution settings as fallback")
             return self._get_default_settings()
             
         except Exception as e:
             self.logger.error(f"Error loading resolution settings: {e}", exc_info=True)
-            return None
+            return self._get_default_settings()
     
     def _get_default_settings(self) -> Dict[str, Any]:
         """Get default resolution badge settings"""
@@ -151,7 +185,7 @@ class ResolutionBadgeProcessor(BaseBadgeProcessor):
                 "text-color": "#FFFFFF"
             },
             "Background": {
-                "background-color": "#fe019a",
+                "background-color": "#ff6b35",
                 "background_opacity": 60
             },
             "Border": {
@@ -172,16 +206,59 @@ class ResolutionBadgeProcessor(BaseBadgeProcessor):
             }
         }
     
+    async def _get_resolution_from_jellyfin_id(self, jellyfin_id: Optional[str] = None) -> Optional[str]:
+        """Get real resolution directly from Jellyfin ID (CRITICAL FIX)"""
+        try:
+            if not jellyfin_id:
+                self.logger.warning("No jellyfin_id provided for resolution detection")
+                return None
+            
+            self.logger.debug(f"Getting resolution for Jellyfin ID: {jellyfin_id}")
+            
+            # Import and get Jellyfin service
+            from app.services.jellyfin_service import get_jellyfin_service
+            jellyfin_service = get_jellyfin_service()
+            
+            # Query Jellyfin for media details
+            media_item = await jellyfin_service.get_media_item_by_id(jellyfin_id)
+            if not media_item:
+                self.logger.warning(f"Could not retrieve media item for ID: {jellyfin_id}")
+                return None
+            
+            media_type = media_item.get('Type', '')
+            self.logger.debug(f"Media type for {jellyfin_id}: {media_type}")
+            
+            if media_type == 'Movie':
+                # For movies: get resolution directly
+                resolution = await jellyfin_service.get_video_resolution_info(media_item)
+                self.logger.debug(f"Movie resolution for {jellyfin_id}: {resolution}")
+                return resolution
+            
+            elif media_type in ['Series', 'Season']:
+                # For TV: sample first 5 episodes for dominant resolution
+                resolution = await jellyfin_service.get_tv_series_dominant_resolution(jellyfin_id)
+                self.logger.debug(f"TV series dominant resolution for {jellyfin_id}: {resolution}")
+                return resolution
+            
+            elif media_type == 'Episode':
+                # For individual episodes: get resolution directly
+                resolution = await jellyfin_service.get_video_resolution_info(media_item)
+                self.logger.debug(f"Episode resolution for {jellyfin_id}: {resolution}")
+                return resolution
+            
+            else:
+                self.logger.warning(f"Unsupported media type '{media_type}' for {jellyfin_id}")
+                return None
+            
+        except Exception as e:
+            self.logger.error(f"Error getting resolution for jellyfin_id {jellyfin_id}: {e}", exc_info=True)
+            return None
+    
     async def _get_resolution_info(self, poster_path: str) -> Optional[str]:
-        """Get resolution info for the media item (placeholder for real implementation)"""
-        # TODO: Implement real resolution detection
-        # This would involve:
-        # 1. Getting media ID from poster path
-        # 2. Querying Jellyfin for media info
-        # 3. Extracting resolution information
-        
-        # For now, return demo data
-        return "4K HDR"
+        """Get real resolution info from Jellyfin metadata using modular detector"""
+        from .resolution_detector import get_resolution_detector
+        detector = get_resolution_detector()
+        return await detector.get_resolution_info(poster_path)
     
     async def _apply_resolution_badge(
         self,
@@ -190,33 +267,9 @@ class ResolutionBadgeProcessor(BaseBadgeProcessor):
         settings: Dict[str, Any],
         output_path: Optional[str] = None
     ) -> Optional[str]:
-        """Apply resolution badge to poster using v1 logic"""
-        try:
-            # Import v1 badge creation functions
-            import sys
-            sys.path.append("E:/programming/aphrodite")
-            
-            from aphrodite_helpers.badge_components import (
-                create_badge, 
-                apply_badge_to_poster as v1_apply_badge
-            )
-            
-            # Create resolution badge using v1 logic
-            resolution_badge = create_badge(settings, resolution_data)
-            if not resolution_badge:
-                self.logger.error("Failed to create resolution badge")
-                return None
-            
-            # Apply badge to poster using v1 logic
-            result_path = v1_apply_badge(poster_path, resolution_badge, settings)
-            
-            if result_path and Path(result_path).exists():
-                self.logger.debug(f"Successfully applied resolution badge: {result_path}")
-                return result_path
-            else:
-                self.logger.error("v1 badge application failed")
-                return None
-                
-        except Exception as e:
-            self.logger.error(f"Error applying resolution badge: {e}", exc_info=True)
-            return None
+        """Apply resolution badge to poster using modular applicator"""
+        from .resolution_applicator import get_resolution_applicator
+        applicator = get_resolution_applicator()
+        return await applicator.apply_resolution_badge(
+            poster_path, resolution_data, settings, output_path
+        )

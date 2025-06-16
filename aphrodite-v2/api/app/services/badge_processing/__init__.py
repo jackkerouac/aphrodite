@@ -1,4 +1,5 @@
 from .pipeline import UniversalBadgeProcessor
+from .poster_resizer import poster_resizer
 from .types import (
     UniversalBadgeRequest,
     SingleBadgeRequest,
@@ -10,6 +11,7 @@ from .types import (
 
 __all__ = [
     "UniversalBadgeProcessor",
+    "poster_resizer",
     "UniversalBadgeRequest",
     "SingleBadgeRequest",
     "BulkBadgeRequest",

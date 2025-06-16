@@ -6,11 +6,13 @@ Handles review badge creation and application using v1 logic ported to v2 archit
 
 from typing import Dict, Any, Optional, List
 from pathlib import Path
-import yaml
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from aphrodite_logging import get_logger
 from .base_processor import BaseBadgeProcessor
 from .types import PosterResult
+from .database_service import badge_settings_service
+from app.core.database import async_session_factory
 
 
 class ReviewBadgeProcessor(BaseBadgeProcessor):
@@ -24,14 +26,16 @@ class ReviewBadgeProcessor(BaseBadgeProcessor):
         self, 
         poster_path: str, 
         output_path: Optional[str] = None,
-        use_demo_data: bool = False
+        use_demo_data: bool = False,
+        db_session: Optional[AsyncSession] = None,
+        jellyfin_id: Optional[str] = None
     ) -> PosterResult:
         """Process a single poster with review badge"""
         try:
             self.logger.debug(f"Processing review badge for: {poster_path}")
             
             # Load review badge settings
-            settings = await self._load_settings()
+            settings = await self._load_settings(db_session)
             if not settings:
                 return PosterResult(
                     source_path=poster_path,
@@ -39,13 +43,16 @@ class ReviewBadgeProcessor(BaseBadgeProcessor):
                     error="Failed to load review badge settings"
                 )
             
-            # Get review data
+            # Debug: Log the loaded settings
+            self.logger.debug(f"Loaded review settings in processor: {settings}")
+            
+            # Get review data - NO DEMO DATA, only real reviews
             if use_demo_data:
-                review_data = self._get_demo_reviews()
-                self.logger.debug("Using demo review data")
-            else:
-                review_data = await self._get_review_info(poster_path)
-                self.logger.debug(f"Retrieved {len(review_data)} reviews" if review_data else "No reviews found")
+                self.logger.warning("Demo data mode disabled - using real data only")
+            
+            self.logger.debug(f"Getting real review data for jellyfin_id: {jellyfin_id}")
+            review_data = await self._get_real_reviews_from_jellyfin(jellyfin_id, settings)
+            self.logger.debug(f"Retrieved {len(review_data)} real reviews" if review_data else "No real reviews found")
             
             if not review_data:
                 self.logger.warning("No reviews found, skipping review badge")
@@ -69,10 +76,11 @@ class ReviewBadgeProcessor(BaseBadgeProcessor):
                     success=True
                 )
             else:
+                self.logger.error("Review badge applicator returned None - check applicator logs")
                 return PosterResult(
                     source_path=poster_path,
                     success=False,
-                    error="Failed to apply review badge"
+                    error="Failed to apply review badge - applicator returned None"
                 )
                 
         except Exception as e:
@@ -87,7 +95,8 @@ class ReviewBadgeProcessor(BaseBadgeProcessor):
         self,
         poster_paths: List[str],
         output_directory: Optional[str] = None,
-        use_demo_data: bool = False
+        use_demo_data: bool = False,
+        db_session: Optional[AsyncSession] = None
     ) -> List[PosterResult]:
         """Process multiple posters with review badges"""
         results = []
@@ -104,7 +113,7 @@ class ReviewBadgeProcessor(BaseBadgeProcessor):
                 output_path = str(Path(output_directory) / poster_name)
             
             # Process single poster
-            result = await self.process_single(poster_path, output_path, use_demo_data)
+            result = await self.process_single(poster_path, output_path, use_demo_data, db_session)
             results.append(result)
             
             # Log progress for bulk operations
@@ -116,97 +125,197 @@ class ReviewBadgeProcessor(BaseBadgeProcessor):
         
         return results
     
-    def _get_demo_reviews(self) -> List[Dict[str, Any]]:
-        """Get realistic demo review data for consistent previews"""
-        return [
-            {
-                "source": "IMDb",
-                "text": "85%",
-                "image_key": "IMDb"
-            },
-            {
-                "source": "TMDb",
-                "text": "82%",
-                "image_key": "TMDb"
-            },
-            {
-                "source": "Rotten Tomatoes",
-                "text": "78%",
-                "image_key": "RT-Crit-Fresh"
-            }
-        ]
-    
-    async def _load_settings(self) -> Optional[Dict[str, Any]]:
-        """Load review badge settings from v1 YAML or v2 database"""
+    async def _load_settings(self, db_session: Optional[AsyncSession] = None) -> Optional[Dict[str, Any]]:
+        """Load review badge settings from v2 database only"""
         try:
-            # First try to load from v1 settings file for compatibility
-            v1_settings_path = Path("E:/programming/aphrodite/badge_settings_review.yml")
+            # Load from v2 database
+            if db_session:
+                self.logger.debug("Loading review settings from v2 database")
+                settings = await badge_settings_service.get_review_settings(db_session, force_reload=True)
+                if settings and await badge_settings_service.validate_settings(settings, "review"):
+                    self.logger.info("Successfully loaded review settings from v2 database")
+                    return settings
             
-            if v1_settings_path.exists():
-                self.logger.debug(f"Loading v1 review settings from: {v1_settings_path}")
-                with open(v1_settings_path, 'r', encoding='utf-8') as f:
-                    settings = yaml.safe_load(f)
-                return settings
+            # Try to get a database session if not provided
+            if not db_session:
+                try:
+                    async with async_session_factory() as db:
+                        settings = await badge_settings_service.get_review_settings(db, force_reload=True)
+                        if settings and await badge_settings_service.validate_settings(settings, "review"):
+                            self.logger.info("Successfully loaded review settings from v2 database (new session)")
+                            return settings
+                except Exception as db_error:
+                    self.logger.warning(f"Could not load from database: {db_error}")
             
-            # TODO: Load from v2 database when available
-            self.logger.warning("v1 review settings not found, using default settings")
+            # Use default settings as fallback (no YAML files in v2)
+            self.logger.info("Using default review settings (v2 database not available)")
             return self._get_default_settings()
             
         except Exception as e:
             self.logger.error(f"Error loading review settings: {e}", exc_info=True)
-            return None
+            return self._get_default_settings()
     
     def _get_default_settings(self) -> Dict[str, Any]:
         """Get default review badge settings"""
         return {
             "General": {
-                "general_badge_size": 100,
-                "general_text_padding": 12,
-                "use_dynamic_sizing": True
+                "general_badge_position": "bottom-left",
+                "general_edge_padding": 30,
+                "badge_orientation": "vertical",
+                "badge_spacing": 15,
+                "max_badges_to_display": 4,
+                "general_text_padding": 20
             },
             "Text": {
-                "font": "Arial.ttf",
+                "font": "AvenirNextLTProBold.otf",
                 "fallback_font": "DejaVuSans.ttf",
-                "text-size": 16,
+                "text-size": 60,
                 "text-color": "#FFFFFF"
             },
             "Background": {
-                "background-color": "#fe019a",
+                "background-color": "#2C2C2C",
                 "background_opacity": 60
             },
             "Border": {
-                "border-color": "#000000",
+                "border-color": "#2C2C2C",
                 "border_width": 1,
                 "border-radius": 10
             },
-            "Shadow": {
-                "shadow_enable": False,
-                "shadow_blur": 5,
-                "shadow_offset_x": 2,
-                "shadow_offset_y": 2
-            },
             "ImageBadges": {
-                "enable_image_badges": True,  # Reviews use logos
+                "enable_image_badges": True,
                 "fallback_to_text": True,
-                "image_padding": 15
-            },
-            "Review": {
-                "layout": "horizontal",
-                "spacing": 10,
-                "max_reviews": 3
+                "image_padding": 5,
+                "codec_image_directory": "images/rating",  # Where review badge images are located
+                "image_mapping": {  # Maps review sources to image files
+                    "IMDb": "imdb.png",
+                    "Rotten Tomatoes": "rt.png",
+                    "RT-Crit-Fresh": "rt.png",
+                    "Metacritic": "metacritic_logo.png",
+                    "TMDb": "tmdb.png",
+                    "MyAnimeList": "mal.png"
+                }
             }
         }
     
-    async def _get_review_info(self, poster_path: str) -> Optional[List[Dict[str, Any]]]:
-        """Get review info for the media item (placeholder for real implementation)"""
-        # TODO: Implement real review fetching
-        # This would involve:
-        # 1. Getting media ID from poster path
-        # 2. Querying Jellyfin for media info
-        # 3. Fetching reviews from various sources (IMDb, TMDb, etc.)
+    async def _get_real_reviews_from_jellyfin(self, jellyfin_id: Optional[str] = None, settings: Optional[Dict[str, Any]] = None) -> Optional[List[Dict[str, Any]]]:
+        """Get REAL review info from external APIs using Jellyfin metadata"""
+        try:
+            if not jellyfin_id:
+                self.logger.warning("No jellyfin_id provided for review detection")
+                return None
+            
+            self.logger.debug(f"Getting REAL reviews for Jellyfin ID: {jellyfin_id}")
+            
+            # Import and get Jellyfin service
+            from app.services.jellyfin_service import get_jellyfin_service
+            jellyfin_service = get_jellyfin_service()
+            
+            # Query Jellyfin for media details
+            media_item = await jellyfin_service.get_media_item_by_id(jellyfin_id)
+            if not media_item:
+                self.logger.warning(f"Could not retrieve media item for ID: {jellyfin_id}")
+                return None
+            
+            # Get TMDb and IMDb IDs from Jellyfin metadata
+            provider_ids = media_item.get('ProviderIds', {})
+            tmdb_id = provider_ids.get('Tmdb')
+            imdb_id = provider_ids.get('Imdb')
+            title = media_item.get('Name', '')
+            year = media_item.get('ProductionYear')
+            media_type = media_item.get('Type', '').lower()
+            
+            self.logger.debug(f"Media: {title} ({year}) - Type: {media_type}")
+            self.logger.debug(f"TMDb ID: {tmdb_id}, IMDb ID: {imdb_id}")
+            
+            if not tmdb_id and not imdb_id:
+                self.logger.warning(f"No TMDb or IMDb ID found for {title} - cannot fetch real reviews")
+                return None
+            
+            # Use v1 review fetcher to get REAL reviews
+            try:
+                # Import v1 review system
+                import sys
+                sys.path.append("E:/programming/aphrodite")
+                
+                from aphrodite_helpers.get_review_info import ReviewFetcher
+                from aphrodite_helpers.settings_validator import load_settings
+                
+                # Load v1 settings for API keys
+                v1_settings = load_settings()
+                if not v1_settings:
+                    self.logger.warning("Could not load v1 settings for review APIs")
+                    return None
+                
+                # Create review fetcher with real API credentials
+                review_fetcher = ReviewFetcher(v1_settings)
+                
+                # Get REAL reviews using the actual jellyfin_id
+                real_reviews = review_fetcher.get_reviews(jellyfin_id)
+                
+                if real_reviews:
+                    self.logger.info(f"Found {len(real_reviews)} REAL reviews for {title}")
+                    for review in real_reviews:
+                        source = review.get('source', 'Unknown')
+                        score = review.get('text', 'N/A')
+                        self.logger.debug(f"  Real {source}: {score}")
+                    return real_reviews
+                else:
+                    self.logger.warning(f"No real reviews found for {title} (TMDb: {tmdb_id}, IMDb: {imdb_id})")
+                    return None
+                
+            except ImportError as e:
+                self.logger.error(f"Could not import v1 review system: {e}")
+                return None
+            except Exception as e:
+                self.logger.error(f"Error fetching real reviews: {e}")
+                return None
+            
+        except Exception as e:
+            self.logger.error(f"Error getting real reviews for jellyfin_id {jellyfin_id}: {e}", exc_info=True)
+            return None
+    
+    async def _get_review_info(self, poster_path: str, settings: Optional[Dict[str, Any]] = None) -> Optional[List[Dict[str, Any]]]:
+        """Get real review info using modular detector"""
+        from .review_detector import get_review_detector
+        detector = get_review_detector()
         
-        # For now, return demo data
-        return self._get_demo_reviews()
+        # CRITICAL FIX: Load review source settings that contain percentage setting
+        review_source_settings = await badge_settings_service.get_review_source_settings_standalone(force_reload=True)
+        
+        # Combine both badge settings and source settings for the detector
+        combined_settings = settings.copy() if settings else {}
+        
+        if review_source_settings:
+            # Add review source settings (which contain show_percentage_only)
+            combined_settings.update(review_source_settings)
+            self.logger.debug(f"Added review source settings to detector: {review_source_settings}")
+        
+        return await detector.get_review_info(poster_path, combined_settings)
+    
+    def _get_demo_reviews(self, poster_path: str, settings: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+        """Get demo review data using modular detector"""
+        from .review_detector import get_review_detector
+        detector = get_review_detector()
+        
+        # CRITICAL FIX: Load review source settings for demo data too
+        import asyncio
+        try:
+            review_source_settings = asyncio.run(
+                badge_settings_service.get_review_source_settings_standalone(force_reload=True)
+            )
+            
+            # Combine both badge settings and source settings for the detector
+            combined_settings = settings.copy() if settings else {}
+            
+            if review_source_settings:
+                combined_settings.update(review_source_settings)
+                self.logger.debug(f"Added review source settings to demo reviews: {review_source_settings}")
+            
+            return detector.get_demo_reviews(poster_path, combined_settings)
+            
+        except Exception as e:
+            self.logger.error(f"Error loading review source settings for demo: {e}")
+            return detector.get_demo_reviews(poster_path, settings)
     
     async def _apply_review_badge(
         self,
@@ -215,81 +324,9 @@ class ReviewBadgeProcessor(BaseBadgeProcessor):
         settings: Dict[str, Any],
         output_path: Optional[str] = None
     ) -> Optional[str]:
-        """Apply review badge to poster using v1 logic"""
-        try:
-            # Import v1 review badge functions
-            import sys
-            sys.path.append("E:/programming/aphrodite")
-            
-            from aphrodite_helpers.apply_review_badges import (
-                create_review_container, 
-                apply_badge_to_poster as apply_review_badge
-            )
-            
-            # Create review container using v1 logic
-            review_container = create_review_container(review_data, settings)
-            if not review_container:
-                self.logger.error("Failed to create review container")
-                return None
-            
-            # Determine working and output directories
-            poster_path_obj = Path(poster_path)
-            working_dir = poster_path_obj.parent / "working"
-            modified_dir = poster_path_obj.parent / "modified"
-            
-            # Ensure directories exist
-            working_dir.mkdir(exist_ok=True)
-            modified_dir.mkdir(exist_ok=True)
-            
-            # Handle PNG to JPG conversion for review processing
-            temp_current_path = poster_path
-            if poster_path.endswith('.png'):
-                temp_jpg_path = poster_path.replace('.png', '.jpg')
-                try:
-                    from PIL import Image
-                    img = Image.open(poster_path)
-                    img.convert('RGB').save(temp_jpg_path, 'JPEG')
-                    temp_current_path = temp_jpg_path
-                    self.logger.debug(f"Converted PNG to JPG for review processing: {temp_jpg_path}")
-                except Exception as e:
-                    self.logger.warning(f"Failed to convert PNG to JPG: {e}")
-            
-            # Apply review badge to poster using v1 logic
-            result_path = apply_review_badge(
-                poster_path=temp_current_path,
-                badge=review_container,
-                settings=settings,
-                working_dir=str(working_dir),
-                output_dir=str(modified_dir)
-            )
-            
-            # Clean up temporary JPG file if created
-            if temp_current_path != poster_path and Path(temp_current_path).exists():
-                try:
-                    Path(temp_current_path).unlink()
-                except Exception as e:
-                    self.logger.warning(f"Failed to clean up temp file: {e}")
-            
-            # Convert result back to PNG if needed
-            if result_path and result_path.endswith('.jpg') and poster_path.endswith('.png'):
-                final_png_path = result_path.replace('.jpg', '.png')
-                try:
-                    from PIL import Image
-                    img = Image.open(result_path)
-                    img.save(final_png_path, 'PNG')
-                    Path(result_path).unlink()  # Remove JPG version
-                    result_path = final_png_path
-                    self.logger.debug(f"Converted result back to PNG: {final_png_path}")
-                except Exception as e:
-                    self.logger.warning(f"Failed to convert result back to PNG: {e}")
-            
-            if result_path and Path(result_path).exists():
-                self.logger.debug(f"Successfully applied review badge: {result_path}")
-                return result_path
-            else:
-                self.logger.error("v1 review badge application failed")
-                return None
-                
-        except Exception as e:
-            self.logger.error(f"Error applying review badge: {e}", exc_info=True)
-            return None
+        """Apply review badge using modular applicator"""
+        from .review_applicator import get_review_applicator
+        applicator = get_review_applicator()
+        return await applicator.apply_review_badge(
+            poster_path, review_data, settings, output_path
+        )

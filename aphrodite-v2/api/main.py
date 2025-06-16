@@ -32,7 +32,7 @@ from app.middleware.logging import LoggingMiddleware
 from app.middleware.correlation import CorrelationMiddleware
 
 # Import routes
-from app.routes import health, media, jobs, config, system, maintenance, preview
+from app.routes import health, media, jobs, config, system, maintenance, preview, poster_manager, poster_replacement, image_proxy
 
 # Import exception handlers
 from app.core.exceptions import register_exception_handlers
@@ -126,6 +126,9 @@ def create_application() -> FastAPI:
     app.include_router(system.router, tags=["System"])
     app.include_router(maintenance.router, tags=["Maintenance"])
     app.include_router(preview.router, prefix="/api/v1/preview", tags=["Preview"])
+    app.include_router(poster_manager.router, prefix="/api/v1/poster-manager", tags=["Poster Manager"])
+    app.include_router(poster_replacement.router, prefix="/api/v1", tags=["Poster Replacement"])
+    app.include_router(image_proxy.router, prefix="/api/v1/images", tags=["Image Proxy"])
     
     # Mount static files
     static_path = Path(__file__).parent / "static"

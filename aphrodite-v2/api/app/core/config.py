@@ -72,6 +72,7 @@ class Settings(BaseSettings):
     # External APIs
     jellyfin_url: Optional[str] = Field(default=None, description="Jellyfin server URL")
     jellyfin_api_key: Optional[str] = Field(default=None, description="Jellyfin API key")
+    jellyfin_user_id: Optional[str] = Field(default=None, description="Jellyfin user ID")
     
     # Logging
     log_level: str = Field(default="DEBUG", description="Log level")

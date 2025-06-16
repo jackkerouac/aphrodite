@@ -14,6 +14,7 @@ class SingleBadgeRequest(BaseModel):
     badge_types: List[str]
     use_demo_data: bool = False
     output_path: Optional[str] = None
+    jellyfin_id: Optional[str] = None  # NEW: For real metadata integration
 
 class BulkBadgeRequest(BaseModel):
     poster_paths: List[str]
@@ -21,6 +22,7 @@ class BulkBadgeRequest(BaseModel):
     use_demo_data: bool = False
     output_directory: Optional[str] = None
     batch_size: int = 10
+    jellyfin_ids: Optional[List[str]] = None  # NEW: For bulk metadata support
 
 class UniversalBadgeRequest(BaseModel):
     single_request: Optional[SingleBadgeRequest] = None

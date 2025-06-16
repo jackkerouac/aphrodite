@@ -9,6 +9,18 @@ export interface ReviewSettings {
     badge_spacing: number;
     max_badges_to_display: number;
   };
+  Sources: {
+    enable_imdb: boolean;
+    enable_rotten_tomatoes: boolean;
+    enable_metacritic: boolean;
+    enable_tmdb: boolean;
+    enable_myanimelist: boolean;
+    enable_anidb: boolean;
+    source_priority: string[];
+    minimum_votes_threshold: number;
+    fallback_behavior: string;
+    [key: string]: any; // Allow additional source settings
+  };
   Text: {
     font: string;
     fallback_font: string;
@@ -67,6 +79,17 @@ export const defaultReviewSettings: ReviewSettings = {
     badge_orientation: 'vertical',
     badge_spacing: 15,
     max_badges_to_display: 4
+  },
+  Sources: {
+    enable_imdb: true,
+    enable_rotten_tomatoes: true,
+    enable_metacritic: true,
+    enable_tmdb: false,
+    enable_myanimelist: false,
+    enable_anidb: false,
+    source_priority: ['imdb', 'rotten_tomatoes', 'metacritic', 'tmdb', 'myanimelist', 'anidb'],
+    minimum_votes_threshold: 100,
+    fallback_behavior: 'hide'
   },
   Text: {
     font: 'AvenirNextLTProBold.otf',

@@ -29,7 +29,8 @@ class AudioBadgeProcessor(BaseBadgeProcessor):
         poster_path: str, 
         output_path: Optional[str] = None,
         use_demo_data: bool = False,
-        db_session: Optional[AsyncSession] = None
+        db_session: Optional[AsyncSession] = None,
+        jellyfin_id: Optional[str] = None
     ) -> PosterResult:
         """Process a single poster with audio badge"""
         try:
@@ -44,13 +45,13 @@ class AudioBadgeProcessor(BaseBadgeProcessor):
                     error="Failed to load audio badge settings"
                 )
             
-            # Get audio codec data
+            # Get audio codec data - NO DEMO DATA, only real codec detection
             if use_demo_data:
-                codec_data = "DTS-HD MA"  # Demo codec for consistent previews
-                self.logger.debug("Using demo audio codec: DTS-HD MA")
-            else:
-                codec_data = await self._get_audio_codec(poster_path)
-                self.logger.debug(f"Detected audio codec: {codec_data}")
+                self.logger.warning("Demo data mode disabled - using real data only")
+            
+            self.logger.debug(f"Getting real audio codec for jellyfin_id: {jellyfin_id}")
+            codec_data = await self._get_audio_codec_from_jellyfin_id(jellyfin_id)
+            self.logger.debug(f"Detected real audio codec: {codec_data}")
             
             if not codec_data:
                 self.logger.warning("No audio codec detected, skipping audio badge")
@@ -205,16 +206,174 @@ class AudioBadgeProcessor(BaseBadgeProcessor):
             }
         }
     
-    async def _get_audio_codec(self, poster_path: str) -> Optional[str]:
-        """Get audio codec for the media item (with variety for preview testing)"""
-        # TODO: Implement real audio codec detection from Jellyfin
-        # This would involve:
-        # 1. Getting media ID from poster path
-        # 2. Querying Jellyfin for media info
-        # 3. Extracting audio codec information
-        
-        # For now, return varied demo data based on poster filename for testing
-        # This gives us different badges to test the preview system
+    async def _get_audio_codec_from_jellyfin_id(self, jellyfin_id: Optional[str] = None) -> Optional[str]:
+        """Get real audio codec directly from Jellyfin ID (CRITICAL FIX)"""
+        try:
+            if not jellyfin_id:
+                self.logger.warning("No jellyfin_id provided for audio codec detection")
+                return None
+            
+            self.logger.debug(f"Getting audio codec for Jellyfin ID: {jellyfin_id}")
+            
+            # Import and get Jellyfin service
+            from app.services.jellyfin_service import get_jellyfin_service
+            jellyfin_service = get_jellyfin_service()
+            
+            # Query Jellyfin for media details
+            media_item = await jellyfin_service.get_media_item_by_id(jellyfin_id)
+            if not media_item:
+                self.logger.warning(f"Could not retrieve media item for ID: {jellyfin_id}")
+                return None
+            
+            media_type = media_item.get('Type', '')
+            self.logger.debug(f"Media type for {jellyfin_id}: {media_type}")
+            
+            if media_type == 'Movie':
+                # For movies: get audio codec directly
+                codec = await jellyfin_service.get_audio_codec_info(media_item)
+                self.logger.debug(f"Movie audio codec for {jellyfin_id}: {codec}")
+                return codec
+            
+            elif media_type in ['Series', 'Season']:
+                # For TV: sample first 5 episodes for dominant codec
+                codec = await jellyfin_service.get_tv_series_dominant_codec(jellyfin_id)
+                self.logger.debug(f"TV series dominant codec for {jellyfin_id}: {codec}")
+                return codec
+            
+            elif media_type == 'Episode':
+                # For individual episodes: get codec directly
+                codec = await jellyfin_service.get_audio_codec_info(media_item)
+                self.logger.debug(f"Episode audio codec for {jellyfin_id}: {codec}")
+                return codec
+            
+            else:
+                self.logger.warning(f"Unsupported media type '{media_type}' for {jellyfin_id}")
+                return None
+            
+        except Exception as e:
+            self.logger.error(f"Error getting audio codec for jellyfin_id {jellyfin_id}: {e}", exc_info=True)
+            return None
+    
+    async def _get_audio_codec(self, poster_path: str, jellyfin_id: Optional[str] = None) -> Optional[str]:
+        """Get real audio codec from Jellyfin metadata"""
+        try:
+            # If jellyfin_id is provided directly, use it (preferred method)
+            if jellyfin_id:
+                self.logger.debug(f"Using provided Jellyfin ID: {jellyfin_id}")
+            else:
+                # Fall back to extracting from poster path (legacy method)
+                poster_file = Path(poster_path)
+                
+                # Handle both original and resized filenames
+                if "jellyfin_" in poster_file.name:
+                    # For resized files, we need to look for the original metadata file
+                    if poster_file.name.startswith('resized_jellyfin_'):
+                        # Convert resized filename back to original for metadata lookup
+                        original_name = poster_file.name[8:]  # Remove 'resized_' prefix
+                        metadata_name = Path(original_name).stem + '.meta'
+                        metadata_path = poster_file.parent / metadata_name
+                    else:
+                        # Use normal metadata path for original files
+                        metadata_path = poster_file.with_suffix('.meta')
+                    if metadata_path.exists():
+                        try:
+                            import json
+                            with open(metadata_path, 'r') as f:
+                                metadata = json.load(f)
+                            jellyfin_id = metadata.get('jellyfin_id')
+                            if jellyfin_id:
+                                self.logger.debug(f"Found Jellyfin ID from metadata: {jellyfin_id}")
+                            else:
+                                self.logger.warning("No jellyfin_id in metadata file")
+                                return None
+                        except Exception as e:
+                            self.logger.warning(f"Could not read metadata file: {e}")
+                            # Fall back to filename parsing
+                            jellyfin_id = self._extract_jellyfin_id_from_filename(poster_file.name)
+                    else:
+                        # Fall back to filename parsing for older cached files
+                        jellyfin_id = self._extract_jellyfin_id_from_filename(poster_file.name)
+                else:
+                    # Not a Jellyfin cached poster, return None
+                    self.logger.debug("Not a Jellyfin cached poster, no audio codec available")
+                    return None
+                
+                if not jellyfin_id:
+                    self.logger.warning("Could not extract Jellyfin ID from poster path")
+                    return None
+            
+            self.logger.debug(f"Extracting audio codec for Jellyfin ID: {jellyfin_id}")
+            
+            # Import and get Jellyfin service
+            from app.services.jellyfin_service import get_jellyfin_service
+            jellyfin_service = get_jellyfin_service()
+            
+            # Query Jellyfin for media details
+            media_item = await jellyfin_service.get_media_item_by_id(jellyfin_id)
+            if not media_item:
+                self.logger.warning(f"Could not retrieve media item for ID: {jellyfin_id}")
+                return None
+            
+            media_type = media_item.get('Type', '')
+            self.logger.debug(f"Media type for {jellyfin_id}: {media_type}")
+            
+            if media_type == 'Movie':
+                # For movies: get audio codec directly
+                codec = await jellyfin_service.get_audio_codec_info(media_item)
+                self.logger.debug(f"Movie audio codec for {jellyfin_id}: {codec}")
+                return codec
+            
+            elif media_type in ['Series', 'Season']:
+                # For TV: sample first 5 episodes for dominant codec
+                codec = await jellyfin_service.get_tv_series_dominant_codec(jellyfin_id)
+                self.logger.debug(f"TV series dominant codec for {jellyfin_id}: {codec}")
+                return codec
+            
+            elif media_type == 'Episode':
+                # For individual episodes: get codec directly
+                codec = await jellyfin_service.get_audio_codec_info(media_item)
+                self.logger.debug(f"Episode audio codec for {jellyfin_id}: {codec}")
+                return codec
+            
+            else:
+                self.logger.warning(f"Unsupported media type '{media_type}' for {jellyfin_id}")
+                return None
+            
+        except Exception as e:
+            self.logger.error(f"Error getting audio codec for {poster_path}: {e}", exc_info=True)
+            # Fallback to demo data on error
+            self.logger.info("Falling back to demo data due to error")
+            return self._get_demo_audio_codec(poster_path)
+    
+    def _extract_jellyfin_id_from_filename(self, filename: str) -> Optional[str]:
+        """Extract Jellyfin ID from cached filename like jellyfin_0c2379d5d4fa0591f9ec64c9866b40f3_11a6b644.jpg or resized_jellyfin_..."""
+        try:
+            # Handle both original and resized filenames
+            if filename.startswith('resized_jellyfin_'):
+                # Remove 'resized_' prefix and process as normal jellyfin file
+                filename = filename[8:]  # Remove 'resized_'
+            
+            if filename.startswith('jellyfin_'):
+                # Remove extension and jellyfin_ prefix
+                base_name = Path(filename).stem
+                parts = base_name.split('_')
+                
+                # Format: jellyfin_<32-char-hex-id>_<8-char-uuid>
+                if len(parts) == 3 and parts[0] == 'jellyfin':
+                    jellyfin_id = parts[1]
+                    if len(jellyfin_id) == 32:  # Jellyfin IDs are 32 character hex strings
+                        self.logger.debug(f"Extracted Jellyfin ID from filename: {jellyfin_id}")
+                        return jellyfin_id
+                
+            self.logger.warning(f"Could not extract Jellyfin ID from filename: {filename}")
+            return None
+            
+        except Exception as e:
+            self.logger.error(f"Error extracting Jellyfin ID from filename {filename}: {e}")
+            return None
+    
+    def _get_demo_audio_codec(self, poster_path: str) -> str:
+        """Get demo audio codec as fallback (consistent per poster)"""
         import hashlib
         
         # Create a hash of the poster filename for consistent but varied results

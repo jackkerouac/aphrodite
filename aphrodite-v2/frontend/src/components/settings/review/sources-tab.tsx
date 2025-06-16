@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowUp, ArrowDown, GripVertical, CheckCircle, Info } from 'lucide-react';
 import { ReviewSettings, ReviewSource, ReviewSourceSettings } from './types';
+import { useState } from 'react';
 
 interface SourcesTabProps {
   settings: ReviewSettings;
@@ -28,6 +29,10 @@ export function SourcesTab({
   reorderSources
 }: SourcesTabProps) {
   
+  // Drag and drop state
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  
   const getConditionLabel = (conditions: string | null) => {
     if (!conditions) return '';
     try {
@@ -36,6 +41,65 @@ export function SourcesTab({
     } catch (e) {
       return 'conditional';
     }
+  };
+
+  // Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    console.log('📋 Drag started for index:', index);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (draggedIndex !== null && draggedIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, dropIndex: number) => {
+    e.preventDefault();
+    
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+    
+    console.log('📋 Dropping item from index', draggedIndex, 'to index', dropIndex);
+    
+    const sortedSources = [...reviewSources].sort((a, b) => a.priority - b.priority);
+    const draggedItem = sortedSources[draggedIndex];
+    
+    // Remove the dragged item and insert it at the new position
+    const newOrder = [...sortedSources];
+    newOrder.splice(draggedIndex, 1);
+    newOrder.splice(dropIndex, 0, draggedItem);
+    
+    // Update priorities based on new order
+    const updatedOrder = newOrder.map((source, index) => ({
+      ...source,
+      priority: index + 1,
+      display_order: index + 1
+    }));
+    
+    console.log('📋 New order after drop:', updatedOrder.map(s => ({name: s.source_name, priority: s.priority})));
+    
+    reorderSources(updatedOrder);
+    
+    // Reset drag state
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   const movePriorityUp = (index: number) => {
@@ -156,8 +220,27 @@ export function SourcesTab({
             <div className="space-y-2">
               {reviewSources
                 .sort((a, b) => a.priority - b.priority)
-                .map((source, index) => (
-                <Card key={source.id} className={`shadow-sm hover:shadow-md transition-shadow ${!source.enabled ? 'opacity-50' : ''}`}>
+                .map((source, index) => {
+                  const isDragging = draggedIndex === index;
+                  const isDraggedOver = dragOverIndex === index;
+                  
+                  return (
+                <Card 
+                  key={source.id} 
+                  className={`shadow-sm hover:shadow-md transition-shadow cursor-move ${
+                    !source.enabled ? 'opacity-50' : ''
+                  } ${
+                    isDragging ? 'opacity-30 transform rotate-2' : ''
+                  } ${
+                    isDraggedOver ? 'border-blue-500 border-2 bg-blue-50' : ''
+                  }`}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragEnd={handleDragEnd}
+                >
                   <CardContent className="p-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
@@ -247,7 +330,8 @@ export function SourcesTab({
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+              );
+                })}
             </div>
           </div>
         </CardContent>

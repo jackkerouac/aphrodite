@@ -9,6 +9,8 @@ import shutil
 from pathlib import Path
 from typing import Optional
 import uuid
+import json
+from datetime import datetime
 
 from aphrodite_logging import get_logger
 
@@ -18,11 +20,12 @@ class StorageManager:
     
     def __init__(self, 
                  processed_path: str = None,
-                 preview_path: str = None):
+                 preview_path: str = None,
+                 cache_path: str = None):
         self.logger = get_logger("aphrodite.storage.manager")
         
         # Default to API static directories if no paths provided
-        if processed_path is None or preview_path is None:
+        if processed_path is None or preview_path is None or cache_path is None:
             # Get the API directory path
             api_dir = Path(__file__).parent.parent.parent.parent  # Go up from services/poster_management to api root
             
@@ -30,9 +33,12 @@ class StorageManager:
                 processed_path = api_dir / "static" / "processed"
             if preview_path is None:
                 preview_path = api_dir / "static" / "preview"
+            if cache_path is None:
+                cache_path = api_dir / "cache" / "posters"
         
         self.processed_path = Path(processed_path)
         self.preview_path = Path(preview_path)
+        self.cache_path = Path(cache_path)
         
         # Ensure directories exist
         self._ensure_directories()
@@ -200,13 +206,84 @@ class StorageManager:
             self.logger.error(f"Error generating file URL: {e}", exc_info=True)
             return file_path
     
+    def cache_original_poster(self, poster_data: bytes, jellyfin_id: str) -> str:
+        """
+        Cache original poster before processing.
+        
+        Args:
+            poster_data: Raw poster image bytes
+            jellyfin_id: Jellyfin item ID
+            
+        Returns:
+            str: Path to cached poster file
+        """
+        try:
+            # Generate unique filename for cached original
+            unique_id = str(uuid.uuid4())[:8]
+            cache_filename = f"jellyfin_{jellyfin_id}_{unique_id}.jpg"
+            cache_file_path = self.cache_path / cache_filename
+            
+            # Save the original poster data
+            with open(cache_file_path, 'wb') as f:
+                f.write(poster_data)
+            
+            # Create metadata file
+            meta_filename = f"jellyfin_{jellyfin_id}_{unique_id}.meta"
+            meta_file_path = self.cache_path / meta_filename
+            
+            metadata = {
+                "jellyfin_id": jellyfin_id,
+                "cached_at": datetime.now().isoformat(),
+                "original_size": len(poster_data),
+                "cache_filename": cache_filename
+            }
+            
+            with open(meta_file_path, 'w') as f:
+                json.dump(metadata, f, indent=2)
+            
+            self.logger.info(f"Cached original poster for {jellyfin_id}: {cache_filename}")
+            return str(cache_file_path)
+            
+        except Exception as e:
+            self.logger.error(f"Error caching original poster: {e}", exc_info=True)
+            raise
+    
+    def get_cached_original(self, jellyfin_id: str) -> Optional[str]:
+        """
+        Get cached original poster path for a Jellyfin item.
+        
+        Args:
+            jellyfin_id: Jellyfin item ID
+            
+        Returns:
+            Optional[str]: Path to cached poster if found, None otherwise
+        """
+        try:
+            # Look for cached poster using jellyfin_id pattern
+            poster_pattern = f"jellyfin_{jellyfin_id}_*.jpg"
+            cached_posters = list(self.cache_path.glob(poster_pattern))
+            
+            if cached_posters:
+                cached_poster = cached_posters[0]  # Use first match
+                if cached_poster.exists() and cached_poster.is_file():
+                    self.logger.debug(f"Found cached original for {jellyfin_id}: {cached_poster.name}")
+                    return str(cached_poster)
+            
+            self.logger.debug(f"No cached original found for {jellyfin_id}")
+            return None
+            
+        except Exception as e:
+            self.logger.error(f"Error getting cached original: {e}", exc_info=True)
+            return None
+    
     def _ensure_directories(self):
         """Ensure required directories exist."""
         try:
             self.processed_path.mkdir(parents=True, exist_ok=True)
             self.preview_path.mkdir(parents=True, exist_ok=True)
+            self.cache_path.mkdir(parents=True, exist_ok=True)
             
-            self.logger.debug(f"Ensured directories exist: {self.processed_path}, {self.preview_path}")
+            self.logger.debug(f"Ensured directories exist: {self.processed_path}, {self.preview_path}, {self.cache_path}")
             
         except Exception as e:
             self.logger.error(f"Error creating directories: {e}", exc_info=True)
