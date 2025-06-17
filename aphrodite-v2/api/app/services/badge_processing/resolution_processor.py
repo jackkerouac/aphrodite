@@ -124,26 +124,19 @@ class ResolutionBadgeProcessor(BaseBadgeProcessor):
         return results
     
     async def _load_settings(self, db_session: Optional[AsyncSession] = None) -> Optional[Dict[str, Any]]:
-        """Load resolution badge settings from v2 database or v1 YAML fallback"""
+        """Load resolution badge settings from v2 PostgreSQL database only"""
         try:
-            # First try to load from v2 database
+            # Load from v2 database
             if db_session:
-                self.logger.debug("Loading resolution settings from v2 database (force reload for fresh settings)")
+                self.logger.debug("Loading resolution settings from v2 database")
                 settings = await badge_settings_service.get_resolution_settings(db_session, force_reload=True)
-                if settings:
-                    # Validate settings structure
-                    if await badge_settings_service.validate_settings(settings, "resolution"):
-                        self.logger.info("Successfully loaded resolution settings from v2 database")
-                        return settings
-                    else:
-                        self.logger.warning("v2 database settings failed validation")
-                else:
-                    self.logger.warning("No resolution settings found in v2 database")
+                if settings and await badge_settings_service.validate_settings(settings, "resolution"):
+                    self.logger.info("Successfully loaded resolution settings from v2 database")
+                    return settings
             
             # Try to get a database session if not provided
             if not db_session:
                 try:
-                    self.logger.debug("Attempting to get database session for settings loading (force reload)")
                     async with async_session_factory() as db:
                         settings = await badge_settings_service.get_resolution_settings(db, force_reload=True)
                         if settings and await badge_settings_service.validate_settings(settings, "resolution"):
@@ -152,18 +145,8 @@ class ResolutionBadgeProcessor(BaseBadgeProcessor):
                 except Exception as db_error:
                     self.logger.warning(f"Could not load from database: {db_error}")
             
-            # Fall back to v1 settings file for compatibility
-            v1_settings_path = Path("E:/programming/aphrodite/badge_settings_resolution.yml")
-            
-            if v1_settings_path.exists():
-                self.logger.debug(f"Loading v1 resolution settings from: {v1_settings_path}")
-                with open(v1_settings_path, 'r', encoding='utf-8') as f:
-                    settings = yaml.safe_load(f)
-                self.logger.info("Successfully loaded resolution settings from v1 YAML file")
-                return settings
-            
-            # Last resort: use default settings
-            self.logger.warning("Using default resolution settings as fallback")
+            # Use default settings as fallback (no YAML files in v2)
+            self.logger.info("Using default resolution settings (v2 database not available)")
             return self._get_default_settings()
             
         except Exception as e:

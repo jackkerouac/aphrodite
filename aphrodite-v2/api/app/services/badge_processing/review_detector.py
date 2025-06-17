@@ -28,47 +28,51 @@ class ReviewDetector:
         self.omdb_api_key = None  # Would be loaded from settings
         self.tmdb_api_key = None  # Would be loaded from settings
     
-    async def get_review_info(self, poster_path: str, settings: Optional[Dict[str, Any]] = None) -> Optional[List[Dict[str, Any]]]:
+    async def get_review_info(self, poster_path: str, settings: Optional[Dict[str, Any]] = None, jellyfin_id: Optional[str] = None) -> Optional[List[Dict[str, Any]]]:
         """Get real review info from multiple sources based on settings"""
         try:
-            # Check if this is a cached Jellyfin poster
-            poster_file = Path(poster_path)
-            
-            # Handle both original and resized filenames
-            if "jellyfin_" in poster_file.name:
-                # For resized files, we need to look for the original metadata file
-                if poster_file.name.startswith('resized_jellyfin_'):
-                    # Convert resized filename back to original for metadata lookup
-                    original_name = poster_file.name[8:]  # Remove 'resized_' prefix
-                    metadata_name = Path(original_name).stem + '.meta'
-                    metadata_path = poster_file.parent / metadata_name
-                else:
-                    # Use normal metadata path for original files
-                    metadata_path = poster_file.with_suffix('.meta')
-                if metadata_path.exists():
-                    try:
-                        with open(metadata_path, 'r') as f:
-                            metadata = json.load(f)
-                        jellyfin_id = metadata.get('jellyfin_id')
-                        if jellyfin_id:
-                            self.logger.debug(f"Found Jellyfin ID from metadata: {jellyfin_id}")
-                        else:
-                            self.logger.warning("No jellyfin_id in metadata file")
-                            return None
-                    except Exception as e:
-                        self.logger.warning(f"Could not read metadata file: {e}")
-                        # Fall back to filename parsing
+            # If jellyfin_id is provided directly, use it
+            if jellyfin_id:
+                self.logger.debug(f"Using provided Jellyfin ID: {jellyfin_id}")
+            else:
+                # Check if this is a cached Jellyfin poster and extract ID
+                poster_file = Path(poster_path)
+                
+                # Handle both original and resized filenames
+                if "jellyfin_" in poster_file.name:
+                    # For resized files, we need to look for the original metadata file
+                    if poster_file.name.startswith('resized_jellyfin_'):
+                        # Convert resized filename back to original for metadata lookup
+                        original_name = poster_file.name[8:]  # Remove 'resized_' prefix
+                        metadata_name = Path(original_name).stem + '.meta'
+                        metadata_path = poster_file.parent / metadata_name
+                    else:
+                        # Use normal metadata path for original files
+                        metadata_path = poster_file.with_suffix('.meta')
+                    if metadata_path.exists():
+                        try:
+                            with open(metadata_path, 'r') as f:
+                                metadata = json.load(f)
+                            jellyfin_id = metadata.get('jellyfin_id')
+                            if jellyfin_id:
+                                self.logger.debug(f"Found Jellyfin ID from metadata: {jellyfin_id}")
+                            else:
+                                self.logger.warning("No jellyfin_id in metadata file")
+                                return None
+                        except Exception as e:
+                            self.logger.warning(f"Could not read metadata file: {e}")
+                            # Fall back to filename parsing
+                            jellyfin_id = self._extract_jellyfin_id_from_filename(poster_file.name)
+                    else:
+                        # Fall back to filename parsing for older cached files
                         jellyfin_id = self._extract_jellyfin_id_from_filename(poster_file.name)
                 else:
-                    # Fall back to filename parsing for older cached files
-                    jellyfin_id = self._extract_jellyfin_id_from_filename(poster_file.name)
-            else:
-                # Not a Jellyfin cached poster, return None
-                self.logger.debug("Not a Jellyfin cached poster, no review info available")
-                return None
+                    # Not a Jellyfin cached poster, return None
+                    self.logger.debug("Not a Jellyfin cached poster, no review info available")
+                    return None
             
             if not jellyfin_id:
-                self.logger.warning("Could not extract Jellyfin ID from poster path")
+                self.logger.warning("Could not extract or find Jellyfin ID")
                 return None
             
             self.logger.debug(f"Extracting review info for Jellyfin ID: {jellyfin_id}")

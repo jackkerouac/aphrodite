@@ -198,7 +198,7 @@ class ReviewBadgeProcessor(BaseBadgeProcessor):
         }
     
     async def _get_real_reviews_from_jellyfin(self, jellyfin_id: Optional[str] = None, settings: Optional[Dict[str, Any]] = None) -> Optional[List[Dict[str, Any]]]:
-        """Get REAL review info from external APIs using Jellyfin metadata"""
+        """Get REAL review info using v2 PostgreSQL-based review detector"""
         try:
             if not jellyfin_id:
                 self.logger.warning("No jellyfin_id provided for review detection")
@@ -206,70 +206,36 @@ class ReviewBadgeProcessor(BaseBadgeProcessor):
             
             self.logger.debug(f"Getting REAL reviews for Jellyfin ID: {jellyfin_id}")
             
-            # Import and get Jellyfin service
-            from app.services.jellyfin_service import get_jellyfin_service
-            jellyfin_service = get_jellyfin_service()
+            # Use v2 review detector (PostgreSQL-based) instead of v1 system
+            from .review_detector import get_review_detector
+            detector = get_review_detector()
             
-            # Query Jellyfin for media details
-            media_item = await jellyfin_service.get_media_item_by_id(jellyfin_id)
-            if not media_item:
-                self.logger.warning(f"Could not retrieve media item for ID: {jellyfin_id}")
+            # Load review source settings from PostgreSQL
+            review_source_settings = await badge_settings_service.get_review_source_settings_standalone(force_reload=True)
+            
+            # Combine badge settings and source settings for the detector
+            combined_settings = settings.copy() if settings else {}
+            if review_source_settings:
+                combined_settings.update(review_source_settings)
+                self.logger.debug(f"Added PostgreSQL review source settings: {review_source_settings}")
+            
+            # Create a fake poster path for the detector (it expects a path)
+            fake_poster_path = f"jellyfin_{jellyfin_id}_fake.jpg"
+            
+            # Get real reviews using v2 detector
+            real_reviews = await detector.get_review_info(fake_poster_path, combined_settings, jellyfin_id)
+            
+            if real_reviews:
+                self.logger.info(f"Found {len(real_reviews)} REAL reviews using v2 detector")
+                for review in real_reviews:
+                    source = review.get('source', 'Unknown')
+                    score = review.get('text', 'N/A')
+                    self.logger.debug(f"  Real {source}: {score}")
+                return real_reviews
+            else:
+                self.logger.warning(f"No real reviews found using v2 detector")
                 return None
-            
-            # Get TMDb and IMDb IDs from Jellyfin metadata
-            provider_ids = media_item.get('ProviderIds', {})
-            tmdb_id = provider_ids.get('Tmdb')
-            imdb_id = provider_ids.get('Imdb')
-            title = media_item.get('Name', '')
-            year = media_item.get('ProductionYear')
-            media_type = media_item.get('Type', '').lower()
-            
-            self.logger.debug(f"Media: {title} ({year}) - Type: {media_type}")
-            self.logger.debug(f"TMDb ID: {tmdb_id}, IMDb ID: {imdb_id}")
-            
-            if not tmdb_id and not imdb_id:
-                self.logger.warning(f"No TMDb or IMDb ID found for {title} - cannot fetch real reviews")
-                return None
-            
-            # Use v1 review fetcher to get REAL reviews
-            try:
-                # Import v1 review system
-                import sys
-                sys.path.append("E:/programming/aphrodite")
                 
-                from aphrodite_helpers.get_review_info import ReviewFetcher
-                from aphrodite_helpers.settings_validator import load_settings
-                
-                # Load v1 settings for API keys
-                v1_settings = load_settings()
-                if not v1_settings:
-                    self.logger.warning("Could not load v1 settings for review APIs")
-                    return None
-                
-                # Create review fetcher with real API credentials
-                review_fetcher = ReviewFetcher(v1_settings)
-                
-                # Get REAL reviews using the actual jellyfin_id
-                real_reviews = review_fetcher.get_reviews(jellyfin_id)
-                
-                if real_reviews:
-                    self.logger.info(f"Found {len(real_reviews)} REAL reviews for {title}")
-                    for review in real_reviews:
-                        source = review.get('source', 'Unknown')
-                        score = review.get('text', 'N/A')
-                        self.logger.debug(f"  Real {source}: {score}")
-                    return real_reviews
-                else:
-                    self.logger.warning(f"No real reviews found for {title} (TMDb: {tmdb_id}, IMDb: {imdb_id})")
-                    return None
-                
-            except ImportError as e:
-                self.logger.error(f"Could not import v1 review system: {e}")
-                return None
-            except Exception as e:
-                self.logger.error(f"Error fetching real reviews: {e}")
-                return None
-            
         except Exception as e:
             self.logger.error(f"Error getting real reviews for jellyfin_id {jellyfin_id}: {e}", exc_info=True)
             return None

@@ -208,6 +208,7 @@ async def get_library_stats(library_id: str, db: AsyncSession = Depends(get_db_s
 async def search_items(
     library_id: str,
     query: Optional[str] = None,
+    badge_filter: Optional[str] = None,
     media_type: Optional[str] = None,
     genre: Optional[str] = None,
     year: Optional[int] = None,
@@ -215,7 +216,7 @@ async def search_items(
     offset: Optional[int] = 0,
     db: AsyncSession = Depends(get_db_session)
 ):
-    """Search and filter library items"""
+    """Search and filter library items with badge filtering support"""
     try:
         jellyfin_service = get_jellyfin_service()
         
@@ -250,6 +251,13 @@ async def search_items(
             tags = item.get("Tags", [])
             has_aphrodite_overlay = "aphrodite-overlay" in tags
             badge_status = "BADGED" if has_aphrodite_overlay else "ORIGINAL"
+            
+            # Apply badge filter
+            if badge_filter:
+                if badge_filter == "badged" and badge_status != "BADGED":
+                    continue
+                elif badge_filter == "original" and badge_status != "ORIGINAL":
+                    continue
             
             # Debug logging for tag detection
             if tags:  # Only log if there are any tags

@@ -145,7 +145,6 @@ export function SourcesTab({
         <CardContent>
           <p className="mb-2 text-sm">Not all review sources are currently functional. Here are the sources that are currently working:</p>
           <div className="flex flex-wrap gap-2 mb-2">
-            <Badge variant="default" className="bg-green-500">aniDB</Badge>
             <Badge variant="default" className="bg-green-500">IMDb</Badge>
             <Badge variant="default" className="bg-green-500">Metacritic</Badge>
             <Badge variant="default" className="bg-green-500">MyAnimeList</Badge>

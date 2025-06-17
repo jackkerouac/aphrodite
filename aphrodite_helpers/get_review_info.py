@@ -11,7 +11,7 @@ sys.path.append(parent_dir)
 
 from aphrodite_helpers.settings_validator import load_settings
 from aphrodite_helpers.get_media_info import get_jellyfin_item_details
-from aphrodite_helpers.review_preferences import filter_reviews_by_preferences
+# REMOVED: from aphrodite_helpers.review_preferences import filter_reviews_by_preferences
 
 # Import modular components
 from aphrodite_helpers.review_fetcher_core import ReviewFetcher as CoreReviewFetcher

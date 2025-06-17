@@ -179,7 +179,7 @@ class ReviewFormatterMixin:
                         "votes": mal_data.get("scored_by", "N/A"),
                         "rank": mal_data.get("rank", "N/A"),
                         "popularity": mal_data.get("popularity", "N/A"),
-                        "image_key": "MAL"  # Use MAL image key from badge settings
+                        "image_key": "MyAnimeList"  # Match v2 badge settings
                     })
                 except (ValueError, TypeError):
                     # Fallback to original format if conversion fails
@@ -188,7 +188,7 @@ class ReviewFormatterMixin:
                         "rating": f"{mal_data['rating']:.2f}",
                         "max_rating": "10",
                         "votes": mal_data.get("scored_by", "N/A"),
-                        "image_key": "MAL"
+                        "image_key": "MyAnimeList"
                     })
         
         # If show_details is True, return detailed review information
@@ -241,26 +241,16 @@ class ReviewFormatterMixin:
             item_name = item_data.get('Name')
             review_data["anidb"] = self.fetch_anidb_ratings(anidb_id, item_name, item_data)
         
-        # MyAnimeList (via Jikan API - check if enabled in preferences)
-        from aphrodite_helpers.review_preferences import ReviewPreferences
-        try:
-            review_prefs = ReviewPreferences()
-            should_include = review_prefs.should_include_source('MyAnimeList', item_data)
-            
-            if should_include:
-                item_name = item_data.get('Name')
-                review_data["myanimelist"] = self.fetch_myanimelist_ratings(mal_id, item_name, item_data)
-        except Exception as e:
-            log_warning(f"Error checking MyAnimeList preferences: {e}", "review_formatter")
-            # Fallback: fetch anyway if we can't check preferences
-            item_name = item_data.get('Name')
-            review_data["myanimelist"] = self.fetch_myanimelist_ratings(mal_id, item_name, item_data)
+        # MyAnimeList (via Jikan API - always try to fetch, filtering handled by v2)
+        item_name = item_data.get('Name')
+        review_data["myanimelist"] = self.fetch_myanimelist_ratings(mal_id, item_name, item_data)
         
         # Format the collected review data
         formatted_reviews = self.format_review_data(review_data, show_details)
         
-        # Apply user preferences to filter and order reviews
-        from aphrodite_helpers.review_preferences import filter_reviews_by_preferences
-        filtered_reviews = filter_reviews_by_preferences(formatted_reviews, item_data)
+        # REMOVED: SQLite-based filtering - now handled by v2 PostgreSQL settings
+        # The v2 badge processing will handle filtering based on PostgreSQL settings
+        # from aphrodite_helpers.review_preferences import filter_reviews_by_preferences
+        # filtered_reviews = filter_reviews_by_preferences(formatted_reviews, item_data)
         
-        return filtered_reviews
+        return formatted_reviews
