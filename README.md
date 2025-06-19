@@ -1,4 +1,4 @@
-# Aphrodite v2 - Modern Media Poster Enhancement System
+# Aphrodite v4.0.0 - Modern Media Poster Enhancement System
 
 <div align="center">
 
