@@ -12,23 +12,23 @@
 
 ---
 
-## 🚨 **BREAKING CHANGE NOTICE - v2.0**
+## 🚨 **BREAKING CHANGE NOTICE - v4.0.0**
 
-**⚠️ Aphrodite v2 is a complete rewrite with breaking changes:**
+**Aphrodite v4.0.0 is a complete rewrite with breaking changes:**
 
 - **New Docker-first architecture** - Simplified deployment
 - **Modern web-based configuration** - No more YAML files to edit
 - **Database migration required** - All settings need to be reconfigured
 - **Improved performance** - 3x faster processing with async architecture
 
-**📋 Migration Required:**
-- v1 users must reconfigure all settings through the new web interface
+**Migration Required:**
+- Older users must reconfigure all settings through the new web interface
 - Poster processing history will not be migrated
 - Badge configurations will need to be recreated (defaults provided)
 
 ---
 
-## 🎯 What is Aphrodite?
+## What is Aphrodite?
 
 Aphrodite automatically enhances your media posters by adding intelligent badges for:
 
@@ -39,49 +39,41 @@ Aphrodite automatically enhances your media posters by adding intelligent badges
 
 Perfect for **Jellyfin**, **Plex**, and other media servers!
 
-## 🚀 Quick Start with Docker
+## Quick Start with Docker
 
-### 🐋 One-Line Installation
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/aphrodite/main/install.sh | bash
-cd aphrodite-v2
-docker-compose up -d
-```
-
-### 📱 Manual Setup (3 steps)
+### Manual Setup (3 steps)
 
 ```bash
 # 1. Download files
 mkdir aphrodite && cd aphrodite
-curl -L https://github.com/YOUR_USERNAME/aphrodite/releases/latest/download/docker-compose.yml -o docker-compose.yml
-curl -L https://github.com/YOUR_USERNAME/aphrodite/releases/latest/download/.env.example -o .env
+curl -L https://github.com/jackkerouac/aphrodite/releases/latest/download/docker-compose.yml -o docker-compose.yml
+curl -L https://github.com/jackkerouac/aphrodite/releases/latest/download/.env.example -o .env
 
 # 2. Edit .env (optional - secure defaults provided)
-# nano .env
+nano .env
 
 # 3. Start services
 docker-compose up -d
 ```
 
-### ✨ That's it! 
+### That's it! 
 Visit **http://localhost:8000** to configure your media server and start processing!
 
-## 🎛️ Configuration
+## Configuration
 
 ### Web-Based Setup (New!)
 No more editing YAML files! Configure everything through the modern web interface:
 
-1. **📡 Media Server Connection**
+1. **Media Server Connection**
    - Jellyfin URL and API key
    - Automatic media discovery
 
-2. **🔑 External APIs** (Optional)
+2. **External APIs** (Optional)
    - TMDB (movie metadata)
    - OMDB (ratings)
    - MDBList (additional data)
 
-3. **🎨 Badge Customization**
+3. **Badge Customization**
    - Position, size, and styling
    - Enable/disable specific badges
    - Custom image mappings
@@ -100,34 +92,34 @@ API_PORT=8000
 FRONTEND_PORT=3000
 ```
 
-## 🏗️ What's New in v2?
+## What's New in v4.0.0?
 
-### ✨ Modern Architecture
-- **🐳 Docker-first** - Single command deployment
-- **⚡ Async FastAPI** - 3x faster processing
-- **🎨 React frontend** - Modern, responsive UI
-- **📊 PostgreSQL** - Reliable data storage
-- **⚙️ Background workers** - Non-blocking processing
+### Modern Architecture
+- **Docker-first** - Single command deployment
+- **Async FastAPI** - 3x faster processing
+- **React frontend** - Modern, responsive UI
+- **PostgreSQL** - Reliable data storage
+- **Background workers** - Non-blocking processing
 
-### 🛡️ Better Security
+### Better Security
 - Auto-generated secure passwords
 - JWT-based authentication
 - Input validation and sanitization
 - Regular security updates
 
-### 📱 Improved User Experience  
+### Improved User Experience  
 - **Web-based configuration** - No more YAML editing
 - **Real-time progress** - Watch processing in real-time
 - **Better error handling** - Clear, actionable error messages
 - **Responsive design** - Works on desktop and mobile
 
-### 🚀 Enhanced Performance
+### Enhanced Performance
 - **Parallel processing** - Multiple posters at once
 - **Smart caching** - Faster subsequent runs
 - **Incremental updates** - Only process changed media
 - **Optimized database** - Faster queries and operations
 
-## 📂 Directory Structure
+## Directory Structure
 
 ```
 your-aphrodite/
@@ -183,7 +175,7 @@ docker-compose restart
 | **Cache** | Redis (managed) | Internal |
 | **Worker** | Background processing | Internal |
 
-## 🔧 Advanced Usage
+## Advanced Usage
 
 ### API Integration
 ```bash
@@ -211,11 +203,11 @@ docker-compose exec postgresql pg_dump -U aphrodite aphrodite_v2 > backup.sql
 docker-compose logs -f --tail=100
 ```
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
-**🔌 Services won't start:**
+**Services won't start:**
 ```bash
 # Check logs
 docker-compose logs
@@ -225,7 +217,7 @@ netstat -tlnp | grep :8000  # Linux
 netstat -an | findstr :8000  # Windows
 ```
 
-**📁 Permission issues:**
+**Permission issues:**
 ```bash
 # Fix directory permissions
 sudo chown -R $(id -u):$(id -g) posters images
@@ -235,7 +227,7 @@ echo "PUID=$(id -u)" >> .env
 echo "PGID=$(id -g)" >> .env
 ```
 
-**🔄 Reset everything:**
+**Reset everything:**
 ```bash
 # WARNING: Deletes all data
 docker-compose down -v
@@ -244,12 +236,11 @@ docker-compose up -d
 
 ### Getting Help
 
-1. **📊 Health Check**: http://localhost:8000/health
-2. **📝 Logs**: `docker-compose logs -f`
-3. **🐛 GitHub Issues**: Report bugs and feature requests
-4. **💬 Community**: Join our Discord for support
+1. **Health Check**: http://localhost:8000/health
+2. **Logs**: `docker-compose logs -f`
+3. **GitHub Issues**: Report bugs and feature requests
 
-## 🔄 Updates
+## Updates
 
 ```bash
 # Pull latest images
@@ -262,7 +253,7 @@ docker-compose up -d
 docker image prune -f
 ```
 
-## 🔒 Security
+## Security
 
 - **Change default passwords** in `.env`
 - **Use strong SECRET_KEY** (64+ characters)
@@ -270,14 +261,14 @@ docker image prune -f
 - **Consider reverse proxy** for external access
 - **Regular backups** of database
 
-## 📚 Documentation
+## Documentation
 
-- **🐋 [Docker Setup Guide](DOCKER.md)** - Detailed Docker instructions
-- **⚙️ [Configuration Guide](docs/configuration.md)** - Advanced configuration
-- **🔧 [API Documentation](http://localhost:8000/docs)** - Interactive API docs
-- **🤝 [Contributing Guide](CONTRIBUTING.md)** - Development setup
+- **[Docker Setup Guide](DOCKER.md)** - Detailed Docker instructions
+- **[Configuration Guide](docs/configuration.md)** - Advanced configuration
+- **[API Documentation](http://localhost:8000/docs)** - Interactive API docs
+- **[Contributing Guide](CONTRIBUTING.md)** - Development setup
 
-## 🏆 Credits
+## Credits
 
 Built with love using:
 - [FastAPI](https://fastapi.tiangolo.com/) - Modern Python web framework
@@ -286,7 +277,7 @@ Built with love using:
 - [Redis](https://redis.io/) - Fast caching
 - [Docker](https://www.docker.com/) - Containerization
 
-## 📄 License
+## License
 
 MIT License - see [LICENSE.md](LICENSE.md) for details.
 
@@ -296,6 +287,6 @@ MIT License - see [LICENSE.md](LICENSE.md) for details.
 
 **⭐ Star this repo if Aphrodite enhanced your media collection! ⭐**
 
-[Report Bug](https://github.com/YOUR_USERNAME/aphrodite/issues) • [Request Feature](https://github.com/YOUR_USERNAME/aphrodite/issues) • [Join Discord](https://discord.gg/YOUR_DISCORD)
+[Report Bug](https://github.com/jackkerouac/aphrodite/issues) • [Request Feature](https://github.com/jackkerouac/aphrodite/issues)
 
 </div>
