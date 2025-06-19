@@ -109,6 +109,34 @@ async def generate_preview(request: PreviewRequest):
         
         logger.info(f"Selected poster for preview: {selected_poster}")
         
+        # Extract jellyfin_id from poster metadata if available
+        jellyfin_id = None
+        use_demo_data = False  # Default to real data for previews
+        
+        try:
+            from pathlib import Path
+            import json
+            poster_path = Path(selected_poster)
+            
+            # Check for metadata file
+            metadata_path = poster_path.with_suffix('.meta')
+            if metadata_path.exists():
+                with open(metadata_path, 'r') as f:
+                    metadata = json.load(f)
+                jellyfin_id = metadata.get('jellyfin_id')
+                if jellyfin_id:
+                    logger.info(f"Found Jellyfin ID from metadata: {jellyfin_id} - using REAL movie data")
+                    use_demo_data = False  # Use real data from this actual movie
+                else:
+                    logger.warning("No jellyfin_id in metadata - falling back to demo data")
+                    use_demo_data = True  # Only use demo as fallback
+            else:
+                logger.warning("No metadata file found - falling back to demo data")
+                use_demo_data = True  # Only use demo as fallback
+        except Exception as e:
+            logger.warning(f"Failed to read metadata: {e} - falling back to demo data")
+            use_demo_data = True  # Only use demo as fallback
+        
         # Create output path for preview
         output_path = storage_manager.create_preview_output_path(selected_poster)
         
@@ -116,8 +144,9 @@ async def generate_preview(request: PreviewRequest):
         single_request = SingleBadgeRequest(
             poster_path=selected_poster,
             badge_types=request.badgeTypes,
-            use_demo_data=False,  # Use real Jellyfin metadata instead of demo data
-            output_path=output_path
+            use_demo_data=use_demo_data,  # Use demo data unless we have real Jellyfin metadata
+            output_path=output_path,
+            jellyfin_id=jellyfin_id  # Pass Jellyfin ID if available
         )
         
         universal_request = UniversalBadgeRequest(

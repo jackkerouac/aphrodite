@@ -6,10 +6,16 @@ Models module initialization
 from .media import MediaItemModel
 from .jobs import ProcessingJobModel
 from .config import BadgeConfigModel, SystemConfigModel
+from .schedules import ScheduleModel, ScheduleExecutionModel
+from ..services.workflow.database import BatchJobModel, PosterProcessingStatusModel
 
 __all__ = [
     "MediaItemModel",
     "ProcessingJobModel", 
     "BadgeConfigModel",
-    "SystemConfigModel"
+    "SystemConfigModel",
+    "ScheduleModel",
+    "ScheduleExecutionModel",
+    "BatchJobModel",
+    "PosterProcessingStatusModel"
 ]

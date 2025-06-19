@@ -56,7 +56,8 @@ async def init_db() -> None:
         )
         
         # Import all models to ensure they're registered
-        from app.models import media, jobs, config
+        from app.models import media, jobs, config, schedules
+        from app.services.workflow.database.models import BatchJobModel, PosterProcessingStatusModel
         
         # Create tables
         async with async_engine.begin() as conn:

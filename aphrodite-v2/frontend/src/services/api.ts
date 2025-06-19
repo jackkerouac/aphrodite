@@ -88,7 +88,7 @@ export const apiService = {
 
   // System endpoints
   async getSystemStatus() {
-    const response = await fetch(`${API_BASE_URL}/health`);
+    const response = await fetch(`${API_BASE_URL}/health/detailed`);
     return handleResponse(response);
   },
 
@@ -199,6 +199,127 @@ export const apiService = {
 
   async getJob(id: string) {
     const response = await fetch(`${API_BASE_URL}/api/v1/jobs/${id}`);
+    return handleResponse(response);
+  },
+
+  // Schedule endpoints
+  async getSchedules(params?: {
+    skip?: number;
+    limit?: number;
+  }) {
+    const searchParams = new URLSearchParams();
+    if (params?.skip) searchParams.set('skip', params.skip.toString());
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+
+    const url = `${API_BASE_URL}/api/v1/schedules${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    const response = await fetch(url);
+    return handleResponse(response);
+  },
+
+  async createSchedule(schedule: {
+    name: string;
+    timezone: string;
+    cron_expression: string;
+    badge_types: string[];
+    reprocess_all: boolean;
+    enabled: boolean;
+    target_libraries: string[];
+  }) {
+    const response = await fetch(`${API_BASE_URL}/api/v1/schedules`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(schedule),
+    });
+    return handleResponse(response);
+  },
+
+  async updateSchedule(id: string, schedule: any) {
+    const response = await fetch(`${API_BASE_URL}/api/v1/schedules/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(schedule),
+    });
+    return handleResponse(response);
+  },
+
+  async deleteSchedule(id: string) {
+    const response = await fetch(`${API_BASE_URL}/api/v1/schedules/${id}`, {
+      method: 'DELETE',
+    });
+    return handleResponse(response);
+  },
+
+  async getScheduleHistory(params?: {
+    skip?: number;
+    limit?: number;
+    schedule_id?: string;
+    status?: string;
+  }) {
+    const searchParams = new URLSearchParams();
+    if (params?.skip) searchParams.set('skip', params.skip.toString());
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+    if (params?.schedule_id) searchParams.set('schedule_id', params.schedule_id);
+    if (params?.status) searchParams.set('status', params.status);
+
+    const url = `${API_BASE_URL}/api/v1/schedules/executions/history${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    const response = await fetch(url);
+    return handleResponse(response);
+  },
+
+  async executeSchedule(id: string) {
+    const response = await fetch(`${API_BASE_URL}/api/v1/schedules/${id}/execute`, {
+      method: 'POST',
+    });
+    return handleResponse(response);
+  },
+
+  async getScheduleBadgeTypes() {
+    const response = await fetch(`${API_BASE_URL}/api/v1/schedules/config/badge-types`);
+    return handleResponse(response);
+  },
+
+  async getScheduleCronPresets() {
+    const response = await fetch(`${API_BASE_URL}/api/v1/schedules/config/cron-presets`);
+    return handleResponse(response);
+  },
+
+  async getScheduleLibraries() {
+    const response = await fetch(`${API_BASE_URL}/api/v1/schedules/config/libraries`);
+    return handleResponse(response);
+  },
+
+  // Analytics endpoints
+  async getAnalyticsOverview() {
+    const response = await fetch(`${API_BASE_URL}/api/v1/analytics/overview`);
+    return handleResponse(response);
+  },
+
+  async getJobStatusDistribution() {
+    const response = await fetch(`${API_BASE_URL}/api/v1/analytics/jobs/status-distribution`);
+    return handleResponse(response);
+  },
+
+  async getProcessingTrends(days: number = 30) {
+    const response = await fetch(`${API_BASE_URL}/api/v1/analytics/jobs/trends?days=${days}`);
+    return handleResponse(response);
+  },
+
+  async getJobTypeDistribution() {
+    const response = await fetch(`${API_BASE_URL}/api/v1/analytics/jobs/types`);
+    return handleResponse(response);
+  },
+
+  async getScheduleAnalytics() {
+    const response = await fetch(`${API_BASE_URL}/api/v1/analytics/schedules`);
+    return handleResponse(response);
+  },
+
+  async getSystemPerformance() {
+    const response = await fetch(`${API_BASE_URL}/api/v1/analytics/performance`);
     return handleResponse(response);
   },
 };

@@ -45,13 +45,18 @@ class AudioBadgeProcessor(BaseBadgeProcessor):
                     error="Failed to load audio badge settings"
                 )
             
-            # Get audio codec data - NO DEMO DATA, only real codec detection
-            if use_demo_data:
-                self.logger.warning("Demo data mode disabled - using real data only")
+            # Get audio codec data - use real Jellyfin data when available
+            if jellyfin_id:
+                self.logger.debug(f"Getting real audio codec for jellyfin_id: {jellyfin_id}")
+                codec_data = await self._get_audio_codec_from_jellyfin_id(jellyfin_id)
+            elif use_demo_data:
+                self.logger.debug("Using demo data for audio codec (fallback)")
+                codec_data = self._get_demo_audio_codec(poster_path)
+            else:
+                self.logger.debug("No jellyfin_id provided and demo data disabled")
+                codec_data = None
             
-            self.logger.debug(f"Getting real audio codec for jellyfin_id: {jellyfin_id}")
-            codec_data = await self._get_audio_codec_from_jellyfin_id(jellyfin_id)
-            self.logger.debug(f"Detected real audio codec: {codec_data}")
+            self.logger.debug(f"Audio codec data: {codec_data}")
             
             if not codec_data:
                 self.logger.warning("No audio codec detected, skipping audio badge")

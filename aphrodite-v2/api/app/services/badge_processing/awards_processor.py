@@ -45,13 +45,18 @@ class AwardsBadgeProcessor(BaseBadgeProcessor):
             
             self.logger.debug(f"Loaded awards settings in processor: {settings}")
             
-            # Get awards data - NO DEMO DATA, only real awards
-            if use_demo_data:
-                self.logger.warning("Demo data mode disabled - using real data only")
+            # Get awards data - use real Jellyfin data when available
+            if jellyfin_id:
+                self.logger.debug(f"Getting real awards data for jellyfin_id: {jellyfin_id}")
+                awards_data = await self._get_real_awards_from_jellyfin(jellyfin_id, settings)
+            elif use_demo_data:
+                self.logger.debug("Using demo data for awards (fallback)")
+                awards_data = self._get_demo_awards(poster_path)
+            else:
+                self.logger.debug("No jellyfin_id provided and demo data disabled")
+                awards_data = None
             
-            self.logger.debug(f"Getting real awards data for jellyfin_id: {jellyfin_id}")
-            awards_data = await self._get_real_awards_from_jellyfin(jellyfin_id, settings)
-            self.logger.debug(f"Detected real awards: {awards_data}")
+            self.logger.debug(f"Awards data: {awards_data}")
             
             if not awards_data:
                 self.logger.warning("No awards detected, skipping awards badge")
@@ -281,6 +286,30 @@ class AwardsBadgeProcessor(BaseBadgeProcessor):
         except Exception as e:
             self.logger.error(f"Error detecting awards from metadata: {e}")
             return None
+    
+    def _get_demo_awards(self, poster_path: str) -> str:
+        """Get demo awards as fallback (consistent per poster)"""
+        import hashlib
+        
+        # Create a hash of the poster filename for consistent but varied results
+        poster_name = Path(poster_path).stem
+        hash_value = int(hashlib.md5(poster_name.encode()).hexdigest()[:8], 16)
+        
+        # List of common awards to rotate through
+        demo_awards = [
+            "oscars",
+            "emmys", 
+            "golden",
+            "bafta",
+            "cannes",
+            "netflix"
+        ]
+        
+        # Select award based on hash (consistent for same poster)
+        selected_award = demo_awards[hash_value % len(demo_awards)]
+        
+        self.logger.debug(f"Demo award for {poster_name}: {selected_award}")
+        return selected_award
     
     async def _get_awards_info(self, poster_path: str, settings: Optional[Dict[str, Any]] = None) -> Optional[str]:
         """Get awards info for the media item (legacy method - not used in v2)"""

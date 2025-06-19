@@ -45,13 +45,18 @@ class ResolutionBadgeProcessor(BaseBadgeProcessor):
                     error="Failed to load resolution badge settings"
                 )
             
-            # Get resolution data - NO DEMO DATA, only real resolution detection
-            if use_demo_data:
-                self.logger.warning("Demo data mode disabled - using real data only")
+            # Get resolution data - use real Jellyfin data when available
+            if jellyfin_id:
+                self.logger.debug(f"Getting real resolution for jellyfin_id: {jellyfin_id}")
+                resolution_data = await self._get_resolution_from_jellyfin_id(jellyfin_id)
+            elif use_demo_data:
+                self.logger.debug("Using demo data for resolution (fallback)")
+                resolution_data = self._get_demo_resolution(poster_path)
+            else:
+                self.logger.debug("No jellyfin_id provided and demo data disabled")
+                resolution_data = None
             
-            self.logger.debug(f"Getting real resolution for jellyfin_id: {jellyfin_id}")
-            resolution_data = await self._get_resolution_from_jellyfin_id(jellyfin_id)
-            self.logger.debug(f"Detected real resolution: {resolution_data}")
+            self.logger.debug(f"Resolution data: {resolution_data}")
             
             if not resolution_data:
                 self.logger.warning("No resolution detected, skipping resolution badge")
@@ -242,6 +247,30 @@ class ResolutionBadgeProcessor(BaseBadgeProcessor):
         from .resolution_detector import get_resolution_detector
         detector = get_resolution_detector()
         return await detector.get_resolution_info(poster_path)
+    
+    def _get_demo_resolution(self, poster_path: str) -> str:
+        """Get demo resolution as fallback (consistent per poster)"""
+        import hashlib
+        
+        # Create a hash of the poster filename for consistent but varied results
+        poster_name = Path(poster_path).stem
+        hash_value = int(hashlib.md5(poster_name.encode()).hexdigest()[:8], 16)
+        
+        # List of common resolutions to rotate through
+        demo_resolutions = [
+            "4K HDR",
+            "4K UHD", 
+            "1080p",
+            "1080p HDR",
+            "720p",
+            "2160p"
+        ]
+        
+        # Select resolution based on hash (consistent for same poster)
+        selected_resolution = demo_resolutions[hash_value % len(demo_resolutions)]
+        
+        self.logger.debug(f"Demo resolution for {poster_name}: {selected_resolution}")
+        return selected_resolution
     
     async def _apply_resolution_badge(
         self,

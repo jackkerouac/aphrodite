@@ -46,13 +46,18 @@ class ReviewBadgeProcessor(BaseBadgeProcessor):
             # Debug: Log the loaded settings
             self.logger.debug(f"Loaded review settings in processor: {settings}")
             
-            # Get review data - NO DEMO DATA, only real reviews
-            if use_demo_data:
-                self.logger.warning("Demo data mode disabled - using real data only")
+            # Get review data - use real Jellyfin data when available
+            if jellyfin_id:
+                self.logger.debug(f"Getting real review data for jellyfin_id: {jellyfin_id}")
+                review_data = await self._get_real_reviews_from_jellyfin(jellyfin_id, settings)
+            elif use_demo_data:
+                self.logger.debug("Using demo data for reviews (fallback)")
+                review_data = self._get_demo_reviews(poster_path, settings)
+            else:
+                self.logger.debug("No jellyfin_id provided and demo data disabled")
+                review_data = None
             
-            self.logger.debug(f"Getting real review data for jellyfin_id: {jellyfin_id}")
-            review_data = await self._get_real_reviews_from_jellyfin(jellyfin_id, settings)
-            self.logger.debug(f"Retrieved {len(review_data)} real reviews" if review_data else "No real reviews found")
+            self.logger.debug(f"Retrieved {len(review_data)} reviews" if review_data else "No reviews found")
             
             if not review_data:
                 self.logger.warning("No reviews found, skipping review badge")

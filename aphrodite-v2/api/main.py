@@ -32,7 +32,8 @@ from app.middleware.logging import LoggingMiddleware
 from app.middleware.correlation import CorrelationMiddleware
 
 # Import routes
-from app.routes import health, media, jobs, config, system, maintenance, preview, poster_manager, poster_replacement, image_proxy
+from app.routes import health, media, jobs, config, system, maintenance, preview, poster_manager, poster_replacement, image_proxy, schedules, analytics
+from app.routes.workflow import job_router, control_router, progress_router, websocket_endpoint
 
 # Import exception handlers
 from app.core.exceptions import register_exception_handlers
@@ -123,12 +124,22 @@ def create_application() -> FastAPI:
     app.include_router(media.router, prefix="/api/v1/media", tags=["Media"])
     app.include_router(jobs.router, prefix="/api/v1/jobs", tags=["Jobs"])
     app.include_router(config.router, prefix="/api/v1/config", tags=["Configuration"])
+    app.include_router(schedules.router, tags=["Schedules"])
+    app.include_router(analytics.router, tags=["Analytics"])
     app.include_router(system.router, tags=["System"])
     app.include_router(maintenance.router, tags=["Maintenance"])
     app.include_router(preview.router, prefix="/api/v1/preview", tags=["Preview"])
     app.include_router(poster_manager.router, prefix="/api/v1/poster-manager", tags=["Poster Manager"])
     app.include_router(poster_replacement.router, prefix="/api/v1", tags=["Poster Replacement"])
     app.include_router(image_proxy.router, prefix="/api/v1/images", tags=["Image Proxy"])
+    
+    # Workflow routes
+    app.include_router(job_router, tags=["Workflow"])
+    app.include_router(control_router, tags=["Workflow Control"])
+    app.include_router(progress_router, tags=["Workflow Progress"])
+    
+    # WebSocket route
+    app.websocket("/api/v1/workflow/ws/{job_id}")(websocket_endpoint)
     
     # Mount static files
     static_path = Path(__file__).parent / "static"

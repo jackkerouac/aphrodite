@@ -1,9 +1,35 @@
+'use client';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Activity, Image, Clock, CheckCircle } from 'lucide-react';
+import { Activity, Image, Clock, CheckCircle, Database, Loader2 } from 'lucide-react';
+import { useDashboardData } from '@/hooks/useDashboardData';
 
 export default function Dashboard() {
+  const { systemStatus, stats, recentJobs, isLoading, error } = useDashboardData();
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Welcome to Aphrodite v2 - Your media poster enhancement system
+          </p>
+        </div>
+        <Card>
+          <CardContent className="flex items-center justify-center p-6">
+            <div className="text-center">
+              <p className="text-destructive mb-2">Error loading dashboard data</p>
+              <p className="text-sm text-muted-foreground">{error}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -23,12 +49,22 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-2">
-              <Badge variant="outline" className="text-green-600 border-green-600">
-                Online
-              </Badge>
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Badge 
+                  variant="outline" 
+                  className={systemStatus.api_status === 'online' 
+                    ? "text-green-600 border-green-600" 
+                    : "text-red-600 border-red-600"
+                  }
+                >
+                  {systemStatus.api_status === 'online' ? 'Online' : 'Offline'}
+                </Badge>
+              )}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Backend services running
+              Backend services {systemStatus.api_status}
             </p>
           </CardContent>
         </Card>
@@ -39,7 +75,13 @@ export default function Dashboard() {
             <Image className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2,456</div>
+            <div className="text-2xl font-bold">
+              {isLoading ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                stats.total_media_items.toLocaleString()
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">
               Total items in library
             </p>
@@ -52,7 +94,13 @@ export default function Dashboard() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3</div>
+            <div className="text-2xl font-bold">
+              {isLoading ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                stats.active_jobs
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">
               Currently processing
             </p>
@@ -65,7 +113,13 @@ export default function Dashboard() {
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24</div>
+            <div className="text-2xl font-bold">
+              {isLoading ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                stats.completed_today
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">
               Posters enhanced
             </p>
@@ -73,7 +127,7 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Current Jobs */}
+      {/* Current Jobs and System Information */}
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
@@ -83,32 +137,46 @@ export default function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Processing Movie Collection</span>
-                <Badge variant="secondary">Running</Badge>
+            {isLoading ? (
+              <div className="flex items-center justify-center p-6">
+                <Loader2 className="h-6 w-6 animate-spin" />
               </div>
-              <Progress value={75} className="h-2" />
-              <p className="text-xs text-muted-foreground">75% complete - 180/240 items</p>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">TV Shows Badge Update</span>
-                <Badge variant="outline">Queued</Badge>
+            ) : recentJobs.length > 0 ? (
+              recentJobs.map((job) => (
+                <div key={job.id} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{job.name}</span>
+                    <Badge 
+                      variant={
+                        job.status === 'completed' ? 'default' :
+                        job.status === 'running' ? 'secondary' :
+                        job.status === 'failed' ? 'destructive' : 'outline'
+                      }
+                      className={
+                        job.status === 'completed' ? 'bg-green-600' : ''
+                      }
+                    >
+                      {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
+                    </Badge>
+                  </div>
+                  <Progress value={job.progress} className="h-2" />
+                  <p className="text-xs text-muted-foreground">
+                    {job.status === 'completed' 
+                      ? 'Completed' 
+                      : job.status === 'failed'
+                      ? 'Failed'
+                      : job.status === 'running'
+                      ? `${job.progress}% complete`
+                      : 'Waiting to start'
+                    }
+                  </p>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-6">
+                <p className="text-sm text-muted-foreground">No recent jobs</p>
               </div>
-              <Progress value={0} className="h-2" />
-              <p className="text-xs text-muted-foreground">Waiting to start - 45 items</p>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Library Scan</span>
-                <Badge className="bg-green-600">Complete</Badge>
-              </div>
-              <Progress value={100} className="h-2" />
-              <p className="text-xs text-muted-foreground">Finished 2 minutes ago</p>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -127,56 +195,61 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="font-medium">Jellyfin Status</p>
-                <Badge variant="outline" className="text-green-600 border-green-600">
-                  Connected
-                </Badge>
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Badge 
+                    variant="outline" 
+                    className={systemStatus.jellyfin_status === 'connected'
+                      ? "text-green-600 border-green-600"
+                      : "text-red-600 border-red-600"
+                    }
+                  >
+                    {systemStatus.jellyfin_status === 'connected' ? 'Connected' : 'Disconnected'}
+                  </Badge>
+                )}
               </div>
               <div>
                 <p className="font-medium">Database</p>
-                <p className="text-muted-foreground">PostgreSQL</p>
+                <div className="flex items-center gap-2">
+                  <Database className="h-3 w-3" />
+                  <span className="text-muted-foreground">PostgreSQL</span>
+                  {isLoading ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <div className={`h-2 w-2 rounded-full ${
+                      systemStatus.database_status === 'healthy' ? 'bg-green-500' : 'bg-red-500'
+                    }`} />
+                  )}
+                </div>
               </div>
               <div>
                 <p className="font-medium">Queue</p>
-                <p className="text-muted-foreground">Redis</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Redis</span>
+                  {isLoading ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <div className={`h-2 w-2 rounded-full ${
+                      systemStatus.queue_status === 'healthy' ? 'bg-green-500' : 'bg-red-500'
+                    }`} />
+                  )}
+                </div>
               </div>
               <div>
                 <p className="font-medium">Workers</p>
-                <p className="text-muted-foreground">2 active</p>
+                <p className="text-muted-foreground">{systemStatus.workers_active} active</p>
               </div>
               <div>
-                <p className="font-medium">Uptime</p>
-                <p className="text-muted-foreground">2d 14h 32m</p>
+                <p className="font-medium">Success Rate</p>
+                <p className="text-muted-foreground">
+                  {isLoading ? '...' : `${stats.processing_success_rate}%`}
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>
-            Common tasks and operations
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-2 md:grid-cols-3">
-            <button className="flex items-center justify-center gap-2 p-4 border rounded-lg hover:bg-muted transition-colors">
-              <Activity className="h-4 w-4" />
-              <span>Start Library Scan</span>
-            </button>
-            <button className="flex items-center justify-center gap-2 p-4 border rounded-lg hover:bg-muted transition-colors">
-              <Image className="h-4 w-4" />
-              <span>Process All Media</span>
-            </button>
-            <button className="flex items-center justify-center gap-2 p-4 border rounded-lg hover:bg-muted transition-colors">
-              <Clock className="h-4 w-4" />
-              <span>View Job Queue</span>
-            </button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

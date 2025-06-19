@@ -24,13 +24,69 @@ class ReviewDetector:
         self.cache = {}
         self.cache_expiration = 60 * 60  # 1 hour cache
         
-        # API settings (in a real implementation, these would come from settings)
-        self.omdb_api_key = None  # Would be loaded from settings
-        self.tmdb_api_key = None  # Would be loaded from settings
+        # API settings loaded from database
+        self.omdb_api_key = None
+        self.tmdb_api_key = None
+        self._api_keys_loaded = False
+    
+    async def _load_api_keys(self):
+        """Load API keys from PostgreSQL database"""
+        if self._api_keys_loaded:
+            return
+        
+        try:
+            # Direct database connection approach
+            from app.core.config import get_settings
+            from app.models.config import SystemConfigModel
+            from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+            from sqlalchemy import select
+            
+            settings = get_settings()
+            
+            # Create a direct database connection
+            engine = create_async_engine(settings.database_url)
+            SessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+            
+            async with SessionLocal() as session:
+                # Load settings.yaml from system_config table
+                stmt = select(SystemConfigModel).where(SystemConfigModel.key == "settings.yaml")
+                result = await session.execute(stmt)
+                config = result.scalar_one_or_none()
+                
+                if config and config.value:
+                    api_keys = config.value.get("api_keys", {})
+                    
+                    # Extract OMDb API key
+                    omdb_config = api_keys.get("OMDB", [{}])
+                    if omdb_config and omdb_config[0].get("api_key"):
+                        self.omdb_api_key = omdb_config[0]["api_key"]
+                        self.logger.info(f"Loaded OMDb API key: {'*' * (len(self.omdb_api_key) - 4) + self.omdb_api_key[-4:]}")
+                    
+                    # Extract TMDb API key (stored as Bearer token)
+                    tmdb_config = api_keys.get("TMDB", [{}])
+                    if tmdb_config and tmdb_config[0].get("api_key"):
+                        self.tmdb_api_key = tmdb_config[0]["api_key"]  # Use full Bearer token
+                        self.logger.info(f"Loaded TMDb Bearer token: {'*' * 20}...{self.tmdb_api_key[-10:]}")
+                    
+                    self.logger.info("Successfully loaded API keys from database using direct connection")
+                else:
+                    self.logger.warning("No API keys found in settings.yaml - using demo data")
+            
+            # Clean up the engine
+            await engine.dispose()
+            
+            self._api_keys_loaded = True
+            
+        except Exception as e:
+            self.logger.error(f"Error loading API keys from database: {e}")
+            self.logger.warning("Falling back to demo data")
     
     async def get_review_info(self, poster_path: str, settings: Optional[Dict[str, Any]] = None, jellyfin_id: Optional[str] = None) -> Optional[List[Dict[str, Any]]]:
         """Get real review info from multiple sources based on settings"""
         try:
+            # Load API keys from database if not already loaded
+            await self._load_api_keys()
+            
             # If jellyfin_id is provided directly, use it
             if jellyfin_id:
                 self.logger.debug(f"Using provided Jellyfin ID: {jellyfin_id}")
@@ -135,14 +191,14 @@ class ReviewDetector:
                     reviews.append(tmdb_review)
             
             # Fetch RT Critics if enabled
-            if title and year and sources_config.get('enable_rotten_tomatoes_critics', False):
-                rt_review = await self._fetch_rt_critics_rating(title, year)
+            if imdb_id and sources_config.get('enable_rotten_tomatoes_critics', False):
+                rt_review = await self._fetch_rt_critics_from_omdb(imdb_id)
                 if rt_review:
                     reviews.append(rt_review)
             
             # Fetch Metacritic if enabled
-            if title and year and sources_config.get('enable_metacritic', False):
-                metacritic_review = await self._fetch_metacritic_rating(title, year, settings)
+            if imdb_id and sources_config.get('enable_metacritic', False):
+                metacritic_review = await self._fetch_metacritic_from_omdb(imdb_id, settings)
                 if metacritic_review:
                     reviews.append(metacritic_review)
             
@@ -199,7 +255,7 @@ class ReviewDetector:
             return None
     
     async def _fetch_imdb_rating(self, imdb_id: str, settings: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
-        """Fetch IMDb rating with caching and format conversion"""
+        """Fetch IMDb rating from OMDb API with caching and format conversion"""
         try:
             # Check cache first
             cache_key = f"imdb_{imdb_id}"
@@ -209,17 +265,25 @@ class ReviewDetector:
                     self.logger.debug(f"Using cached IMDb rating for {imdb_id}")
                     return cache_entry["data"]
             
-            # Demo implementation: return varied ratings based on IMDb ID
-            rating = self._generate_demo_imdb_rating(imdb_id)
-            
-            # CRITICAL FIX: Get percentage setting from passed settings first, then fallback to database
-            convert_to_percentage = False
-            if settings and 'show_percentage_only' in settings:
-                convert_to_percentage = settings.get('show_percentage_only', False)
-                self.logger.debug(f"Using percentage setting from passed settings: {convert_to_percentage}")
+            # Check if we have an OMDb API key
+            if not self.omdb_api_key:
+                self.logger.warning(f"No OMDb API key available - using demo data for {imdb_id}")
+                rating = self._generate_demo_imdb_rating(imdb_id)
             else:
-                convert_to_percentage = await self._get_percentage_setting()
-                self.logger.debug(f"Using percentage setting from database fallback: {convert_to_percentage}")
+                # Make real OMDb API call
+                self.logger.debug(f"Fetching real IMDb rating for {imdb_id} from OMDb API")
+                omdb_data = await self._call_omdb_api(imdb_id)
+                if omdb_data:
+                    rating = await self._extract_imdb_rating_from_omdb(omdb_data)
+                    if rating is None:
+                        self.logger.warning(f"No IMDb rating found in OMDb data - using demo data for {imdb_id}")
+                        rating = self._generate_demo_imdb_rating(imdb_id)
+                else:
+                    self.logger.warning(f"OMDb API call failed - using demo data for {imdb_id}")
+                    rating = self._generate_demo_imdb_rating(imdb_id)
+            
+            # Get percentage setting
+            convert_to_percentage = True  # Force percentage display for consistency
             
             if convert_to_percentage:
                 # Convert IMDb rating (0-10) to percentage (0-100)
@@ -247,15 +311,112 @@ class ReviewDetector:
                 "data": review_data
             }
             
-            self.logger.debug(f"Generated demo IMDb rating for {imdb_id}: {text_format}")
+            data_source = "real API" if self.omdb_api_key else "demo data"
+            self.logger.debug(f"Got IMDb rating for {imdb_id} from {data_source}: {text_format}")
             return review_data
             
         except Exception as e:
             self.logger.error(f"Error fetching IMDb rating for {imdb_id}: {e}")
             return None
     
+    async def _call_omdb_api(self, imdb_id: str) -> Optional[Dict[str, Any]]:
+        """Make actual OMDb API call to get all ratings data"""
+        try:
+            url = f"http://www.omdbapi.com/?i={imdb_id}&apikey={self.omdb_api_key}"
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        
+                        if data.get("Response") == "True":
+                            self.logger.debug(f"OMDb API returned data for {imdb_id}")
+                            return data
+                        
+                        self.logger.warning(f"OMDb API returned no valid data for {imdb_id}")
+                        return None
+                    else:
+                        self.logger.error(f"OMDb API error: HTTP {response.status}")
+                        return None
+                        
+        except Exception as e:
+            self.logger.error(f"OMDb API call exception: {e}")
+            return None
+    
+    async def _extract_imdb_rating_from_omdb(self, omdb_data: Dict[str, Any]) -> Optional[float]:
+        """Extract IMDb rating from OMDb data"""
+        try:
+            if "imdbRating" in omdb_data and omdb_data["imdbRating"] != "N/A":
+                rating = float(omdb_data["imdbRating"])
+                self.logger.debug(f"Extracted IMDb rating: {rating}/10")
+                return rating
+            return None
+        except (ValueError, KeyError) as e:
+            self.logger.error(f"Error extracting IMDb rating: {e}")
+            return None
+    
+    async def _extract_rt_rating_from_omdb(self, omdb_data: Dict[str, Any]) -> Optional[int]:
+        """Extract Rotten Tomatoes rating from OMDb data"""
+        try:
+            if "Ratings" in omdb_data:
+                for rating in omdb_data["Ratings"]:
+                    if rating["Source"] == "Rotten Tomatoes":
+                        rt_value = rating["Value"].rstrip("%")
+                        rt_score = int(rt_value)
+                        self.logger.debug(f"Extracted RT rating: {rt_score}%")
+                        return rt_score
+            return None
+        except (ValueError, KeyError) as e:
+            self.logger.error(f"Error extracting RT rating: {e}")
+            return None
+    
+    async def _extract_metacritic_rating_from_omdb(self, omdb_data: Dict[str, Any]) -> Optional[int]:
+        """Extract Metacritic rating from OMDb data"""
+        try:
+            if "Ratings" in omdb_data:
+                for rating in omdb_data["Ratings"]:
+                    if rating["Source"] == "Metacritic":
+                        mc_value = rating["Value"].split("/")[0]
+                        mc_score = int(mc_value)
+                        self.logger.debug(f"Extracted Metacritic rating: {mc_score}/100")
+                        return mc_score
+            return None
+        except (ValueError, KeyError) as e:
+            self.logger.error(f"Error extracting Metacritic rating: {e}")
+            return None
+    
+    async def _call_tmdb_api(self, tmdb_id: str, media_type: str = "movie") -> Optional[float]:
+        """Make actual TMDb API call to get rating"""
+        try:
+            url = f"https://api.themoviedb.org/3/{media_type}/{tmdb_id}"
+            headers = {
+                "Authorization": f"Bearer {self.tmdb_api_key}",
+                "accept": "application/json"
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, headers=headers) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        
+                        if "vote_average" in data:
+                            vote_average = data["vote_average"]
+                            if vote_average > 0:
+                                self.logger.debug(f"TMDb API returned vote average: {vote_average}/10")
+                                return float(vote_average)
+                        
+                        self.logger.warning(f"TMDb API returned no valid rating for {tmdb_id}")
+                        return None
+                    else:
+                        self.logger.error(f"TMDb API error: HTTP {response.status}")
+                        return None
+                        
+        except Exception as e:
+            self.logger.error(f"TMDb API call exception: {e}")
+            return None
+    
     async def _fetch_tmdb_rating(self, tmdb_id: str, media_type: str = "movie", settings: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
-        """Fetch TMDb rating with caching"""
+        """Fetch TMDb rating from TMDb API with caching"""
         try:
             # Check cache first
             cache_key = f"tmdb_{tmdb_id}_{media_type}"
@@ -265,13 +426,25 @@ class ReviewDetector:
                     self.logger.debug(f"Using cached TMDb rating for {tmdb_id}")
                     return cache_entry["data"]
             
-            # Demo implementation: return varied ratings based on TMDb ID
-            rating = self._generate_demo_tmdb_rating(tmdb_id)
+            # Check if we have a TMDb API key
+            if not self.tmdb_api_key:
+                self.logger.warning(f"No TMDb API key available - using demo data for {tmdb_id}")
+                rating_0_10 = self._generate_demo_tmdb_rating(tmdb_id) / 10.0  # Convert to 0-10 scale
+            else:
+                # Make real TMDb API call
+                self.logger.debug(f"Fetching real TMDb rating for {tmdb_id} from TMDb API")
+                rating_0_10 = await self._call_tmdb_api(tmdb_id, media_type)
+                if rating_0_10 is None:
+                    self.logger.warning(f"TMDb API call failed - using demo data for {tmdb_id}")
+                    rating_0_10 = self._generate_demo_tmdb_rating(tmdb_id) / 10.0  # Convert to 0-10 scale
+            
+            # Convert to percentage (TMDb uses 0-10 scale, we display as 0-100)
+            rating_percentage = int(round(rating_0_10 * 10))
             
             review_data = {
                 "source": "TMDb",
-                "text": f"{rating}%",
-                "score": rating,
+                "text": f"{rating_percentage}%",
+                "score": rating_percentage,
                 "score_max": 100,
                 "image_key": "TMDb"
             }
@@ -282,7 +455,8 @@ class ReviewDetector:
                 "data": review_data
             }
             
-            self.logger.debug(f"Generated demo TMDb rating for {tmdb_id}: {rating}%")
+            data_source = "real API" if self.tmdb_api_key else "demo data"
+            self.logger.debug(f"Got TMDb rating for {tmdb_id} from {data_source}: {rating_percentage}%")
             return review_data
             
         except Exception as e:
@@ -290,7 +464,7 @@ class ReviewDetector:
             return None
     
     async def _fetch_rt_critics_rating(self, title: str, year: int) -> Optional[Dict[str, Any]]:
-        """Fetch Rotten Tomatoes Critics rating with caching"""
+        """Fetch Rotten Tomatoes Critics rating from OMDb API"""
         try:
             # Check cache first
             cache_key = f"rt_critics_{title}_{year}"
@@ -300,22 +474,16 @@ class ReviewDetector:
                     self.logger.debug(f"Using cached RT Critics rating for {title} ({year})")
                     return cache_entry["data"]
             
-            # Generate consistent demo RT critics rating
+            # Generate consistent demo RT critics rating as fallback
             title_hash = hashlib.md5(f"{title}{year}".encode()).hexdigest()
-            critics_score = (int(title_hash[:2], 16) % 40) + 50  # 50-89%
-            
-            # Choose appropriate image based on score
-            if critics_score >= 60:
-                image_key = "RT-Crit-Fresh"
-            else:
-                image_key = "RT-Crit-Rotten"
+            demo_critics_score = (int(title_hash[:2], 16) % 40) + 50  # 50-89%
             
             review_data = {
                 "source": "RT Critics",
-                "text": f"{critics_score}%",
-                "score": critics_score,
+                "text": f"{demo_critics_score}%",
+                "score": demo_critics_score,
                 "score_max": 100,
-                "image_key": image_key
+                "image_key": "RT-Crit-Fresh" if demo_critics_score >= 60 else "RT-Crit-Rotten"
             }
             
             # Store in cache
@@ -324,11 +492,97 @@ class ReviewDetector:
                 "data": review_data
             }
             
-            self.logger.debug(f"Generated demo RT Critics rating for {title} ({year}): {critics_score}%")
+            self.logger.debug(f"Generated demo RT Critics rating for {title} ({year}): {demo_critics_score}%")
             return review_data
             
         except Exception as e:
             self.logger.error(f"Error fetching RT Critics rating for {title} ({year}): {e}")
+            return None
+    
+    async def _fetch_rt_critics_from_omdb(self, imdb_id: str) -> Optional[Dict[str, Any]]:
+        """Fetch RT Critics rating from OMDb API using IMDb ID"""
+        try:
+            # Check if we have an OMDb API key
+            if not self.omdb_api_key:
+                self.logger.warning(f"No OMDb API key available for RT Critics")
+                return None
+            
+            # Get OMDb data
+            omdb_data = await self._call_omdb_api(imdb_id)
+            if not omdb_data:
+                return None
+            
+            # Extract RT rating
+            rt_score = await self._extract_rt_rating_from_omdb(omdb_data)
+            if rt_score is None:
+                return None
+            
+            # Choose appropriate image based on score
+            if rt_score >= 60:
+                image_key = "RT-Crit-Fresh"
+            else:
+                image_key = "RT-Crit-Rotten"
+            
+            review_data = {
+                "source": "RT Critics",
+                "text": f"{rt_score}%",
+                "score": rt_score,
+                "score_max": 100,
+                "image_key": image_key
+            }
+            
+            self.logger.debug(f"Got real RT Critics rating from OMDb: {rt_score}%")
+            return review_data
+            
+        except Exception as e:
+            self.logger.error(f"Error fetching RT Critics from OMDb: {e}")
+            return None
+    
+    async def _fetch_metacritic_from_omdb(self, imdb_id: str, settings: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+        """Fetch Metacritic rating from OMDb API using IMDb ID"""
+        try:
+            # Check if we have an OMDb API key
+            if not self.omdb_api_key:
+                self.logger.warning(f"No OMDb API key available for Metacritic")
+                return None
+            
+            # Get OMDb data
+            omdb_data = await self._call_omdb_api(imdb_id)
+            if not omdb_data:
+                return None
+            
+            # Extract Metacritic rating
+            mc_score = await self._extract_metacritic_rating_from_omdb(omdb_data)
+            if mc_score is None:
+                return None
+            
+            # Force percentage display for consistency
+            convert_to_percentage = True
+            
+            if convert_to_percentage:
+                # Convert Metacritic score to percentage format
+                text_format = f"{mc_score}%"
+                score = mc_score
+                score_max = 100
+            else:
+                # Keep original /100 format
+                text_format = f"{mc_score}/100"
+                score = mc_score
+                score_max = 100
+            
+            review_data = {
+                "source": "Metacritic",
+                "text": text_format,
+                "score": score,
+                "score_max": score_max,
+                "image_key": "Metacritic"
+            }
+            
+            self.logger.debug(f"Got real Metacritic rating from OMDb: {text_format}")
+            return review_data
+            
+        except Exception as e:
+            self.logger.error(f"Error fetching Metacritic from OMDb: {e}")
             return None
     
     async def _fetch_metacritic_rating(self, title: str, year: int, settings: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
