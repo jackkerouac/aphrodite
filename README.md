@@ -4,7 +4,6 @@
 
 🎬 **Transform your movie and TV show posters with intelligent badge overlays** 🎭
 
-[![Docker Build](https://img.shields.io/github/workflow/status/YOUR_USERNAME/aphrodite/Build%20and%20Publish%20Docker%20Images)](https://github.com/YOUR_USERNAME/aphrodite/actions)
 [![License](https://img.shields.io/github/license/jackkerouac/aphrodite)](LICENSE.md)
 [![GitHub Release](https://img.shields.io/github/v/release/jackkerouac/aphrodite)](https://github.com/jackkerouac/aphrodite/releases)
 
