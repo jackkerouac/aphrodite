@@ -1,117 +1,110 @@
-# Aphrodite
+# Aphrodite v2 - Modern Media Poster Enhancement System
 
-Aphrodite automatically enhances your Jellyfin media library posters with quality indicators like resolution, audio codec, review ratings, and awards.
+## 🎯 Overview
 
-![Example Image](https://github.com/jackkerouac/aphrodite/blob/main/example01.png)
-![Example Image](https://github.com/jackkerouac/aphrodite/blob/main/example02.png)
+Aphrodite v2 is a complete rewrite of the media poster enhancement system using modern architecture and best practices.
 
-## IMPORTANT UPGRADE NOTICE:
+## 🏗️ Architecture
 
-Beginning with v3.0.0, configuration is now stored in an embedded SQLite database instead of YAML files. When you launch v3.0.0 or later, your existing YAML settings are migrated automatically—no action required.
+- **API**: FastAPI backend with async support
+- **Frontend**: Next.js with shadcn/ui components  
+- **Workers**: Celery background job processing
+- **Database**: PostgreSQL with SQLAlchemy ORM
+- **Caching**: Redis for sessions and job queues
+- **Logging**: Structured logging from day one
 
-Support for YAML will be removed entirely in v4.0.0.
-
-## IMPORTANT CYA
-
-It is also important to note that Aphrodite is **Beta software** (no matter what the version number), so please be **patient** with bug fixes and features. I am a team of one, and I work on Aphrodite in my spare time.
-
-(And yes, **I know** the version numbers are borked. Thanks for bearing with me while I iron that out!)
-
-## Features
-
-- **Smart Badge Detection**: Automatically adds resolution (4K, 1080p), audio codec (Atmos, DTS), and review badges to your posters
-- **Web Interface**: Easy-to-use web dashboard for configuration and poster management
-- **Poster Manager**: Complete control over your poster collection with search, filtering, and bulk operations
-- **Jellyfin Integration**: Seamlessly works with your existing Jellyfin server
-- **Awards Recognition**: Highlights award-winning content with special badges
-- **TV Series Support**: Intelligent dominant badge detection for series based on most common qualities
-- **Background Processing**: Process large libraries without blocking the interface
-
-## Docker Quick Start
-
-The easiest way to run Aphrodite is with Docker:
-
-```bash
-# Create project directory
-mkdir aphrodite && cd aphrodite
-
-# Download docker-compose.yml
-curl -o docker-compose.yml https://raw.githubusercontent.com/jackkerouac/aphrodite/main/docker-compose.yml
-
-# Start Aphrodite (configuration files are automatically created)
-docker-compose up -d
-```
-
-Access the web interface at **http://localhost:2125**
-
-## Manual Installation
-
-If you prefer to run Aphrodite without Docker:
+## 🚀 Development Setup
 
 ### Prerequisites
-- Python 3.10+
-- Node.js and npm
+
+- Docker and Docker Compose
+- Python 3.11+
+- Node.js 18+
 - Git
 
-### Installation
+### Quick Start
+
+1. **Check Environment Status**
+   ```bash
+   cd aphrodite-v2
+   python dev-manager.py status
+   ```
+
+2. **Start Development Environment**
+   ```bash
+   python dev-manager.py start v2
+   ```
+
+3. **Access Services**
+   - Frontend: http://localhost:3000
+   - API Documentation: http://localhost:8000/docs
+   - Monitoring: http://localhost:8080
+
+### Parallel Development
+
+You can run both v1 and v2 simultaneously:
+
 ```bash
-# Clone repository
-git clone https://github.com/jackkerouac/aphrodite.git
-cd aphrodite
+# Start both versions
+python dev-manager.py start all
 
-# Setup Python environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-pip install -r aphrodite-web/requirements.txt
+# Check status
+python dev-manager.py status
 
-# Setup frontend
-cd aphrodite-web/frontend
-npm install
-npm run build
-cd ../..
-
-# Setup configuration
-cp settings.yaml.template settings.yaml
-# Edit settings.yaml with your settings
-
-# Create directories
-mkdir -p data posters/original posters/working posters/modified
-
-# Download assets from releases page
-# Extract fonts.zip to ./fonts and images.zip to ./images
+# Stop everything
+python dev-manager.py stop all
 ```
 
-### Running
-```bash
-# Start web interface
-cd aphrodite-web
-python main.py
+## 📁 Project Structure
 
-# Flask will serve the built Vue frontend from the `/static` path. If you
-# refresh a page like `/settings`, the server will automatically return
-# `index.html` so client-side routing works correctly.
-
-# Or use command line
-python aphrodite.py library YOUR_LIBRARY_ID
+```
+aphrodite-v2/
+├── api/                    # FastAPI backend
+├── frontend/              # Next.js frontend
+├── workers/               # Celery workers
+├── shared/                # Shared utilities
+├── migration-tools/       # v1 to v2 migration
+├── logging/               # Structured logging
+├── monitoring/            # Health checks
+├── docs/                  # Documentation
+└── dev-manager.py         # Environment manager
 ```
 
-## Configuration
+## 🔍 Logging System
 
-1. Install via Docker
-2. Visit http://localhost:2125 (or wherever you installed it)
-3. Visit the Settings page and enter your:
-- **Jellyfin URL, API key and User ID**
-- **API keys for OMDB, TMDB, aniDB, mdblist** (for ratings)
-- **Badge preferences** (which types to apply)
+Comprehensive logging is built into every component:
 
-### Notes on API keys:
-- **Most** APIs are free to use, but some have limits (i.e. 1,000 calls per day, etc.)
+- **Structured Logs**: JSON format for easy parsing
+- **Correlation IDs**: Track requests across services
+- **Multiple Levels**: Debug, Info, Warning, Error
+- **Multiple Outputs**: Console, files, database
 
-## Contributing
+## 📊 Development Phases
 
-Contributions welcome! Please submit Pull Requests for any improvements.
+- **Phase 1**: Foundation & Infrastructure ✅
+- **Phase 2**: Core API Development 🚧
+- **Phase 3**: Frontend Development 📋
+- **Phase 4**: Background Processing 📋
+- **Phase 5**: Migration & Deployment 📋
 
-## License
+## 🛠️ Development Tools
 
-MIT License - see LICENSE file for details.
+- `dev-manager.py` - Environment management
+- `data-sync.py` - Data synchronization
+- `comparison-test.py` - Version comparison
+- `log-analyzer.py` - Log analysis
+
+## 📋 Current Status
+
+🚧 **Phase 1: Foundation Setup** - In Progress
+
+- [x] Repository structure created
+- [x] Development environment manager
+- [x] Logging system foundation
+- [ ] Docker configuration
+- [ ] Database setup
+- [ ] CI/CD pipeline
+
+## 🤝 Contributing
+
+This is an active development project. Please see the master development plan for detailed roadmap and contribution guidelines.

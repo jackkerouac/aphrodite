@@ -1,5 +1,4 @@
-# Aphrodite v2 Requirements
-# Combined requirements for both API and worker components
+# Aphrodite v2 API Requirements
 
 # FastAPI and async support
 fastapi==0.104.1
@@ -46,6 +45,7 @@ pyyaml==6.0.1
 # Utilities
 python-dateutil==2.8.2
 pytz==2023.3
+packaging==23.2
 
 # Development dependencies
 pytest==7.4.3
