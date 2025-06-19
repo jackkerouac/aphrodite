@@ -1,0 +1,143 @@
+services:
+  postgresql:
+    image: postgres:15-alpine
+    container_name: aphrodite-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: aphrodite_v2
+      POSTGRES_USER: aphrodite
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aphrodite_secure_pass}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init/01-init-db.sql:/docker-entrypoint-initdb.d/01-init-db.sql:ro
+      - ./docker/init/02-default-data.sql:/docker-entrypoint-initdb.d/02-default-data.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aphrodite -d aphrodite_v2"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: aphrodite-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-aphrodite_redis_pass}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  aphrodite:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aphrodite-app
+    restart: unless-stopped
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # Database configuration
+      DATABASE_URL: postgresql+asyncpg://aphrodite:${POSTGRES_PASSWORD:-aphrodite_secure_pass}@postgresql:5432/aphrodite_v2
+      
+      # Redis configuration
+      REDIS_URL: redis://:${REDIS_PASSWORD:-aphrodite_redis_pass}@redis:6379/0
+      CELERY_BROKER_URL: redis://:${REDIS_PASSWORD:-aphrodite_redis_pass}@redis:6379/0
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:-aphrodite_redis_pass}@redis:6379/1
+      
+      # Application configuration
+      ENVIRONMENT: production
+      DEBUG: false
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      
+      # Security
+      SECRET_KEY: ${SECRET_KEY:-change-this-in-production-very-long-secret-key}
+      
+      # User/Permission settings
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_FORMAT: json
+      
+    volumes:
+      # Essential user volumes - only the ones users actually need to access
+      - ./posters:/app/media:rw
+      - ./images:/app/images:rw
+      
+      # Internal volumes - managed by Docker
+      - app_logs:/app/logs
+      - app_cache:/app/cache
+      - app_temp:/app/temp
+      - app_config:/app/config
+      
+    ports:
+      - "${API_PORT:-8000}:8000"
+      - "${FRONTEND_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Celery worker for background processing
+  aphrodite-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aphrodite-worker
+    restart: unless-stopped
+    command: ["celery-worker"]
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      aphrodite:
+        condition: service_healthy
+    environment:
+      # Use same environment as main app
+      DATABASE_URL: postgresql+asyncpg://aphrodite:${POSTGRES_PASSWORD:-aphrodite_secure_pass}@postgresql:5432/aphrodite_v2
+      REDIS_URL: redis://:${REDIS_PASSWORD:-aphrodite_redis_pass}@redis:6379/0
+      CELERY_BROKER_URL: redis://:${REDIS_PASSWORD:-aphrodite_redis_pass}@redis:6379/0
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:-aphrodite_redis_pass}@redis:6379/1
+      ENVIRONMENT: production
+      DEBUG: false
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      # Share the same essential volumes
+      - ./posters:/app/media:rw
+      - ./images:/app/images:rw
+      - app_logs:/app/logs
+      - app_cache:/app/cache
+      - app_temp:/app/temp
+      - app_config:/app/config
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  app_logs:
+    driver: local
+  app_cache:
+    driver: local
+  app_temp:
+    driver: local
+  app_config:
+    driver: local
+
+networks:
+  default:
+    name: aphrodite-network

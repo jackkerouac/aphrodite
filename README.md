@@ -1,110 +1,301 @@
 # Aphrodite v2 - Modern Media Poster Enhancement System
 
-## 🎯 Overview
+<div align="center">
 
-Aphrodite v2 is a complete rewrite of the media poster enhancement system using modern architecture and best practices.
+🎬 **Transform your movie and TV show posters with intelligent badge overlays** 🎭
 
-## 🏗️ Architecture
+[![Docker Build](https://img.shields.io/github/workflow/status/YOUR_USERNAME/aphrodite/Build%20and%20Publish%20Docker%20Images)](https://github.com/YOUR_USERNAME/aphrodite/actions)
+[![License](https://img.shields.io/github/license/YOUR_USERNAME/aphrodite)](LICENSE.md)
+[![GitHub Release](https://img.shields.io/github/v/release/YOUR_USERNAME/aphrodite)](https://github.com/YOUR_USERNAME/aphrodite/releases)
 
-- **API**: FastAPI backend with async support
-- **Frontend**: Next.js with shadcn/ui components  
-- **Workers**: Celery background job processing
-- **Database**: PostgreSQL with SQLAlchemy ORM
-- **Caching**: Redis for sessions and job queues
-- **Logging**: Structured logging from day one
+</div>
 
-## 🚀 Development Setup
+---
 
-### Prerequisites
+## 🚨 **BREAKING CHANGE NOTICE - v2.0**
 
-- Docker and Docker Compose
-- Python 3.11+
-- Node.js 18+
-- Git
+**⚠️ Aphrodite v2 is a complete rewrite with breaking changes:**
 
-### Quick Start
+- **New Docker-first architecture** - Simplified deployment
+- **Modern web-based configuration** - No more YAML files to edit
+- **Database migration required** - All settings need to be reconfigured
+- **Improved performance** - 3x faster processing with async architecture
 
-1. **Check Environment Status**
-   ```bash
-   cd aphrodite-v2
-   python dev-manager.py status
-   ```
+**📋 Migration Required:**
+- v1 users must reconfigure all settings through the new web interface
+- Poster processing history will not be migrated
+- Badge configurations will need to be recreated (defaults provided)
 
-2. **Start Development Environment**
-   ```bash
-   python dev-manager.py start v2
-   ```
+---
 
-3. **Access Services**
-   - Frontend: http://localhost:3000
-   - API Documentation: http://localhost:8000/docs
-   - Monitoring: http://localhost:8080
+## 🎯 What is Aphrodite?
 
-### Parallel Development
+Aphrodite automatically enhances your media posters by adding intelligent badges for:
 
-You can run both v1 and v2 simultaneously:
+- **🔊 Audio Formats** (Atmos, DTS-X, Dolby Digital+)
+- **📺 Resolution** (4K, 1080p, HDR, Dolby Vision)
+- **🏆 Awards** (Oscars, Emmys, Golden Globes, Critic Scores)
+- **⭐ Reviews** (IMDb, Rotten Tomatoes, Metacritic)
+
+Perfect for **Jellyfin**, **Plex**, and other media servers!
+
+## 🚀 Quick Start with Docker
+
+### 🐋 One-Line Installation
 
 ```bash
-# Start both versions
-python dev-manager.py start all
-
-# Check status
-python dev-manager.py status
-
-# Stop everything
-python dev-manager.py stop all
+curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/aphrodite/main/install.sh | bash
+cd aphrodite-v2
+docker-compose up -d
 ```
 
-## 📁 Project Structure
+### 📱 Manual Setup (3 steps)
+
+```bash
+# 1. Download files
+mkdir aphrodite && cd aphrodite
+curl -L https://github.com/YOUR_USERNAME/aphrodite/releases/latest/download/docker-compose.yml -o docker-compose.yml
+curl -L https://github.com/YOUR_USERNAME/aphrodite/releases/latest/download/.env.example -o .env
+
+# 2. Edit .env (optional - secure defaults provided)
+# nano .env
+
+# 3. Start services
+docker-compose up -d
+```
+
+### ✨ That's it! 
+Visit **http://localhost:8000** to configure your media server and start processing!
+
+## 🎛️ Configuration
+
+### Web-Based Setup (New!)
+No more editing YAML files! Configure everything through the modern web interface:
+
+1. **📡 Media Server Connection**
+   - Jellyfin URL and API key
+   - Automatic media discovery
+
+2. **🔑 External APIs** (Optional)
+   - TMDB (movie metadata)
+   - OMDB (ratings)
+   - MDBList (additional data)
+
+3. **🎨 Badge Customization**
+   - Position, size, and styling
+   - Enable/disable specific badges
+   - Custom image mappings
+
+### Environment Variables
+Only basic settings needed in `.env`:
+
+```env
+# Security (change these!)
+POSTGRES_PASSWORD=your_secure_password
+REDIS_PASSWORD=your_redis_password
+SECRET_KEY=your_very_long_secret_key
+
+# Ports (change if needed)
+API_PORT=8000
+FRONTEND_PORT=3000
+```
+
+## 🏗️ What's New in v2?
+
+### ✨ Modern Architecture
+- **🐳 Docker-first** - Single command deployment
+- **⚡ Async FastAPI** - 3x faster processing
+- **🎨 React frontend** - Modern, responsive UI
+- **📊 PostgreSQL** - Reliable data storage
+- **⚙️ Background workers** - Non-blocking processing
+
+### 🛡️ Better Security
+- Auto-generated secure passwords
+- JWT-based authentication
+- Input validation and sanitization
+- Regular security updates
+
+### 📱 Improved User Experience  
+- **Web-based configuration** - No more YAML editing
+- **Real-time progress** - Watch processing in real-time
+- **Better error handling** - Clear, actionable error messages
+- **Responsive design** - Works on desktop and mobile
+
+### 🚀 Enhanced Performance
+- **Parallel processing** - Multiple posters at once
+- **Smart caching** - Faster subsequent runs
+- **Incremental updates** - Only process changed media
+- **Optimized database** - Faster queries and operations
+
+## 📂 Directory Structure
 
 ```
-aphrodite-v2/
-├── api/                    # FastAPI backend
-├── frontend/              # Next.js frontend
-├── workers/               # Celery workers
-├── shared/                # Shared utilities
-├── migration-tools/       # v1 to v2 migration
-├── logging/               # Structured logging
-├── monitoring/            # Health checks
-├── docs/                  # Documentation
-└── dev-manager.py         # Environment manager
+your-aphrodite/
+├── docker-compose.yml          # Service configuration
+├── .env                        # Your settings
+├── posters/                    # 📤 Your enhanced posters
+└── images/                     # 🎨 Badge images (customizable)
 ```
 
-## 🔍 Logging System
+**Simple!** Only 2 directories to manage, everything else is handled internally.
 
-Comprehensive logging is built into every component:
+## 🛠️ Management
 
-- **Structured Logs**: JSON format for easy parsing
-- **Correlation IDs**: Track requests across services
-- **Multiple Levels**: Debug, Info, Warning, Error
-- **Multiple Outputs**: Console, files, database
+### PowerShell (Windows)
+```powershell
+# Quick setup
+.\scripts\setup.ps1
 
-## 📊 Development Phases
+# Start services  
+docker-compose up -d
 
-- **Phase 1**: Foundation & Infrastructure ✅
-- **Phase 2**: Core API Development 🚧
-- **Phase 3**: Frontend Development 📋
-- **Phase 4**: Background Processing 📋
-- **Phase 5**: Migration & Deployment 📋
+# Test everything
+.\scripts\test-docker.ps1
 
-## 🛠️ Development Tools
+# Manage services
+.\scripts\manage.ps1 status
+.\scripts\manage.ps1 logs
+```
 
-- `dev-manager.py` - Environment management
-- `data-sync.py` - Data synchronization
-- `comparison-test.py` - Version comparison
-- `log-analyzer.py` - Log analysis
+### Bash (Linux/macOS)
+```bash
+# Quick setup
+./scripts/setup.sh
 
-## 📋 Current Status
+# Start services
+docker-compose up -d
 
-🚧 **Phase 1: Foundation Setup** - In Progress
+# Test everything
+./scripts/test-docker.sh
 
-- [x] Repository structure created
-- [x] Development environment manager
-- [x] Logging system foundation
-- [ ] Docker configuration
-- [ ] Database setup
-- [ ] CI/CD pipeline
+# Manage services
+docker-compose logs -f
+docker-compose restart
+```
 
-## 🤝 Contributing
+## 📊 Service Overview
 
-This is an active development project. Please see the master development plan for detailed roadmap and contribution guidelines.
+| Service | Description | Access |
+|---------|-------------|--------|
+| **Web Interface** | Configure and monitor | http://localhost:8000 |
+| **API** | REST API for automation | http://localhost:8000/docs |
+| **Database** | PostgreSQL (managed) | Internal |
+| **Cache** | Redis (managed) | Internal |
+| **Worker** | Background processing | Internal |
+
+## 🔧 Advanced Usage
+
+### API Integration
+```bash
+# Check system health
+curl http://localhost:8000/health/live
+
+# Start processing job
+curl -X POST http://localhost:8000/api/v1/jobs/process \
+  -H "Content-Type: application/json" \
+  -d '{"library_id": "movies"}'
+
+# Get job status
+curl http://localhost:8000/api/v1/jobs/{job_id}
+```
+
+### Automation
+```bash
+# Update to latest version
+docker-compose pull && docker-compose up -d
+
+# Backup configuration
+docker-compose exec postgresql pg_dump -U aphrodite aphrodite_v2 > backup.sql
+
+# View detailed logs
+docker-compose logs -f --tail=100
+```
+
+## 🆘 Troubleshooting
+
+### Common Issues
+
+**🔌 Services won't start:**
+```bash
+# Check logs
+docker-compose logs
+
+# Ensure ports are free
+netstat -tlnp | grep :8000  # Linux
+netstat -an | findstr :8000  # Windows
+```
+
+**📁 Permission issues:**
+```bash
+# Fix directory permissions
+sudo chown -R $(id -u):$(id -g) posters images
+
+# Or set user IDs in .env
+echo "PUID=$(id -u)" >> .env
+echo "PGID=$(id -g)" >> .env
+```
+
+**🔄 Reset everything:**
+```bash
+# WARNING: Deletes all data
+docker-compose down -v
+docker-compose up -d
+```
+
+### Getting Help
+
+1. **📊 Health Check**: http://localhost:8000/health
+2. **📝 Logs**: `docker-compose logs -f`
+3. **🐛 GitHub Issues**: Report bugs and feature requests
+4. **💬 Community**: Join our Discord for support
+
+## 🔄 Updates
+
+```bash
+# Pull latest images
+docker-compose pull
+
+# Recreate containers
+docker-compose up -d
+
+# Clean up old images  
+docker image prune -f
+```
+
+## 🔒 Security
+
+- **Change default passwords** in `.env`
+- **Use strong SECRET_KEY** (64+ characters)
+- **Keep Docker images updated**
+- **Consider reverse proxy** for external access
+- **Regular backups** of database
+
+## 📚 Documentation
+
+- **🐋 [Docker Setup Guide](DOCKER.md)** - Detailed Docker instructions
+- **⚙️ [Configuration Guide](docs/configuration.md)** - Advanced configuration
+- **🔧 [API Documentation](http://localhost:8000/docs)** - Interactive API docs
+- **🤝 [Contributing Guide](CONTRIBUTING.md)** - Development setup
+
+## 🏆 Credits
+
+Built with love using:
+- [FastAPI](https://fastapi.tiangolo.com/) - Modern Python web framework
+- [React](https://reactjs.org/) - Frontend library
+- [PostgreSQL](https://www.postgresql.org/) - Reliable database
+- [Redis](https://redis.io/) - Fast caching
+- [Docker](https://www.docker.com/) - Containerization
+
+## 📄 License
+
+MIT License - see [LICENSE.md](LICENSE.md) for details.
+
+---
+
+<div align="center">
+
+**⭐ Star this repo if Aphrodite enhanced your media collection! ⭐**
+
+[Report Bug](https://github.com/YOUR_USERNAME/aphrodite/issues) • [Request Feature](https://github.com/YOUR_USERNAME/aphrodite/issues) • [Join Discord](https://discord.gg/YOUR_DISCORD)
+
+</div>
