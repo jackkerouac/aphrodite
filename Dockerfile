@@ -14,7 +14,7 @@ RUN if [ -f package.json ]; then npm run build; fi
 # Main Python application stage
 FROM python:3.11-slim
 
-# Build arguments
+# Build arguments - new
 ARG BUILD_ENV=production
 ARG PUID=1000
 ARG PGID=1000
