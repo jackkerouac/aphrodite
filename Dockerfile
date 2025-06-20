@@ -1,6 +1,9 @@
 # Use multi-stage build for production optimization
 FROM node:18-slim AS frontend-builder
 
+# Cache bust for Docker build fixes - 2025-06-19
+RUN echo "Docker build fixed: npm ci + ESLint bypass"
+
 # Build frontend if it exists
 WORKDIR /frontend-build
 COPY frontend/package*.json ./
