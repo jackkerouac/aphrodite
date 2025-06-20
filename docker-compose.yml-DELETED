@@ -10,8 +10,6 @@ services:
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./docker/init/01-init-db.sql:/docker-entrypoint-initdb.d/01-init-db.sql:ro
-      - ./docker/init/02-default-data.sql:/docker-entrypoint-initdb.d/02-default-data.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U aphrodite -d aphrodite_v2"]
       interval: 10s
@@ -32,9 +30,7 @@ services:
       retries: 5
 
   aphrodite:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/jackkerouac/aphrodite:v4.0.2
     container_name: aphrodite-app
     restart: unless-stopped
     depends_on:
@@ -91,9 +87,7 @@ services:
 
   # Celery worker for background processing
   aphrodite-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/jackkerouac/aphrodite:v4.0.2
     container_name: aphrodite-worker
     restart: unless-stopped
     command: ["celery-worker"]

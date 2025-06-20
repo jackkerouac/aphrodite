@@ -122,3 +122,9 @@ api/static/*/*
 data/backups/
 data/logs/
 .env.development
+
+# Docker build scripts (local development only)
+docker-build-scripts/
+docker-build-scripts/*
+scripts/
+scripts/*
