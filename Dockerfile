@@ -1,28 +1,36 @@
-# Use multi-stage build for production optimization
+# === APHRODITE v2 DOCKER BUILD - FIXED VERSION ===
+# Build date: 2025-06-19 21:13:15
+
 FROM node:18-slim AS frontend-builder
 
-# Cache bust for Docker build fixes - 2025-06-19
-RUN echo "Docker build fixed: npm ci + ESLint bypass"
+# Install system dependencies for frontend build
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
-# Build frontend if it exists
 WORKDIR /frontend-build
-COPY frontend/package*.json ./
-# Install all dependencies (including devDependencies needed for build)
-RUN if [ -f package.json ]; then npm ci; fi
-COPY frontend/ ./
-# Temporarily disable ESLint during build
-RUN if [ -f package.json ]; then mv eslint.config.mjs eslint.config.mjs.bak 2>/dev/null || true; fi
-RUN if [ -f package.json ]; then npm run build; fi
 
-# Main Python application stage
+# Copy package files
+COPY frontend/package*.json ./
+
+# CRITICAL: Install ALL dependencies including devDependencies 
+# This includes @tailwindcss/postcss which is needed for build
+RUN npm ci
+
+# Copy all frontend source code
+COPY frontend/ ./
+
+# CRITICAL: Disable ESLint during Docker build
+RUN rm -f eslint.config.mjs || true
+
+# Build the frontend
+RUN npm run build
+
+# === MAIN PYTHON APPLICATION ===
 FROM python:3.11-slim
 
-# Build arguments - new
 ARG BUILD_ENV=production
 ARG PUID=1000
 ARG PGID=1000
 
-# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
@@ -40,40 +48,34 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gosu \
     && rm -rf /var/lib/apt/lists/*
 
-# Create application user and group
+# Create user
 RUN groupadd -r -g ${PGID} aphrodite && \
     useradd -r -u ${PUID} -g aphrodite -s /bin/bash -d /app aphrodite
 
-# Set working directory
 WORKDIR /app
 
-# Copy requirements and install Python dependencies
+# Install Python dependencies
 COPY api/requirements.txt ./api/
-RUN pip install --upgrade pip && \
-    pip install -r api/requirements.txt
+RUN pip install --upgrade pip && pip install -r api/requirements.txt
 
 # Copy application code
 COPY . .
 
-# Copy frontend build from previous stage (ensure directories exist first)
+# Copy frontend build (create directories first)
 RUN mkdir -p ./frontend/.next ./frontend/
 COPY --from=frontend-builder /frontend-build/.next ./frontend/.next/
 COPY --from=frontend-builder /frontend-build/package*.json ./frontend/
 
-# Create necessary directories with correct permissions
+# Create directories and set permissions
 RUN mkdir -p \
     /app/api/static/processed \
     /app/api/cache/posters \
-    /app/media \
-    /app/logs \
-    /app/temp \
-    /app/config \
-    /app/cache \
-    /app/images \
+    /app/media /app/logs /app/temp \
+    /app/config /app/cache /app/images \
     && chown -R aphrodite:aphrodite /app \
     && chmod -R 755 /app
 
-# Copy and set up entrypoint script
+# Setup entrypoint
 COPY docker/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
@@ -81,11 +83,7 @@ RUN chmod +x /app/entrypoint.sh
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8000/health/live || exit 1
 
-# Expose ports
 EXPOSE 8000 3000
 
-# Set the entrypoint
 ENTRYPOINT ["/app/entrypoint.sh"]
-
-# Default command
 CMD ["api"]
