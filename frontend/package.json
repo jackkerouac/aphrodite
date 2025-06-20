@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:docker": "SKIP_ENV_VALIDATION=1 next build",
+    "build:static": "next build && next export",
     "start": "next start",
     "lint": "next lint"
   },

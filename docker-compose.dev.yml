@@ -1,0 +1,88 @@
+# Development Docker Compose - Builds from source
+# Use this for local development and testing
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: aphrodite
+      POSTGRES_USER: aphrodite
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aphrodite"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Redis (optional - for caching and background jobs)
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Main Aphrodite Application (built from source - backend only)
+  aphrodite:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend-only
+    restart: unless-stopped
+    environment:
+      # Database
+      DATABASE_URL: postgresql+asyncpg://aphrodite:${POSTGRES_PASSWORD:-changeme}@postgres:5432/aphrodite
+      
+      # Redis (optional)
+      REDIS_URL: redis://redis:6379/0
+      
+      # API Configuration
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      ENVIRONMENT: production
+      SECRET_KEY: ${SECRET_KEY:-development-secret-key}
+      
+      # CORS (adjust for your domain)
+      CORS_ORIGINS: '["http://localhost:3000", "http://localhost:8000"]'
+      
+      # Logging
+      LOG_LEVEL: debug
+      
+      # Optional: Celery worker settings
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persistent data
+      - media_data:/app/media
+      - logs_data:/app/logs
+      - config_data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
+  media_data:
+  logs_data:
+  config_data:

@@ -1,0 +1,126 @@
+# Aphrodite v4.0.0 Production Docker Compose
+# Complete frontend + backend deployment with clean database
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: aphrodite
+      POSTGRES_USER: aphrodite
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aphrodite"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Redis Cache (optional but recommended)
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Aphrodite - Complete Application (Frontend + API)
+  aphrodite:
+    image: ghcr.io/jackkerouac/aphrodite:latest
+    restart: unless-stopped
+    environment:
+      # Database Configuration
+      DATABASE_URL: postgresql+asyncpg://aphrodite:${POSTGRES_PASSWORD:-changeme}@postgres:5432/aphrodite
+      
+      # Redis Configuration (optional)
+      REDIS_URL: redis://redis:6379/0
+      
+      # Application Configuration
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      ENVIRONMENT: production
+      SECRET_KEY: ${SECRET_KEY:-please-change-this-secret-key-in-production}
+      
+      # CORS Configuration (update with your domain)
+      CORS_ORIGINS: '["http://localhost:8000", "https://your-domain.com"]'
+      
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      
+      # Background Jobs (optional)
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      
+      # Jellyfin Integration (configure via web interface)
+      JELLYFIN_URL: ${JELLYFIN_URL:-}
+      JELLYFIN_API_KEY: ${JELLYFIN_API_KEY:-}
+      JELLYFIN_USER_ID: ${JELLYFIN_USER_ID:-}
+    ports:
+      - "${APHRODITE_PORT:-8000}:8000"
+    volumes:
+      # Persistent application data
+      - aphrodite_data:/app/data
+      - aphrodite_logs:/app/logs
+      - aphrodite_media:/app/media
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # Optional: Background Worker for heavy processing
+  aphrodite-worker:
+    image: ghcr.io/jackkerouac/aphrodite:latest
+    restart: unless-stopped
+    command: ["python", "-m", "celery", "worker", "-A", "app.celery", "--loglevel=info"]
+    environment:
+      # Same environment as main application
+      DATABASE_URL: postgresql+asyncpg://aphrodite:${POSTGRES_PASSWORD:-changeme}@postgres:5432/aphrodite
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      ENVIRONMENT: production
+      SECRET_KEY: ${SECRET_KEY:-please-change-this-secret-key-in-production}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      # Share volumes with main application
+      - aphrodite_data:/app/data
+      - aphrodite_logs:/app/logs
+      - aphrodite_media:/app/media
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      aphrodite:
+        condition: service_healthy
+    profiles:
+      - worker  # Enable with: docker-compose --profile worker up
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  aphrodite_data:
+    driver: local
+  aphrodite_logs:
+    driver: local
+  aphrodite_media:
+    driver: local
+
+networks:
+  default:
+    name: aphrodite_network
