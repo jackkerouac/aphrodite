@@ -50,7 +50,7 @@ ehthumbs.db
 Thumbs.db
 
 # Docker
-.dockerignore
+# .dockerignore - We need to track this file
 
 # Logs
 logs/
@@ -68,7 +68,7 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # Next.js
-.next/
+# .next/ - DO NOT IGNORE! We need the pre-built frontend for Docker
 out/
 .vercel
 
