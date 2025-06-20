@@ -16,6 +16,7 @@ dist/
 downloads/
 eggs/
 .eggs/
+# Exclude Python lib directories but NOT frontend src/lib
 lib/
 lib64/
 parts/
@@ -27,6 +28,8 @@ var/
 .venv/
 venv/
 .env
+# Include frontend lib directory
+!frontend/src/lib/
 
 # Docker
 Dockerfile
