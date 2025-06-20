@@ -6,6 +6,8 @@ services:
   postgres:
     image: postgres:15-alpine
     restart: unless-stopped
+    ports:
+      - "5433:5432"  # External port 5433, internal still 5432
     environment:
       POSTGRES_DB: aphrodite
       POSTGRES_USER: aphrodite
@@ -47,8 +49,8 @@ services:
       ENVIRONMENT: production
       SECRET_KEY: ${SECRET_KEY:-please-change-this-secret-key-in-production}
       
-      # CORS Configuration (update with your domain)
-      CORS_ORIGINS: '["http://localhost:8000", "https://your-domain.com"]'
+      # CORS Configuration (allows local network access)
+      CORS_ORIGINS: '["http://localhost:8000", "http://127.0.0.1:8000", "http://192.168.0.110:8000", "http://*:8000"]'
       
       # Logging
       LOG_LEVEL: ${LOG_LEVEL:-info}
