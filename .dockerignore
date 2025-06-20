@@ -1,0 +1,110 @@
+# Docker ignore file for Aphrodite v4.0.0
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Docker files (don't include in image)
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# Development environment
+.env
+.env.local
+.env.development
+.env.test
+*.env
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Cache and temporary files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+# .next/ - DO NOT IGNORE! We need the pre-built frontend
+out/
+
+# Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Data directories (will be mounted as volumes)
+data/
+media/
+temp/
+tmp/
+cache/
+
+# Documentation
+docs/
+*.md
+README*
+LICENSE*
+
+# Example and test files
+example*.png
+test-*
+*.test.js
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Migration files (include in image but ignore backups)
+migrations/*.backup
+
+# Monitoring and scripts (not needed in container)
+monitoring/
+scripts/
+migration-tools/
+
+# Legacy files
+*-DELETED/
+*DELETED*
+aphrodite-v2/
