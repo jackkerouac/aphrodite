@@ -33,14 +33,25 @@ Dockerfile
 docker-compose.yml
 .dockerignore
 
-# Node
+# Node - exclude ALL node_modules everywhere
 node_modules/
+**/node_modules/
 npm-debug.log
+.next/
+**/.next/
+.nuxt/
+**/.nuxt/
 
-# Application data - exclude runtime data but include static reference files
+# Large directories that shouldn't be in Docker context
+cache/
+logs/
+temp/
+tmp/
+media/
+images/
 posters/
 
-# Exclude data directory contents except static reference files
+# Application data - exclude runtime data but include static reference files
 data/aphrodite.db
 data/*.db
 data/aphrodite.log

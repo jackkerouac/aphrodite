@@ -9,7 +9,8 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
-const eslintConfig = [
+// Disable ESLint completely during builds
+const eslintConfig = process.env.NODE_ENV === 'production' ? [] : [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
 ];
 

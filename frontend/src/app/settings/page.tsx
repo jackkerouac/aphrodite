@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,6 +11,9 @@ import { AudioSettings } from '@/components/settings/audio-settings';
 import { ResolutionSettings } from '@/components/settings/resolution-settings';
 import { ReviewSettings } from '@/components/settings/review-settings';
 import { AwardsSettings } from '@/components/settings/awards-settings';
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 interface LoadingStatus {
   api: boolean;
@@ -37,6 +40,30 @@ const configFiles = [
 ];
 
 export default function SettingsPage() {
+  return (
+    <Suspense fallback={<SettingsPageFallback />}>
+      <SettingsPageContent />
+    </Suspense>
+  );
+}
+
+function SettingsPageFallback() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+        <p className="text-muted-foreground">
+          Configure your Aphrodite system settings
+        </p>
+      </div>
+      <div className="flex items-center justify-center min-h-96">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    </div>
+  );
+}
+
+function SettingsPageContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingStatus, setLoadingStatus] = useState<LoadingStatus>({
     api: false,

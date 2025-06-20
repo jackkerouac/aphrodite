@@ -8,7 +8,7 @@ import { JobAnalytics } from '@/components/analytics/job-analytics';
 import { ScheduleAnalytics } from '@/components/analytics/schedule-analytics';
 import { SystemPerformance } from '@/components/analytics/system-performance';
 import { Loader2, BarChart3, TrendingUp, Calendar, Activity } from 'lucide-react';
-import apiService from '@/services/api';
+// import apiService from '@/services/api'; // Unused in current implementation
 import { toast } from 'sonner';
 
 export default function AnalyticsPage() {
