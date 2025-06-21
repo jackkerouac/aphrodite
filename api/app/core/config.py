@@ -64,35 +64,24 @@ class Settings(BaseSettings):
     jwt_algorithm: str = Field(default="HS256", description="JWT algorithm")
     jwt_expire_minutes: int = Field(default=30, description="JWT expiration time in minutes")
     
-    # CORS - Use Union to accept both string and list from environment
-    cors_origins: Union[str, List[str]] = Field(
-        default=["http://localhost:3000", "http://127.0.0.1:3000"],
-        description="Allowed CORS origins"
+    # CORS - Simple string field to avoid Pydantic issues
+    cors_origins: str = Field(
+        default="http://localhost:3000,http://127.0.0.1:3000",
+        description="Allowed CORS origins (comma-separated or *)"
     )
     
-    @field_validator('cors_origins', mode='before')
-    @classmethod
-    def parse_cors_origins(cls, v):
-        """Parse CORS origins from string or list"""
-        if v is None:
-            return ["http://localhost:3000", "http://127.0.0.1:3000"]
-        if isinstance(v, str):
-            if v == "*":
-                return ["*"]
-            # Split comma-separated string into list
-            return [origin.strip() for origin in v.split(',') if origin.strip()]
-        elif isinstance(v, list):
-            return v
-        else:
-            # Fallback to default
-            return ["http://localhost:3000", "http://127.0.0.1:3000"]
-    
-    # Helper method to get parsed allowed hosts
+    # Helper methods to parse string fields into lists
     def get_allowed_hosts_list(self) -> List[str]:
         """Get allowed hosts as a list"""
         if self.allowed_hosts == "*":
             return ["*"]
         return [host.strip() for host in self.allowed_hosts.split(',') if host.strip()]
+    
+    def get_cors_origins_list(self) -> List[str]:
+        """Get CORS origins as a list"""
+        if self.cors_origins == "*":
+            return ["*"]
+        return [origin.strip() for origin in self.cors_origins.split(',') if origin.strip()]
     
     # File Storage
     media_root: str = Field(default="./media", description="Media files root directory")
