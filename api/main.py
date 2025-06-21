@@ -98,20 +98,6 @@ def create_application() -> FastAPI:
     )
     
     # Add middleware (order matters!)
-    
-    # Add redirect middleware for trailing slashes
-    from fastapi.middleware.base import BaseHTTPMiddleware
-    from fastapi.responses import RedirectResponse
-    
-    class TrailingSlashMiddleware(BaseHTTPMiddleware):
-        async def dispatch(self, request, call_next):
-            url = str(request.url)
-            if url.endswith('/api/v1/schedules') and not url.endswith('/api/v1/schedules/'):
-                return RedirectResponse(url + '/', status_code=307)
-            return await call_next(request)
-    
-    app.add_middleware(TrailingSlashMiddleware)
-    
     # Correlation ID middleware (first, so it's available for all other middleware)
     app.add_middleware(CorrelationMiddleware)
     
@@ -162,6 +148,13 @@ def create_application() -> FastAPI:
     
     # WebSocket route
     app.websocket("/api/v1/workflow/ws/{job_id}")(websocket_endpoint)
+    
+    # Add redirect routes for endpoints without trailing slashes
+    from fastapi.responses import RedirectResponse
+    
+    @app.get("/api/v1/schedules")
+    async def redirect_schedules():
+        return RedirectResponse("/api/v1/schedules/", status_code=307)
     
     # API-only root endpoint for API access
     @app.get("/api", response_model=BaseResponse)
