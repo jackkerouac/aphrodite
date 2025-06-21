@@ -53,8 +53,7 @@ services:
       ALLOWED_HOSTS: "*"
       
       # CORS Configuration (allows all origins)
-      
-      # CORS Configuration (allows local network access)
+      CORS_ORIGINS: "*"
       
       # Logging
       LOG_LEVEL: ${LOG_LEVEL:-info}

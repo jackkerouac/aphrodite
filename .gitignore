@@ -130,3 +130,6 @@ scripts/
 scripts/*
 deployment-fix/
 deployment-fix/*
+apply-host-header*
+test-*
+verify-*

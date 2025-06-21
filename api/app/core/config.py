@@ -23,6 +23,12 @@ class Settings(BaseSettings):
     api_workers: int = Field(default=4, description="Number of API workers")
     api_reload: bool = Field(default=True, description="Enable auto-reload")
     
+    # Host validation - simple string field that we'll parse in the app
+    allowed_hosts: str = Field(
+        default="*",
+        description="Allowed host headers (comma-separated or *)"
+    )
+    
     # Database
     database_url: str = Field(
         default="postgresql+asyncpg://aphrodite:development@localhost:5433/aphrodite_v2",
@@ -64,10 +70,12 @@ class Settings(BaseSettings):
         description="Allowed CORS origins"
     )
     
-    @field_validator('cors_origins', mode='after')
+    @field_validator('cors_origins', mode='before')
     @classmethod
     def parse_cors_origins(cls, v):
         """Parse CORS origins from string or list"""
+        if v is None:
+            return ["http://localhost:3000", "http://127.0.0.1:3000"]
         if isinstance(v, str):
             if v == "*":
                 return ["*"]
@@ -78,6 +86,13 @@ class Settings(BaseSettings):
         else:
             # Fallback to default
             return ["http://localhost:3000", "http://127.0.0.1:3000"]
+    
+    # Helper method to get parsed allowed hosts
+    def get_allowed_hosts_list(self) -> List[str]:
+        """Get allowed hosts as a list"""
+        if self.allowed_hosts == "*":
+            return ["*"]
+        return [host.strip() for host in self.allowed_hosts.split(',') if host.strip()]
     
     # File Storage
     media_root: str = Field(default="./media", description="Media files root directory")

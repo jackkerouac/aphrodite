@@ -105,11 +105,12 @@ def create_application() -> FastAPI:
     # Logging middleware (second, so it can log the correlation ID)
     app.add_middleware(LoggingMiddleware)
     
-    # Security middleware
-    if not settings.debug:
+    # Security middleware - only apply host restrictions if not wildcard
+    allowed_hosts_list = settings.get_allowed_hosts_list()
+    if not settings.debug and "*" not in allowed_hosts_list:
         app.add_middleware(
             TrustedHostMiddleware,
-            allowed_hosts=["localhost", "127.0.0.1", settings.api_host]
+            allowed_hosts=allowed_hosts_list
         )
     
     # CORS middleware
