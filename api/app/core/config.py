@@ -5,10 +5,10 @@ Centralized configuration using Pydantic Settings with environment variable supp
 """
 
 import os
-from typing import List, Optional
+from typing import List, Optional, Union, Any, Dict
 from functools import lru_cache
-from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     """Application settings with environment variable support"""
@@ -58,11 +58,26 @@ class Settings(BaseSettings):
     jwt_algorithm: str = Field(default="HS256", description="JWT algorithm")
     jwt_expire_minutes: int = Field(default=30, description="JWT expiration time in minutes")
     
-    # CORS
-    cors_origins: List[str] = Field(
+    # CORS - Use Union to accept both string and list from environment
+    cors_origins: Union[str, List[str]] = Field(
         default=["http://localhost:3000", "http://127.0.0.1:3000"],
         description="Allowed CORS origins"
     )
+    
+    @field_validator('cors_origins', mode='after')
+    @classmethod
+    def parse_cors_origins(cls, v):
+        """Parse CORS origins from string or list"""
+        if isinstance(v, str):
+            if v == "*":
+                return ["*"]
+            # Split comma-separated string into list
+            return [origin.strip() for origin in v.split(',') if origin.strip()]
+        elif isinstance(v, list):
+            return v
+        else:
+            # Fallback to default
+            return ["http://localhost:3000", "http://127.0.0.1:3000"]
     
     # File Storage
     media_root: str = Field(default="./media", description="Media files root directory")
@@ -98,11 +113,12 @@ class Settings(BaseSettings):
     image_quality: int = Field(default=95, description="Image quality for processed posters")
     max_image_size: tuple = Field(default=(2000, 3000), description="Maximum image dimensions")
     
-    class Config:
-        env_file = ".env.development"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
-        extra = "ignore"  # Ignore extra fields
+    model_config = SettingsConfigDict(
+        env_file=".env.development",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore"
+    )
 
 @lru_cache()
 def get_settings() -> Settings:
