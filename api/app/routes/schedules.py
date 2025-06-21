@@ -15,7 +15,7 @@ from ..models.schedules import ScheduleModel, ScheduleExecutionModel
 from ..services.jellyfin_service import get_jellyfin_service
 
 
-router = APIRouter(prefix="/api/v1/schedules", tags=["schedules"])
+router = APIRouter(prefix="/v1/schedules", tags=["schedules"])
 
 
 # Pydantic models for API

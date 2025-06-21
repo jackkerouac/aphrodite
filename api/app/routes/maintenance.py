@@ -23,7 +23,7 @@ from app.core.config import get_settings
 # Set up logging
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v1/maintenance", tags=["maintenance"])
+router = APIRouter(prefix="/v1/maintenance", tags=["maintenance"])
 
 # Request/Response Models
 class ConnectionTestRequest(BaseModel):

@@ -20,7 +20,7 @@ from ..utils.version_manager import version_manager
 # Configure logging
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v1/system", tags=["system"])
+router = APIRouter(prefix="/v1/system", tags=["system"])
 
 # Store server start time for uptime calculation
 server_start_time = time.time()
