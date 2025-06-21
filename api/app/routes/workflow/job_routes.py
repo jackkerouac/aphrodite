@@ -17,7 +17,7 @@ from app.services.workflow import (
 )
 from aphrodite_logging import get_logger
 
-router = APIRouter(prefix="/api/v1/workflow/jobs", tags=["workflow"])
+router = APIRouter(prefix="/v1/workflow/jobs", tags=["workflow"])
 logger = get_logger("aphrodite.api.workflow.jobs")
 
 

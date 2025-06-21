@@ -99,6 +99,19 @@ def create_application() -> FastAPI:
     
     # Add middleware (order matters!)
     
+    # Add redirect middleware for trailing slashes
+    from fastapi.middleware.base import BaseHTTPMiddleware
+    from fastapi.responses import RedirectResponse
+    
+    class TrailingSlashMiddleware(BaseHTTPMiddleware):
+        async def dispatch(self, request, call_next):
+            url = str(request.url)
+            if url.endswith('/api/v1/schedules') and not url.endswith('/api/v1/schedules/'):
+                return RedirectResponse(url + '/', status_code=307)
+            return await call_next(request)
+    
+    app.add_middleware(TrailingSlashMiddleware)
+    
     # Correlation ID middleware (first, so it's available for all other middleware)
     app.add_middleware(CorrelationMiddleware)
     
