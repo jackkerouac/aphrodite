@@ -156,6 +156,10 @@ def create_application() -> FastAPI:
     async def redirect_schedules():
         return RedirectResponse("/api/v1/schedules/", status_code=307)
     
+    @app.get("/api/v1/workflow/jobs")
+    async def redirect_workflow_jobs():
+        return RedirectResponse("/api/v1/workflow/jobs/", status_code=307)
+    
     # API-only root endpoint for API access
     @app.get("/api", response_model=BaseResponse)
     async def api_root():
