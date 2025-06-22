@@ -100,12 +100,34 @@ export function ApiSettings() {
     setLoading(true);
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/config/settings.yaml`);
+      console.log('Loading system config from /api/v1/config/system...');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/config/system`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.log('No system config found yet, using defaults');
+          return;
+        }
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
       const data = await response.json();
+      console.log('System config loaded:', data);
+      
+      if (data.config) {
+        // Set Jellyfin config from system config
+        setJellyfin({
+          url: data.config.jellyfin_url || '',
+          api_key: data.config.jellyfin_api_key || '',
+          user_id: data.config.jellyfin_user_id || ''
+        });
+        toast.success('API settings loaded successfully');
+      }
+      
+      // For backwards compatibility, also check old api_keys structure
       const config = data.config;
-
       if (config && config.api_keys) {
-        // Load Jellyfin settings
+        // Load Jellyfin settings (fallback)
         if (config.api_keys.Jellyfin && config.api_keys.Jellyfin.length > 0) {
           const jellyfinConfig = config.api_keys.Jellyfin[0];
           setJellyfin({
@@ -174,6 +196,22 @@ export function ApiSettings() {
     setSaving(true);
     
     try {
+      // Save Jellyfin config to system endpoint
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/config/system`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jellyfin_url: jellyfin.url,
+          jellyfin_api_key: jellyfin.api_key,
+          jellyfin_user_id: jellyfin.user_id
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save settings');
+      }
+
+      // Also save other API settings to settings.yaml for backwards compatibility
       const settingsObj = {
         api_keys: {
           Jellyfin: [{
@@ -208,17 +246,13 @@ export function ApiSettings() {
         }
       };
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/config/settings.yaml`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/config/settings.yaml`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(settingsObj),
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to save settings');
-      }
 
       toast.success('API settings saved successfully!');
     } catch (error) {

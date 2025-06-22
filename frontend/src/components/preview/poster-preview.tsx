@@ -28,11 +28,20 @@ export function PosterPreview({
   const [imageError, setImageError] = useState(false);
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
 
+  // Generate cache-busting URL to prevent browser caching issues
+  const getCacheBustedUrl = (url: string) => {
+    if (!url) return url;
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}t=${Date.now()}`;
+  };
+
   const handleImageError = () => {
+    console.error('🖼️ Image failed to load:', previewUrl);
     setImageError(true);
   };
 
   const handleImageLoad = () => {
+    console.log('🖼️ Image loaded successfully:', previewUrl);
     setImageError(false);
   };
 
@@ -88,16 +97,18 @@ export function PosterPreview({
 
     // Preview image state
     if (previewUrl && !imageError) {
+      console.log('🖼️ Rendering image with URL:', previewUrl);
       return (
         <div className="space-y-4">
           <div className="relative group">
             <img 
-              src={previewUrl}
+              src={getCacheBustedUrl(previewUrl)}
               alt="Preview Poster"
               className="w-full h-auto rounded-lg shadow-md transition-transform group-hover:scale-[1.02]"
               style={{ maxHeight: '500px', objectFit: 'contain' }}
               onError={handleImageError}
               onLoad={handleImageLoad}
+              crossOrigin="anonymous"
             />
             
             {/* Overlay controls */}
@@ -118,9 +129,10 @@ export function PosterPreview({
                   </DialogHeader>
                   <div className="flex-1 flex items-center justify-center overflow-auto">
                     <img 
-                      src={previewUrl}
+                      src={getCacheBustedUrl(previewUrl)}
                       alt="Preview Poster - Full Size"
                       className="max-w-full max-h-full object-contain"
+                      crossOrigin="anonymous"
                     />
                   </div>
                 </DialogContent>

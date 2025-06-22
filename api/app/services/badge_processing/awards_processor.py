@@ -332,8 +332,13 @@ class AwardsBadgeProcessor(BaseBadgeProcessor):
             import sys
             sys.path.append("E:/programming/aphrodite")
             
-            from aphrodite_helpers.badge_components.badge_generator import create_badge
-            from PIL import Image
+            try:
+                from aphrodite_helpers.badge_components.badge_generator import create_badge
+                from PIL import Image
+            except ImportError as import_error:
+                self.logger.error(f"Failed to import required modules: {import_error}")
+                # Return the original poster path to maintain the chain
+                return poster_path
             
             # Get color scheme from settings
             color_scheme = settings.get("Awards", {}).get("color_scheme", "black")
@@ -392,27 +397,54 @@ class AwardsBadgeProcessor(BaseBadgeProcessor):
             # Create awards badge using v1 logic (transparent image)
             self.logger.debug(f"Creating awards badge for: {awards_data}")
             
+            awards_badge = None
+            
             # Try to load awards image directly first (v2 approach)
             awards_image_path = Path(f"api/static/awards/{color_scheme}/{awards_data}.png")
             if awards_image_path.exists():
-                from PIL import Image
-                awards_badge = Image.open(awards_image_path).convert("RGBA")
-                self.logger.debug(f"Loaded awards image directly: {awards_image_path}")
+                try:
+                    from PIL import Image
+                    awards_badge = Image.open(awards_image_path).convert("RGBA")
+                    self.logger.debug(f"Loaded awards image directly: {awards_image_path}")
+                except Exception as img_error:
+                    self.logger.warning(f"Failed to load awards image {awards_image_path}: {img_error}")
             else:
+                self.logger.warning(f"Awards image not found: {awards_image_path}")
+                
                 # Fall back to v1 badge creation system
-                awards_badge = create_badge(awards_settings, awards_data, use_image=True)
+                try:
+                    awards_badge = create_badge(awards_settings, awards_data, use_image=True)
+                    if awards_badge:
+                        self.logger.debug("Created awards badge using v1 system")
+                    else:
+                        self.logger.warning("v1 badge creation returned None")
+                except Exception as badge_error:
+                    self.logger.error(f"v1 badge creation failed: {badge_error}")
             
             if not awards_badge:
-                self.logger.error("Failed to create awards badge")
-                return None
+                self.logger.error("Failed to create awards badge - returning original poster to maintain chain")
+                # Return the original poster path to maintain the processing chain
+                return poster_path
             
             self.logger.debug(f"Awards badge created successfully: {awards_badge.size}")
             
             # Determine output path
             if not output_path:
-                poster_stem = Path(poster_path).stem
+                # Create a temporary file in the preview directory to maintain the chain
+                # This ensures compatibility with the preview pipeline
+                import tempfile
+                import uuid
+                
+                # Use the preview directory for temporary files during preview generation
+                preview_dir = Path("api/static/preview")
+                preview_dir.mkdir(parents=True, exist_ok=True)
+                
+                # Generate a temporary filename that won't conflict
+                temp_id = str(uuid.uuid4())[:8]
                 poster_suffix = Path(poster_path).suffix
-                output_path = str(Path(poster_path).parent / f"{poster_stem}_awards{poster_suffix}")
+                output_path = str(preview_dir / f"temp_awards_{temp_id}{poster_suffix}")
+                
+                self.logger.debug(f"Created temporary awards output path: {output_path}")
             
             # Apply badge to poster using flush positioning (v1 awards style)
             self.logger.debug(f"Applying awards badge to poster: {poster_path} -> {output_path}")
@@ -453,7 +485,9 @@ class AwardsBadgeProcessor(BaseBadgeProcessor):
                 
         except ImportError as e:
             self.logger.error(f"Failed to import v1 badge functions: {e}", exc_info=True)
-            return None
+            # Return original poster to maintain the chain instead of None
+            return poster_path
         except Exception as e:
             self.logger.error(f"Error applying awards badge: {e}", exc_info=True)
-            return None
+            # Return original poster to maintain the chain instead of None
+            return poster_path

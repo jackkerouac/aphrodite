@@ -38,7 +38,7 @@ services:
   aphrodite:
     build:
       context: .
-      dockerfile: Dockerfile.backend-only
+      dockerfile: Dockerfile
     restart: unless-stopped
     environment:
       # Database

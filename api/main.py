@@ -174,13 +174,35 @@ def create_application() -> FastAPI:
     return app
 
 def setup_static_files(app: FastAPI):
-    """Setup static file serving for Next.js"""
+    """Setup static file serving for Next.js and API files"""
     logger = get_logger("aphrodite.api.static", service="api")
     
     # Paths for frontend files
     project_root = Path(__file__).parent.parent
     frontend_static = project_root / "frontend" / ".next" / "static"
     frontend_public = project_root / "frontend" / "public"
+    
+    # API static files (processed/preview posters)
+    api_static = Path(__file__).parent / "static"
+    
+    # Create custom StaticFiles class with proper CORS headers
+    class CORSStaticFiles(StaticFiles):
+        async def get_response(self, path: str, scope):
+            response = await super().get_response(path, scope)
+            # Add CORS headers for all static files
+            if hasattr(response, 'headers'):
+                response.headers['Access-Control-Allow-Origin'] = '*'
+                response.headers['Access-Control-Allow-Methods'] = 'GET, HEAD, OPTIONS'
+                response.headers['Access-Control-Allow-Headers'] = '*'
+                response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+                response.headers['Pragma'] = 'no-cache'
+                response.headers['Expires'] = '0'
+            return response
+    
+    # Mount API static files FIRST (highest priority) with CORS support
+    if api_static.exists():
+        logger.info(f"Mounting API static files from {api_static} with CORS support")
+        app.mount("/api/v1/static", CORSStaticFiles(directory=str(api_static)), name="api-static")
     
     # Mount Next.js static files (_next/static)
     if frontend_static.exists():
@@ -191,6 +213,23 @@ def setup_static_files(app: FastAPI):
     if frontend_public.exists():
         logger.info(f"Mounting public files from {frontend_public}")
         app.mount("/public", StaticFiles(directory=str(frontend_public)), name="public")
+    
+    # Handle Next.js image optimization by proxying to the actual image
+    @app.get("/_next/image")
+    async def nextjs_image_proxy(url: str, w: int = 384, q: int = 75):
+        """Proxy Next.js image optimization requests to the actual image URL"""
+        from fastapi.responses import RedirectResponse
+        import urllib.parse
+        
+        # Decode the URL parameter
+        decoded_url = urllib.parse.unquote(url)
+        
+        # If it's a relative URL, make it absolute
+        if decoded_url.startswith('/'):
+            decoded_url = f"http://localhost:8000{decoded_url}"
+        
+        # Redirect to the actual image URL (bypassing Next.js optimization)
+        return RedirectResponse(url=decoded_url, status_code=302)
 
 def setup_frontend_routes(app: FastAPI):
     """Setup Next.js frontend page serving"""

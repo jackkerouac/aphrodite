@@ -395,36 +395,77 @@ async def test_anidb_connection(request: AnidbTestRequest):
             detail=f"AniDB test failed: {str(e)}"
         )
 
-@router.get("/system", response_model=SystemConfig)
-async def get_system_config():
+@router.get("/system", response_model=ConfigData)
+async def get_system_config(
+    db: AsyncSession = Depends(get_db_session)
+):
     """Get current system configuration"""
     logger = get_logger("aphrodite.api.config.system", service="api")
     
-    settings = get_settings()
-    logger.info("Getting system configuration")
-    
-    return SystemConfig(
-        version="2.0.0",
-        debug=settings.debug,
-        jellyfin_url=settings.jellyfin_url,
-        jellyfin_api_key=settings.jellyfin_api_key,
-        max_concurrent_jobs=settings.max_concurrent_jobs,
-        job_timeout=settings.job_timeout,
-        badges=[]  # TODO: Load from database
-    )
+    try:
+        # Query the database for the system configuration
+        stmt = select(SystemConfigModel).where(SystemConfigModel.key == "system")
+        result = await db.execute(stmt)
+        config_model = result.scalar_one_or_none()
+        
+        if config_model is None:
+            # Return default configuration
+            logger.info("System configuration not found, returning defaults")
+            return ConfigData(config={})
+        
+        logger.info("Retrieved system configuration")
+        return ConfigData(config=config_model.value or {})
+        
+    except Exception as e:
+        logger.error(f"Error retrieving system configuration: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve system configuration: {str(e)}"
+        )
 
 @router.put("/system", response_model=BaseResponse)
 async def update_system_config(
-    config: SystemConfig,
+    config_data: Dict[str, Any],
     db: AsyncSession = Depends(get_db_session)
 ):
     """Update system configuration"""
     logger = get_logger("aphrodite.api.config.system.update", service="api")
     
-    # TODO: Implement configuration update
-    logger.info("Updating system configuration")
-    
-    return BaseResponse(message="System configuration updated successfully")
+    try:
+        # Check if configuration exists
+        stmt = select(SystemConfigModel).where(SystemConfigModel.key == "system")
+        result = await db.execute(stmt)
+        existing_config = result.scalar_one_or_none()
+        
+        if existing_config:
+            # Update existing configuration
+            update_stmt = (
+                update(SystemConfigModel)
+                .where(SystemConfigModel.key == "system")
+                .values(value=config_data)
+            )
+            await db.execute(update_stmt)
+            logger.info("Updated existing system configuration")
+        else:
+            # Create new configuration
+            insert_stmt = insert(SystemConfigModel).values(
+                key="system",
+                value=config_data
+            )
+            await db.execute(insert_stmt)
+            logger.info("Created new system configuration")
+        
+        await db.commit()
+        
+        return BaseResponse(message="Configuration system saved successfully")
+        
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error saving system configuration: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save system configuration: {str(e)}"
+        )
 
 @router.get("/badges", response_model=List[BadgeConfig])
 async def get_badge_configs(

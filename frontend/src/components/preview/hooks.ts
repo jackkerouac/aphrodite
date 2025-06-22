@@ -96,6 +96,9 @@ export function usePreviewGeneration() {
 
       if (data.success) {
         // Preview generated immediately, no job polling needed
+        console.log('🎨 Preview generation successful:', data);
+        console.log('🖼️ Setting preview URL:', data.posterUrl);
+        
         setCurrentPreview({
           previewUrl: data.posterUrl,
           sourcePoster: 'Random Selection',
