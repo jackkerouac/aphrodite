@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Calendar, ImageOff } from "lucide-react"
-import Image from "next/image"
+import { makeAbsoluteUrl } from "@/lib/env-config"
 
 interface MediaItem {
   id: string
@@ -92,18 +92,18 @@ export function PosterCard({
         <div className="relative aspect-[2/3] bg-muted rounded-t-lg overflow-hidden">
           {item.poster_url && !imageError ? (
             <>
-              <Image
+              {/* Use regular img tag instead of Next.js Image to bypass optimization */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 key={item.poster_url} // Force re-render when URL changes
-                src={item.poster_url}
+                src={makeAbsoluteUrl(item.poster_url)}
                 alt={item.title}
-                fill
-                className="object-cover transition-transform duration-200 group-hover:scale-105"
+                className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
                 onLoad={() => setImageLoading(false)}
                 onError={() => {
                   setImageError(true)
                   setImageLoading(false)
                 }}
-                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"
               />
               {imageLoading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-muted">

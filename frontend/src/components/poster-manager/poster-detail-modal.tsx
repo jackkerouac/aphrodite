@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Calendar, Star, Tag, Image as ImageIcon, RotateCcw, Plus, Minus, ImageOff } from "lucide-react"
-import Image from "next/image"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { makeAbsoluteUrl } from "@/lib/env-config"
 import { BadgeSelectionModal } from "./badge-selection-modal"
 import { ReplacePosterModal } from "./replace-poster-modal"
 
@@ -286,14 +286,14 @@ export function PosterDetailModal({
               )}
               
               {displayPosterUrl && !imageError ? (
-                <Image
+                /* Use regular img tag instead of Next.js Image to bypass optimization */
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
                   key={displayPosterUrl} // Force re-render when URL changes
-                  src={displayPosterUrl}
+                  src={makeAbsoluteUrl(displayPosterUrl)}
                   alt={item.title}
-                  fill
-                  className="object-cover"
+                  className="w-full h-full object-cover"
                   onError={() => setImageError(true)}
-                  sizes="(max-width: 768px) 100vw, 50vw"
                 />
               ) : (
                 <div className="flex items-center justify-center h-full bg-muted">

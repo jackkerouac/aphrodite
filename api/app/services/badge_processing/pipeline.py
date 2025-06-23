@@ -101,6 +101,10 @@ class UniversalBadgeProcessor:
         """Process single poster with database session"""
         from pathlib import Path
         from .poster_resizer import poster_resizer
+        from app.services.poster_management import StorageManager
+        
+        # CRITICAL DEBUG: Log what badges are being processed
+        self.logger.info(f"🎯 PROCESSING BADGES: {request.badge_types}")
         
         # Step 1: Resize poster to standard 1,000px width
         self.logger.debug(f"Resizing poster to standard dimensions: {request.poster_path}")
@@ -137,7 +141,7 @@ class UniversalBadgeProcessor:
                 self.logger.warning(f"Unknown badge type: {badge_type}, skipping")
                 continue
             
-            self.logger.debug(f"Applying {badge_type} badge ({i+1}/{len(request.badge_types)})")
+            self.logger.info(f"🔄 Applying {badge_type} badge ({i+1}/{len(request.badge_types)})")
             
             # For the last badge, use the final output path if specified
             is_last_badge = (i == len(request.badge_types) - 1)
@@ -153,51 +157,63 @@ class UniversalBadgeProcessor:
             )
             
             if result.success:
+                self.logger.info(f"✅ {badge_type} badge successful: {current_poster_path} -> {result.output_path}")
                 current_poster_path = result.output_path
                 applied_badges.extend(result.applied_badges)
-                self.logger.debug(f"Successfully applied {badge_type} badge")
             else:
-                self.logger.error(f"Failed to apply {badge_type} badge: {result.error}")
+                self.logger.error(f"❌ {badge_type} badge failed: {result.error}")
                 # Continue with other badges even if one fails
         
-        # Step 3: Clean up temporary resized poster if it's different from original
-        if resized_poster_path != request.poster_path and current_poster_path != resized_poster_path:
-            # Only clean up if we're not using the resized poster as final output
-            try:
-                Path(resized_poster_path).unlink(missing_ok=True)
-                self.logger.debug(f"Cleaned up temporary resized poster: {resized_poster_path}")
-            except Exception as e:
-                self.logger.warning(f"Failed to clean up temporary poster: {e}")
+        # CRITICAL FIX: Ensure proper preview path for final output
+        storage_manager = StorageManager()
         
-        # Create final result
+        # Step 3: Handle final output path
         if applied_badges:
+            # Badges were applied - ensure final path has preview_ prefix
+            final_filename = Path(current_poster_path).name
+            
+            if not final_filename.startswith("preview_"):
+                # File needs to be renamed to have preview_ prefix
+                proper_preview_path = storage_manager.create_preview_output_path(request.poster_path)
+                try:
+                    # Copy/move the final result to proper preview location
+                    import shutil
+                    Path(proper_preview_path).parent.mkdir(parents=True, exist_ok=True)
+                    shutil.move(current_poster_path, proper_preview_path)
+                    final_output_path = proper_preview_path
+                    self.logger.info(f"🔧 Renamed to proper preview path: {final_output_path}")
+                except Exception as e:
+                    self.logger.warning(f"Failed to rename to preview path: {e}, using original")
+                    final_output_path = current_poster_path
+            else:
+                final_output_path = current_poster_path
+            
             final_result = PosterResult(
                 source_path=request.poster_path,
-                output_path=current_poster_path,
+                output_path=final_output_path,
                 applied_badges=applied_badges,
                 success=True
             )
-            self.logger.info(f"Successfully processed poster with {len(applied_badges)} badges")
+            self.logger.info(f"✅ Successfully processed poster with {len(applied_badges)} badges: {final_output_path}")
         else:
-            # No badges were applied - use the resized poster or copy original
-            if request.output_path:
-                output_path = Path(request.output_path)
-                output_path.parent.mkdir(parents=True, exist_ok=True)
+            # No badges were applied - create proper preview path
+            proper_preview_path = storage_manager.create_preview_output_path(request.poster_path)
+            
+            try:
+                # Copy resized poster to proper preview location
+                import shutil
+                Path(proper_preview_path).parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(resized_poster_path, proper_preview_path)
                 
+                # Clean up temp resized poster
                 if resized_poster_path != request.poster_path:
-                    # Use the resized poster as output
-                    import shutil
-                    shutil.copy2(resized_poster_path, output_path)
-                    # Clean up temp resized poster
                     Path(resized_poster_path).unlink(missing_ok=True)
-                else:
-                    # Original was already correct size, copy it
-                    import shutil
-                    shutil.copy2(request.poster_path, output_path)
                 
-                final_output_path = str(output_path)
-            else:
-                # Use resized poster directly
+                final_output_path = proper_preview_path
+                self.logger.info(f"🔧 No badges applied, created proper preview path: {final_output_path}")
+                
+            except Exception as e:
+                self.logger.error(f"Error creating proper preview path: {e}")
                 final_output_path = resized_poster_path
             
             final_result = PosterResult(
@@ -206,7 +222,15 @@ class UniversalBadgeProcessor:
                 applied_badges=[],
                 success=True
             )
-            self.logger.warning("No badges applied, using resized poster")
+        
+        # Clean up any remaining temporary resized poster
+        try:
+            if resized_poster_path != request.poster_path and resized_poster_path != final_result.output_path:
+                if Path(resized_poster_path).exists():
+                    Path(resized_poster_path).unlink()
+                    self.logger.debug(f"🧹 Cleaned up temporary resized poster: {resized_poster_path}")
+        except Exception as e:
+            self.logger.warning(f"Failed to clean up temporary poster: {e}")
         
         return ProcessingResult(success=True, results=[final_result])
 

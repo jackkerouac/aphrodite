@@ -70,6 +70,53 @@ class StorageManager:
             # Fallback to temp file
             return str(self.preview_path / f"preview_temp_{uuid.uuid4()}.jpg")
     
+    def create_chained_preview_path(self, current_path: str, badge_type: str) -> str:
+        """
+        Create a new preview path for badge chaining while maintaining preview directory structure.
+        
+        Args:
+            current_path: Current poster path in the processing chain
+            badge_type: Type of badge being applied (for debugging)
+            
+        Returns:
+            str: New path for the next step in the chain
+        """
+        try:
+            current_file = Path(current_path)
+            
+            # Always ensure we're working in the preview directory
+            if "preview" not in str(current_file.parent):
+                # If not in preview directory, move to preview directory
+                unique_id = str(uuid.uuid4())[:8]
+                if current_file.name.startswith("jellyfin_"):
+                    # Extract the original filename for consistency
+                    new_filename = f"preview_{unique_id}_{current_file.name}"
+                else:
+                    new_filename = f"preview_{unique_id}_{badge_type}_{current_file.name}"
+                
+                output_path = self.preview_path / new_filename
+            else:
+                # Already in preview directory, create a new variant
+                unique_id = str(uuid.uuid4())[:8]
+                stem = current_file.stem
+                extension = current_file.suffix
+                
+                # Check if it already has preview_ prefix
+                if stem.startswith("preview_"):
+                    new_filename = f"{stem}_{badge_type}_{unique_id}{extension}"
+                else:
+                    new_filename = f"preview_{unique_id}_{badge_type}_{stem}{extension}"
+                
+                output_path = self.preview_path / new_filename
+            
+            self.logger.debug(f"Created chained preview path for {badge_type}: {current_path} -> {output_path}")
+            return str(output_path)
+            
+        except Exception as e:
+            self.logger.error(f"Error creating chained preview path: {e}", exc_info=True)
+            # Fallback
+            return str(self.preview_path / f"preview_chain_{uuid.uuid4()}.jpg")
+    
     def create_processed_output_path(self, source_poster: str, job_id: str = None) -> str:
         """
         Create output path for processed poster.
@@ -181,10 +228,11 @@ class StorageManager:
         try:
             path_obj = Path(file_path)
             
-            # Find the 'static' part in the path and get everything after it
+            # CRITICAL FIX: Handle both preview and static directory structures
             path_parts = path_obj.parts
             static_index = None
             
+            # Look for 'static' in the path
             for i, part in enumerate(path_parts):
                 if part == "static":
                     static_index = i
@@ -194,17 +242,25 @@ class StorageManager:
                 # Get all parts after 'static' 
                 relative_parts = path_parts[static_index + 1:]
                 relative_path = "/".join(relative_parts)
-                url = f"{base_url}/{relative_path}"
+                
+                # For preview files, ensure proper URL structure
+                if "preview" in relative_parts:
+                    # Already has preview in path structure
+                    url = f"{base_url}/{relative_path}"
+                else:
+                    # Assume it's a preview file that should be in preview directory
+                    url = f"{base_url}/preview/{path_obj.name}"
             else:
-                # Fallback: use the filename
-                url = f"{base_url}/{path_obj.name}"
+                # Fallback: assume it's a preview file
+                url = f"{base_url}/preview/{path_obj.name}"
             
             self.logger.debug(f"Generated URL for {file_path}: {url}")
             return url
             
         except Exception as e:
             self.logger.error(f"Error generating file URL: {e}", exc_info=True)
-            return file_path
+            # Fallback URL
+            return f"{base_url}/preview/{Path(file_path).name}"
     
     def cache_original_poster(self, poster_data: bytes, jellyfin_id: str) -> str:
         """
