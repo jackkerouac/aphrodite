@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     api_workers: int = Field(default=4, description="Number of API workers")
     api_reload: bool = Field(default=True, description="Enable auto-reload")
     
+    # Container-friendly paths
+    assets_dir: str = Field(default="/app/assets", description="Assets directory path")
+    api_static_dir: str = Field(default="/app/api/static", description="API static files directory")
+    aphrodite_root: str = Field(default="/app", description="Aphrodite project root directory")
+    
     # Host validation - simple string field that we'll parse in the app
     allowed_hosts: str = Field(
         default="*",
@@ -31,7 +36,7 @@ class Settings(BaseSettings):
     
     # Database
     database_url: str = Field(
-        default="postgresql+asyncpg://aphrodite:development@localhost:5433/aphrodite_v2",
+        default="postgresql+asyncpg://aphrodite:changeme@postgres:5432/aphrodite",
         description="Database connection URL"
     )
     database_pool_size: int = Field(default=20, description="Database connection pool size")
@@ -39,18 +44,18 @@ class Settings(BaseSettings):
     
     # Redis
     redis_url: str = Field(
-        default="redis://localhost:6380/0",
+        default="redis://redis:6379/0",
         description="Redis connection URL"
     )
     redis_max_connections: int = Field(default=20, description="Redis max connections")
     
     # Celery
     celery_broker_url: str = Field(
-        default="redis://localhost:6380/0",
+        default="redis://redis:6379/0",
         description="Celery broker URL"
     )
     celery_result_backend: str = Field(
-        default="redis://localhost:6380/1",
+        default="redis://redis:6379/1",
         description="Celery result backend URL"
     )
     celery_max_retries: int = Field(default=3, description="Max Celery job retries")
@@ -118,7 +123,7 @@ class Settings(BaseSettings):
     max_image_size: tuple = Field(default=(2000, 3000), description="Maximum image dimensions")
     
     model_config = SettingsConfigDict(
-        env_file=".env.development",
+        env_file=[".env", ".env.docker", ".env.development"],
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore"

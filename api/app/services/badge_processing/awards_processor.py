@@ -6,6 +6,7 @@ Handles awards badge creation and application using v1 logic ported to v2 archit
 
 from typing import Dict, Any, Optional, List
 from pathlib import Path
+import os
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from aphrodite_logging import get_logger
@@ -160,6 +161,9 @@ class AwardsBadgeProcessor(BaseBadgeProcessor):
     
     def _get_default_settings(self) -> Dict[str, Any]:
         """Get default awards badge settings"""
+        # Use container-friendly font paths
+        assets_font_dir = os.environ.get('APHRODITE_ASSETS_DIR', '/app/assets') + '/fonts'
+        
         return {
             "General": {
                 "general_badge_size": 100,
@@ -170,8 +174,8 @@ class AwardsBadgeProcessor(BaseBadgeProcessor):
                 "color_scheme": "black"  # Awards use black scheme by default
             },
             "Text": {
-                "font": "Arial.ttf",
-                "fallback_font": "DejaVuSans.ttf",
+                "font": f"{assets_font_dir}/Arial.ttf",
+                "fallback_font": f"{assets_font_dir}/DejaVuSans.ttf",
                 "text-size": 20,
                 "text-color": "#FFFFFF"
             },
@@ -330,7 +334,14 @@ class AwardsBadgeProcessor(BaseBadgeProcessor):
             
             # Import v1 badge creation functions
             import sys
-            sys.path.append("E:/programming/aphrodite")
+            import os
+            
+            # Use environment variable or relative path for container compatibility
+            project_root = os.environ.get('APHRODITE_ROOT', str(Path(__file__).parent.parent.parent.parent.parent))
+            self.logger.debug(f"Using project root: {project_root}")
+            if project_root not in sys.path:
+                sys.path.append(project_root)
+                self.logger.debug(f"Added to sys.path: {project_root}")
             
             try:
                 from aphrodite_helpers.badge_components.badge_generator import create_badge
@@ -400,7 +411,8 @@ class AwardsBadgeProcessor(BaseBadgeProcessor):
             awards_badge = None
             
             # Try to load awards image directly first (v2 approach)
-            awards_image_path = Path(f"api/static/awards/{color_scheme}/{awards_data}.png")
+            api_static_dir = os.environ.get('APHRODITE_API_DIR', '/app/api')
+            awards_image_path = Path(f"{api_static_dir}/static/awards/{color_scheme}/{awards_data}.png")
             if awards_image_path.exists():
                 try:
                     from PIL import Image
@@ -436,7 +448,8 @@ class AwardsBadgeProcessor(BaseBadgeProcessor):
                 import uuid
                 
                 # Use the preview directory for temporary files during preview generation
-                preview_dir = Path("api/static/preview")
+                api_static_dir = os.environ.get('APHRODITE_API_DIR', '/app/api')
+                preview_dir = Path(f"{api_static_dir}/static/preview")
                 preview_dir.mkdir(parents=True, exist_ok=True)
                 
                 # Generate a temporary filename that won't conflict

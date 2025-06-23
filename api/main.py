@@ -8,8 +8,8 @@ import sys
 import os
 from pathlib import Path
 
-# Add project root to Python path
-project_root = Path(__file__).parent.parent
+# Add project root to Python path using environment variable for Docker compatibility
+project_root = Path(os.environ.get('APHRODITE_ROOT', str(Path(__file__).parent.parent)))
 sys.path.insert(0, str(project_root))
 
 from fastapi import FastAPI, Request, HTTPException
@@ -63,6 +63,13 @@ async def lifespan(app: FastAPI):
         # Initialize database
         await init_db()
         logger.info("Database initialized successfully")
+        
+        # Auto-initialize badge settings if needed
+        try:
+            from api.database_defaults_init import auto_initialize_on_startup
+            await auto_initialize_on_startup()
+        except Exception as init_error:
+            logger.warning(f"Badge settings auto-initialization failed: {init_error}")
         
         # Check for frontend files
         frontend_path = Path(__file__).parent.parent / "frontend" / ".next"
@@ -204,10 +211,16 @@ def setup_static_files(app: FastAPI):
         logger.info(f"Mounting API static files from {api_static} with CORS support")
         app.mount("/api/v1/static", CORSStaticFiles(directory=str(api_static)), name="api-static")
     
-    # Mount Next.js static files (_next/static)
+    # Mount the entire _next directory to handle all Next.js assets including chunks
+    frontend_next = project_root / "frontend" / ".next"
+    if frontend_next.exists():
+        logger.info(f"Mounting complete Next.js build from {frontend_next}")
+        app.mount("/_next", StaticFiles(directory=str(frontend_next), html=True), name="nextjs-build")
+    
+    # Mount Next.js static files (_next/static) - keeping for compatibility
     if frontend_static.exists():
         logger.info(f"Mounting Next.js static files from {frontend_static}")
-        app.mount("/_next/static", StaticFiles(directory=str(frontend_static)), name="nextjs-static")
+        app.mount("/_next/static", StaticFiles(directory=str(frontend_static), html=True), name="nextjs-static")
     
     # Mount public files
     if frontend_public.exists():

@@ -7,15 +7,15 @@ services:
     image: postgres:15-alpine
     restart: unless-stopped
     ports:
-      - "5433:5432"  # External port 5433, internal still 5432
+      - "${POSTGRES_PORT:-5433}:5432"  # External port configurable, internal still 5432
     environment:
-      POSTGRES_DB: aphrodite
-      POSTGRES_USER: aphrodite
+      POSTGRES_DB: ${POSTGRES_DB:-aphrodite}
+      POSTGRES_USER: ${POSTGRES_USER:-aphrodite}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U aphrodite"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aphrodite}"]
       interval: 10s
       timeout: 10s
       retries: 5
@@ -24,6 +24,8 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"  # External port configurable
     volumes:
       - redis_data:/data
     healthcheck:
@@ -34,33 +36,37 @@ services:
 
   # Aphrodite - Complete Application (Frontend + API)
   aphrodite:
-    image: ghcr.io/jackkerouac/aphrodite:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
     environment:
       # Database Configuration
-      DATABASE_URL: postgresql+asyncpg://aphrodite:${POSTGRES_PASSWORD:-changeme}@postgres:5432/aphrodite
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://aphrodite:${POSTGRES_PASSWORD:-changeme}@postgres:5432/aphrodite}
       
-      # Redis Configuration (optional)
-      REDIS_URL: redis://redis:6379/0
+      # Redis Configuration
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       
       # Application Configuration
-      API_HOST: 0.0.0.0
-      API_PORT: 8000
-      ENVIRONMENT: production
+      API_HOST: ${API_HOST:-0.0.0.0}
+      API_PORT: ${API_PORT:-8000}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
       SECRET_KEY: ${SECRET_KEY:-please-change-this-secret-key-in-production}
       
       # Allow all hosts for local network access
-      ALLOWED_HOSTS: "*"
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
       
-      # CORS Configuration (allows all origins)
-      CORS_ORIGINS: "*"
+      # CORS Configuration
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
       
       # Logging
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      DEBUG: ${DEBUG:-false}
       
-      # Background Jobs (optional)
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      # Background Jobs
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/1}
+      ENABLE_BACKGROUND_JOBS: ${ENABLE_BACKGROUND_JOBS:-true}
       
       # Jellyfin Integration (configure via web interface)
       JELLYFIN_URL: ${JELLYFIN_URL:-}
@@ -73,6 +79,8 @@ services:
       - aphrodite_data:/app/data
       - aphrodite_logs:/app/logs
       - aphrodite_media:/app/media
+      # Local posters directory for testing
+      - ./api/static/originals:/app/api/static/originals
     depends_on:
       postgres:
         condition: service_healthy
@@ -87,16 +95,18 @@ services:
 
   # Optional: Background Worker for heavy processing
   aphrodite-worker:
-    image: ghcr.io/jackkerouac/aphrodite:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
     command: ["python", "-m", "celery", "worker", "-A", "app.celery", "--loglevel=info"]
     environment:
       # Same environment as main application
-      DATABASE_URL: postgresql+asyncpg://aphrodite:${POSTGRES_PASSWORD:-changeme}@postgres:5432/aphrodite
-      REDIS_URL: redis://redis:6379/0
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
-      ENVIRONMENT: production
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://aphrodite:${POSTGRES_PASSWORD:-changeme}@postgres:5432/aphrodite}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/1}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
       SECRET_KEY: ${SECRET_KEY:-please-change-this-secret-key-in-production}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     volumes:

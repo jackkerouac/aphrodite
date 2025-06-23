@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "build:static": "next build && next export",
+    "build:docker": "next build",
+    "prepare:docker": "npm run build:docker",
     "start": "next start",
     "lint": "next lint"
   },

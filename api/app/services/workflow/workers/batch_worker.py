@@ -12,6 +12,7 @@ from datetime import datetime
 
 from aphrodite_logging import get_logger
 from app.core.database import async_session_factory
+from app.core.config import get_settings
 from app.services.workflow.database import JobRepository
 from app.services.workflow.types import JobStatus, PosterStatus
 from .poster_processor import PosterProcessor
@@ -20,11 +21,14 @@ from .progress_updater import ProgressUpdater
 
 logger = get_logger("aphrodite.worker.batch")
 
+# Get configuration
+settings = get_settings()
+
 # Initialize Celery app
 celery_app = Celery('aphrodite_worker')
 celery_app.conf.update(
-    broker_url='redis://localhost:6380/0',  # Updated to match your Redis port
-    result_backend='redis://localhost:6380/0',  # Updated to match your Redis port
+    broker_url=settings.celery_broker_url,
+    result_backend=settings.celery_result_backend,
     task_serializer='json',
     accept_content=['json'],
     result_serializer='json',

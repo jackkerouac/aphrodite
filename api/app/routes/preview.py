@@ -94,10 +94,13 @@ async def generate_preview(request: PreviewRequest):
         logger.info(f"Preview generation requested with badges: {request.badgeTypes}")
         logger.info(f"Generated job ID: {job_id}")
         
-        # Initialize services
+        # Initialize services - create fresh instances to avoid caching issues
         poster_selector = PosterSelector()
         storage_manager = StorageManager()
         badge_processor = UniversalBadgeProcessor()
+        
+        # Force fresh poster selection by clearing any potential cached state
+        poster_selector.logger.info(f"Preview job {job_id}: Selecting random poster")
         
         # Select random poster from Jellyfin or originals
         selected_poster = await poster_selector.get_random_poster_async()

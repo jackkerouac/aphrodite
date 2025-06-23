@@ -68,7 +68,8 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # Next.js
-# .next/ - DO NOT IGNORE! We need the pre-built frontend for Docker
+# .next/ - Include pre-built frontend for Docker deployment (Option A strategy)
+# DO NOT IGNORE .next/ - We need the pre-built frontend for containerization
 out/
 .vercel
 
@@ -133,3 +134,6 @@ deployment-fix/*
 apply-host-header*
 test-*
 verify-*
+test_redis_celery.py
+quick-setup.sh
+prepare-docker-build.py

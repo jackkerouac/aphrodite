@@ -282,8 +282,8 @@ class ReviewDetector:
                     self.logger.warning(f"OMDb API call failed - using demo data for {imdb_id}")
                     rating = self._generate_demo_imdb_rating(imdb_id)
             
-            # Get percentage setting
-            convert_to_percentage = True  # Force percentage display for consistency
+            # CRITICAL FIX: Always force percentage conversion for consistency
+            convert_to_percentage = True  # Force percentage for all sources
             
             if convert_to_percentage:
                 # Convert IMDb rating (0-10) to percentage (0-100)
@@ -600,14 +600,9 @@ class ReviewDetector:
             title_hash = hashlib.md5(f"meta{title}{year}".encode()).hexdigest()
             metacritic_score = (int(title_hash[:2], 16) % 50) + 40  # 40-89 (Metacritic range)
             
-            # CRITICAL FIX: Get percentage setting and apply conversion for Metacritic
-            convert_to_percentage = False
-            if settings and 'show_percentage_only' in settings:
-                convert_to_percentage = settings.get('show_percentage_only', False)
-                self.logger.debug(f"Metacritic using percentage setting from passed settings: {convert_to_percentage}")
-            else:
-                convert_to_percentage = await self._get_percentage_setting()
-                self.logger.debug(f"Metacritic using percentage setting from database fallback: {convert_to_percentage}")
+            # CRITICAL FIX: Always force percentage conversion for Metacritic
+            convert_to_percentage = True  # Force percentage for consistency
+            self.logger.debug(f"Metacritic forcing percentage conversion: {convert_to_percentage}")
             
             if convert_to_percentage:
                 # Convert Metacritic score to percentage format
@@ -817,15 +812,9 @@ class ReviewDetector:
         # Parse settings to determine which sources to include
         sources_config = settings.get('Sources', {}) if settings else {}
         
-        # CRITICAL FIX: Get percentage setting from passed settings first, then fallback
-        if use_percentage is not None:
-            convert_to_percentage = use_percentage
-        elif settings and 'show_percentage_only' in settings:
-            convert_to_percentage = settings.get('show_percentage_only', False)
-            self.logger.debug(f"Demo reviews using percentage from passed settings: {convert_to_percentage}")
-        else:
-            convert_to_percentage = self._get_percentage_setting_sync()
-            self.logger.debug(f"Demo reviews using percentage from database fallback: {convert_to_percentage}")
+        # CRITICAL FIX: Always force percentage conversion for all demo reviews
+        convert_to_percentage = True  # Force percentage for consistency
+        self.logger.debug(f"Demo reviews forcing percentage conversion: {convert_to_percentage}")
         
         # IMDb (if enabled)
         if sources_config.get('enable_imdb', True):

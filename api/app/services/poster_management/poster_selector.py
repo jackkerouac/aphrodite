@@ -46,6 +46,33 @@ class PosterSelector:
         # Initialize Jellyfin service
         self.jellyfin_service = get_jellyfin_service()
     
+    def _clear_old_cache(self):
+        """Clear old cached posters to ensure fresh selection"""
+        try:
+            if not self.cache_dir.exists():
+                return
+            
+            import time
+            current_time = time.time()
+            
+            # Remove all cached posters older than 5 minutes
+            for file_path in self.cache_dir.iterdir():
+                if file_path.is_file() and file_path.name.startswith('jellyfin_'):
+                    file_age = current_time - file_path.stat().st_mtime
+                    
+                    if file_age > 300:  # 5 minutes
+                        try:
+                            file_path.unlink()
+                            # Also remove metadata file
+                            metadata_path = file_path.with_suffix('.meta')
+                            if metadata_path.exists():
+                                metadata_path.unlink()
+                            self.logger.debug(f"Cleared old cached poster: {file_path.name}")
+                        except Exception as e:
+                            self.logger.warning(f"Failed to clear cache file {file_path.name}: {e}")
+        except Exception as e:
+            self.logger.warning(f"Error clearing old cache: {e}")
+
     def get_random_poster(self) -> Optional[str]:
         """
         Select a random poster from Jellyfin movies library or fallback to originals directory.
@@ -151,6 +178,16 @@ class PosterSelector:
             str: Path to cached poster file, or None if failed
         """
         try:
+            # CRITICAL FIX: Force fresh random selection each time
+            import random
+            import time
+            
+            # Clear old cached posters to prevent reusing same ones
+            self._clear_old_cache()
+            
+            # Use microsecond-level randomization for better entropy
+            random.seed(time.time_ns() + random.randint(1, 1000000))
+            self.logger.info("Initializing random poster selection from Jellyfin")
             # Test Jellyfin connection
             connected, message = await self.jellyfin_service.test_connection()
             if not connected:
@@ -197,7 +234,20 @@ class PosterSelector:
                 if movie_items:
                     self.logger.info(f"Found {len(movie_items)} movies in library {library.get('Name')}")
                     
-                    # Select random movie
+                    # CRITICAL FIX: Enhanced randomization to prevent same movie selection
+                    import time
+                    
+                    # Use multiple entropy sources for better randomization
+                    current_ns = time.time_ns()
+                    library_hash = hash(library.get('Name', ''))
+                    items_hash = hash(str([item.get('Id') for item in movie_items[:5]]))
+                    
+                    # Combine multiple sources of entropy
+                    seed_value = current_ns + library_hash + items_hash + len(movie_items)
+                    random.seed(seed_value)
+                    
+                    # Shuffle the list and select to further randomize
+                    random.shuffle(movie_items)
                     selected_movie = random.choice(movie_items)
                     movie_id = selected_movie.get('Id')
                     movie_name = selected_movie.get('Name', 'Unknown')
@@ -207,8 +257,9 @@ class PosterSelector:
                     # Download poster
                     poster_data = await self.jellyfin_service.download_poster(movie_id)
                     if poster_data:
-                        # Save to cache with metadata
-                        cache_filename = f"jellyfin_{movie_id}_{uuid.uuid4().hex[:8]}.jpg"
+                        # Save to cache with metadata - use timestamp for uniqueness
+                        timestamp = int(time.time_ns() // 1000000)  # Millisecond timestamp
+                        cache_filename = f"jellyfin_{movie_id}_{timestamp}_{uuid.uuid4().hex[:8]}.jpg"
                         cache_path = self.cache_dir / cache_filename
                         
                         with open(cache_path, 'wb') as f:
@@ -240,8 +291,15 @@ class PosterSelector:
             self.logger.error(f"Error getting Jellyfin poster: {e}", exc_info=True)
             return None
         finally:
-            # Clean up Jellyfin session
-            await self.jellyfin_service.close()
+            # CRITICAL FIX: Always clean up Jellyfin session to force fresh connections
+            try:
+                await self.jellyfin_service.close()
+                # Reset the service to force fresh connection next time
+                self.jellyfin_service._settings_loaded = False
+                self.jellyfin_service.session = None
+                self.logger.debug("Cleaned up Jellyfin session and reset connection state")
+            except Exception as cleanup_error:
+                self.logger.warning(f"Error during Jellyfin cleanup: {cleanup_error}")
     
     def get_all_posters(self) -> List[str]:
         """

@@ -20,16 +20,82 @@ class JellyfinService:
     def __init__(self):
         self.settings = get_settings()
         self.logger = get_logger("aphrodite.service.jellyfin", service="jellyfin")
-        self.base_url = self.settings.jellyfin_url
-        self.api_key = self.settings.jellyfin_api_key
-        # Add user_id from settings - this was missing!
-        self.user_id = getattr(self.settings, 'jellyfin_user_id', None)
-        self.session: Optional[aiohttp.ClientSession] = None
         
-        # If user_id is not in settings, use the v1 value as fallback
-        if not self.user_id:
-            self.user_id = "484068279393441885f9272eba479ccd"  # From v1 settings.yaml
-            self.logger.debug(f"Using fallback user_id: {self.user_id}")
+        # Try to load from database first, then fallback to environment variables
+        self.base_url = None
+        self.api_key = None
+        self.user_id = None
+        
+        # Load settings asynchronously when needed
+        self._settings_loaded = False
+        
+        # Environment variable fallbacks
+        self.env_base_url = self.settings.jellyfin_url
+        self.env_api_key = self.settings.jellyfin_api_key
+        self.env_user_id = getattr(self.settings, 'jellyfin_user_id', None)
+        
+        self.session: Optional[aiohttp.ClientSession] = None
+    
+    async def _load_jellyfin_settings(self):
+        """Load Jellyfin settings from database or environment variables"""
+        if self._settings_loaded:
+            return
+        
+        try:
+            # Try to load from database first using proper async session
+            from app.core.database import async_session_factory
+            from app.models.config import SystemConfigModel
+            from sqlalchemy import select
+            
+            if async_session_factory is None:
+                self.logger.warning("Database session factory not initialized, using environment variables")
+                raise Exception("No database session factory")
+            
+            async with async_session_factory() as db:
+                # Query the system_config table for settings using proper ORM
+                stmt = select(SystemConfigModel).where(SystemConfigModel.key == "settings.yaml")
+                result = await db.execute(stmt)
+                config_model = result.scalar_one_or_none()
+                
+                if config_model and config_model.value:
+                    settings_data = config_model.value
+                    
+                    # Extract Jellyfin settings from api_keys
+                    api_keys = settings_data.get('api_keys', {})
+                    jellyfin_settings = api_keys.get('Jellyfin', [])
+                    
+                    if jellyfin_settings and len(jellyfin_settings) > 0:
+                        jellyfin_config = jellyfin_settings[0]  # Use first config
+                        
+                        self.base_url = jellyfin_config.get('url')
+                        self.api_key = jellyfin_config.get('api_key')
+                        self.user_id = jellyfin_config.get('user_id')
+                        
+                        if self.base_url and self.api_key:
+                            self.logger.info(f"Loaded Jellyfin settings from database: {self.base_url}")
+                            self._settings_loaded = True
+                            return
+                        else:
+                            self.logger.warning("Incomplete Jellyfin settings in database")
+                    else:
+                        self.logger.info("No Jellyfin settings found in database")
+                else:
+                    self.logger.info("No settings found in database")
+        
+        except Exception as e:
+            self.logger.warning(f"Failed to load settings from database: {e}")
+        
+        # Fallback to environment variables
+        self.base_url = self.env_base_url
+        self.api_key = self.env_api_key
+        self.user_id = self.env_user_id
+        
+        if self.base_url and self.api_key:
+            self.logger.info(f"Using Jellyfin settings from environment: {self.base_url}")
+        else:
+            self.logger.warning("No Jellyfin settings available from database or environment")
+        
+        self._settings_loaded = True
     
     async def _get_session(self) -> aiohttp.ClientSession:
         """Get or create HTTP session with proper Jellyfin headers"""
@@ -52,6 +118,13 @@ class JellyfinService:
     async def test_connection(self) -> Tuple[bool, str]:
         """Test connection to Jellyfin server"""
         try:
+            # Load settings first
+            await self._load_jellyfin_settings()
+            
+            if not self.base_url or not self.api_key:
+                self.logger.error("Jellyfin configuration missing - check database settings or environment variables")
+                return False, "Jellyfin not configured - missing URL or API key"
+            
             # Use the correct API pattern like v1
             url = urljoin(self.base_url, "/System/Info")
             session = await self._get_session()
@@ -74,6 +147,13 @@ class JellyfinService:
     async def get_libraries(self) -> List[Dict[str, Any]]:
         """Get all libraries from Jellyfin"""
         try:
+            # Load settings first
+            await self._load_jellyfin_settings()
+            
+            if not self.base_url or not self.api_key:
+                self.logger.error("Jellyfin not configured")
+                return []
+            
             url = urljoin(self.base_url, f"/Library/VirtualFolders?api_key={self.api_key}")
             session = await self._get_session()
             
