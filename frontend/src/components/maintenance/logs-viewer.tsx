@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,6 +54,11 @@ export function LogsViewer() {
     fetchLogLevels();
     fetchLogs();
   }, []);
+
+  // Auto-refresh logs when level or search changes
+  useEffect(() => {
+    fetchLogs();
+  }, [fetchLogs]);
 
   // Get CSS class for log level
   const getLogLevelClass = (level: string): string => {

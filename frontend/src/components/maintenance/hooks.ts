@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { 
   MaintenancePageData, 
@@ -521,7 +521,7 @@ export function useLogsViewer() {
   const [error, setError] = useState('');
 
   // Fetch logs
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     setIsLoading(true);
     setError('');
     
@@ -551,7 +551,7 @@ export function useLogsViewer() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedLevel, searchQuery]);
 
   // Fetch available log levels
   const fetchLogLevels = async () => {
@@ -568,7 +568,7 @@ export function useLogsViewer() {
   };
 
   // Clear logs
-  const clearLogs = async (): Promise<boolean> => {
+  const clearLogs = useCallback(async (): Promise<boolean> => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/maintenance/logs/clear`, {
         method: 'DELETE'
@@ -577,12 +577,12 @@ export function useLogsViewer() {
       const data = await response.json();
       
       if (data.success) {
-        setLogs([]);
-        setFileInfo(null);
+        // Refresh logs after clearing to show the empty state
+        await fetchLogs();
         toast.success('Logs cleared successfully');
         return true;
       } else {
-        toast.error(`Failed to clear logs: ${data.error}`);
+        toast.error(`Failed to clear logs: ${data.error || data.message || 'Unknown error'}`);
         return false;
       }
     } catch (error) {
@@ -590,7 +590,7 @@ export function useLogsViewer() {
       toast.error('Error clearing logs');
       return false;
     }
-  };
+  }, [fetchLogs]);
 
   // Copy logs to clipboard
   const copyLogs = async () => {
