@@ -131,6 +131,7 @@ CRON_PRESETS = {
 
 
 @router.get("/", response_model=List[ScheduleResponse])
+@router.get("", response_model=List[ScheduleResponse])  # Handle both with and without trailing slash
 async def get_schedules(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
@@ -144,6 +145,7 @@ async def get_schedules(
 
 
 @router.post("/", response_model=ScheduleResponse)
+@router.post("", response_model=ScheduleResponse)  # Handle both with and without trailing slash
 async def create_schedule(
     schedule: ScheduleCreate,
     db: AsyncSession = Depends(get_db_session)

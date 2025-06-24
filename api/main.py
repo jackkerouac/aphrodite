@@ -257,6 +257,10 @@ def setup_static_files(app: FastAPI):
     if frontend_public.exists():
         logger.info(f"Mounting public files from {frontend_public}")
         app.mount("/public", StaticFiles(directory=str(frontend_public)), name="public")
+        # Also mount images directly for easier access
+        images_dir = frontend_public / "images"
+        if images_dir.exists():
+            app.mount("/images", StaticFiles(directory=str(images_dir)), name="images")
 
 def setup_frontend_routes(app: FastAPI):
     """Setup Next.js frontend page serving"""

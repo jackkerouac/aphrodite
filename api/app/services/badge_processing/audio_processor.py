@@ -223,10 +223,25 @@ class AudioBadgeProcessor(BaseBadgeProcessor):
                 return codec
             
             elif media_type in ['Series', 'Season']:
-                # For TV: sample first 5 episodes for dominant codec
-                codec = await jellyfin_service.get_tv_series_dominant_codec(jellyfin_id)
+                # For TV: use existing v1 aggregator logic for dominant codec
+                self.logger.debug(f"Using v1 aggregator for TV series dominant codec: {jellyfin_id}")
+                
+                # Load Jellyfin settings like the aggregator expects
+                await jellyfin_service._load_jellyfin_settings()
+                
+                # Import the v1 aggregator function
+                from aphrodite_helpers.tv_series_aggregator import get_dominant_audio_codec
+                
+                # Call the aggregator function
+                codec = get_dominant_audio_codec(
+                    jellyfin_service.base_url,
+                    jellyfin_service.api_key,
+                    jellyfin_service.user_id,
+                    jellyfin_id
+                )
+                
                 self.logger.debug(f"TV series dominant codec for {jellyfin_id}: {codec}")
-                return codec
+                return codec if codec != "UNKNOWN" else None
             
             elif media_type == 'Episode':
                 # For individual episodes: get codec directly

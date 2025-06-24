@@ -208,14 +208,17 @@ class JellyfinService:
             url = urljoin(self.base_url, f"/Library/VirtualFolders?api_key={self.api_key}")
             session = await self._get_session()
             
-            async with session.get(url) as response:
-                if response.status == 200:
-                    libraries = await response.json()
-                    self.logger.info(f"Found {len(libraries)} libraries")
-                    return libraries
-                else:
-                    self.logger.error(f"Failed to get libraries: HTTP {response.status}")
-                    return []
+            try:
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        libraries = await response.json()
+                        self.logger.info(f"Found {len(libraries)} libraries")
+                        return libraries
+                    else:
+                        self.logger.error(f"Failed to get libraries: HTTP {response.status}")
+                        return []
+            finally:
+                await session.close()
                     
         except Exception as e:
             self.logger.error(f"Error getting libraries: {e}")
@@ -236,15 +239,18 @@ class JellyfinService:
             
             session = await self._get_session()
             
-            async with session.get(url, params=params) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    items = data.get("Items", [])
-                    self.logger.info(f"Found {len(items)} items in library {library_id}")
-                    return items
-                else:
-                    self.logger.error(f"Failed to get library items: HTTP {response.status}")
-                    return []
+            try:
+                async with session.get(url, params=params) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        items = data.get("Items", [])
+                        self.logger.info(f"Found {len(items)} items in library {library_id}")
+                        return items
+                    else:
+                        self.logger.error(f"Failed to get library items: HTTP {response.status}")
+                        return []
+            finally:
+                await session.close()
                     
         except Exception as e:
             self.logger.error(f"Error getting library items: {e}")
@@ -267,14 +273,17 @@ class JellyfinService:
             url = urljoin(self.base_url, f"/Items/{item_id}")
             session = await self._get_session()
             
-            async with session.get(url) as response:
-                if response.status == 200:
-                    metadata = await response.json()
-                    self.logger.debug(f"Retrieved metadata for item {item_id}")
-                    return metadata
-                else:
-                    self.logger.error(f"Failed to get item metadata: HTTP {response.status}")
-                    return None
+            try:
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        metadata = await response.json()
+                        self.logger.debug(f"Retrieved metadata for item {item_id}")
+                        return metadata
+                    else:
+                        self.logger.error(f"Failed to get item metadata: HTTP {response.status}")
+                        return None
+            finally:
+                await session.close()
                     
         except Exception as e:
             self.logger.error(f"Error getting item metadata: {e}")
@@ -389,323 +398,20 @@ class JellyfinService:
             
             session = await self._get_session()
             
-            async with session.get(url, params=params) as response:
-                if response.status == 200:
-                    media_item = await response.json()
-                    self.logger.debug(f"Retrieved media item {jellyfin_id}: {media_item.get('Name', 'Unknown')}")
-                    return media_item
-                else:
-                    self.logger.error(f"Failed to get media item {jellyfin_id}: HTTP {response.status}")
-                    return None
+            try:
+                async with session.get(url, params=params) as response:
+                    if response.status == 200:
+                        media_item = await response.json()
+                        self.logger.debug(f"Retrieved media item {jellyfin_id}: {media_item.get('Name', 'Unknown')}")
+                        return media_item
+                    else:
+                        self.logger.error(f"Failed to get media item {jellyfin_id}: HTTP {response.status}")
+                        return None
+            finally:
+                await session.close()
                     
         except Exception as e:
             self.logger.error(f"Error getting media item {jellyfin_id}: {e}")
-            return None
-    
-    async def get_audio_codec_info(self, media_item: Dict[str, Any]) -> Optional[str]:
-        """Extract audio codec information from media item"""
-        try:
-            media_sources = media_item.get("MediaSources", [])
-            if not media_sources:
-                self.logger.warning(f"No media sources found for item {media_item.get('Id')}")
-                return None
-            
-            # Get the first media source (usually the main file)
-            media_source = media_sources[0]
-            media_streams = media_source.get("MediaStreams", [])
-            
-            # Find audio streams
-            audio_streams = [stream for stream in media_streams if stream.get("Type") == "Audio"]
-            
-            if not audio_streams:
-                self.logger.warning(f"No audio streams found for item {media_item.get('Id')}")
-                return None
-            
-            # Get the first (primary) audio stream
-            primary_audio = audio_streams[0]
-            
-            # Extract codec information with fallback chain
-            codec = (
-                primary_audio.get("DisplayTitle") or  # Often has full description like "DTS-HD MA 7.1"
-                primary_audio.get("Title") or          # Sometimes has codec info
-                primary_audio.get("Profile") or        # Profile like "DTS-HD MA"
-                primary_audio.get("Codec", "").upper() # Base codec like "DTS"
-            )
-            
-            if codec:
-                # Clean up and standardize the codec name
-                codec = self._standardize_audio_codec(codec)
-                self.logger.debug(f"Detected audio codec for {media_item.get('Id')}: {codec}")
-                return codec
-            
-            self.logger.warning(f"Could not determine audio codec for item {media_item.get('Id')}")
-            return None
-            
-        except Exception as e:
-            self.logger.error(f"Error extracting audio codec: {e}")
-            return None
-    
-    def _standardize_audio_codec(self, raw_codec: str) -> str:
-        """Standardize audio codec names to match badge system expectations"""
-        if not raw_codec:
-            return ""
-        
-        # Convert to uppercase for consistent matching
-        codec = raw_codec.upper()
-        
-        # Common codec mappings to standardized names
-        codec_mappings = {
-            # DTS variants
-            "DTS-HD MA": "DTS-HD MA",
-            "DTS-HD MASTER AUDIO": "DTS-HD MA",
-            "DTS-HD": "DTS-HD MA",
-            "DTS-X": "DTS-X",
-            "DTSX": "DTS-X",
-            "DTS": "DTS",
-            
-            # Dolby variants
-            "TRUEHD ATMOS": "TRUEHD ATMOS",
-            "TRUEHD": "TRUEHD",
-            "DOLBY TRUEHD": "TRUEHD",
-            "ATMOS": "ATMOS",
-            "DOLBY ATMOS": "ATMOS",
-            "DOLBY DIGITAL PLUS": "DOLBY DIGITAL PLUS",
-            "DOLBY DIGITAL+": "DOLBY DIGITAL PLUS",
-            "EAC3": "DOLBY DIGITAL PLUS",
-            "E-AC-3": "DOLBY DIGITAL PLUS",
-            "DOLBY DIGITAL": "DOLBY DIGITAL",
-            "AC3": "DOLBY DIGITAL",
-            "AC-3": "DOLBY DIGITAL",
-            
-            # Other formats
-            "FLAC": "FLAC",
-            "PCM": "PCM",
-            "AAC": "AAC",
-            "MP3": "MP3"
-        }
-        
-        # Try direct mapping first
-        if codec in codec_mappings:
-            return codec_mappings[codec]
-        
-        # Try partial matching for complex descriptions
-        for pattern, standard in codec_mappings.items():
-            if pattern in codec:
-                return standard
-        
-        # If no mapping found, return cleaned version of original
-        return codec.strip()
-    
-    async def get_tv_series_dominant_codec(self, series_id: str) -> Optional[str]:
-        """Get dominant audio codec by sampling first 5 episodes of a TV series"""
-        try:
-            # Use user-specific API pattern for getting episodes
-            url = urljoin(
-                self.base_url,
-                f"/Users/{self.user_id}/Items"
-            )
-            
-            # Get episodes for the series
-            params = {
-                "ParentId": series_id,
-                "IncludeItemTypes": "Episode",
-                "Fields": "MediaSources,MediaStreams",
-                "Limit": 5,
-                "Recursive": "true"
-            }
-            
-            session = await self._get_session()
-            
-            async with session.get(url, params=params) as response:
-                if response.status != 200:
-                    self.logger.error(f"Failed to get episodes for series {series_id}: HTTP {response.status}")
-                    return None
-                
-                data = await response.json()
-                episodes = data.get("Items", [])
-                
-                if not episodes:
-                    self.logger.warning(f"No episodes found for series {series_id}")
-                    return None
-                
-                # Collect codecs from episodes
-                codecs = []
-                for episode in episodes:
-                    codec = await self.get_audio_codec_info(episode)
-                    if codec:
-                        codecs.append(codec)
-                
-                if not codecs:
-                    self.logger.warning(f"No audio codecs found in episodes for series {series_id}")
-                    return None
-                
-                # Find the most common codec
-                from collections import Counter
-                codec_counts = Counter(codecs)
-                dominant_codec = codec_counts.most_common(1)[0][0]
-                
-                self.logger.debug(
-                    f"Dominant codec for series {series_id}: {dominant_codec} "
-                    f"(from {len(codecs)} episodes: {dict(codec_counts)})"
-                )
-                
-                return dominant_codec
-                
-        except Exception as e:
-            self.logger.error(f"Error getting dominant codec for series {series_id}: {e}")
-            return None
-    
-    async def get_video_resolution_info(self, media_item: Dict[str, Any]) -> Optional[str]:
-        """Extract resolution and HDR information from media item"""
-        try:
-            media_sources = media_item.get("MediaSources", [])
-            if not media_sources:
-                self.logger.warning(f"No media sources found for item {media_item.get('Id')}")
-                return None
-            
-            # Get the first media source (usually the main file)
-            media_source = media_sources[0]
-            media_streams = media_source.get("MediaStreams", [])
-            
-            # Find video streams
-            video_streams = [stream for stream in media_streams if stream.get("Type") == "Video"]
-            
-            if not video_streams:
-                self.logger.warning(f"No video streams found for item {media_item.get('Id')}")
-                return None
-            
-            # Get the first (primary) video stream
-            primary_video = video_streams[0]
-            
-            # Extract resolution information
-            width = primary_video.get("Width")
-            height = primary_video.get("Height")
-            video_range = primary_video.get("VideoRange", "").upper()
-            video_range_type = primary_video.get("VideoRangeType", "").upper()
-            
-            if not width or not height:
-                self.logger.warning(f"No resolution information found for item {media_item.get('Id')}")
-                return None
-            
-            # Determine resolution category
-            resolution_info = self._categorize_resolution(width, height, video_range, video_range_type)
-            
-            if resolution_info:
-                self.logger.debug(f"Detected resolution for {media_item.get('Id')}: {resolution_info}")
-                return resolution_info
-            
-            self.logger.warning(f"Could not determine resolution category for item {media_item.get('Id')}")
-            return None
-            
-        except Exception as e:
-            self.logger.error(f"Error extracting resolution info: {e}")
-            return None
-    
-    def _categorize_resolution(self, width: int, height: int, video_range: str, video_range_type: str) -> Optional[str]:
-        """Categorize resolution and HDR information into standard badge format"""
-        try:
-            # Determine base resolution using more intelligent logic
-            # Many movies have non-standard aspect ratios, so we need to be smarter
-            
-            # Calculate total pixels for better resolution detection
-            total_pixels = width * height
-            
-            # 4K: 3840x2160 = 8,294,400 pixels (allow some variance for different aspect ratios)
-            # But also check width since that's more reliable for widescreen content
-            if width >= 3840 or total_pixels >= 7_000_000:  # ~7M pixels = roughly 4K
-                base_resolution = "4K"
-            # 1080p: 1920x1080 = 2,073,600 pixels 
-            # Check if width is 1920+ OR if total pixels suggest 1080p content
-            elif width >= 1920 or total_pixels >= 1_800_000:  # ~1.8M pixels = roughly 1080p
-                base_resolution = "1080p"
-            # 720p: 1280x720 = 921,600 pixels
-            elif width >= 1280 or total_pixels >= 800_000:  # ~800K pixels = roughly 720p  
-                base_resolution = "720p"
-            # Everything else is SD
-            else:
-                base_resolution = "SD"
-            
-            # Determine HDR type
-            hdr_suffix = ""
-            if video_range == "HDR" or video_range_type:
-                if "DOLBY" in video_range_type or "DV" in video_range_type:
-                    hdr_suffix = " DV"  # Dolby Vision
-                elif "HDR10+" in video_range_type or "HDR10PLUS" in video_range_type:
-                    hdr_suffix = " HDR10+"
-                elif "HDR10" in video_range_type or video_range == "HDR":
-                    hdr_suffix = " HDR"
-                elif "HDR" in video_range:
-                    hdr_suffix = " HDR"
-            
-            final_resolution = f"{base_resolution}{hdr_suffix}"
-            
-            self.logger.debug(
-                f"Resolution categorization: {width}x{height} ({total_pixels:,} pixels) + range='{video_range}' + type='{video_range_type}' → {final_resolution}"
-            )
-            
-            return final_resolution
-            
-        except Exception as e:
-            self.logger.error(f"Error categorizing resolution: {e}")
-            return None
-    
-    async def get_tv_series_dominant_resolution(self, series_id: str) -> Optional[str]:
-        """Get dominant resolution by sampling first 5 episodes of a TV series"""
-        try:
-            # Use user-specific API pattern for getting episodes
-            url = urljoin(
-                self.base_url,
-                f"/Users/{self.user_id}/Items"
-            )
-            
-            # Get episodes for the series
-            params = {
-                "ParentId": series_id,
-                "IncludeItemTypes": "Episode",
-                "Fields": "MediaSources,MediaStreams",
-                "Limit": 5,
-                "Recursive": "true"
-            }
-            
-            session = await self._get_session()
-            
-            async with session.get(url, params=params) as response:
-                if response.status != 200:
-                    self.logger.error(f"Failed to get episodes for series {series_id}: HTTP {response.status}")
-                    return None
-                
-                data = await response.json()
-                episodes = data.get("Items", [])
-                
-                if not episodes:
-                    self.logger.warning(f"No episodes found for series {series_id}")
-                    return None
-                
-                # Collect resolutions from episodes
-                resolutions = []
-                for episode in episodes:
-                    resolution = await self.get_video_resolution_info(episode)
-                    if resolution:
-                        resolutions.append(resolution)
-                
-                if not resolutions:
-                    self.logger.warning(f"No resolutions found in episodes for series {series_id}")
-                    return None
-                
-                # Find the most common resolution
-                from collections import Counter
-                resolution_counts = Counter(resolutions)
-                dominant_resolution = resolution_counts.most_common(1)[0][0]
-                
-                self.logger.debug(
-                    f"Dominant resolution for series {series_id}: {dominant_resolution} "
-                    f"(from {len(resolutions)} episodes: {dict(resolution_counts)})"
-                )
-                
-                return dominant_resolution
-                
-        except Exception as e:
-            self.logger.error(f"Error getting dominant resolution for series {series_id}: {e}")
             return None
     
     async def upload_poster_image(self, item_id: str, image_path: str) -> bool:
@@ -772,6 +478,132 @@ class JellyfinService:
             self.logger.error(f"Error uploading poster for item {item_id}: {e}")
             return False
     
+    async def get_audio_codec_info(self, media_item: Dict[str, Any]) -> Optional[str]:
+        """Extract audio codec information from Jellyfin media item"""
+        try:
+            # Get MediaSources from the media item
+            media_sources = media_item.get('MediaSources', [])
+            if not media_sources:
+                self.logger.warning(f"No MediaSources found for item {media_item.get('Id', 'Unknown')}")
+                return None
+            
+            # Use the first media source (primary file)
+            media_source = media_sources[0]
+            media_streams = media_source.get('MediaStreams', [])
+            
+            # Find the primary audio stream
+            audio_streams = [stream for stream in media_streams if stream.get('Type') == 'Audio']
+            if not audio_streams:
+                self.logger.warning(f"No audio streams found for item {media_item.get('Id', 'Unknown')}")
+                return None
+            
+            # Get the first audio stream (usually the primary one)
+            audio_stream = audio_streams[0]
+            codec = audio_stream.get('Codec', '').upper()
+            
+            # Map Jellyfin codec names to display names
+            codec_mapping = {
+                'DCA': 'DTS',
+                'DTSHD': 'DTS-HD',
+                'DTSMA': 'DTS-HD MA',
+                'TRUEHD': 'TRUEHD',
+                'AC3': 'DOLBY DIGITAL',
+                'EAC3': 'DOLBY DIGITAL PLUS',
+                'AAC': 'AAC',
+                'MP3': 'MP3',
+                'FLAC': 'FLAC'
+            }
+            
+            # Check for Atmos in the audio stream profile or codec
+            profile = audio_stream.get('Profile', '').upper()
+            if 'ATMOS' in profile or 'ATMOS' in codec:
+                if codec in ['TRUEHD', 'DTSMA']:
+                    return f"{codec_mapping.get(codec, codec)} ATMOS"
+                else:
+                    return 'ATMOS'
+            
+            # Check for DTS-X
+            if 'DTS-X' in profile or 'DTSX' in codec:
+                return 'DTS-X'
+            
+            # Return mapped codec or original if no mapping found
+            display_codec = codec_mapping.get(codec, codec)
+            
+            self.logger.debug(f"Extracted audio codec for {media_item.get('Id', 'Unknown')}: {display_codec}")
+            return display_codec if display_codec else None
+            
+        except Exception as e:
+            self.logger.error(f"Error extracting audio codec info: {e}")
+            return None
+    
+    async def get_video_resolution_info(self, media_item: Dict[str, Any]) -> Optional[str]:
+        """Extract video resolution information from Jellyfin media item"""
+        try:
+            # Get MediaSources from the media item
+            media_sources = media_item.get('MediaSources', [])
+            if not media_sources:
+                self.logger.warning(f"No MediaSources found for item {media_item.get('Id', 'Unknown')}")
+                return None
+            
+            # Use the first media source (primary file)
+            media_source = media_sources[0]
+            media_streams = media_source.get('MediaStreams', [])
+            
+            # Find the video stream
+            video_streams = [stream for stream in media_streams if stream.get('Type') == 'Video']
+            if not video_streams:
+                self.logger.warning(f"No video streams found for item {media_item.get('Id', 'Unknown')}")
+                return None
+            
+            # Get the first video stream
+            video_stream = video_streams[0]
+            height = video_stream.get('Height')
+            width = video_stream.get('Width')
+            
+            if not height:
+                self.logger.warning(f"No height information for item {media_item.get('Id', 'Unknown')}")
+                return None
+            
+            # Check for HDR
+            video_range = video_stream.get('VideoRange', '').upper()
+            color_space = video_stream.get('ColorSpace', '').upper() 
+            codec = video_stream.get('Codec', '').upper()
+            
+            is_hdr = (
+                'HDR' in video_range or 
+                'HDR10' in video_range or 
+                'DOLBY' in video_range or
+                'BT2020' in color_space or
+                'HDR' in codec
+            )
+            
+            # Determine resolution based on height
+            if height >= 2160:
+                base_resolution = '4K'
+            elif height >= 1440:
+                base_resolution = '1440p'
+            elif height >= 1080:
+                base_resolution = '1080p'
+            elif height >= 720:
+                base_resolution = '720p'
+            elif height >= 480:
+                base_resolution = '480p'
+            else:
+                base_resolution = f'{height}p'
+            
+            # Add HDR suffix if detected
+            if is_hdr:
+                resolution = f'{base_resolution} HDR'
+            else:
+                resolution = base_resolution
+            
+            self.logger.debug(f"Extracted resolution for {media_item.get('Id', 'Unknown')}: {resolution}")
+            return resolution
+            
+        except Exception as e:
+            self.logger.error(f"Error extracting video resolution info: {e}")
+            return None
+    
     async def _verify_upload(self, item_id: str) -> bool:
         """Verify that the uploaded image is retrievable (v1 method)"""
         try:
@@ -779,26 +611,29 @@ class JellyfinService:
             headers = {"X-Emby-Token": self.api_key}
             
             session = await self._get_session()
-            async with session.get(url, headers=headers) as response:
-                if response.status != 200:
-                    return False
-                
-                # Check first 256 bytes for valid image signature
-                chunk = await response.content.read(256)
-                
-                # Check for valid image signatures
-                return (
-                    chunk.startswith(b"\xff\xd8\xff") or  # JPEG
-                    chunk.startswith(b"\x89PNG\r\n\x1a\n") or  # PNG
-                    chunk.startswith(b"GIF")  # GIF
-                )
+            try:
+                async with session.get(url, headers=headers) as response:
+                    if response.status != 200:
+                        return False
+                    
+                    # Check first 256 bytes for valid image signature
+                    chunk = await response.content.read(256)
+                    
+                    # Check for valid image signatures
+                    return (
+                        chunk.startswith(b"\xff\xd8\xff") or  # JPEG
+                        chunk.startswith(b"\x89PNG\r\n\x1a\n") or  # PNG
+                        chunk.startswith(b"GIF")  # GIF
+                    )
+            finally:
+                await session.close()
                 
         except Exception as e:
             self.logger.error(f"Error verifying upload for {item_id}: {e}")
             return False
 
 
-# Global service instance
+# Global service instance  
 _jellyfin_service: Optional[JellyfinService] = None
 
 def get_jellyfin_service() -> JellyfinService:

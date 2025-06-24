@@ -223,10 +223,25 @@ class ResolutionBadgeProcessor(BaseBadgeProcessor):
                 return resolution
             
             elif media_type in ['Series', 'Season']:
-                # For TV: sample first 5 episodes for dominant resolution
-                resolution = await jellyfin_service.get_tv_series_dominant_resolution(jellyfin_id)
+                # For TV: use existing v1 aggregator logic for dominant resolution
+                self.logger.debug(f"Using v1 aggregator for TV series dominant resolution: {jellyfin_id}")
+                
+                # Load Jellyfin settings like the aggregator expects
+                await jellyfin_service._load_jellyfin_settings()
+                
+                # Import the v1 aggregator function
+                from aphrodite_helpers.tv_series_aggregator import get_dominant_resolution
+                
+                # Call the aggregator function
+                resolution = get_dominant_resolution(
+                    jellyfin_service.base_url,
+                    jellyfin_service.api_key,
+                    jellyfin_service.user_id,
+                    jellyfin_id
+                )
+                
                 self.logger.debug(f"TV series dominant resolution for {jellyfin_id}: {resolution}")
-                return resolution
+                return resolution if resolution != "UNKNOWN" else None
             
             elif media_type == 'Episode':
                 # For individual episodes: get resolution directly

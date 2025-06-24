@@ -43,7 +43,7 @@ export function ThemedImage({
     );
   }
 
-  const imageSrc = theme === 'dark' ? lightSrc : darkSrc;
+  const imageSrc = theme === 'dark' ? darkSrc : lightSrc;
 
   if (width && height) {
     return (

@@ -105,6 +105,8 @@ class UniversalBadgeProcessor:
         
         # CRITICAL DEBUG: Log what badges are being processed
         self.logger.info(f"🎯 PROCESSING BADGES: {request.badge_types}")
+        self.logger.info(f"🎯 USE_DEMO_DATA: {request.use_demo_data}")
+        self.logger.info(f"🎯 JELLYFIN_ID: {request.jellyfin_id}")
         
         # Step 1: Resize poster to standard 1,000px width
         self.logger.debug(f"Resizing poster to standard dimensions: {request.poster_path}")
@@ -142,10 +144,13 @@ class UniversalBadgeProcessor:
                 continue
             
             self.logger.info(f"🔄 Applying {badge_type} badge ({i+1}/{len(request.badge_types)})")
+            self.logger.info(f"🔄 Current poster path: {current_poster_path}")
             
             # For the last badge, use the final output path if specified
             is_last_badge = (i == len(request.badge_types) - 1)
             output_path = request.output_path if is_last_badge and request.output_path else None
+            
+            self.logger.info(f"🔄 Output path for {badge_type}: {output_path}")
             
             # Process with the specific badge processor
             result = await processor.process_single(
@@ -155,6 +160,8 @@ class UniversalBadgeProcessor:
                 db_session,
                 request.jellyfin_id
             )
+            
+            self.logger.info(f"🔄 {badge_type} badge result - Success: {result.success}, Applied: {result.applied_badges}, Error: {result.error}")
             
             if result.success:
                 self.logger.info(f"✅ {badge_type} badge successful: {current_poster_path} -> {result.output_path}")
