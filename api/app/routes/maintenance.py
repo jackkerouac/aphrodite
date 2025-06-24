@@ -1068,6 +1068,7 @@ async def export_database(request: dict, db: AsyncSession = Depends(get_db_sessi
         raise HTTPException(status_code=500, detail=f"Failed to export database: {str(e)}")
 
 
+@router.delete("/logs/clear")
 async def clear_logs():
     """Clear application logs."""
     try:
