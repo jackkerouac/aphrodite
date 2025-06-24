@@ -106,6 +106,10 @@ class ProcessingJob(BaseModel):
     job_type: str
     parameters: Dict[str, Any] = Field(default_factory=dict)
     
+    # Media information (populated from joins)
+    title: Optional[str] = None
+    media_name: Optional[str] = None
+    
     # Timing
     created_at: datetime = Field(default_factory=datetime.utcnow)
     started_at: Optional[datetime] = None

@@ -123,10 +123,12 @@ class JobService:
         status: Optional[str] = None,
         media_id: Optional[str] = None
     ) -> Tuple[List[ProcessingJob], int]:
-        """Get paginated list of jobs"""
+        """Get paginated list of jobs with media information"""
         try:
-            # Build query
-            query = select(ProcessingJobModel)
+            # Build query with join to get media information
+            query = select(ProcessingJobModel, MediaItemModel).join(
+                MediaItemModel, ProcessingJobModel.media_id == MediaItemModel.id, isouter=True
+            )
             count_query = select(func.count(ProcessingJobModel.id))
             
             # Add filters
@@ -150,10 +152,21 @@ class JobService:
             
             # Execute query
             result = await db.execute(query)
-            job_models = result.scalars().all()
+            job_and_media_pairs = result.all()
             
-            # Convert to Pydantic models
-            jobs = [self._model_to_pydantic(model) for model in job_models]
+            # Convert to Pydantic models with media info
+            jobs = []
+            for job_model, media_model in job_and_media_pairs:
+                job = self._model_to_pydantic(job_model)
+                # Add media title to job if available
+                if media_model:
+                    job.title = media_model.title
+                    job.media_name = media_model.title
+                else:
+                    # Fallback if no media found
+                    job.title = f"Job {job_model.id[:8]}"
+                    job.media_name = f"Job {job_model.id[:8]}"
+                jobs.append(job)
             
             self.logger.debug(f"Retrieved {len(jobs)} jobs (page {page})")
             return jobs, total

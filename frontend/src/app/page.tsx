@@ -7,7 +7,7 @@ import { Activity, Image, Clock, CheckCircle, Database, Loader2 } from 'lucide-r
 import { useDashboardData } from '@/hooks/useDashboardData';
 
 export default function Dashboard() {
-  const { systemStatus, stats, recentJobs, isLoading, error } = useDashboardData();
+  const { systemStatus, stats, recentJobs, isLoading, error, version } = useDashboardData();
 
   if (error) {
     return (
@@ -191,7 +191,7 @@ export default function Dashboard() {
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <p className="font-medium">Version</p>
-                <p className="text-muted-foreground">v2.0.0-beta</p>
+                <p className="text-muted-foreground">{isLoading ? '...' : version}</p>
               </div>
               <div>
                 <p className="font-medium">Jellyfin Status</p>

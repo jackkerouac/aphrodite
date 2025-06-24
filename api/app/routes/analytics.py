@@ -81,34 +81,37 @@ class SystemPerformance(BaseModel):
 
 @router.get("/overview", response_model=AnalyticsOverview)
 async def get_analytics_overview(db: AsyncSession = Depends(get_db_session)):
-    """Get high-level analytics overview"""
+    """Get high-level analytics overview using workflow data"""
     
     try:
-        # Job statistics
-        total_jobs_result = await db.execute(select(func.count(ProcessingJobModel.id)))
+        # Import workflow models
+        from app.services.workflow.database.models import BatchJobModel
+        
+        # Job statistics from workflow tables
+        total_jobs_result = await db.execute(select(func.count(BatchJobModel.id)))
         total_jobs = total_jobs_result.scalar() or 0
         
         completed_jobs_result = await db.execute(
-            select(func.count(ProcessingJobModel.id)).where(ProcessingJobModel.status == "completed")
+            select(func.count(BatchJobModel.id)).where(BatchJobModel.status == "completed")
         )
         completed_jobs = completed_jobs_result.scalar() or 0
         
         failed_jobs_result = await db.execute(
-            select(func.count(ProcessingJobModel.id)).where(ProcessingJobModel.status == "failed")
+            select(func.count(BatchJobModel.id)).where(BatchJobModel.status == "failed")
         )
         failed_jobs = failed_jobs_result.scalar() or 0
         
         queued_jobs_result = await db.execute(
-            select(func.count(ProcessingJobModel.id)).where(ProcessingJobModel.status == "queued")
+            select(func.count(BatchJobModel.id)).where(BatchJobModel.status == "queued")
         )
         queued_jobs = queued_jobs_result.scalar() or 0
         
         running_jobs_result = await db.execute(
-            select(func.count(ProcessingJobModel.id)).where(ProcessingJobModel.status == "running")
+            select(func.count(BatchJobModel.id)).where(BatchJobModel.status.in_(["running", "processing"]))
         )
         running_jobs = running_jobs_result.scalar() or 0
         
-        # Schedule statistics
+        # Schedule statistics (keep original)
         total_schedules_result = await db.execute(select(func.count(ScheduleModel.id)))
         total_schedules = total_schedules_result.scalar() or 0
         
@@ -117,9 +120,11 @@ async def get_analytics_overview(db: AsyncSession = Depends(get_db_session)):
         )
         active_schedules = active_schedules_result.scalar() or 0
         
-        # Media statistics
-        total_media_items_result = await db.execute(select(func.count(MediaItemModel.id)))
-        total_media_items = total_media_items_result.scalar() or 0
+        # Media statistics - get from workflow jobs completed posters
+        total_posters_result = await db.execute(
+            select(func.sum(BatchJobModel.completed_posters)).where(BatchJobModel.status == "completed")
+        )
+        total_media_items = total_posters_result.scalar() or 0
         
         # Success rate calculation
         processed_jobs = completed_jobs + failed_jobs
@@ -143,18 +148,21 @@ async def get_analytics_overview(db: AsyncSession = Depends(get_db_session)):
 
 @router.get("/jobs/status-distribution", response_model=List[JobStatusDistribution])
 async def get_job_status_distribution(db: AsyncSession = Depends(get_db_session)):
-    """Get distribution of job statuses"""
+    """Get distribution of job statuses from workflow data"""
     
     try:
-        total_jobs_result = await db.execute(select(func.count(ProcessingJobModel.id)))
+        # Import workflow models
+        from app.services.workflow.database.models import BatchJobModel
+        
+        total_jobs_result = await db.execute(select(func.count(BatchJobModel.id)))
         total_jobs = total_jobs_result.scalar() or 0
         
         if total_jobs == 0:
             return []
         
         status_counts_result = await db.execute(
-            select(ProcessingJobModel.status, func.count(ProcessingJobModel.id).label("count"))
-            .group_by(ProcessingJobModel.status)
+            select(BatchJobModel.status, func.count(BatchJobModel.id).label("count"))
+            .group_by(BatchJobModel.status)
         )
         status_counts = status_counts_result.all()
         
@@ -176,12 +184,15 @@ async def get_processing_trends(
     days: int = 30,
     db: AsyncSession = Depends(get_db_session)
 ):
-    """Get processing trends over the specified number of days"""
+    """Get processing trends over the specified number of days from workflow data"""
     
     try:
+        # Import workflow models
+        from app.services.workflow.database.models import BatchJobModel
+        
         # Get all jobs and filter in Python to avoid date comparison issues
         all_jobs_result = await db.execute(
-            select(ProcessingJobModel.created_at, ProcessingJobModel.status)
+            select(BatchJobModel.created_at, BatchJobModel.status)
         )
         all_jobs = all_jobs_result.all()
         

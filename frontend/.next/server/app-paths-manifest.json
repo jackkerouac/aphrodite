@@ -1,12 +1,12 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/about/page": "app/about/page.js",
+  "/analytics/page": "app/analytics/page.js",
   "/maintenance/page": "app/maintenance/page.js",
   "/page": "app/page.js",
-  "/analytics/page": "app/analytics/page.js",
-  "/poster-manager/page": "app/poster-manager/page.js",
+  "/about/page": "app/about/page.js",
   "/preview/page": "app/preview/page.js",
+  "/poster-manager/page": "app/poster-manager/page.js",
   "/schedules/page": "app/schedules/page.js",
   "/settings/page": "app/settings/page.js"
 }

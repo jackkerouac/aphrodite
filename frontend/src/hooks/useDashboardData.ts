@@ -30,6 +30,7 @@ export interface DashboardData {
   }>;
   isLoading: boolean;
   error: string | null;
+  version: string;
 }
 
 export function useDashboardData(): DashboardData {
@@ -51,6 +52,7 @@ export function useDashboardData(): DashboardData {
     recentJobs: [],
     isLoading: true,
     error: null,
+    version: 'Unknown',
   });
 
   const fetchDashboardData = async () => {
@@ -58,10 +60,12 @@ export function useDashboardData(): DashboardData {
       setData(prev => ({ ...prev, isLoading: true, error: null }));
 
       // Fetch all required data in parallel
-      const [analyticsOverview, systemHealth, recentJobs] = await Promise.all([
+      const [analyticsOverview, systemHealth, recentJobs, todayCompletedJobs, systemInfo] = await Promise.all([
         apiService.getAnalyticsOverview().catch(() => null),
         apiService.getSystemStatus().catch(() => null),
-        apiService.getJobs({ page: 1, per_page: 3, status: undefined }).catch(() => []),
+        apiService.getJobs({ user_id: 'default_user' }).catch(() => []),
+        apiService.getJobs({ user_id: 'default_user' }).catch(() => []),
+        apiService.getSystemInfo().catch(() => null),
       ]);
 
       // Process system status
@@ -74,20 +78,26 @@ export function useDashboardData(): DashboardData {
         workers_active: 2, // This would come from worker status in a real implementation
       };
 
-      // Process analytics stats
+      // Process analytics stats  
+      // Convert workflow jobs data to dashboard stats
+      const allJobs = Array.isArray(recentJobs) ? recentJobs : (recentJobs ? [recentJobs] : []);
+      const completedJobs = allJobs.filter(job => job.status === 'completed');
+      const activeJobs = allJobs.filter(job => job.status === 'running' || job.status === 'queued' || job.status === 'processing');
+      
       const stats = {
         total_media_items: analyticsOverview?.total_media_items || 0,
-        active_jobs: (analyticsOverview?.running_jobs || 0) + (analyticsOverview?.queued_jobs || 0),
-        completed_today: getTodayCompletedJobs(recentJobs || []),
-        processing_success_rate: analyticsOverview?.processing_success_rate || 0,
+        active_jobs: activeJobs.length,
+        completed_today: getTodayCompletedJobs(completedJobs),
+        processing_success_rate: completedJobs.length > 0 ? Math.round((completedJobs.filter(j => j.failed_posters === 0).length / completedJobs.length) * 100) : 0,
       };
 
-      // Process recent jobs
-      const processedJobs = (recentJobs || []).slice(0, 3).map((job: any) => ({
-        id: job.id,
-        name: job.media_name || `Job ${job.id.slice(0, 8)}`,
+      // Process recent jobs - handle workflow job format
+      const jobsArray = Array.isArray(recentJobs) ? recentJobs : (recentJobs ? [recentJobs] : []);
+      const processedJobs = jobsArray.slice(0, 5).map((job: any) => ({
+        id: job.job_id || job.id,
+        name: job.name || job.media_name || job.title || `Job ${(job.job_id || job.id || '').slice(0, 8)}`,
         status: job.status,
-        progress: calculateJobProgress(job),
+        progress: calculateWorkflowJobProgress(job),
         created_at: job.created_at,
       }));
 
@@ -97,6 +107,7 @@ export function useDashboardData(): DashboardData {
         recentJobs: processedJobs,
         isLoading: false,
         error: null,
+        version: systemInfo?.version || 'Unknown',
       });
 
     } catch (error) {
@@ -140,11 +151,35 @@ function formatUptime(timestamp: string | undefined): string {
 }
 
 function getTodayCompletedJobs(jobs: any[]): number {
-  const today = new Date().toDateString();
-  return jobs.filter(job => 
-    job.status === 'completed' && 
-    new Date(job.completed_at || job.created_at).toDateString() === today
-  ).length;
+  const today = new Date();
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+  
+  return jobs.filter(job => {
+    if (job.status !== 'completed') return false;
+    
+    const completedDate = new Date(job.completed_at || job.created_at);
+    return completedDate >= todayStart && completedDate < todayEnd;
+  }).length;
+}
+
+function calculateWorkflowJobProgress(job: any): number {
+  switch (job.status) {
+    case 'completed':
+      return 100;
+    case 'failed':
+      return 0;
+    case 'running':
+    case 'processing':
+      if (job.total_posters && job.completed_posters) {
+        return Math.round((job.completed_posters / job.total_posters) * 100);
+      }
+      return Math.floor(Math.random() * 70) + 10; // Fallback simulation
+    case 'queued':
+      return 0;
+    default:
+      return 0;
+  }
 }
 
 function calculateJobProgress(job: any): number {

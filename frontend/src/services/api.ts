@@ -92,6 +92,11 @@ export const apiService = {
     return handleResponse(response);
   },
 
+  async getSystemInfo() {
+    const response = await fetch(`${API_BASE_URL}/api/v1/system/info`);
+    return handleResponse(response);
+  },
+
   async getSystemConfig() {
     const response = await fetch(`${API_BASE_URL}/api/v1/config/system`);
     return handleResponse(response);
@@ -166,18 +171,18 @@ export const apiService = {
     return handleResponse(response);
   },
 
-  // Job endpoints
+  // Jobs endpoints (using workflow API)
   async getJobs(params?: {
     page?: number;
     per_page?: number;
     status?: string;
+    user_id?: string;
   }) {
     const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set('page', params.page.toString());
-    if (params?.per_page) searchParams.set('per_page', params.per_page.toString());
-    if (params?.status) searchParams.set('status', params.status);
+    if (params?.user_id) searchParams.set('user_id', params.user_id);
+    // Note: workflow API doesn't support page/per_page/status filtering like the regular jobs API
 
-    const url = `${API_BASE_URL}/api/v1/jobs${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    const url = `${API_BASE_URL}/api/v1/workflow/jobs/${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
     const response = await fetch(url);
     return handleResponse(response);
   },
@@ -198,7 +203,7 @@ export const apiService = {
   },
 
   async getJob(id: string) {
-    const response = await fetch(`${API_BASE_URL}/api/v1/jobs/${id}`);
+    const response = await fetch(`${API_BASE_URL}/api/v1/workflow/jobs/${id}`);
     return handleResponse(response);
   },
 
