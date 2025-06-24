@@ -20,11 +20,12 @@ import {
   Archive,
   FileText
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useDatabaseOperations } from './hooks';
 import { BackupFile } from './types';
 
 export function DatabaseOperations() {
-  const { databaseInfo, loading, loadDatabaseInfo, createBackup, restoreBackup } = useDatabaseOperations();
+  const { databaseInfo, loading, loadDatabaseInfo, createBackup, restoreBackup, exportDatabase, importDatabaseSettings } = useDatabaseOperations();
   
   const [backupOptions, setBackupOptions] = useState({
     compress: true
@@ -44,6 +45,16 @@ export function DatabaseOperations() {
   }>({
     show: false,
     backup: null
+  });
+  
+  const [importConfirm, setImportConfirm] = useState<{
+    show: boolean;
+    jsonData: any;
+    filename: string;
+  }>({
+    show: false,
+    jsonData: null,
+    filename: ''
   });
   
   const [integrityStatus, setIntegrityStatus] = useState<{
@@ -84,6 +95,48 @@ export function DatabaseOperations() {
       await restoreBackup(restoreConfirm.backup.filename);
     }
     setRestoreConfirm({ show: false, backup: null });
+  };
+
+  // Handle export to JSON
+  const handleExportToJSON = async () => {
+    await exportDatabase(exportOptions);
+  };
+
+  // Handle file selection for import
+  const handleImportFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.json')) {
+      toast.error('Please select a JSON file');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const jsonData = JSON.parse(e.target?.result as string);
+        setImportConfirm({
+          show: true,
+          jsonData,
+          filename: file.name
+        });
+      } catch (error) {
+        toast.error('Invalid JSON file format');
+      }
+    };
+    reader.readAsText(file);
+
+    // Reset the input
+    event.target.value = '';
+  };
+
+  // Confirm import
+  const confirmImport = async () => {
+    if (importConfirm.jsonData) {
+      await importDatabaseSettings(importConfirm.jsonData);
+    }
+    setImportConfirm({ show: false, jsonData: null, filename: '' });
   };
 
   // Format file size
@@ -392,7 +445,7 @@ export function DatabaseOperations() {
                 </Label>
               </div>
               <Button 
-                variant="outline"
+                onClick={handleExportToJSON}
                 disabled={loading.export || !databaseInfo?.database.exists}
               >
                 {loading.export ? (
@@ -405,6 +458,35 @@ export function DatabaseOperations() {
             </div>
             <p className="text-xs text-muted-foreground">
               💾 The exported file will be automatically downloaded to your browser
+            </p>
+          </div>
+          
+          {/* Import from JSON */}
+          <div className="space-y-3 pt-4 border-t">
+            <Label className="text-base font-semibold">Restore Database Settings from JSON</Label>
+            <div className="flex items-center gap-4">
+              <input
+                type="file"
+                accept=".json"
+                onChange={handleImportFileSelect}
+                style={{ display: 'none' }}
+                id="json-import-input"
+              />
+              <Button 
+                variant="outline"
+                onClick={() => document.getElementById('json-import-input')?.click()}
+                disabled={loading.restore || !databaseInfo?.database.exists}
+              >
+                {loading.restore ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Upload className="h-4 w-4 mr-2" />
+                )}
+                Select JSON File
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              ⚠️ This will replace current database settings with data from the JSON export file
             </p>
           </div>
         </CardContent>
@@ -446,6 +528,48 @@ export function DatabaseOperations() {
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   ) : null}
                   Restore Database
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      
+      {/* Import Confirmation Modal */}
+      {importConfirm.show && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md mx-4">
+            <CardHeader>
+              <CardTitle className="text-blue-600">📄 Confirm Database Settings Import</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p>
+                This will <strong>restore database settings</strong> from the JSON export:
+              </p>
+              <div className="bg-muted p-3 rounded">
+                <p className="font-medium">{importConfirm.filename}</p>
+                <p className="text-sm text-muted-foreground">
+                  JSON Export File
+                </p>
+              </div>
+              <p className="text-yellow-600 text-sm">
+                <strong>Warning:</strong> This will replace your current database settings. Your current database will be backed up automatically before the import.
+              </p>
+              <div className="flex gap-2 justify-end">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setImportConfirm({ show: false, jsonData: null, filename: '' })}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={confirmImport}
+                  disabled={loading.restore}
+                >
+                  {loading.restore ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : null}
+                  Import Settings
                 </Button>
               </div>
             </CardContent>

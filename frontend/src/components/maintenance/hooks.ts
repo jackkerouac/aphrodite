@@ -393,12 +393,119 @@ export function useDatabaseOperations() {
     }
   };
 
+  // Export database to JSON
+  const exportDatabase = async (options: { includeSensitive: boolean }): Promise<DatabaseOperationResult> => {
+    setLoading(prev => ({ ...prev, export: true }));
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/maintenance/database/export`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(options),
+      });
+
+      if (response.ok) {
+        // Handle file download
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        
+        // Extract filename from Content-Disposition header
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = 'database_export.json';
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+          if (filenameMatch) {
+            filename = filenameMatch[1];
+          }
+        }
+        
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        toast.success('Database exported successfully');
+        
+        return {
+          success: true,
+          message: `Database exported successfully: ${filename}`
+        };
+      } else {
+        const errorData = await response.json();
+        toast.error(`Export failed: ${errorData.detail || 'Unknown error'}`);
+        return {
+          success: false,
+          message: errorData.detail || 'Export failed'
+        };
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Export failed';
+      toast.error(errorMessage);
+      return { success: false, message: errorMessage };
+    } finally {
+      setLoading(prev => ({ ...prev, export: false }));
+    }
+  };
+
+  // Import database settings from JSON
+  const importDatabaseSettings = async (jsonData: any): Promise<DatabaseOperationResult> => {
+    setLoading(prev => ({ ...prev, restore: true }));
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/maintenance/database/import-settings`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ jsonData }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        const summary = data.import_summary;
+        toast.success(
+          `Database settings imported successfully: ${summary.tables_imported} tables imported, ${summary.tables_skipped} skipped`,
+          { duration: 6000 }
+        );
+        
+        if (data.errors && data.errors.length > 0) {
+          toast.warning(`Import completed with ${data.errors.length} errors. Check console for details.`);
+          console.warn('Import errors:', data.errors);
+        }
+        
+        await loadDatabaseInfo(); // Refresh info
+      } else {
+        toast.error(`Import failed: ${data.detail || 'Unknown error'}`);
+      }
+
+      return {
+        success: data.success,
+        message: data.success ? 'Database settings imported successfully' : (data.detail || 'Import failed'),
+        details: data
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Import failed';
+      toast.error(errorMessage);
+      return { success: false, message: errorMessage };
+    } finally {
+      setLoading(prev => ({ ...prev, restore: false }));
+    }
+  };
+
   return {
     databaseInfo,
     loading,
     loadDatabaseInfo,
     createBackup,
     restoreBackup,
+    exportDatabase,
+    importDatabaseSettings,
     setDatabaseInfo
   };
 }

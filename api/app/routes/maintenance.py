@@ -539,6 +539,315 @@ async def restore_backup(request: BackupRestoreRequest):
         logger.error(f"Error restoring backup: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to restore backup: {str(e)}")
 
+@router.post("/database/export")
+async def export_database(request: dict, db: AsyncSession = Depends(get_db_session)):
+    """Export database data to JSON format."""
+    try:
+        include_sensitive = request.get('includeSensitive', False)
+        
+        logger.info(f"Exporting database to JSON (include_sensitive: {include_sensitive})")
+        
+        export_data = {
+            "export_info": {
+                "created": datetime.now().isoformat(),
+                "version": "aphrodite_v2",
+                "include_sensitive": include_sensitive,
+                "export_type": "database_settings"
+            },
+            "tables": {}
+        }
+        
+        # Get all table names
+        tables_result = await db.execute(text("""
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            ORDER BY table_name
+        """))
+        tables = [row.table_name for row in tables_result.fetchall()]
+        
+        logger.info(f"Found {len(tables)} tables to export: {tables}")
+        
+        # Define sensitive tables/columns to exclude if include_sensitive is False
+        sensitive_patterns = ['password', 'secret', 'key', 'token', 'credential']
+        
+        # Export each table
+        for table in tables:
+            try:
+                # Get table structure
+                columns_result = await db.execute(text(f"""
+                    SELECT column_name, data_type, is_nullable, column_default
+                    FROM information_schema.columns 
+                    WHERE table_name = '{table}' 
+                    ORDER BY ordinal_position
+                """))
+                columns = columns_result.fetchall()
+                
+                # Filter sensitive columns if needed
+                export_columns = []
+                if include_sensitive:
+                    export_columns = [col.column_name for col in columns]
+                else:
+                    for col in columns:
+                        is_sensitive = any(pattern in col.column_name.lower() for pattern in sensitive_patterns)
+                        if not is_sensitive:
+                            export_columns.append(col.column_name)
+                        else:
+                            logger.info(f"Excluding sensitive column: {table}.{col.column_name}")
+                
+                if not export_columns:
+                    logger.info(f"No exportable columns found for table {table}")
+                    continue
+                
+                # Get table data
+                select_columns = ', '.join(export_columns)
+                data_result = await db.execute(text(f"SELECT {select_columns} FROM {table}"))
+                rows = data_result.fetchall()
+                
+                # Convert to JSON-serializable format
+                table_data = []
+                for row in rows:
+                    row_dict = {}
+                    for i, col_name in enumerate(export_columns):
+                        value = row[i] if i < len(row) else None
+                        # Handle special data types
+                        if value is not None:
+                            if hasattr(value, 'isoformat'):  # datetime objects
+                                value = value.isoformat()
+                            elif isinstance(value, (bytes, bytearray)):
+                                value = value.decode('utf-8', errors='replace')
+                            elif isinstance(value, str):
+                                # Try to parse JSON strings back to objects for better structure
+                                try:
+                                    # Check if it looks like JSON (starts with { or [)
+                                    if value.strip().startswith(('{', '[')):
+                                        parsed_value = json.loads(value)
+                                        value = parsed_value
+                                except (json.JSONDecodeError, ValueError):
+                                    # If it's not valid JSON, keep as string
+                                    pass
+                        row_dict[col_name] = value
+                    table_data.append(row_dict)
+                
+                export_data["tables"][table] = {
+                    "schema": {
+                        "columns": [{
+                            "name": col.column_name,
+                            "type": col.data_type,
+                            "nullable": col.is_nullable == 'YES',
+                            "default": col.column_default
+                        } for col in columns if col.column_name in export_columns]
+                    },
+                    "data": table_data,
+                    "row_count": len(table_data)
+                }
+                
+                logger.info(f"Exported table {table}: {len(table_data)} rows, {len(export_columns)} columns")
+                
+            except Exception as e:
+                logger.warning(f"Could not export table {table}: {e}")
+                export_data["tables"][table] = {
+                    "error": str(e),
+                    "exported": False
+                }
+        
+        # Create JSON content
+        json_content = json.dumps(export_data, indent=2, ensure_ascii=False)
+        
+        # Generate filename
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        sensitive_suffix = "_full" if include_sensitive else "_filtered"
+        filename = f"aphrodite_v2_export{sensitive_suffix}_{timestamp}.json"
+        
+        logger.info(f"Database export completed: {filename} ({len(json_content)} bytes)")
+        
+        return Response(
+            content=json_content,
+            media_type="application/json",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+    
+    except Exception as e:
+        logger.error(f"Error exporting database: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to export database: {str(e)}")
+
+@router.post("/database/import-settings")
+async def import_database_settings(request: dict, db: AsyncSession = Depends(get_db_session)):
+    """Import and restore database settings from JSON export."""
+    try:
+        json_data = request.get('jsonData')
+        if not json_data:
+            raise HTTPException(status_code=400, detail="No JSON data provided")
+        
+        # Parse JSON data if it's a string
+        if isinstance(json_data, str):
+            import_data = json.loads(json_data)
+        else:
+            import_data = json_data
+        
+        # Validate import data structure
+        if not import_data.get('export_info') or not import_data.get('tables'):
+            raise HTTPException(status_code=400, detail="Invalid export format")
+        
+        export_info = import_data['export_info']
+        tables_data = import_data['tables']
+        
+        logger.info(f"Importing database settings from export created: {export_info.get('created')}")
+        logger.info(f"Export version: {export_info.get('version')}, type: {export_info.get('export_type')}")
+        
+        # Create automatic backup before import
+        auto_backup_filename = None
+        try:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            auto_backup_request = BackupCreateRequest(
+                compress=True,
+                backup_name=f"aphrodite_v2_pre_import_{timestamp}"
+            )
+            backup_result = await create_backup(auto_backup_request)
+            auto_backup_filename = backup_result["backup_filename"]
+            logger.info(f"Created automatic backup before import: {auto_backup_filename}")
+        except Exception as e:
+            logger.warning(f"Could not create automatic backup: {e}")
+        
+        imported_tables = []
+        skipped_tables = []
+        errors = []
+        
+        # Process each table in the import
+        for table_name, table_info in tables_data.items():
+            try:
+                if table_info.get('error') or not table_info.get('data'):
+                    skipped_tables.append(f"{table_name} (no data or error in export)")
+                    continue
+                
+                table_data = table_info['data']
+                if not table_data:
+                    skipped_tables.append(f"{table_name} (empty)")
+                    continue
+                
+                # Check if table exists
+                table_exists_result = await db.execute(text(f"""
+                    SELECT EXISTS (
+                        SELECT 1 FROM information_schema.tables 
+                        WHERE table_name = '{table_name}' 
+                        AND table_schema = 'public'
+                    )
+                """))
+                table_exists = table_exists_result.scalar()
+                
+                if not table_exists:
+                    skipped_tables.append(f"{table_name} (table does not exist)")
+                    continue
+                
+                # Get current table structure
+                columns_result = await db.execute(text(f"""
+                    SELECT column_name, data_type
+                    FROM information_schema.columns 
+                    WHERE table_name = '{table_name}' 
+                    ORDER BY ordinal_position
+                """))
+                current_columns = {row.column_name: row.data_type for row in columns_result.fetchall()}
+                
+                # Clear existing data (be careful!)
+                await db.execute(text(f"DELETE FROM {table_name}"))
+                
+                # Insert imported data
+                inserted_count = 0
+                for row_data in table_data:
+                    # Filter columns that exist in current table
+                    valid_columns = {k: v for k, v in row_data.items() if k in current_columns}
+                    
+                    if not valid_columns:
+                        continue
+                    
+                    # Handle special data types for database insertion
+                    processed_columns = {}
+                    for col_name, value in valid_columns.items():
+                        if value is None:
+                            processed_columns[col_name] = None
+                        elif isinstance(value, (dict, list)):
+                            # Convert complex objects back to JSON strings
+                            processed_columns[col_name] = json.dumps(value)
+                        elif isinstance(value, str):
+                            # Check if this column should be a datetime based on column type
+                            col_type = current_columns.get(col_name, '').lower()
+                            if 'timestamp' in col_type or 'datetime' in col_type:
+                                # This is a datetime column, try to parse the string
+                                try:
+                                    from datetime import datetime
+                                    # Handle both with and without 'Z' suffix and microseconds
+                                    if value.endswith('Z'):
+                                        dt_value = datetime.fromisoformat(value.replace('Z', '+00:00'))
+                                    else:
+                                        dt_value = datetime.fromisoformat(value)
+                                    processed_columns[col_name] = dt_value
+                                except (ValueError, TypeError):
+                                    # If it's not a valid datetime, keep as string
+                                    processed_columns[col_name] = value
+                            else:
+                                processed_columns[col_name] = value
+                        else:
+                            processed_columns[col_name] = value
+                    
+                    # Build insert statement
+                    columns = list(processed_columns.keys())
+                    placeholders = [f":{col}" for col in columns]
+                    
+                    insert_sql = f"""
+                        INSERT INTO {table_name} ({', '.join(columns)})
+                        VALUES ({', '.join(placeholders)})
+                    """
+                    
+                    # Execute insert with proper parameter binding
+                    await db.execute(text(insert_sql), processed_columns)
+                    inserted_count += 1
+                
+                imported_tables.append(f"{table_name} ({inserted_count} rows)")
+                logger.info(f"Imported {inserted_count} rows into table {table_name}")
+                
+            except Exception as e:
+                error_msg = f"{table_name}: {str(e)}"
+                errors.append(error_msg)
+                logger.error(f"Error importing table {table_name}: {e}")
+        
+        # Commit the transaction
+        await db.commit()
+        
+        result = {
+            "success": True,
+            "message": f"Database settings imported successfully",
+            "imported_tables": imported_tables,
+            "skipped_tables": skipped_tables,
+            "errors": errors,
+            "auto_backup_created": auto_backup_filename,
+            "import_summary": {
+                "total_tables_in_export": len(tables_data),
+                "tables_imported": len(imported_tables),
+                "tables_skipped": len(skipped_tables),
+                "tables_with_errors": len(errors)
+            }
+        }
+        
+        if errors:
+            result["message"] += f" (with {len(errors)} errors)"
+        
+        logger.info(f"Database settings import completed: {result['import_summary']}")
+        
+        return result
+    
+    except json.JSONDecodeError as e:
+        logger.error(f"Invalid JSON format: {e}")
+        raise HTTPException(status_code=400, detail=f"Invalid JSON format: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error importing database settings: {e}")
+        # Rollback transaction on error
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to import database settings: {str(e)}")
+
+
+
 @router.get("/logs")
 async def get_logs(level: Optional[str] = None, search: Optional[str] = None, limit: int = 1000):
     """Get application logs with optional filtering."""
@@ -634,7 +943,131 @@ async def get_log_levels():
         "levels": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
     }
 
-@router.delete("/logs/clear")
+@router.post("/database/export")
+async def export_database(request: dict, db: AsyncSession = Depends(get_db_session)):
+    """Export database data to JSON format."""
+    try:
+        include_sensitive = request.get('includeSensitive', False)
+        
+        logger.info(f"Exporting database to JSON (include_sensitive: {include_sensitive})")
+        
+        export_data = {
+            "export_info": {
+                "created": datetime.now().isoformat(),
+                "version": "aphrodite_v2",
+                "include_sensitive": include_sensitive,
+                "export_type": "database_settings"
+            },
+            "tables": {}
+        }
+        
+        # Get all table names
+        tables_result = await db.execute(text("""
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            ORDER BY table_name
+        """))
+        tables = [row.table_name for row in tables_result.fetchall()]
+        
+        logger.info(f"Found {len(tables)} tables to export: {tables}")
+        
+        # Define sensitive tables/columns to exclude if include_sensitive is False
+        sensitive_patterns = ['password', 'secret', 'key', 'token', 'credential']
+        
+        # Export each table
+        for table in tables:
+            try:
+                # Get table structure
+                columns_result = await db.execute(text(f"""
+                    SELECT column_name, data_type, is_nullable, column_default
+                    FROM information_schema.columns 
+                    WHERE table_name = '{table}' 
+                    ORDER BY ordinal_position
+                """))
+                columns = columns_result.fetchall()
+                
+                # Filter sensitive columns if needed
+                export_columns = []
+                if include_sensitive:
+                    export_columns = [col.column_name for col in columns]
+                else:
+                    for col in columns:
+                        is_sensitive = any(pattern in col.column_name.lower() for pattern in sensitive_patterns)
+                        if not is_sensitive:
+                            export_columns.append(col.column_name)
+                        else:
+                            logger.info(f"Excluding sensitive column: {table}.{col.column_name}")
+                
+                if not export_columns:
+                    logger.info(f"No exportable columns found for table {table}")
+                    continue
+                
+                # Get table data
+                select_columns = ', '.join(export_columns)
+                data_result = await db.execute(text(f"SELECT {select_columns} FROM {table}"))
+                rows = data_result.fetchall()
+                
+                # Convert to JSON-serializable format
+                table_data = []
+                for row in rows:
+                    row_dict = {}
+                    for i, col_name in enumerate(export_columns):
+                        value = row[i] if i < len(row) else None
+                        # Handle special data types
+                        if value is not None:
+                            if hasattr(value, 'isoformat'):  # datetime objects
+                                value = value.isoformat()
+                            elif isinstance(value, (bytes, bytearray)):
+                                value = value.decode('utf-8', errors='replace')
+                        row_dict[col_name] = value
+                    table_data.append(row_dict)
+                
+                export_data["tables"][table] = {
+                    "schema": {
+                        "columns": [{
+                            "name": col.column_name,
+                            "type": col.data_type,
+                            "nullable": col.is_nullable == 'YES',
+                            "default": col.column_default
+                        } for col in columns if col.column_name in export_columns]
+                    },
+                    "data": table_data,
+                    "row_count": len(table_data)
+                }
+                
+                logger.info(f"Exported table {table}: {len(table_data)} rows, {len(export_columns)} columns")
+                
+            except Exception as e:
+                logger.warning(f"Could not export table {table}: {e}")
+                export_data["tables"][table] = {
+                    "error": str(e),
+                    "exported": False
+                }
+        
+        # Create JSON content
+        json_content = json.dumps(export_data, indent=2, ensure_ascii=False)
+        
+        # Generate filename
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        sensitive_suffix = "_full" if include_sensitive else "_filtered"
+        filename = f"aphrodite_v2_export{sensitive_suffix}_{timestamp}.json"
+        
+        logger.info(f"Database export completed: {filename} ({len(json_content)} bytes)")
+        
+        return Response(
+            content=json_content,
+            media_type="application/json",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+    
+    except Exception as e:
+        logger.error(f"Error exporting database: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to export database: {str(e)}")
+
+
 async def clear_logs():
     """Clear application logs."""
     try:
