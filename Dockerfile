@@ -31,6 +31,7 @@ ENV PATH="/home/aphrodite/.local/bin:$PATH" \
     APHRODITE_DATA_DIR=/app/data
 
 # Copy application code
+COPY --chown=aphrodite:aphrodite VERSION ./
 COPY --chown=aphrodite:aphrodite api/ ./api/
 COPY --chown=aphrodite:aphrodite shared/ ./shared/
 COPY --chown=aphrodite:aphrodite aphrodite_logging/ ./aphrodite_logging/

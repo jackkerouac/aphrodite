@@ -119,10 +119,10 @@ export const defaultAcknowledgments: AcknowledgmentItem[] = [
     repositoryUrl: 'https://github.com/Kometa-Team/Kometa'
   },
   {
-    title: 'One-Liners Dataset',
-    description: 'Movie and TV show one-liner quotes used for enhanced functionality',
-    author: 'Antonija Elek',
-    authorUrl: 'https://github.com/antoniaelek',
-    repositoryUrl: 'https://github.com/antoniaelek/one-liners'
+    title: 'Anime Offline Database',
+    description: 'Comprehensive offline anime database for enhanced metadata and functionality',
+    author: 'Manami Project',
+    authorUrl: 'https://github.com/manami-project',
+    repositoryUrl: 'https://github.com/manami-project/anime-offline-database'
   }
 ];

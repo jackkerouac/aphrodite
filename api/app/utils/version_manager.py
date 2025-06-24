@@ -23,16 +23,30 @@ class VersionManager:
     def _get_current_version(self) -> str:
         """Get the current application version from various sources."""
         try:
-            # 1. Try to read from VERSION file
-            version_file = os.path.join(
-                os.path.dirname(__file__), '..', '..', '..', 'VERSION'
-            )
-            if os.path.exists(version_file):
-                with open(version_file, 'r') as f:
-                    file_version = f.read().strip()
-                    if file_version:
-                        logger.info(f"Version loaded from VERSION file: {file_version}")
-                        return file_version
+            # 1. Try to read from VERSION file - multiple possible locations
+            possible_paths = [
+                # Relative to this script
+                os.path.join(os.path.dirname(__file__), '..', '..', '..', 'VERSION'),
+                # From current working directory
+                'VERSION',
+                # From root if in Docker
+                '/app/VERSION',
+                # Alternative Docker location
+                '/aphrodite/VERSION'
+            ]
+            
+            for version_file in possible_paths:
+                version_file = os.path.normpath(version_file)
+                if os.path.exists(version_file):
+                    try:
+                        with open(version_file, 'r') as f:
+                            file_version = f.read().strip()
+                            if file_version:
+                                logger.info(f"Version loaded from VERSION file at {version_file}: {file_version}")
+                                return file_version
+                    except Exception as e:
+                        logger.warning(f"Could not read VERSION file at {version_file}: {e}")
+                        continue
             
             # 2. Try environment variable
             env_version = os.getenv('APHRODITE_VERSION')
