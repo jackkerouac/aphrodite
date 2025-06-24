@@ -192,12 +192,12 @@ class ReviewBadgeProcessor(BaseBadgeProcessor):
                 "image_padding": 5,
                 "codec_image_directory": "images/rating",  # Where review badge images are located
                 "image_mapping": {  # Maps review sources to image files
-                    "IMDb": "imdb.png",
+                    "IMDb": "IMDb.png",
                     "Rotten Tomatoes": "rt.png",
                     "RT-Crit-Fresh": "rt.png",
                     "Metacritic": "metacritic_logo.png",
-                    "TMDb": "tmdb.png",
-                    "MyAnimeList": "mal.png"
+                    "TMDb": "TMDb.png",
+                    "MyAnimeList": "MAL.png"
                 }
             }
         }

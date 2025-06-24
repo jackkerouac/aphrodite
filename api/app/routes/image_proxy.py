@@ -37,28 +37,31 @@ async def proxy_jellyfin_image(item_id: str, image_type: str = "Primary"):
         # Get the image from Jellyfin
         session = await jellyfin_service._get_session()
         
-        async with session.get(image_url) as response:
-            if response.status == 200:
-                # Get the content type
-                content_type = response.headers.get('content-type', 'image/jpeg')
-                
-                # Read the image data
-                image_data = await response.read()
-                
-                logger.debug(f"Successfully proxied image for item {item_id}: {len(image_data)} bytes")
-                
-                # Return the image with proper headers
-                return Response(
-                    content=image_data,
-                    media_type=content_type,
-                    headers={
-                        "Cache-Control": "public, max-age=3600",  # Cache for 1 hour
-                        "Content-Length": str(len(image_data))
-                    }
-                )
-            else:
-                logger.warning(f"Jellyfin returned status {response.status} for item {item_id}")
-                raise HTTPException(status_code=404, detail="Image not found")
+        try:
+            async with session.get(image_url) as response:
+                if response.status == 200:
+                    # Get the content type
+                    content_type = response.headers.get('content-type', 'image/jpeg')
+                    
+                    # Read the image data
+                    image_data = await response.read()
+                    
+                    logger.debug(f"Successfully proxied image for item {item_id}: {len(image_data)} bytes")
+                    
+                    # Return the image with proper headers
+                    return Response(
+                        content=image_data,
+                        media_type=content_type,
+                        headers={
+                            "Cache-Control": "public, max-age=3600",  # Cache for 1 hour
+                            "Content-Length": str(len(image_data))
+                        }
+                    )
+                else:
+                    logger.warning(f"Jellyfin returned status {response.status} for item {item_id}")
+                    raise HTTPException(status_code=404, detail="Image not found")
+        finally:
+            await session.close()
                 
     except Exception as e:
         logger.error(f"Error proxying image for item {item_id}: {e}", exc_info=True)
@@ -111,45 +114,48 @@ async def proxy_jellyfin_thumbnail(
         # Get the image from Jellyfin
         session = await jellyfin_service._get_session()
         
-        async with session.get(image_url, params=params) as response:
-            if response.status == 200:
-                # Get the content type
-                content_type = response.headers.get('content-type', 'image/jpeg')
-                
-                # Read the image data
-                image_data = await response.read()
-                
-                logger.debug(f"Successfully proxied thumbnail for item {item_id}: {len(image_data)} bytes")
-                
-                # Set cache headers based on whether this is cache-busted
-                if is_cache_busted:
-                    # No cache for cache-busted requests (force fresh fetch)
-                    cache_control = "no-cache, no-store, must-revalidate"
-                    # Add additional headers to really prevent caching
-                    headers = {
-                        "Cache-Control": cache_control,
-                        "Pragma": "no-cache",
-                        "Expires": "0",
-                        "Content-Length": str(len(image_data))
-                    }
-                    logger.debug(f"Using no-cache headers for cache-busted request: {item_id}")
+        try:
+            async with session.get(image_url, params=params) as response:
+                if response.status == 200:
+                    # Get the content type
+                    content_type = response.headers.get('content-type', 'image/jpeg')
+                    
+                    # Read the image data
+                    image_data = await response.read()
+                    
+                    logger.debug(f"Successfully proxied thumbnail for item {item_id}: {len(image_data)} bytes")
+                    
+                    # Set cache headers based on whether this is cache-busted
+                    if is_cache_busted:
+                        # No cache for cache-busted requests (force fresh fetch)
+                        cache_control = "no-cache, no-store, must-revalidate"
+                        # Add additional headers to really prevent caching
+                        headers = {
+                            "Cache-Control": cache_control,
+                            "Pragma": "no-cache",
+                            "Expires": "0",
+                            "Content-Length": str(len(image_data))
+                        }
+                        logger.debug(f"Using no-cache headers for cache-busted request: {item_id}")
+                    else:
+                        # Much shorter cache for regular requests (5 minutes instead of 2 hours)
+                        cache_control = "public, max-age=300"  # Cache thumbnails for 5 minutes only
+                        headers = {
+                            "Cache-Control": cache_control,
+                            "Content-Length": str(len(image_data))
+                        }
+                    
+                    # Return the image with appropriate headers
+                    return Response(
+                        content=image_data,
+                        media_type=content_type,
+                        headers=headers
+                    )
                 else:
-                    # Much shorter cache for regular requests (5 minutes instead of 2 hours)
-                    cache_control = "public, max-age=300"  # Cache thumbnails for 5 minutes only
-                    headers = {
-                        "Cache-Control": cache_control,
-                        "Content-Length": str(len(image_data))
-                    }
-                
-                # Return the image with appropriate headers
-                return Response(
-                    content=image_data,
-                    media_type=content_type,
-                    headers=headers
-                )
-            else:
-                logger.warning(f"Jellyfin returned status {response.status} for thumbnail {item_id}")
-                raise HTTPException(status_code=404, detail="Thumbnail not found")
+                    logger.warning(f"Jellyfin returned status {response.status} for thumbnail {item_id}")
+                    raise HTTPException(status_code=404, detail="Thumbnail not found")
+        finally:
+            await session.close()
                 
     except Exception as e:
         logger.error(f"Error proxying thumbnail for item {item_id}: {e}", exc_info=True)

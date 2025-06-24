@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from aphrodite_helpers.get_media_info import get_primary_audio_codec
 from aphrodite_helpers.get_resolution_info import get_resolution_badge_text
-from aphrodite_helpers.check_jellyfin_connection import load_settings
+from aphrodite_helpers.v2_settings_bridge import load_settings
 from aphrodite_helpers.minimal_logger import log_error, log_warning, log_milestone, LoggedOperation
 
 def get_jellyfin_item_details(url, api_key, user_id, item_id, timeout=30):

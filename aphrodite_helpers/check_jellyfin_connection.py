@@ -5,8 +5,8 @@ import requests
 import os
 import sys
 
-# Import the compatibility layer
-from aphrodite_helpers.settings_compat import load_settings
+# Import the v2 settings bridge
+from aphrodite_helpers.v2_settings_bridge import load_settings
 
 def get_jellyfin_libraries(url, api_key, user_id):
     """Get all libraries (views) from Jellyfin for a specific user."""
