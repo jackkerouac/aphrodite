@@ -30,56 +30,49 @@ class ReviewDetector:
         self._api_keys_loaded = False
     
     async def _load_api_keys(self):
-        """Load API keys from PostgreSQL database"""
+        """Load API keys from PostgreSQL database using settings service"""
         if self._api_keys_loaded:
             return
         
         try:
-            # Direct database connection approach
-            from app.core.config import get_settings
-            from app.models.config import SystemConfigModel
-            from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-            from sqlalchemy import select
+            # Use the settings service to load API keys
+            from app.services.settings_service import settings_service
             
-            settings = get_settings()
+            api_keys = await settings_service.get_api_keys_standalone(force_reload=True)
             
-            # Create a direct database connection
-            engine = create_async_engine(settings.database_url)
-            SessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+            # Debug: log the actual structure we get back
+            self.logger.info(f"API keys structure loaded: {api_keys}")
             
-            async with SessionLocal() as session:
-                # Load settings.yaml from system_config table
-                stmt = select(SystemConfigModel).where(SystemConfigModel.key == "settings.yaml")
-                result = await session.execute(stmt)
-                config = result.scalar_one_or_none()
-                
-                if config and config.value:
-                    api_keys = config.value.get("api_keys", {})
-                    
-                    # Extract OMDb API key
-                    omdb_config = api_keys.get("OMDB", [{}])
-                    if omdb_config and omdb_config[0].get("api_key"):
-                        self.omdb_api_key = omdb_config[0]["api_key"]
-                        self.logger.info(f"Loaded OMDb API key: {'*' * (len(self.omdb_api_key) - 4) + self.omdb_api_key[-4:]}")
-                    
-                    # Extract TMDb API key (stored as Bearer token)
-                    tmdb_config = api_keys.get("TMDB", [{}])
-                    if tmdb_config and tmdb_config[0].get("api_key"):
-                        self.tmdb_api_key = tmdb_config[0]["api_key"]  # Use full Bearer token
-                        self.logger.info(f"Loaded TMDb Bearer token: {'*' * 20}...{self.tmdb_api_key[-10:]}")
-                    
-                    self.logger.info("Successfully loaded API keys from database using direct connection")
+            if api_keys:
+                # Extract OMDb API key
+                omdb_config = api_keys.get("OMDB", [{}])
+                self.logger.debug(f"OMDb config found: {omdb_config}")
+                if omdb_config and len(omdb_config) > 0 and omdb_config[0].get("api_key"):
+                    self.omdb_api_key = omdb_config[0]["api_key"]
+                    self.logger.info(f"Loaded OMDb API key: {'*' * (len(self.omdb_api_key) - 4) + self.omdb_api_key[-4:]}")
                 else:
-                    self.logger.warning("No API keys found in settings.yaml - using demo data")
-            
-            # Clean up the engine
-            await engine.dispose()
+                    self.logger.warning(f"No OMDb API key found in config: {omdb_config}")
+                
+                # Extract TMDb API key (stored as Bearer token)
+                tmdb_config = api_keys.get("TMDB", [{}])
+                self.logger.debug(f"TMDb config found: {tmdb_config}")
+                if tmdb_config and len(tmdb_config) > 0 and tmdb_config[0].get("api_key"):
+                    self.tmdb_api_key = tmdb_config[0]["api_key"]  # Use full Bearer token
+                    self.logger.info(f"Loaded TMDb Bearer token: {'*' * 20}...{self.tmdb_api_key[-10:]}")
+                else:
+                    self.logger.warning(f"No TMDb API key found in config: {tmdb_config}")
+                
+                self.logger.info("Successfully loaded API keys from v2 database")
+            else:
+                self.logger.warning("No API keys found in settings.yaml - using demo data")
             
             self._api_keys_loaded = True
             
         except Exception as e:
             self.logger.error(f"Error loading API keys from database: {e}")
             self.logger.warning("Falling back to demo data")
+            import traceback
+            traceback.print_exc()
     
     async def get_review_info(self, poster_path: str, settings: Optional[Dict[str, Any]] = None, jellyfin_id: Optional[str] = None) -> Optional[List[Dict[str, Any]]]:
         """Get real review info from multiple sources based on settings"""

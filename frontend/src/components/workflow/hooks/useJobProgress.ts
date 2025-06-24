@@ -44,7 +44,10 @@ export const useJobProgress = (jobId: string): UseJobProgressReturn => {
     console.log(`🔌 Attempting WebSocket connection for job: ${jobId}`)
 
     try {
-      const wsUrl = `ws://localhost:8000/api/v1/workflow/ws/${jobId}`
+      // Use current host for WebSocket connection (works in both dev and Docker)
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+      const host = window.location.host
+      const wsUrl = `${protocol}//${host}/api/v1/workflow/ws/${jobId}`
       console.log(`🔗 Connecting to: ${wsUrl}`)
       
       const ws = new WebSocket(wsUrl)

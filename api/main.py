@@ -78,6 +78,15 @@ async def lifespan(app: FastAPI):
         else:
             logger.warning("Frontend build not found - API only mode")
         
+        # Start WebSocket Redis listener (after database is fully initialized)
+        try:
+            # Import only when needed to avoid initialization during module loading
+            from app.routes.workflow.websocket_routes import websocket_manager
+            await websocket_manager.start_redis_listener()
+            logger.info("WebSocket Redis listener started successfully")
+        except Exception as e:
+            logger.warning(f"Failed to start WebSocket Redis listener: {e}")
+        
         yield
         
     except Exception as e:
@@ -86,6 +95,16 @@ async def lifespan(app: FastAPI):
     finally:
         # Shutdown
         logger.info("Shutting down Aphrodite v2 API server")
+        
+        # Stop WebSocket Redis listener
+        try:
+            # Import only when needed
+            from app.routes.workflow.websocket_routes import websocket_manager
+            await websocket_manager.stop_redis_listener()
+            logger.info("WebSocket Redis listener stopped")
+        except Exception as e:
+            logger.warning(f"Error stopping WebSocket Redis listener: {e}")
+        
         await close_db()
         logger.info("Database connections closed")
 
@@ -156,6 +175,24 @@ def create_application() -> FastAPI:
     # WebSocket route
     app.websocket("/api/v1/workflow/ws/{job_id}")(websocket_endpoint)
     
+    # Handle Next.js image optimization (now safe since /_next mount is removed)
+    @app.get("/_next/image")
+    async def nextjs_image_proxy(url: str, w: int = 384, q: int = 75):
+        """Proxy Next.js image optimization requests through our external image proxy"""
+        from fastapi.responses import RedirectResponse
+        import urllib.parse
+        
+        # Decode the URL parameter
+        decoded_url = urllib.parse.unquote(url)
+        
+        # If it's a relative URL, make it absolute
+        if decoded_url.startswith('/'):
+            decoded_url = f"http://localhost:8000{decoded_url}"
+        
+        # Redirect to our external image proxy service with proper CORS handling
+        proxy_url = f"/api/v1/images/proxy/external/?url={urllib.parse.quote(decoded_url, safe='')}&w={w}&q={q}"
+        return RedirectResponse(url=proxy_url, status_code=302)
+    
     # Add redirect routes for endpoints without trailing slashes
     from fastapi.responses import RedirectResponse
     
@@ -211,13 +248,7 @@ def setup_static_files(app: FastAPI):
         logger.info(f"Mounting API static files from {api_static} with CORS support")
         app.mount("/api/v1/static", CORSStaticFiles(directory=str(api_static)), name="api-static")
     
-    # Mount the entire _next directory to handle all Next.js assets including chunks
-    frontend_next = project_root / "frontend" / ".next"
-    if frontend_next.exists():
-        logger.info(f"Mounting complete Next.js build from {frontend_next}")
-        app.mount("/_next", StaticFiles(directory=str(frontend_next), html=True), name="nextjs-build")
-    
-    # Mount Next.js static files (_next/static) - keeping for compatibility
+    # Mount Next.js static files (_next/static) - being specific to avoid conflicts
     if frontend_static.exists():
         logger.info(f"Mounting Next.js static files from {frontend_static}")
         app.mount("/_next/static", StaticFiles(directory=str(frontend_static), html=True), name="nextjs-static")
@@ -226,23 +257,6 @@ def setup_static_files(app: FastAPI):
     if frontend_public.exists():
         logger.info(f"Mounting public files from {frontend_public}")
         app.mount("/public", StaticFiles(directory=str(frontend_public)), name="public")
-    
-    # Handle Next.js image optimization by proxying to the actual image
-    @app.get("/_next/image")
-    async def nextjs_image_proxy(url: str, w: int = 384, q: int = 75):
-        """Proxy Next.js image optimization requests to the actual image URL"""
-        from fastapi.responses import RedirectResponse
-        import urllib.parse
-        
-        # Decode the URL parameter
-        decoded_url = urllib.parse.unquote(url)
-        
-        # If it's a relative URL, make it absolute
-        if decoded_url.startswith('/'):
-            decoded_url = f"http://localhost:8000{decoded_url}"
-        
-        # Redirect to the actual image URL (bypassing Next.js optimization)
-        return RedirectResponse(url=decoded_url, status_code=302)
 
 def setup_frontend_routes(app: FastAPI):
     """Setup Next.js frontend page serving"""

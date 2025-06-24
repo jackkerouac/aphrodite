@@ -49,55 +49,102 @@ class TagManagementService:
             from app.core.database import async_session_factory
             from app.models.config import SystemConfigModel
             from sqlalchemy import select
+            import yaml
             
-            if async_session_factory is None:
-                self.logger.error("Database session factory not initialized")
-                return None
+            # Check if global session factory is available, otherwise create a temporary one
+            session_factory = async_session_factory
+            temporary_engine = None
             
-            async with async_session_factory() as db:
-                # Load the settings.yaml configuration
-                stmt = select(SystemConfigModel).where(SystemConfigModel.key == "settings.yaml")
-                result = await db.execute(stmt)
-                config_model = result.scalar_one_or_none()
+            if session_factory is None:
+                self.logger.warning("Global database session factory not available for tag service, creating temporary one")
                 
-                if not config_model or not config_model.value:
-                    self.logger.error("No settings.yaml configuration found in database")
-                    return None
+                # Create temporary database engine like other services do
+                from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+                from app.core.config import get_settings
                 
-                settings = config_model.value
+                settings = get_settings()
+                temporary_engine = create_async_engine(
+                    settings.database_url,
+                    echo=False,
+                    pool_size=1,
+                    max_overflow=0,
+                    pool_pre_ping=True
+                )
                 
-                # Extract Jellyfin settings from the nested structure
-                api_keys = settings.get("api_keys", {})
-                jellyfin_configs = api_keys.get("Jellyfin", [])
-                
-                if not jellyfin_configs or len(jellyfin_configs) == 0:
-                    self.logger.error("No Jellyfin configuration found in settings.yaml")
-                    return None
-                
-                # Use the first Jellyfin configuration
-                jellyfin_config = jellyfin_configs[0]
-                
-                # Validate required fields
-                required_fields = ["url", "api_key", "user_id"]
-                missing_fields = [field for field in required_fields if field not in jellyfin_config]
-                
-                if missing_fields:
-                    self.logger.error(f"Missing required Jellyfin config fields: {missing_fields}")
-                    return None
-                
-                # Cache the config
-                self._jellyfin_config = jellyfin_config
-                
-                # Set instance variables
-                self.base_url = jellyfin_config["url"].rstrip("/")
-                self.api_key = jellyfin_config["api_key"]
-                self.user_id = jellyfin_config["user_id"]
-                
-                self.logger.info(f"Successfully loaded Jellyfin config: {self.base_url}, user: {self.user_id}")
-                return jellyfin_config
+                session_factory = async_sessionmaker(
+                    temporary_engine,
+                    class_=AsyncSession,
+                    expire_on_commit=False
+                )
+            
+            try:
+                async with session_factory() as db:
+                    # Load the settings.yaml configuration
+                    stmt = select(SystemConfigModel).where(SystemConfigModel.key == "settings.yaml")
+                    result = await db.execute(stmt)
+                    config_model = result.scalar_one_or_none()
+                    
+                    if not config_model or not config_model.value:
+                        self.logger.error("No settings.yaml configuration found in database")
+                        return None
+                    
+                    settings_data = config_model.value
+                    
+                    # Parse YAML string if it's a string (like Jellyfin service)
+                    if isinstance(settings_data, str):
+                        try:
+                            settings_data = yaml.safe_load(settings_data)
+                            self.logger.debug("Parsed settings.yaml from string format for tag service")
+                        except Exception as yaml_error:
+                            self.logger.error(f"Failed to parse settings.yaml for tag service: {yaml_error}")
+                            return None
+                    
+                    if not isinstance(settings_data, dict):
+                        self.logger.error("Settings data is not a valid dictionary after parsing")
+                        return None
+                    
+                    # Extract Jellyfin settings from the nested structure
+                    api_keys = settings_data.get("api_keys", {})
+                    jellyfin_configs = api_keys.get("Jellyfin", [])
+                    
+                    if not jellyfin_configs or len(jellyfin_configs) == 0:
+                        self.logger.error("No Jellyfin configuration found in settings.yaml")
+                        return None
+                    
+                    # Use the first Jellyfin configuration
+                    jellyfin_config = jellyfin_configs[0]
+                    
+                    # Validate required fields
+                    required_fields = ["url", "api_key", "user_id"]
+                    missing_fields = [field for field in required_fields if field not in jellyfin_config]
+                    
+                    if missing_fields:
+                        self.logger.error(f"Missing required Jellyfin config fields: {missing_fields}")
+                        return None
+                    
+                    # Cache the config
+                    self._jellyfin_config = jellyfin_config
+                    
+                    # Set instance variables
+                    self.base_url = jellyfin_config["url"].rstrip("/")
+                    self.api_key = jellyfin_config["api_key"]
+                    self.user_id = jellyfin_config["user_id"]
+                    
+                    self.logger.info(f"Successfully loaded Jellyfin config for tag service: {self.base_url}, user: {self.user_id}")
+                    return jellyfin_config
+            finally:
+                # Clean up temporary engine if created
+                if temporary_engine is not None:
+                    await temporary_engine.dispose()
                 
         except Exception as e:
             self.logger.error(f"Error loading Jellyfin config from database: {e}", exc_info=True)
+            # Clean up temporary engine if created
+            if 'temporary_engine' in locals() and temporary_engine is not None:
+                try:
+                    await temporary_engine.dispose()
+                except Exception:
+                    pass  # Ignore cleanup errors
             return None
     
     async def add_tag_to_items(self, item_ids: List[str], tag_name: str = "aphrodite-overlay") -> BulkTagResponse:

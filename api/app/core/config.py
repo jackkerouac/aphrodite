@@ -42,6 +42,38 @@ class Settings(BaseSettings):
     database_pool_size: int = Field(default=20, description="Database connection pool size")
     database_max_overflow: int = Field(default=30, description="Database max overflow connections")
     
+    def get_database_url(self) -> str:
+        """Get database URL, building from individual env vars if available"""
+        # Check if individual database environment variables are set
+        db_host = os.environ.get('POSTGRES_HOST')
+        db_port = os.environ.get('POSTGRES_PORT')
+        db_name = os.environ.get('POSTGRES_DB')
+        db_user = os.environ.get('POSTGRES_USER')
+        db_password = os.environ.get('POSTGRES_PASSWORD')
+        
+        # Priority 1: If individual vars are set with explicit host, use them
+        if all([db_host, db_port, db_name, db_user, db_password]):
+            return f"postgresql+asyncpg://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+        
+        # Priority 2: If we have the individual vars but no host, assume local development
+        if all([db_port, db_name, db_user, db_password]) and not db_host:
+            # Use localhost with the external port for local development
+            return f"postgresql+asyncpg://{db_user}:{db_password}@localhost:{db_port}/{db_name}"
+        
+        # Priority 3: Check if we're definitely in Docker
+        is_docker = (
+            os.path.exists('/.dockerenv') or  # Docker container indicator
+            os.environ.get('DOCKER_ENV') == 'true'  # Explicit Docker flag
+        )
+        
+        # Priority 4: If not in Docker and we have some individual DB settings, prefer localhost
+        if not is_docker and db_port and db_user and db_password:
+            db_name = db_name or 'aphrodite'
+            return f"postgresql+asyncpg://{db_user}:{db_password}@localhost:{db_port}/{db_name}"
+        
+        # Priority 5: Default to the configured DATABASE_URL (for Docker or when no individual vars)
+        return self.database_url
+    
     # Redis
     redis_url: str = Field(
         default="redis://redis:6379/0",

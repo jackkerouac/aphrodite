@@ -11,6 +11,9 @@ import os
 import logging
 from pathlib import Path
 
+# CRITICAL: Disable v1 legacy imports that cause database table errors
+V2_ONLY_MODE = os.environ.get('APHRODITE_V2_ONLY', '0') == '1'
+
 def run_v2_processing():
     """Run V2 badge processing in isolated subprocess"""
     
@@ -50,12 +53,23 @@ def run_v2_processing():
         
         async def process_with_database():
             # CRITICAL FIX: Initialize database first
-            from app.core.database import init_db
-            await init_db()
+            try:
+                from app.core.database import init_db
+                await init_db()
+                # Log successful database initialization
+                print("Database initialized successfully", file=sys.stderr)
+            except Exception as db_error:
+                print(f"Database initialization failed: {db_error}", file=sys.stderr)
+                raise
             
             # Import V2 components after database initialization
-            from app.services.badge_processing.pipeline import UniversalBadgeProcessor
-            from app.services.badge_processing.types import SingleBadgeRequest
+            try:
+                from app.services.badge_processing.pipeline import UniversalBadgeProcessor
+                from app.services.badge_processing.types import SingleBadgeRequest
+                print("Imported badge processing components successfully", file=sys.stderr)
+            except ImportError as import_error:
+                print(f"Import error: {import_error}", file=sys.stderr)
+                raise
             
             # Create and run request
             request = SingleBadgeRequest(

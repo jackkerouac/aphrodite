@@ -34,55 +34,121 @@ class ReviewPreferences:
         return conn
     
     def get_enabled_sources(self) -> List[Dict[str, Any]]:
-        """Get all enabled review sources ordered by display priority"""
-        conn = self._get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("""
-            SELECT source_name, enabled, display_order, max_variants, priority, conditions
-            FROM review_sources 
-            WHERE enabled = 1 
-            ORDER BY display_order ASC, priority ASC
-        """)
-        
-        sources = []
-        for row in cursor.fetchall():
-            source_data = {
-                'name': row['source_name'],
-                'enabled': bool(row['enabled']),
-                'display_order': row['display_order'],
-                'max_variants': row['max_variants'],
-                'priority': row['priority'],
-                'conditions': json.loads(row['conditions']) if row['conditions'] else None
-            }
-            sources.append(source_data)
-        
-        conn.close()
-        return sources
+        """Get all enabled review sources ordered by display priority - V2 compatibility"""
+        try:
+            # Check if we're in V2 mode or if v1 database doesn't exist
+            if os.environ.get('APHRODITE_V2_ONLY', '0') == '1' or not os.path.exists(self.db_path):
+                # Return default enabled sources for V2 compatibility
+                return [
+                    {'name': 'IMDb', 'enabled': True, 'display_order': 1, 'max_variants': 1, 'priority': 1, 'conditions': None},
+                    {'name': 'TMDb', 'enabled': True, 'display_order': 2, 'max_variants': 1, 'priority': 2, 'conditions': None},
+                    {'name': 'Rotten Tomatoes Critics', 'enabled': False, 'display_order': 3, 'max_variants': 1, 'priority': 3, 'conditions': None},
+                    {'name': 'Metacritic', 'enabled': False, 'display_order': 4, 'max_variants': 1, 'priority': 4, 'conditions': None}
+                ]
+            
+            conn = self._get_connection()
+            cursor = conn.cursor()
+            
+            # Check if review_sources table exists
+            cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='review_sources'"
+            )
+            if not cursor.fetchone():
+                conn.close()
+                # Table doesn't exist, return defaults
+                return [
+                    {'name': 'IMDb', 'enabled': True, 'display_order': 1, 'max_variants': 1, 'priority': 1, 'conditions': None},
+                    {'name': 'TMDb', 'enabled': True, 'display_order': 2, 'max_variants': 1, 'priority': 2, 'conditions': None}
+                ]
+            
+            cursor.execute("""
+                SELECT source_name, enabled, display_order, max_variants, priority, conditions
+                FROM review_sources 
+                WHERE enabled = 1 
+                ORDER BY display_order ASC, priority ASC
+            """)
+            
+            sources = []
+            for row in cursor.fetchall():
+                source_data = {
+                    'name': row['source_name'],
+                    'enabled': bool(row['enabled']),
+                    'display_order': row['display_order'],
+                    'max_variants': row['max_variants'],
+                    'priority': row['priority'],
+                    'conditions': json.loads(row['conditions']) if row['conditions'] else None
+                }
+                sources.append(source_data)
+            
+            conn.close()
+            return sources
+            
+        except Exception as e:
+            # If any error occurs, return safe defaults
+            print(f"Error in get_enabled_sources: {e}")
+            return [
+                {'name': 'IMDb', 'enabled': True, 'display_order': 1, 'max_variants': 1, 'priority': 1, 'conditions': None},
+                {'name': 'TMDb', 'enabled': True, 'display_order': 2, 'max_variants': 1, 'priority': 2, 'conditions': None}
+            ]
     
     def get_review_settings(self) -> Dict[str, Any]:
-        """Get general review settings"""
-        conn = self._get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("SELECT setting_key, setting_value FROM review_settings")
-        
-        settings = {}
-        for row in cursor.fetchall():
-            key = row['setting_key']
-            value = row['setting_value']
+        """Get general review settings - V2 compatibility"""
+        try:
+            # Check if we're in V2 mode or if v1 database doesn't exist
+            if os.environ.get('APHRODITE_V2_ONLY', '0') == '1' or not os.path.exists(self.db_path):
+                # Return default settings for V2 compatibility
+                return {
+                    'max_badges_display': 4,
+                    'show_percentage_only': False,
+                    'group_related_sources': False,
+                    'anime_sources_for_anime_only': False
+                }
             
-            # Convert known boolean settings
-            if key in ['show_percentage_only', 'group_related_sources', 'anime_sources_for_anime_only']:
-                settings[key] = value == '1' or value.lower() == 'true'
-            # Convert known integer settings
-            elif key in ['max_badges_display']:
-                settings[key] = int(value) if value.isdigit() else 4
-            else:
-                settings[key] = value
-        
-        conn.close()
-        return settings
+            conn = self._get_connection()
+            cursor = conn.cursor()
+            
+            # Check if review_settings table exists
+            cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='review_settings'"
+            )
+            if not cursor.fetchone():
+                conn.close()
+                # Table doesn't exist, return defaults
+                return {
+                    'max_badges_display': 4,
+                    'show_percentage_only': False,
+                    'group_related_sources': False,
+                    'anime_sources_for_anime_only': False
+                }
+            
+            cursor.execute("SELECT setting_key, setting_value FROM review_settings")
+            
+            settings = {}
+            for row in cursor.fetchall():
+                key = row['setting_key']
+                value = row['setting_value']
+                
+                # Convert known boolean settings
+                if key in ['show_percentage_only', 'group_related_sources', 'anime_sources_for_anime_only']:
+                    settings[key] = value == '1' or value.lower() == 'true'
+                # Convert known integer settings
+                elif key in ['max_badges_display']:
+                    settings[key] = int(value) if value.isdigit() else 4
+                else:
+                    settings[key] = value
+            
+            conn.close()
+            return settings
+            
+        except Exception as e:
+            # If any error occurs, return safe defaults
+            print(f"Error in get_review_settings: {e}")
+            return {
+                'max_badges_display': 4,
+                'show_percentage_only': False,
+                'group_related_sources': False,
+                'anime_sources_for_anime_only': False
+            }
     
     def should_include_source(self, source_name: str, item_data: Dict[str, Any] = None) -> bool:
         """Check if a source should be included based on conditions and item data"""
@@ -159,9 +225,43 @@ class ReviewPreferences:
         return False
     
     def get_max_badges_to_display(self) -> int:
-        """Get the maximum number of badges to display"""
-        settings = self.get_review_settings()
-        return settings.get('max_badges_display', 4)
+        """Get the maximum number of badges to display - V2 compatibility"""
+        import asyncio
+        import sys
+        import os  # Ensure os is available
+        
+        try:
+            # Try v2 PostgreSQL database first
+            if os.environ.get('APHRODITE_V2_ONLY', '0') == '1':
+                # V2 mode: load from system_config table
+                
+                # Add API path for v2 imports
+                api_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'api')
+                if api_path not in sys.path:
+                    sys.path.insert(0, api_path)
+                
+                async def get_v2_max_badges():
+                    from app.services.settings_service import settings_service
+                    review_settings = await settings_service.get_review_settings_standalone()
+                    if review_settings:
+                        general_settings = review_settings.get('General', {})
+                        return general_settings.get('max_badges_to_display', 4)
+                    return 4
+                
+                try:
+                    # Try to run async function
+                    return asyncio.run(get_v2_max_badges())
+                except Exception as v2_error:
+                    print(f"V2 settings failed: {v2_error}")
+                    return 4
+            
+            # Fall back to v1 database approach
+            settings = self.get_review_settings()
+            return settings.get('max_badges_display', 4)
+        except Exception as e:
+            # If all else fails, return default
+            print(f"Error getting max badges: {e}")
+            return 4
     
     def filter_and_order_reviews(self, reviews: List[Dict[str, Any]], item_data: Dict[str, Any] = None) -> List[Dict[str, Any]]:
         """Filter and order reviews based on user preferences"""

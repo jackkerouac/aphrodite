@@ -9,6 +9,7 @@ from fastapi.responses import StreamingResponse
 import aiohttp
 from typing import Optional
 import io
+import urllib.parse
 
 from app.services.jellyfin_service import get_jellyfin_service
 from aphrodite_logging import get_logger
@@ -153,3 +154,58 @@ async def proxy_jellyfin_thumbnail(
     except Exception as e:
         logger.error(f"Error proxying thumbnail for item {item_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to proxy thumbnail")
+
+@router.get("/proxy/external/")
+async def proxy_external_image(url: str, w: Optional[int] = 384, q: Optional[int] = 75):
+    """
+    Proxy external images (like TMDB) through our backend to avoid CORS issues
+    
+    Args:
+        url: External image URL to proxy
+        w: Width parameter (for compatibility with Next.js)
+        q: Quality parameter (for compatibility with Next.js)
+    """
+    try:
+        # Decode the URL parameter
+        decoded_url = urllib.parse.unquote(url)
+        
+        logger.debug(f"Proxying external image request: {decoded_url}")
+        
+        # Validate URL to prevent SSRF attacks
+        if not decoded_url.startswith(('http://', 'https://')):
+            raise HTTPException(status_code=400, detail="Invalid URL scheme")
+        
+        # Get the image from external source
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
+            async with session.get(decoded_url) as response:
+                if response.status == 200:
+                    # Get the content type
+                    content_type = response.headers.get('content-type', 'image/jpeg')
+                    
+                    # Read the image data
+                    image_data = await response.read()
+                    
+                    logger.debug(f"Successfully proxied external image: {len(image_data)} bytes")
+                    
+                    # Return the image with proper CORS headers
+                    return Response(
+                        content=image_data,
+                        media_type=content_type,
+                        headers={
+                            "Cache-Control": "public, max-age=3600",  # Cache for 1 hour
+                            "Access-Control-Allow-Origin": "*",
+                            "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+                            "Access-Control-Allow-Headers": "*",
+                            "Content-Length": str(len(image_data))
+                        }
+                    )
+                else:
+                    logger.warning(f"External service returned status {response.status} for URL: {decoded_url}")
+                    raise HTTPException(status_code=404, detail="External image not found")
+                    
+    except aiohttp.ClientError as e:
+        logger.error(f"Network error proxying external image {decoded_url}: {e}")
+        raise HTTPException(status_code=502, detail="Failed to fetch external image")
+    except Exception as e:
+        logger.error(f"Error proxying external image {decoded_url}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to proxy external image")

@@ -63,13 +63,13 @@ class ProgressTracker:
             completed_posters=job.completed_posters,
             failed_posters=job.failed_posters,
             progress_percentage=progress_percentage,
-            estimated_completion=job.estimated_completion,
+            estimated_completion=job.estimated_completion.isoformat() if job.estimated_completion else None,
             current_poster=None  # Could be enhanced to track current poster
         )
     
     async def broadcast_progress(self, job_id: str, progress: ProgressInfo) -> None:
         """
-        Broadcast progress update to connected WebSocket clients.
+        Broadcast progress update via Redis pub/sub for cross-process communication.
         
         Args:
             job_id: Job identifier
@@ -79,28 +79,15 @@ class ProgressTracker:
                    f"({progress.completed_posters}/{progress.total_posters} completed, "
                    f"{progress.failed_posters} failed)")
         
-        # WebSocket broadcasting
+        # Broadcast via Redis for cross-process communication
         try:
-            from ...routes.workflow import websocket_manager
+            from .redis_broadcaster import publish_progress_update
             
-            # Check if there are any active connections
-            active_connections = websocket_manager.active_connections.get(job_id, [])
-            logger.info(f"Found {len(active_connections)} active WebSocket connections for job {job_id}")
-            
-            if not active_connections:
-                logger.warning(f"No active WebSocket connections for job {job_id} - progress update will not be sent")
-            
-            # Send the update
-            await websocket_manager.send_progress_update(job_id, {
-                "type": "progress_update",
-                "job_id": job_id,
-                "data": progress.dict()
-            })
-            
-            logger.info(f"Successfully broadcast progress update for job {job_id}")
+            await publish_progress_update(job_id, progress.model_dump())
+            logger.info(f"Successfully published progress update to Redis for job {job_id}")
             
         except Exception as e:
-            logger.error(f"Failed to broadcast progress for job {job_id}: {e}", exc_info=True)
+            logger.error(f"Failed to publish progress update for job {job_id}: {e}", exc_info=True)
     
     def register_websocket_connection(self, job_id: str, websocket) -> None:
         """Register WebSocket connection for job progress updates"""

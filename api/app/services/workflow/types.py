@@ -6,8 +6,8 @@ Ultra-focused data models for workflow processing system.
 
 from enum import Enum
 from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
-from pydantic import BaseModel, Field
+from typing import List, Dict, Any, Optional, Union
+from pydantic import BaseModel, Field, field_validator
 from uuid import UUID
 
 

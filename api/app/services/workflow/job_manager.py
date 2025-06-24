@@ -14,15 +14,8 @@ from .priority_manager import PriorityManager
 from .resource_manager import ResourceManager
 from .database import JobRepository, BatchJobModel
 
-# Import Celery task for job dispatching
-from celery import Celery
-
-# Connect to unified worker
-unified_celery = Celery('unified_worker')
-unified_celery.conf.update(
-    broker_url='redis://localhost:6380/0',
-    result_backend='redis://localhost:6380/0'
-)
+# Import the correct Celery app from the main celery_app module
+from celery_app import celery_app
 
 
 class JobManager:
@@ -58,10 +51,10 @@ class JobManager:
             badge_types=badge_types
         )
         
-        # CRITICAL: Dispatch job to unified worker
+        # CRITICAL: Dispatch job to Docker Celery worker
         try:
-            task = unified_celery.send_task('unified_worker.process_batch_job', args=[str(job.id)])
-            print(f"Job dispatched to unified worker: {job.id} -> {task.id}")
+            task = celery_app.send_task('app.services.workflow.workers.batch_worker.process_batch_job', args=[str(job.id)])
+            print(f"Job dispatched to Docker Celery worker: {job.id} -> {task.id}")
             # TODO: Store task_id for monitoring
         except Exception as e:
             print(f"Failed to dispatch job {job.id}: {e}")

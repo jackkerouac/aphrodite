@@ -12,7 +12,6 @@ import tempfile
 import os
 
 from aphrodite_logging import get_logger
-from app.core.database import async_session_factory
 from app.services.badge_processing import UniversalBadgeProcessor
 from app.services.badge_processing.types import SingleBadgeRequest
 from app.services.jellyfin_service import get_jellyfin_service
@@ -30,7 +29,8 @@ class PosterProcessor:
     async def process_poster(self, 
                            poster_id: str, 
                            badge_types: List[str],
-                           job_id: str) -> Dict[str, Any]:
+                           job_id: str,
+                           db_session) -> Dict[str, Any]:
         """
         Process single poster with badges.
         
@@ -38,6 +38,7 @@ class PosterProcessor:
             poster_id: Jellyfin item ID for the poster
             badge_types: List of badge types to apply
             job_id: Parent job identifier
+            db_session: Database session for badge processing
             
         Returns:
             Processing result with success status and output path
@@ -75,8 +76,7 @@ class PosterProcessor:
             )
             
             # Process poster using existing badge processing pipeline
-            async with async_session_factory() as db_session:
-                result = await self.badge_processor.process_single(request, db_session)
+            result = await self.badge_processor.process_single(request, db_session)
             
             if result.success and result.results:
                 poster_result = result.results[0]

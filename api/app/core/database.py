@@ -27,8 +27,11 @@ def get_engine() -> Engine:
     global async_engine
     if async_engine is None:
         settings = get_settings()
+        # Use the new method that handles both Docker and local development
+        database_url = settings.get_database_url()
+        
         async_engine = create_async_engine(
-            settings.database_url,
+            database_url,
             echo=settings.debug,
             pool_size=settings.database_pool_size,
             max_overflow=settings.database_max_overflow,

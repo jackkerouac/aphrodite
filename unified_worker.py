@@ -12,12 +12,25 @@ import asyncio
 import subprocess
 
 # Add the API directory to Python path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'api'))
+api_path = os.path.join(os.path.dirname(__file__), 'api')
+if api_path not in sys.path:
+    sys.path.insert(0, api_path)
 
 from celery import Celery
 import time
 from typing import Dict, Any, Optional
 from pathlib import Path
+
+# Helper function to get database configuration
+def get_db_config():
+    """Get database configuration from environment variables or Docker defaults"""
+    return {
+        'host': os.environ.get('POSTGRES_HOST', 'localhost'),
+        'port': os.environ.get('POSTGRES_PORT', '5433'),
+        'database': os.environ.get('POSTGRES_DB', 'aphrodite'),
+        'user': os.environ.get('POSTGRES_USER', 'aphrodite'),
+        'password': os.environ.get('POSTGRES_PASSWORD', 'aphrodite123')
+    }
 
 # Create unified Celery app
 app = Celery('unified_worker')
@@ -41,6 +54,9 @@ app.conf.update(
 def setup_database(sender, **kwargs):
     """Initialize database connection for worker"""
     print("Worker starting - database will be initialized per-task")
+    # Set V2 mode flag to prevent v1 legacy imports
+    os.environ['APHRODITE_V2_ONLY'] = '1'
+    print("V2-only mode enabled - legacy v1 imports disabled")
 
 
 @app.task
@@ -71,14 +87,12 @@ def process_batch_job(self, job_id: str) -> Dict[str, Any]:
         
         print("Connecting to database directly...")
         
-        # Direct database connection (no app imports)
-        conn = psycopg2.connect(
-            host="localhost",
-            port="5433",
-            database="aphrodite_v2",
-            user="aphrodite",
-            password="development"
-        )
+        # Get database configuration from environment
+        db_config = get_db_config()
+        print(f"Connecting to PostgreSQL: {db_config['host']}:{db_config['port']}/{db_config['database']} as {db_config['user']}")
+        
+        # Direct database connection using environment configuration
+        conn = psycopg2.connect(**db_config)
         
         print("Getting job details from database...")
         
@@ -220,10 +234,10 @@ def process_batch_job(self, job_id: str) -> Dict[str, Any]:
         # Update job status to failed
         try:
             import psycopg2
-            conn = psycopg2.connect(
-                host="localhost", port="5433", database="aphrodite_v2",
-                user="aphrodite", password="development"
-            )
+            
+            # Get database configuration from environment
+            db_config = get_db_config()
+            conn = psycopg2.connect(**db_config)
             with conn.cursor() as cursor:
                 cursor.execute(
                     "UPDATE batch_jobs SET status = %s, error_summary = %s WHERE id = %s",
@@ -354,13 +368,9 @@ def download_jellyfin_poster(jellyfin_id: str) -> Optional[bytes]:
         print(f"Downloading poster from Jellyfin for ID: {jellyfin_id}")
         
         # Get Jellyfin connection details from database
-        conn = psycopg2.connect(
-            host="localhost",
-            port="5433",
-            database="aphrodite_v2",
-            user="aphrodite",
-            password="development"
-        )
+        # Get database configuration from environment
+        db_config = get_db_config()
+        conn = psycopg2.connect(**db_config)
         
         jellyfin_url = None
         jellyfin_token = None
@@ -620,6 +630,7 @@ def run_v2_badge_processing(poster_path: str, badge_types: list, output_path: st
     print(f"[DEBUG] Running V2 processing via subprocess")
     print(f"[DEBUG] Parameters: poster_path={poster_path}, badge_types={badge_types}, jellyfin_id={jellyfin_id}")
     
+    # Ensure we're not importing any v1 legacy code
     import subprocess
     import json
     
@@ -642,10 +653,11 @@ def run_v2_badge_processing(poster_path: str, badge_types: list, output_path: st
         
         print(f"[DEBUG] Running subprocess: {runner_path}")
         
-        # Set environment for UTF-8 encoding
+        # Set environment for UTF-8 encoding and disable v1 legacy imports
         env = os.environ.copy()
         env['PYTHONIOENCODING'] = 'utf-8'
         env['PYTHONLEGACYWINDOWSSTDIO'] = 'utf-8'
+        env['APHRODITE_V2_ONLY'] = '1'  # Flag to disable v1 imports
         
         # Run the subprocess
         result = subprocess.run(

@@ -93,13 +93,13 @@ services:
       retries: 5
       start_period: 40s
 
-  # Optional: Background Worker for heavy processing
+  # Celery Worker - Always runs alongside main app
   aphrodite-worker:
     build:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
-    command: ["python", "-m", "celery", "worker", "-A", "app.celery", "--loglevel=info"]
+    command: ["python", "-m", "celery", "-A", "celery_app", "worker", "--loglevel=info", "--pool=solo", "--concurrency=1"]
     environment:
       # Same environment as main application
       DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://aphrodite:${POSTGRES_PASSWORD:-changeme}@postgres:5432/aphrodite}
@@ -109,20 +109,24 @@ services:
       ENVIRONMENT: ${ENVIRONMENT:-production}
       SECRET_KEY: ${SECRET_KEY:-please-change-this-secret-key-in-production}
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      PYTHONPATH: /app
     volumes:
       # Share volumes with main application
       - aphrodite_data:/app/data
       - aphrodite_logs:/app/logs
       - aphrodite_media:/app/media
+      - ./api/static/originals:/app/api/static/originals
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-      aphrodite:
-        condition: service_healthy
-    profiles:
-      - worker  # Enable with: docker-compose --profile worker up
+    working_dir: /app/api
+    healthcheck:
+      test: ["CMD", "python", "-c", "from celery_app import celery_app; print('Worker healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   postgres_data:

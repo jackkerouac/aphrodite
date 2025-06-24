@@ -112,7 +112,10 @@ class GlobalJobProgressManager {
       return // Already connected
     }
     
-    const wsUrl = `ws://localhost:8000/api/v1/workflow/ws/${jobId}`
+    // Use current host for WebSocket connection (works in both dev and Docker)
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    const host = window.location.host
+    const wsUrl = `${protocol}//${host}/api/v1/workflow/ws/${jobId}`
     console.log(`🔗 GlobalJobProgressManager: Connecting to ${wsUrl}`)
     
     try {

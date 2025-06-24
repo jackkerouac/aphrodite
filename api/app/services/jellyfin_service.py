@@ -47,67 +47,115 @@ class JellyfinService:
             from app.models.config import SystemConfigModel
             from sqlalchemy import select
             
-            if async_session_factory is None:
-                self.logger.warning("Database session factory not initialized, using environment variables")
-                raise Exception("No database session factory")
+            # Check if global session factory is available, otherwise create a temporary one
+            session_factory = async_session_factory
+            temporary_engine = None
             
-            async with async_session_factory() as db:
-                # Query the system_config table for settings using proper ORM
-                stmt = select(SystemConfigModel).where(SystemConfigModel.key == "settings.yaml")
-                result = await db.execute(stmt)
-                config_model = result.scalar_one_or_none()
+            if session_factory is None:
+                self.logger.warning("Global database session factory not available, creating temporary one")
                 
-                if config_model and config_model.value:
-                    settings_data = config_model.value
+                # Create temporary database engine like the worker does
+                from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+                
+                temporary_engine = create_async_engine(
+                    self.settings.database_url,
+                    echo=False,
+                    pool_size=1,
+                    max_overflow=0,
+                    pool_pre_ping=True
+                )
+                
+                session_factory = async_sessionmaker(
+                    temporary_engine,
+                    class_=AsyncSession,
+                    expire_on_commit=False
+                )
+            
+            try:
+                async with session_factory() as db:
+                    # Query the system_config table for settings using proper ORM
+                    stmt = select(SystemConfigModel).where(SystemConfigModel.key == "settings.yaml")
+                    result = await db.execute(stmt)
+                    config_model = result.scalar_one_or_none()
                     
-                    # Extract Jellyfin settings from api_keys
-                    api_keys = settings_data.get('api_keys', {})
-                    jellyfin_settings = api_keys.get('Jellyfin', [])
-                    
-                    if jellyfin_settings and len(jellyfin_settings) > 0:
-                        jellyfin_config = jellyfin_settings[0]  # Use first config
+                    if config_model and config_model.value:
+                        settings_data = config_model.value
                         
-                        self.base_url = jellyfin_config.get('url')
-                        self.api_key = jellyfin_config.get('api_key')
-                        self.user_id = jellyfin_config.get('user_id')
+                        # Parse YAML string if it's a string
+                        if isinstance(settings_data, str):
+                            try:
+                                import yaml
+                                settings_data = yaml.safe_load(settings_data)
+                                self.logger.debug("Parsed settings.yaml from string format")
+                            except Exception as yaml_error:
+                                self.logger.error(f"Failed to parse settings.yaml: {yaml_error}")
+                                settings_data = None
                         
-                        if self.base_url and self.api_key:
-                            self.logger.info(f"Loaded Jellyfin settings from database: {self.base_url}")
-                            self._settings_loaded = True
-                            return
+                        if settings_data and isinstance(settings_data, dict):
+                            # Extract Jellyfin settings from api_keys
+                            api_keys = settings_data.get('api_keys', {})
+                            jellyfin_settings = api_keys.get('Jellyfin', [])
+                            
+                            if jellyfin_settings and len(jellyfin_settings) > 0:
+                                jellyfin_config = jellyfin_settings[0]  # Use first config
+                                
+                                self.base_url = jellyfin_config.get('url')
+                                self.api_key = jellyfin_config.get('api_key')
+                                self.user_id = jellyfin_config.get('user_id')
+                                
+                                if self.base_url and self.api_key:
+                                    self.logger.info(f"Loaded Jellyfin settings from database: {self.base_url}")
+                                    self._settings_loaded = True
+                                    return
+                                else:
+                                    self.logger.warning("Incomplete Jellyfin settings in database")
+                            else:
+                                self.logger.info("No Jellyfin settings found in database")
                         else:
-                            self.logger.warning("Incomplete Jellyfin settings in database")
+                            self.logger.warning("Settings data is not a valid dictionary after parsing")
                     else:
-                        self.logger.info("No Jellyfin settings found in database")
-                else:
-                    self.logger.info("No settings found in database")
+                        self.logger.info("No settings found in database")
+            finally:
+                # Clean up temporary engine if created
+                if temporary_engine is not None:
+                    await temporary_engine.dispose()
         
         except Exception as e:
             self.logger.warning(f"Failed to load settings from database: {e}")
+            # Clean up temporary engine if created
+            if 'temporary_engine' in locals() and temporary_engine is not None:
+                try:
+                    await temporary_engine.dispose()
+                except Exception:
+                    pass  # Ignore cleanup errors
         
         # Fallback to environment variables
         self.base_url = self.env_base_url
         self.api_key = self.env_api_key
         self.user_id = self.env_user_id
         
+        # Debug logging to trace the issue
+        self.logger.debug(f"Final Jellyfin settings: base_url={self.base_url}, api_key={'***' if self.api_key else 'None'}, user_id={self.user_id}")
+        
         if self.base_url and self.api_key:
             self.logger.info(f"Using Jellyfin settings from environment: {self.base_url}")
         else:
             self.logger.warning("No Jellyfin settings available from database or environment")
+            self.logger.warning(f"Environment variables: JELLYFIN_URL={self.env_base_url}, JELLYFIN_API_KEY={'***' if self.env_api_key else 'None'}")
         
         self._settings_loaded = True
     
     async def _get_session(self) -> aiohttp.ClientSession:
         """Get or create HTTP session with proper Jellyfin headers"""
-        if self.session is None:
-            timeout = aiohttp.ClientTimeout(total=30)
-            # Use X-Emby-Token header like v1, not URL parameters
-            headers = {
-                "X-Emby-Token": self.api_key,
-                "Content-Type": "application/json"
-            }
-            self.session = aiohttp.ClientSession(timeout=timeout, headers=headers)
-        return self.session
+        # Always create a new session instead of reusing
+        # This prevents "Event loop is closed" errors in worker environment
+        timeout = aiohttp.ClientTimeout(total=30)
+        # Use X-Emby-Token header like v1, not URL parameters
+        headers = {
+            "X-Emby-Token": self.api_key,
+            "Content-Type": "application/json"
+        }
+        return aiohttp.ClientSession(timeout=timeout, headers=headers)
     
     async def close(self):
         """Close HTTP session"""
@@ -129,16 +177,19 @@ class JellyfinService:
             url = urljoin(self.base_url, "/System/Info")
             session = await self._get_session()
             
-            async with session.get(url) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    server_name = data.get("ServerName", "Unknown")
-                    version = data.get("Version", "Unknown")
-                    self.logger.info(f"Connected to Jellyfin: {server_name} v{version}")
-                    return True, f"Connected to {server_name} v{version}"
-                else:
-                    self.logger.error(f"Jellyfin connection failed: HTTP {response.status}")
-                    return False, f"HTTP {response.status}: {await response.text()}"
+            try:
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        server_name = data.get("ServerName", "Unknown")
+                        version = data.get("Version", "Unknown")
+                        self.logger.info(f"Connected to Jellyfin: {server_name} v{version}")
+                        return True, f"Connected to {server_name} v{version}"
+                    else:
+                        self.logger.error(f"Jellyfin connection failed: HTTP {response.status}")
+                        return False, f"HTTP {response.status}: {await response.text()}"
+            finally:
+                await session.close()
                     
         except Exception as e:
             self.logger.error(f"Jellyfin connection error: {e}")
@@ -232,6 +283,13 @@ class JellyfinService:
     async def get_poster_url(self, item_id: str) -> Optional[str]:
         """Get poster image URL for an item"""
         try:
+            # Ensure settings are loaded first
+            await self._load_jellyfin_settings()
+            
+            if not self.base_url or not self.api_key:
+                self.logger.error(f"Jellyfin settings not configured when getting poster URL for {item_id}")
+                return None
+            
             # Primary poster image URL
             poster_url = urljoin(
                 self.base_url,
@@ -240,13 +298,16 @@ class JellyfinService:
             
             # Verify the image exists
             session = await self._get_session()
-            async with session.head(poster_url) as response:
-                if response.status == 200:
-                    self.logger.debug(f"Found poster for item {item_id}")
-                    return poster_url
-                else:
-                    self.logger.warning(f"No poster found for item {item_id}")
-                    return None
+            try:
+                async with session.head(poster_url) as response:
+                    if response.status == 200:
+                        self.logger.debug(f"Found poster for item {item_id}")
+                        return poster_url
+                    else:
+                        self.logger.warning(f"No poster found for item {item_id}")
+                        return None
+            finally:
+                await session.close()
                     
         except Exception as e:
             self.logger.error(f"Error getting poster URL: {e}")
@@ -255,19 +316,25 @@ class JellyfinService:
     async def download_poster(self, item_id: str) -> Optional[bytes]:
         """Download poster image data"""
         try:
+            # Ensure settings are loaded first
+            await self._load_jellyfin_settings()
+            
             poster_url = await self.get_poster_url(item_id)
             if not poster_url:
                 return None
             
             session = await self._get_session()
-            async with session.get(poster_url) as response:
-                if response.status == 200:
-                    poster_data = await response.read()
-                    self.logger.debug(f"Downloaded poster for item {item_id}: {len(poster_data)} bytes")
-                    return poster_data
-                else:
-                    self.logger.error(f"Failed to download poster: HTTP {response.status}")
-                    return None
+            try:
+                async with session.get(poster_url) as response:
+                    if response.status == 200:
+                        poster_data = await response.read()
+                        self.logger.debug(f"Downloaded poster for item {item_id}: {len(poster_data)} bytes")
+                        return poster_data
+                    else:
+                        self.logger.error(f"Failed to download poster: HTTP {response.status}")
+                        return None
+            finally:
+                await session.close()
                     
         except Exception as e:
             self.logger.error(f"Error downloading poster: {e}")
@@ -644,6 +711,13 @@ class JellyfinService:
     async def upload_poster_image(self, item_id: str, image_path: str) -> bool:
         """Upload processed poster back to Jellyfin to replace original (v1 method)"""
         try:
+            # Ensure settings are loaded first
+            await self._load_jellyfin_settings()
+            
+            if not self.base_url or not self.api_key:
+                self.logger.error(f"Jellyfin settings not configured when uploading poster for {item_id}")
+                return False
+            
             # Read the image file
             with open(image_path, 'rb') as image_file:
                 image_data = image_file.read()
