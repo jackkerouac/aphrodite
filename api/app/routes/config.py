@@ -305,6 +305,102 @@ async def test_jellyfin_connection(request: JellyfinTestRequest):
             detail=f"Test failed: {str(e)}"
         )
 
+# New API connection test endpoints
+@router.post("/test-omdb", response_model=BaseResponse)
+async def test_omdb_connection(request: ApiTestRequest):
+    """Test OMDb API key by making a sample request."""
+    logger = get_logger("aphrodite.api.config.test.omdb", service="api")
+
+    try:
+        import aiohttp
+
+        test_url = f"http://www.omdbapi.com/?i=tt0133093&apikey={request.api_key}"
+        timeout = aiohttp.ClientTimeout(total=10)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.get(test_url) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if data.get("Response") == "True":
+                        logger.info("OMDb connection successful")
+                        return BaseResponse(message="Connection successful!")
+                    error_msg = data.get("Error", "Unknown error")
+                    logger.error(f"OMDb connection failed: {error_msg}")
+                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_msg)
+                error_text = await response.text()
+                logger.error(f"OMDb connection failed: HTTP {response.status} - {error_text}")
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"HTTP {response.status}")
+
+    except aiohttp.ClientTimeout:
+        logger.error("OMDb connection timed out")
+        raise HTTPException(status_code=status.HTTP_408_REQUEST_TIMEOUT, detail="Connection timed out")
+    except Exception as e:
+        logger.error(f"Unexpected error testing OMDb connection: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Test failed: {str(e)}")
+
+
+@router.post("/test-tmdb", response_model=BaseResponse)
+async def test_tmdb_connection(request: ApiTestRequest):
+    """Test TMDb API key by making a sample request."""
+    logger = get_logger("aphrodite.api.config.test.tmdb", service="api")
+
+    try:
+        import aiohttp
+
+        test_url = "https://api.themoviedb.org/3/movie/603"
+        headers = {
+            "Authorization": f"Bearer {request.api_key}",
+            "accept": "application/json",
+        }
+        timeout = aiohttp.ClientTimeout(total=10)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.get(test_url, headers=headers) as response:
+                if response.status == 200:
+                    await response.json()
+                    logger.info("TMDb connection successful")
+                    return BaseResponse(message="Connection successful!")
+                error_text = await response.text()
+                logger.error(f"TMDb connection failed: HTTP {response.status} - {error_text}")
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"HTTP {response.status}")
+
+    except aiohttp.ClientTimeout:
+        logger.error("TMDb connection timed out")
+        raise HTTPException(status_code=status.HTTP_408_REQUEST_TIMEOUT, detail="Connection timed out")
+    except Exception as e:
+        logger.error(f"Unexpected error testing TMDb connection: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Test failed: {str(e)}")
+
+
+@router.post("/test-mdblist", response_model=BaseResponse)
+async def test_mdblist_connection(request: ApiTestRequest):
+    """Test MDBList API key by making a sample request."""
+    logger = get_logger("aphrodite.api.config.test.mdblist", service="api")
+
+    try:
+        import aiohttp
+
+        test_url = f"https://mdblist.com/api/?i=tt0133093&apikey={request.api_key}"
+        timeout = aiohttp.ClientTimeout(total=10)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.get(test_url) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if data.get("response") == "True":
+                        logger.info("MDBList connection successful")
+                        return BaseResponse(message="Connection successful!")
+                    error_msg = data.get("error", "Unknown error")
+                    logger.error(f"MDBList connection failed: {error_msg}")
+                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_msg)
+                error_text = await response.text()
+                logger.error(f"MDBList connection failed: HTTP {response.status} - {error_text}")
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"HTTP {response.status}")
+
+    except aiohttp.ClientTimeout:
+        logger.error("MDBList connection timed out")
+        raise HTTPException(status_code=status.HTTP_408_REQUEST_TIMEOUT, detail="Connection timed out")
+    except Exception as e:
+        logger.error(f"Unexpected error testing MDBList connection: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Test failed: {str(e)}")
+
 @router.get("/review_source_settings", response_model=ConfigData)
 async def get_review_source_settings(
     db: AsyncSession = Depends(get_db_session)
