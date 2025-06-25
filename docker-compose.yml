@@ -42,7 +42,7 @@ services:
     restart: unless-stopped
     environment:
       # Database Configuration
-      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://aphrodite:${POSTGRES_PASSWORD:-changeme}@postgres:5432/aphrodite}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://aphrodite:${POSTGRES_PASSWORD:-changeme}@postgres:5433/aphrodite}
       
       # Redis Configuration
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
