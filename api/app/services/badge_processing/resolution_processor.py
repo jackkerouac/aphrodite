@@ -223,50 +223,31 @@ class ResolutionBadgeProcessor(BaseBadgeProcessor):
                 return resolution
             
             elif media_type in ['Series', 'Season']:
-                # For TV: use existing v1 aggregator logic for dominant resolution
-                # CRITICAL FIX: Isolate v1 aggregator from async database context
-                self.logger.debug(f"Using v1 aggregator for TV series dominant resolution: {jellyfin_id}")
+                # For TV: CRITICAL FIX - bypass v1 aggregator entirely to prevent DB corruption
+                # The v1 aggregator makes sync database calls that corrupt async connections
+                self.logger.debug(f"TV series detected - using fallback resolution detection: {jellyfin_id}")
                 
                 try:
-                    # Load Jellyfin settings like the aggregator expects
-                    await jellyfin_service._load_jellyfin_settings()
+                    # Try to get episodes from Jellyfin service using v2 methods only
+                    episodes = await jellyfin_service.get_series_episodes(jellyfin_id, limit=5)
                     
-                    # ISOLATION: Run the v1 aggregator in a separate thread to avoid
-                    # database connection corruption between sync and async contexts
-                    import asyncio
-                    import concurrent.futures
+                    if episodes and len(episodes) > 0:
+                        # Get resolution from first episode using v2 Jellyfin service only
+                        first_episode = episodes[0]
+                        resolution = await jellyfin_service.get_video_resolution_info(first_episode)
+                        
+                        if resolution and resolution != "UNKNOWN":
+                            self.logger.debug(f"TV series resolution from first episode for {jellyfin_id}: {resolution}")
+                            return resolution
                     
-                    def run_v1_aggregator():
-                        """Run v1 aggregator in isolation"""
-                        try:
-                            # Import the v1 aggregator function
-                            from aphrodite_helpers.tv_series_aggregator import get_dominant_resolution
-                            
-                            # Call the aggregator function in isolated context
-                            resolution = get_dominant_resolution(
-                                jellyfin_service.base_url,
-                                jellyfin_service.api_key,
-                                jellyfin_service.user_id,
-                                jellyfin_id
-                            )
-                            
-                            return resolution if resolution != "UNKNOWN" else None
-                        except Exception as e:
-                            self.logger.error(f"V1 aggregator error: {e}")
-                            return None
-                    
-                    # Run in thread pool to isolate database connections
-                    with concurrent.futures.ThreadPoolExecutor() as executor:
-                        future = executor.submit(run_v1_aggregator)
-                        resolution = await asyncio.wrap_future(future)
-                    
-                    self.logger.debug(f"TV series dominant resolution for {jellyfin_id}: {resolution}")
-                    return resolution
-                    
-                except Exception as aggregator_error:
-                    self.logger.error(f"Error using v1 aggregator: {aggregator_error}")
-                    # Fallback to a reasonable default for TV series
+                    # Fallback to reasonable default for TV series if no episodes found
                     self.logger.debug("Using fallback resolution for TV series: 1080p")
+                    return "1080p"
+                    
+                except Exception as episode_error:
+                    self.logger.warning(f"Error getting episodes for TV series: {episode_error}")
+                    # Final fallback to reasonable default
+                    self.logger.debug("Using final fallback resolution for TV series: 1080p")
                     return "1080p"
             
             elif media_type == 'Episode':

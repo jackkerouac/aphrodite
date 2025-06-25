@@ -1,0 +1,406 @@
+"""
+Unified Badge Renderer
+
+Pure V2 badge rendering engine - no V1 dependencies.
+"""
+
+from typing import Dict, Any, Optional, List, Tuple, Union
+from pathlib import Path
+from PIL import Image, ImageDraw, ImageFilter
+from aphrodite_logging import get_logger
+
+from .font_manager import FontManager
+from .color_utils import ColorUtils
+from .positioning import BadgePositioning
+
+
+class UnifiedBadgeRenderer:
+    """Pure V2 badge rendering engine"""
+    
+    def __init__(self):
+        self.logger = get_logger("aphrodite.badge.renderer", service="badge")
+        self.font_manager = FontManager()
+        self.color_utils = ColorUtils()
+        self.positioning = BadgePositioning()
+        
+        # Standard image paths in Docker container
+        self.image_paths = [
+            "/app/images",
+            "/app/assets/images",
+            "/app/static/images"
+        ]
+    
+    def create_text_badge(
+        self, 
+        text: str, 
+        settings: Dict[str, Any],
+        badge_type: str = "generic"
+    ) -> Image.Image:
+        """Create a text-based badge"""
+        try:
+            self.logger.debug(f"🔨 [V2 RENDERER] Creating text badge: '{text}' ({badge_type})")
+            
+            # Get settings with defaults
+            general = settings.get('General', {})
+            text_settings = settings.get('Text', {})
+            bg_settings = settings.get('Background', {})
+            border_settings = settings.get('Border', {})
+            shadow_settings = settings.get('Shadow', {})
+            
+            # Font settings
+            font_name = text_settings.get('font', 'Arial.ttf')
+            fallback_font = text_settings.get('fallback_font', 'DejaVuSans.ttf')
+            text_size = text_settings.get('text-size', 20)
+            text_color = text_settings.get('text-color', '#FFFFFF')
+            
+            # Badge dimensions
+            text_padding = general.get('general_text_padding', 12)
+            use_dynamic = general.get('use_dynamic_sizing', True)
+            badge_size = general.get('general_badge_size', 100)
+            
+            # Load font
+            font = self.font_manager.load_font(font_name, text_size, fallback_font)
+            
+            # Measure text
+            text_width, text_height = self.font_manager.measure_text(text, font)
+            
+            # Calculate badge dimensions
+            if use_dynamic:
+                # Dynamic sizing: badge fits content
+                width = text_width + (text_padding * 2)
+                height = text_height + (text_padding * 2)
+                self.logger.debug(f"🔨 [V2 RENDERER] Dynamic badge size: {width}x{height}")
+            else:
+                # Fixed sizing: badge is specific size
+                width = badge_size
+                height = badge_size
+                self.logger.debug(f"🔨 [V2 RENDERER] Fixed badge size: {width}x{height}")
+            
+            # Create badge image
+            badge = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(badge)
+            
+            # Background
+            bg_color = bg_settings.get('background-color', '#fe019a')
+            bg_opacity = bg_settings.get('background_opacity', 60)
+            bg_rgba = self.color_utils.hex_to_rgba(bg_color, bg_opacity)
+            
+            # Border
+            border_width = border_settings.get('border_width', 1)
+            border_radius = border_settings.get('border-radius', 10)
+            border_color = border_settings.get('border-color', '#000000')
+            
+            # Draw background with rounded corners
+            if border_radius > 0:
+                self._draw_rounded_rectangle(
+                    draw, (0, 0, width, height), 
+                    bg_rgba, border_radius
+                )
+            else:
+                draw.rectangle((0, 0, width, height), fill=bg_rgba)
+            
+            # Draw border if specified
+            if border_width > 0:
+                border_rgba = self.color_utils.hex_to_rgba(border_color, 100)
+                for i in range(border_width):
+                    if border_radius > 0:
+                        self._draw_rounded_rectangle_outline(
+                            draw, (i, i, width-i-1, height-i-1),
+                            border_rgba, border_radius-i
+                        )
+                    else:
+                        draw.rectangle((i, i, width-i-1, height-i-1), outline=border_rgba)
+            
+            # Calculate text position (centered)
+            text_x = (width - text_width) // 2
+            text_y = (height - text_height) // 2
+            
+            # Draw shadow if enabled
+            if shadow_settings.get('shadow_enable', False):
+                shadow_offset_x = shadow_settings.get('shadow_offset_x', 2)
+                shadow_offset_y = shadow_settings.get('shadow_offset_y', 2)
+                shadow_blur = shadow_settings.get('shadow_blur', 5)
+                
+                # Create shadow
+                shadow_x = text_x + shadow_offset_x
+                shadow_y = text_y + shadow_offset_y
+                draw.text((shadow_x, shadow_y), text, font=font, fill=(0, 0, 0, 128))
+                
+                # Apply blur to shadow if needed
+                if shadow_blur > 0:
+                    badge = badge.filter(ImageFilter.GaussianBlur(radius=shadow_blur/2))
+                    draw = ImageDraw.Draw(badge)
+            
+            # Draw text
+            text_rgba = self.color_utils.hex_to_rgba(text_color, 100)
+            draw.text((text_x, text_y), text, font=font, fill=text_rgba)
+            
+            self.logger.debug(f"✅ [V2 RENDERER] Text badge created successfully: {width}x{height}")
+            return badge
+            
+        except Exception as e:
+            self.logger.error(f"❌ [V2 RENDERER] Error creating text badge: {e}", exc_info=True)
+            # Return minimal fallback badge
+            return self._create_fallback_badge(text)
+    
+    def create_image_badge(
+        self, 
+        image_name: str, 
+        settings: Dict[str, Any],
+        badge_type: str = "generic"
+    ) -> Optional[Image.Image]:
+        """Create an image-based badge"""
+        try:
+            self.logger.debug(f"🔨 [V2 RENDERER] Creating image badge: '{image_name}' ({badge_type})")
+            
+            # Find image file
+            image_path = self._find_image_file(image_name, badge_type)
+            if not image_path:
+                self.logger.warning(f"⚠️ [V2 RENDERER] Image not found: {image_name}")
+                return None
+            
+            # Load image
+            badge_image = Image.open(image_path).convert('RGBA')
+            
+            # Get sizing settings
+            general = settings.get('General', {})
+            image_settings = settings.get('ImageBadges', {})
+            
+            badge_size = general.get('general_badge_size', 100)
+            image_padding = image_settings.get('image_padding', 15)
+            use_dynamic = general.get('use_dynamic_sizing', True)
+            
+            # Calculate target size
+            if use_dynamic:
+                # Keep original aspect ratio, limit max dimension
+                max_size = min(badge_size, 120)  # Reasonable maximum
+                original_width, original_height = badge_image.size
+                
+                if original_width > original_height:
+                    new_width = max_size
+                    new_height = int((original_height * max_size) / original_width)
+                else:
+                    new_height = max_size
+                    new_width = int((original_width * max_size) / original_height)
+            else:
+                # Fixed square size
+                new_width = new_height = badge_size
+            
+            # Resize image
+            badge_image = badge_image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            
+            # Add padding if specified
+            if image_padding > 0:
+                padded_width = new_width + (image_padding * 2)
+                padded_height = new_height + (image_padding * 2)
+                padded_image = Image.new('RGBA', (padded_width, padded_height), (0, 0, 0, 0))
+                
+                # Center the image in the padded area
+                paste_x = (padded_width - new_width) // 2
+                paste_y = (padded_height - new_height) // 2
+                padded_image.paste(badge_image, (paste_x, paste_y), badge_image)
+                
+                badge_image = padded_image
+            
+            self.logger.debug(f"✅ [V2 RENDERER] Image badge created successfully: {badge_image.size}")
+            return badge_image
+            
+        except Exception as e:
+            self.logger.error(f"❌ [V2 RENDERER] Error creating image badge: {e}", exc_info=True)
+            return None
+    
+    def apply_badge_to_poster(
+        self, 
+        poster_path: str, 
+        badge: Image.Image, 
+        settings: Dict[str, Any], 
+        output_path: str
+    ) -> bool:
+        """Apply badge to poster and save to output path"""
+        try:
+            self.logger.debug(f"🔨 [V2 RENDERER] Applying badge to poster: {poster_path} -> {output_path}")
+            
+            # Load poster
+            poster = Image.open(poster_path).convert("RGBA")
+            
+            # Get position settings
+            general = settings.get('General', {})
+            position = general.get('general_badge_position', 'top-right')
+            base_edge_padding = general.get('general_edge_padding', 30)
+            
+            # Calculate dynamic padding
+            edge_padding = self.positioning.calculate_dynamic_padding(
+                poster.width, poster.height, base_edge_padding
+            )
+            
+            # Calculate badge position
+            coords = self.positioning.calculate_badge_position(
+                (poster.width, poster.height),
+                (badge.width, badge.height),
+                position,
+                edge_padding
+            )
+            
+            # Apply badge to poster
+            poster.paste(badge, coords, badge)
+            
+            # Ensure output directory exists
+            Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+            
+            # Save final poster
+            poster.convert("RGB").save(output_path, "JPEG", quality=95)
+            
+            self.logger.debug(f"✅ [V2 RENDERER] Badge applied successfully to: {output_path}")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"❌ [V2 RENDERER] Error applying badge: {e}", exc_info=True)
+            return False
+    
+    def apply_multiple_badges_to_poster(
+        self,
+        poster_path: str,
+        badges: List[Image.Image],
+        settings: Dict[str, Any],
+        output_path: str
+    ) -> bool:
+        """Apply multiple badges to poster with proper layout"""
+        try:
+            if not badges:
+                self.logger.warning("No badges to apply")
+                return False
+            
+            self.logger.debug(f"🔨 [V2 RENDERER] Applying {len(badges)} badges to poster: {poster_path}")
+            
+            # Load poster
+            poster = Image.open(poster_path).convert("RGBA")
+            
+            # Calculate positions for all badges
+            badge_sizes = [(badge.width, badge.height) for badge in badges]
+            positions = self.positioning.calculate_multi_badge_layout(
+                (poster.width, poster.height),
+                badge_sizes,
+                settings
+            )
+            
+            # Apply each badge
+            for badge, position in zip(badges, positions):
+                poster.paste(badge, position, badge)
+            
+            # Ensure output directory exists
+            Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+            
+            # Save final poster
+            poster.convert("RGB").save(output_path, "JPEG", quality=95)
+            
+            self.logger.debug(f"✅ [V2 RENDERER] {len(badges)} badges applied successfully to: {output_path}")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"❌ [V2 RENDERER] Error applying multiple badges: {e}", exc_info=True)
+            return False
+    
+    def _find_image_file(self, image_name: str, badge_type: str) -> Optional[Path]:
+        """Find image file in various locations"""
+        try:
+            # Try specific badge type directories first
+            type_specific_paths = [
+                f"/app/images/{badge_type}",
+                f"/app/images/rating",  # Reviews
+                f"/app/images/resolution",  # Resolution
+                f"/app/images/awards",  # Awards
+                f"/app/images/audio"  # Audio
+            ]
+            
+            # Combine with general paths
+            search_paths = type_specific_paths + self.image_paths
+            
+            for path_str in search_paths:
+                path = Path(path_str)
+                if path.exists():
+                    # Try direct file match
+                    image_file = path / image_name
+                    if image_file.exists():
+                        return image_file
+                    
+                    # Try with different extensions
+                    name_without_ext = Path(image_name).stem
+                    for ext in ['.png', '.jpg', '.jpeg', '.svg']:
+                        image_file = path / f"{name_without_ext}{ext}"
+                        if image_file.exists():
+                            return image_file
+            
+            return None
+            
+        except Exception as e:
+            self.logger.error(f"Error finding image file {image_name}: {e}")
+            return None
+    
+    def _draw_rounded_rectangle(self, draw: ImageDraw.Draw, bounds: Tuple[int, int, int, int], 
+                               fill: Tuple[int, int, int, int], radius: int):
+        """Draw a rounded rectangle"""
+        try:
+            x1, y1, x2, y2 = bounds
+            
+            # Draw the main rectangle
+            draw.rectangle((x1 + radius, y1, x2 - radius, y2), fill=fill)
+            draw.rectangle((x1, y1 + radius, x2, y2 - radius), fill=fill)
+            
+            # Draw the corners
+            draw.pieslice((x1, y1, x1 + 2*radius, y1 + 2*radius), 180, 270, fill=fill)
+            draw.pieslice((x2 - 2*radius, y1, x2, y1 + 2*radius), 270, 360, fill=fill)
+            draw.pieslice((x1, y2 - 2*radius, x1 + 2*radius, y2), 90, 180, fill=fill)
+            draw.pieslice((x2 - 2*radius, y2 - 2*radius, x2, y2), 0, 90, fill=fill)
+            
+        except Exception as e:
+            self.logger.error(f"Error drawing rounded rectangle: {e}")
+            # Fallback to regular rectangle
+            draw.rectangle(bounds, fill=fill)
+    
+    def _draw_rounded_rectangle_outline(self, draw: ImageDraw.Draw, bounds: Tuple[int, int, int, int], 
+                                       outline: Tuple[int, int, int, int], radius: int):
+        """Draw a rounded rectangle outline"""
+        try:
+            x1, y1, x2, y2 = bounds
+            
+            # Draw the main rectangle outline
+            draw.rectangle((x1 + radius, y1, x2 - radius, y1), outline=outline)
+            draw.rectangle((x1 + radius, y2, x2 - radius, y2), outline=outline)
+            draw.rectangle((x1, y1 + radius, x1, y2 - radius), outline=outline)
+            draw.rectangle((x2, y1 + radius, x2, y2 - radius), outline=outline)
+            
+            # Draw the corner arcs
+            draw.arc((x1, y1, x1 + 2*radius, y1 + 2*radius), 180, 270, fill=outline)
+            draw.arc((x2 - 2*radius, y1, x2, y1 + 2*radius), 270, 360, fill=outline)
+            draw.arc((x1, y2 - 2*radius, x1 + 2*radius, y2), 90, 180, fill=outline)
+            draw.arc((x2 - 2*radius, y2 - 2*radius, x2, y2), 0, 90, fill=outline)
+            
+        except Exception as e:
+            self.logger.error(f"Error drawing rounded rectangle outline: {e}")
+            # Fallback to regular rectangle outline
+            draw.rectangle(bounds, outline=outline)
+    
+    def _create_fallback_badge(self, text: str) -> Image.Image:
+        """Create a minimal fallback badge when all else fails"""
+        try:
+            # Create simple text badge
+            width, height = 120, 40
+            badge = Image.new('RGBA', (width, height), (255, 0, 150, 180))  # Pink fallback
+            draw = ImageDraw.Draw(badge)
+            
+            # Use default font
+            font = self.font_manager.load_font("DejaVuSans.ttf", 14)
+            
+            # Center text
+            text_width, text_height = self.font_manager.measure_text(text, font)
+            text_x = (width - text_width) // 2
+            text_y = (height - text_height) // 2
+            
+            draw.text((text_x, text_y), text, font=font, fill=(255, 255, 255, 255))
+            
+            return badge
+            
+        except Exception as e:
+            self.logger.error(f"Error creating fallback badge: {e}")
+            # Return completely minimal badge
+            return Image.new('RGBA', (100, 30), (255, 0, 0, 255))

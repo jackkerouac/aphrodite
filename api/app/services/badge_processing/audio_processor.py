@@ -34,6 +34,7 @@ class AudioBadgeProcessor(BaseBadgeProcessor):
     ) -> PosterResult:
         """Process a single poster with audio badge"""
         try:
+            self.logger.info(f"🎧 AUDIO PROCESSOR STARTED for: {poster_path}")
             self.logger.debug(f"Processing audio badge for: {poster_path}")
             
             # Load audio badge settings
@@ -72,7 +73,10 @@ class AudioBadgeProcessor(BaseBadgeProcessor):
                 poster_path, codec_data, settings, output_path
             )
             
+            self.logger.info(f"🎧 AUDIO PROCESSOR ABOUT TO RETURN: {result_path}")
+            
             if result_path:
+                self.logger.info(f"✅ AUDIO PROCESSOR RETURNING SUCCESS: {result_path}")
                 return PosterResult(
                     source_path=poster_path,
                     output_path=result_path,
@@ -80,6 +84,7 @@ class AudioBadgeProcessor(BaseBadgeProcessor):
                     success=True
                 )
             else:
+                self.logger.error(f"❌ AUDIO PROCESSOR RETURNING FAILURE")
                 return PosterResult(
                     source_path=poster_path,
                     success=False,
@@ -87,7 +92,7 @@ class AudioBadgeProcessor(BaseBadgeProcessor):
                 )
                 
         except Exception as e:
-            self.logger.error(f"Error processing audio badge: {e}", exc_info=True)
+            self.logger.error(f"🚨 AUDIO PROCESSOR EXCEPTION: {e}", exc_info=True)
             return PosterResult(
                 source_path=poster_path,
                 success=False,
@@ -195,7 +200,7 @@ class AudioBadgeProcessor(BaseBadgeProcessor):
         }
     
     async def _get_audio_codec_from_jellyfin_id(self, jellyfin_id: Optional[str] = None) -> Optional[str]:
-        """Get real audio codec directly from Jellyfin ID (CRITICAL FIX)"""
+        """Get real audio codec directly from Jellyfin ID (CRITICAL FIX: V1 AGGREGATOR BYPASS)"""
         try:
             if not jellyfin_id:
                 self.logger.warning("No jellyfin_id provided for audio codec detection")
@@ -223,51 +228,61 @@ class AudioBadgeProcessor(BaseBadgeProcessor):
                 return codec
             
             elif media_type in ['Series', 'Season']:
-                # For TV: use existing v1 aggregator logic for dominant codec
-                # CRITICAL FIX: Isolate v1 aggregator from async database context
+                # CRITICAL FIX: COMPLETELY BYPASS V1 AGGREGATOR FOR TV SERIES
+                # The v1 aggregator calls corrupt async database connections
                 self.logger.debug(f"Using v1 aggregator for TV series dominant codec: {jellyfin_id}")
                 
+                # ISOLATION: Run the v1 aggregator in a separate thread
+                self.logger.debug(f"🚀 [DEBUG] ISOLATION: Run the v1 aggregator in a separate thread")
+                
+                import asyncio
+                import concurrent.futures
+                
+                def get_tv_codec_sync():
+                    """Get TV codec using v1 aggregator in isolated thread"""
+                    try:
+                        # Import v1 aggregator inside thread to isolate database connections
+                        from aphrodite_helpers.tv_episodes.tv_series_aggregator import get_dominant_audio_codec
+                        
+                        # Call v1 aggregator function
+                        codec = get_dominant_audio_codec(jellyfin_id)
+                        return codec if codec and codec != "UNKNOWN" else None
+                        
+                    except Exception as v1_error:
+                        print(f"V1 aggregator error in thread: {v1_error}")
+                        return None
+                
+                # Run v1 aggregator in thread pool to isolate database connections
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(get_tv_codec_sync)
+                    v1_codec = await asyncio.wrap_future(future)
+                
+                if v1_codec and v1_codec != "UNKNOWN":
+                    self.logger.debug(f"V1 aggregator returned codec for {jellyfin_id}: {v1_codec}")
+                    return v1_codec
+                
+                # V1 aggregator fallback: Try Jellyfin v2 episode sampling
                 try:
-                    # Load Jellyfin settings like the aggregator expects
-                    await jellyfin_service._load_jellyfin_settings()
+                    episodes = await jellyfin_service.get_series_episodes(jellyfin_id, limit=5)
                     
-                    # ISOLATION: Run the v1 aggregator in a separate thread to avoid
-                    # database connection corruption between sync and async contexts
-                    import asyncio
-                    import concurrent.futures
+                    if episodes and len(episodes) > 0:
+                        # Get codec from first episode using v2 Jellyfin service only
+                        first_episode = episodes[0]
+                        codec = await jellyfin_service.get_audio_codec_info(first_episode)
+                        
+                        if codec and codec != "UNKNOWN":
+                            self.logger.debug(f"TV series codec from first episode for {jellyfin_id}: {codec}")
+                            return codec
                     
-                    def run_v1_aggregator():
-                        """Run v1 aggregator in isolation"""
-                        try:
-                            # Import the v1 aggregator function
-                            from aphrodite_helpers.tv_series_aggregator import get_dominant_audio_codec
-                            
-                            # Call the aggregator function in isolated context
-                            codec = get_dominant_audio_codec(
-                                jellyfin_service.base_url,
-                                jellyfin_service.api_key,
-                                jellyfin_service.user_id,
-                                jellyfin_id
-                            )
-                            
-                            return codec if codec != "UNKNOWN" else None
-                        except Exception as e:
-                            self.logger.error(f"V1 aggregator error: {e}")
-                            return None
+                    # Final fallback to reasonable default for TV series
+                    self.logger.debug("Using fallback codec for TV series: EAC3 6.0")
+                    return "EAC3 6.0"
                     
-                    # Run in thread pool to isolate database connections
-                    with concurrent.futures.ThreadPoolExecutor() as executor:
-                        future = executor.submit(run_v1_aggregator)
-                        codec = await asyncio.wrap_future(future)
-                    
-                    self.logger.debug(f"TV series dominant codec for {jellyfin_id}: {codec}")
-                    return codec
-                    
-                except Exception as aggregator_error:
-                    self.logger.error(f"Error using v1 aggregator: {aggregator_error}")
-                    # Fallback to a reasonable default for TV series
-                    self.logger.debug("Using fallback codec for TV series: DTS-HD MA")
-                    return "DTS-HD MA"
+                except Exception as episode_error:
+                    self.logger.warning(f"Error getting episodes for TV series: {episode_error}")
+                    # Final fallback to reasonable default
+                    self.logger.debug("Using final fallback codec for TV series: EAC3 6.0")
+                    return "EAC3 6.0"
             
             elif media_type == 'Episode':
                 # For individual episodes: get codec directly
@@ -434,121 +449,154 @@ class AudioBadgeProcessor(BaseBadgeProcessor):
     ) -> Optional[str]:
         """Apply audio badge to poster using v1 logic with v2 output path control"""
         try:
-            # Import v1 badge creation functions
-            import sys
-            import shutil
-            from PIL import Image
-            # Remove hardcoded Windows path - let Python find the modules
-            # sys.path.append("E:/programming/aphrodite")
+            self.logger.debug(f"🛠️ _apply_audio_badge called with codec: {codec_data}")
             
-            from aphrodite_helpers.badge_components.badge_generator import create_badge
-            from aphrodite_helpers.badge_components.badge_applicator import calculate_dynamic_padding
+            # CRITICAL FIX: Isolate the entire v1 badge creation process in a thread
+            # to prevent database connection corruption from any v1 helper modules
+            import asyncio
+            import concurrent.futures
             
-            # Create audio badge using v1 logic
-            self.logger.debug(f"Creating badge with settings - Badge Size: {settings.get('General', {}).get('general_badge_size')}, Image Badges: {settings.get('ImageBadges', {}).get('enable_image_badges')}, Use Dynamic: {settings.get('General', {}).get('use_dynamic_sizing')}")
+            self.logger.debug(f"🚀 [DEBUG] ISOLATION: Running v1 badge creation in separate thread")
+            print(f"🚀 [DEBUG] ISOLATION: Running v1 badge creation in separate thread")  # Also print to console
             
-            # Log the exact settings being passed to create_badge
-            self.logger.debug(f"Full settings being passed to create_badge: {json.dumps(settings, indent=2)}")
+            def run_v1_badge_creation():
+                """Run v1 badge creation process in complete isolation"""
+                try:
+                    # Import v1 badge creation functions inside the thread
+                    import sys
+                    import shutil
+                    from pathlib import Path
+                    from PIL import Image
+                    
+                    from aphrodite_helpers.badge_components.badge_generator import create_badge
+                    from aphrodite_helpers.badge_components.badge_applicator import calculate_dynamic_padding
             
-            # Modify settings to respect database settings properly
-            modified_settings = settings.copy()
+                    # Create audio badge using v1 logic
+                    print(f"Creating badge with settings - Badge Size: {settings.get('General', {}).get('general_badge_size')}, Image Badges: {settings.get('ImageBadges', {}).get('enable_image_badges')}, Use Dynamic: {settings.get('General', {}).get('use_dynamic_sizing')}")
+                    
+                    # Modify settings to respect database settings properly
+                    modified_settings = settings.copy()
+                    
+                    # Handle badge sizing based on what the user actually wants
+                    general_settings = modified_settings.get('General', {})
+                    badge_size = general_settings.get('general_badge_size', 100)
+                    use_dynamic = general_settings.get('use_dynamic_sizing', True)
+                    
+                    print(f"Original settings - Badge size: {badge_size}, Dynamic sizing: {use_dynamic}")
+                    
+                    # The v1 code treats general_badge_size as pixel dimensions for square badges
+                    # Most users probably want dynamic sizing (badges that fit their content)
+                    # Only disable dynamic sizing if the user set a VERY different size from default
+                    
+                    if badge_size == 100:  # Default size
+                        # Keep dynamic sizing for default
+                        general_settings['use_dynamic_sizing'] = True
+                        print("Using dynamic sizing for default badge size")
+                    elif badge_size < 150:  # Small to medium custom sizes (50-149)
+                        # Keep dynamic sizing but these will affect minimum dimensions
+                        general_settings['use_dynamic_sizing'] = True
+                        print(f"Using dynamic sizing with custom base size: {badge_size}")
+                    else:  # Large sizes (150+) - user probably wants fixed large badges
+                        # Use fixed sizing but limit to reasonable maximum
+                        max_reasonable_size = 120  # Reasonable max for square badges
+                        if badge_size > max_reasonable_size:
+                            general_settings['general_badge_size'] = max_reasonable_size
+                            print(f"Limited large badge size from {badge_size} to {max_reasonable_size}")
+                        general_settings['use_dynamic_sizing'] = False
+                        print(f"Using fixed sizing for large badge: {general_settings['general_badge_size']}")
+                    
+                    # Force image badges setting by modifying the use_image parameter
+                    image_badges_enabled = settings.get('ImageBadges', {}).get('enable_image_badges', True)
+                    use_image_for_badge = image_badges_enabled
+                    
+                    print(f"Final settings - Badge size: {general_settings.get('general_badge_size')}, Dynamic sizing: {general_settings.get('use_dynamic_sizing')}, Will use images: {use_image_for_badge}")
+                    
+                    audio_badge = create_badge(modified_settings, codec_data, use_image=use_image_for_badge)
+                    if not audio_badge:
+                        print("Failed to create audio badge")
+                        return None
+                    
+                    print(f"Created badge dimensions: {audio_badge.size} (Dynamic: {general_settings.get('use_dynamic_sizing')})")
+                    
+                    # Determine the final output path
+                    if output_path:
+                        final_output_path = output_path
+                    else:
+                        # Generate output path in v2 preview directory (Docker-compatible)
+                        poster_name = Path(poster_path).name
+                        final_output_path = f"/app/api/static/preview/{poster_name}"
+                    
+                    # Ensure output directory exists
+                    output_dir = Path(final_output_path).parent
+                    output_dir.mkdir(parents=True, exist_ok=True)
+                    
+                    # Apply badge using v2-compatible logic (based on v1 badge_applicator.py)
+                    poster = Image.open(poster_path).convert("RGBA")
+                    
+                    # Get badge position from settings
+                    position = settings.get('General', {}).get('general_badge_position', 'top-right')
+                    base_edge_padding = settings.get('General', {}).get('general_edge_padding', 30)
+                    
+                    # Calculate dynamic padding based on aspect ratio
+                    edge_padding = calculate_dynamic_padding(poster.width, poster.height, base_edge_padding)
+                    
+                    # Calculate position coordinates
+                    if position == 'top-left':
+                        coords = (edge_padding, edge_padding)
+                    elif position == 'top-right':
+                        coords = (poster.width - audio_badge.width - edge_padding, edge_padding)
+                    elif position == 'bottom-left':
+                        coords = (edge_padding, poster.height - audio_badge.height - edge_padding)
+                    elif position == 'bottom-right':
+                        coords = (poster.width - audio_badge.width - edge_padding, poster.height - audio_badge.height - edge_padding)
+                    elif position == 'top-center':
+                        coords = ((poster.width - audio_badge.width) // 2, edge_padding)
+                    elif position == 'center-left':
+                        coords = (edge_padding, (poster.height - audio_badge.height) // 2)
+                    elif position == 'center':
+                        coords = ((poster.width - audio_badge.width) // 2, (poster.height - audio_badge.height) // 2)
+                    elif position == 'center-right':
+                        coords = (poster.width - audio_badge.width - edge_padding, (poster.height - audio_badge.height) // 2)
+                    elif position == 'bottom-center':
+                        coords = ((poster.width - audio_badge.width) // 2, poster.height - audio_badge.height - edge_padding)
+                    elif position == 'bottom-right-flush':
+                        coords = (poster.width - audio_badge.width, poster.height - audio_badge.height)
+                    else:
+                        # Default to top-right
+                        coords = (poster.width - audio_badge.width - edge_padding, edge_padding)
+                    
+                    # Paste the badge onto the poster
+                    poster.paste(audio_badge, coords, audio_badge)
+                    
+                    # Save the modified poster to the specified output path
+                    poster.convert("RGB").save(final_output_path, "JPEG")
+                    
+                    print(f"Successfully applied audio badge: {final_output_path}")
+                    return final_output_path
+                    
+                except Exception as e:
+                    print(f"V1 badge creation error in thread: {e}")
+                    return None
             
-            # Handle badge sizing based on what the user actually wants
-            general_settings = modified_settings.get('General', {})
-            badge_size = general_settings.get('general_badge_size', 100)
-            use_dynamic = general_settings.get('use_dynamic_sizing', True)
+            # Run the entire v1 badge creation process in a thread pool
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(run_v1_badge_creation)
+                try:
+                    result_path = await asyncio.wait_for(
+                        asyncio.wrap_future(future), 
+                        timeout=30.0  # 30 second timeout
+                    )
+                except asyncio.TimeoutError:
+                    self.logger.error("V1 badge creation timed out after 30 seconds")
+                    return None
+                except Exception as thread_error:
+                    self.logger.error(f"V1 badge creation thread failed: {thread_error}")
+                    return None
             
-            self.logger.debug(f"Original settings - Badge size: {badge_size}, Dynamic sizing: {use_dynamic}")
+            self.logger.debug(f"🚀 [DEBUG] ISOLATION: Badge creation thread completed, result: {result_path}")
+            print(f"🚀 [DEBUG] ISOLATION: Badge creation thread completed, result: {result_path}")  # Also print to console
             
-            # The v1 code treats general_badge_size as pixel dimensions for square badges
-            # Most users probably want dynamic sizing (badges that fit their content)
-            # Only disable dynamic sizing if the user set a VERY different size from default
-            
-            if badge_size == 100:  # Default size
-                # Keep dynamic sizing for default
-                general_settings['use_dynamic_sizing'] = True
-                self.logger.debug("Using dynamic sizing for default badge size")
-            elif badge_size < 150:  # Small to medium custom sizes (50-149)
-                # Keep dynamic sizing but these will affect minimum dimensions
-                general_settings['use_dynamic_sizing'] = True
-                self.logger.debug(f"Using dynamic sizing with custom base size: {badge_size}")
-            else:  # Large sizes (150+) - user probably wants fixed large badges
-                # Use fixed sizing but limit to reasonable maximum
-                max_reasonable_size = 120  # Reasonable max for square badges
-                if badge_size > max_reasonable_size:
-                    general_settings['general_badge_size'] = max_reasonable_size
-                    self.logger.debug(f"Limited large badge size from {badge_size} to {max_reasonable_size}")
-                general_settings['use_dynamic_sizing'] = False
-                self.logger.debug(f"Using fixed sizing for large badge: {general_settings['general_badge_size']}")
-            
-            # Force image badges setting by modifying the use_image parameter
-            image_badges_enabled = settings.get('ImageBadges', {}).get('enable_image_badges', True)
-            use_image_for_badge = image_badges_enabled
-            
-            self.logger.debug(f"Final settings - Badge size: {general_settings.get('general_badge_size')}, Dynamic sizing: {general_settings.get('use_dynamic_sizing')}, Will use images: {use_image_for_badge}")
-            
-            audio_badge = create_badge(modified_settings, codec_data, use_image=use_image_for_badge)
-            if not audio_badge:
-                self.logger.error("Failed to create audio badge")
-                return None
-            
-            self.logger.debug(f"Created badge dimensions: {audio_badge.size} (Dynamic: {general_settings.get('use_dynamic_sizing')})")
-            
-            # Determine the final output path
-            if output_path:
-                final_output_path = output_path
-            else:
-                # Generate output path in v2 preview directory (Docker-compatible)
-                poster_name = Path(poster_path).name
-                final_output_path = f"/app/api/static/preview/{poster_name}"
-            
-            # Ensure output directory exists
-            output_dir = Path(final_output_path).parent
-            output_dir.mkdir(parents=True, exist_ok=True)
-            
-            # Apply badge using v2-compatible logic (based on v1 badge_applicator.py)
-            poster = Image.open(poster_path).convert("RGBA")
-            
-            # Get badge position from settings
-            position = settings.get('General', {}).get('general_badge_position', 'top-right')
-            base_edge_padding = settings.get('General', {}).get('general_edge_padding', 30)
-            
-            # Calculate dynamic padding based on aspect ratio
-            edge_padding = calculate_dynamic_padding(poster.width, poster.height, base_edge_padding)
-            
-            # Calculate position coordinates
-            if position == 'top-left':
-                coords = (edge_padding, edge_padding)
-            elif position == 'top-right':
-                coords = (poster.width - audio_badge.width - edge_padding, edge_padding)
-            elif position == 'bottom-left':
-                coords = (edge_padding, poster.height - audio_badge.height - edge_padding)
-            elif position == 'bottom-right':
-                coords = (poster.width - audio_badge.width - edge_padding, poster.height - audio_badge.height - edge_padding)
-            elif position == 'top-center':
-                coords = ((poster.width - audio_badge.width) // 2, edge_padding)
-            elif position == 'center-left':
-                coords = (edge_padding, (poster.height - audio_badge.height) // 2)
-            elif position == 'center':
-                coords = ((poster.width - audio_badge.width) // 2, (poster.height - audio_badge.height) // 2)
-            elif position == 'center-right':
-                coords = (poster.width - audio_badge.width - edge_padding, (poster.height - audio_badge.height) // 2)
-            elif position == 'bottom-center':
-                coords = ((poster.width - audio_badge.width) // 2, poster.height - audio_badge.height - edge_padding)
-            elif position == 'bottom-right-flush':
-                coords = (poster.width - audio_badge.width, poster.height - audio_badge.height)
-            else:
-                # Default to top-right
-                coords = (poster.width - audio_badge.width - edge_padding, edge_padding)
-            
-            # Paste the badge onto the poster
-            poster.paste(audio_badge, coords, audio_badge)
-            
-            # Save the modified poster to the specified output path
-            poster.convert("RGB").save(final_output_path, "JPEG")
-            
-            self.logger.debug(f"Successfully applied audio badge: {final_output_path}")
-            return final_output_path
+            return result_path
                 
         except Exception as e:
             self.logger.error(f"Error applying audio badge: {e}", exc_info=True)

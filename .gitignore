@@ -137,3 +137,5 @@ verify-*
 test_redis_celery.py
 quick-setup.sh
 prepare-docker-build.py
+test_output/
+test_output/*

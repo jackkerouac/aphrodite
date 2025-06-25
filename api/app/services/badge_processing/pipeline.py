@@ -15,8 +15,8 @@ from .types import (
     PosterResult,
     ProcessingMode,
 )
-from .audio_processor import AudioBadgeProcessor
-from .resolution_processor import ResolutionBadgeProcessor
+from .v2_audio_processor import V2AudioBadgeProcessor as AudioBadgeProcessor
+from .v2_resolution_processor import V2ResolutionBadgeProcessor as ResolutionBadgeProcessor
 from .review_processor import ReviewBadgeProcessor
 from .awards_processor import AwardsBadgeProcessor
 
@@ -25,7 +25,7 @@ class UniversalBadgeProcessor:
     """Universal entry point for badge processing."""
 
     def __init__(self):
-        self.logger = get_logger("aphrodite.badge.pipeline")
+        self.logger = get_logger("aphrodite.badge.pipeline.v2", service="badge")
 
     async def process_request(self, request: UniversalBadgeRequest) -> ProcessingResult:
         start = time.perf_counter()
@@ -66,7 +66,7 @@ class UniversalBadgeProcessor:
         return result
 
     async def process_single(self, request: SingleBadgeRequest, db_session: Optional[AsyncSession] = None) -> ProcessingResult:
-        self.logger.debug(f"Processing single poster: {request.poster_path}")
+        self.logger.info(f"🚀 [V2 PIPELINE] Processing single poster: {request.poster_path}")
         
         try:
             # Get database session if not provided
@@ -104,7 +104,7 @@ class UniversalBadgeProcessor:
         from app.services.poster_management import StorageManager
         
         # CRITICAL DEBUG: Log what badges are being processed
-        self.logger.info(f"🎯 PROCESSING BADGES: {request.badge_types}")
+        self.logger.info(f"🎯 [V2 PIPELINE] PROCESSING BADGES: {request.badge_types}")
         self.logger.info(f"🎯 USE_DEMO_DATA: {request.use_demo_data}")
         self.logger.info(f"🎯 JELLYFIN_ID: {request.jellyfin_id}")
         
@@ -154,16 +154,18 @@ class UniversalBadgeProcessor:
             
             # Process with the specific badge processor
             try:
-                self.logger.info(f"🛠️ About to call {badge_type} processor...")
+                self.logger.info(f"🛠️ [V2 PIPELINE] About to call {badge_type} processor...")
                 
                 # CRITICAL FIX: Use isolated database connections with proper error recovery
                 result = await self._process_with_isolated_connection(
                     processor, badge_type, current_poster_path, output_path, request
                 )
                 
-                self.logger.info(f"🛠️ {badge_type} processor completed")
+                self.logger.info(f"🛠️ [V2 PIPELINE] {badge_type} processor completed")
             except Exception as processor_error:
                 self.logger.error(f"🚨 CRITICAL: {badge_type} processor failed with exception: {processor_error}", exc_info=True)
+                # IMPORTANT: Continue processing other badges even if one fails
+                self.logger.warning(f"⚠️ Continuing with remaining badges despite {badge_type} failure")
                 # Create a failed result to continue processing
                 result = PosterResult(
                     source_path=current_poster_path,
@@ -181,7 +183,8 @@ class UniversalBadgeProcessor:
                 applied_badges.extend(result.applied_badges)
             else:
                 self.logger.error(f"❌ {badge_type} badge failed: {result.error}")
-                # Continue with other badges even if one fails
+                # IMPORTANT: Continue with other badges even if one fails
+                self.logger.info(f"🔄 Continuing to next badge processor despite {badge_type} failure")
         
         # CRITICAL FIX: Ensure proper preview path for final output
         storage_manager = StorageManager()
@@ -320,7 +323,7 @@ class UniversalBadgeProcessor:
                     return result
                     
                 except Exception as failsafe_error:
-                    self.logger.error(f"🚨 All strategies failed for {badge_type}: {failsafe_error}")
+                    self.logger.error(f"🚨 All strategies failed for {badge_type}: {failsafe_error}", exc_info=True)
                     
                     # Create a failed result to continue processing
                     from .types import PosterResult
@@ -331,6 +334,17 @@ class UniversalBadgeProcessor:
                         success=False,
                         error=f"{badge_type} processor failed: {str(failsafe_error)}"
                     )
+        except Exception as outer_error:
+            self.logger.error(f"🚨 OUTER EXCEPTION in {badge_type} processor: {outer_error}", exc_info=True)
+            # Always return a result to prevent pipeline termination
+            from .types import PosterResult
+            return PosterResult(
+                source_path=current_poster_path,
+                output_path=current_poster_path,
+                applied_badges=[],
+                success=False,
+                error=f"{badge_type} processor outer exception: {str(outer_error)}"
+            )
 
     async def process_bulk_with_session(self, request: BulkBadgeRequest, db_session: AsyncSession) -> ProcessingResult:
         """Process bulk with existing database session"""
