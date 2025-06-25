@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { saveSettingsWithCacheClear } from '@/lib/settings-utils';
 import { ResolutionSettings, defaultResolutionSettings } from './types';
 
 export function useResolutionSettings() {
@@ -56,24 +57,9 @@ export function useResolutionSettings() {
     try {
       console.log('Saving resolution settings:', settings);
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/config/badge_settings_resolution.yml`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(settings),
-      });
-
-      console.log('Save response status:', response.status);
+      await saveSettingsWithCacheClear('badge_settings_resolution.yml', settings);
       
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('Save failed with response:', errorData);
-        throw new Error(`Failed to save settings: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('Save successful:', result);
+      console.log('Save successful');
       
       toast.success('Resolution badge settings saved successfully!', {
         description: 'Your settings have been updated and saved.',

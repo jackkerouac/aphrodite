@@ -32,35 +32,42 @@ class ReviewBadgeProcessor(BaseBadgeProcessor):
     ) -> PosterResult:
         """Process a single poster with review badge"""
         try:
-            self.logger.debug(f"Processing review badge for: {poster_path}")
+            self.logger.info(f"🎬 REVIEW PROCESSOR STARTED for: {poster_path}")
+            self.logger.info(f"🎬 Jellyfin ID: {jellyfin_id}")
+            self.logger.info(f"🎬 Use demo data: {use_demo_data}")
             
             # Load review badge settings
+            self.logger.debug("Loading review badge settings...")
             settings = await self._load_settings(db_session)
             if not settings:
+                self.logger.error("❌ Failed to load review badge settings")
                 return PosterResult(
                     source_path=poster_path,
                     success=False,
                     error="Failed to load review badge settings"
                 )
             
+            self.logger.info("✅ Review badge settings loaded successfully")
+            
             # Debug: Log the loaded settings
             self.logger.debug(f"Loaded review settings in processor: {settings}")
             
             # Get review data - use real Jellyfin data when available
+            self.logger.info("🔍 Getting review data...")
             if jellyfin_id:
-                self.logger.debug(f"Getting real review data for jellyfin_id: {jellyfin_id}")
+                self.logger.info(f"Getting real review data for jellyfin_id: {jellyfin_id}")
                 review_data = await self._get_real_reviews_from_jellyfin(jellyfin_id, settings)
             elif use_demo_data:
-                self.logger.debug("Using demo data for reviews (fallback)")
+                self.logger.info("Using demo data for reviews (fallback)")
                 review_data = self._get_demo_reviews(poster_path, settings)
             else:
-                self.logger.debug("No jellyfin_id provided and demo data disabled")
+                self.logger.warning("No jellyfin_id provided and demo data disabled")
                 review_data = None
             
-            self.logger.debug(f"Retrieved {len(review_data)} reviews" if review_data else "No reviews found")
+            self.logger.info(f"📊 Retrieved {len(review_data)} reviews" if review_data else "📊 No reviews found")
             
             if not review_data:
-                self.logger.warning("No reviews found, skipping review badge")
+                self.logger.warning("⚠️ No reviews found, skipping review badge")
                 return PosterResult(
                     source_path=poster_path,
                     output_path=poster_path,
@@ -68,12 +75,20 @@ class ReviewBadgeProcessor(BaseBadgeProcessor):
                     success=True
                 )
             
+            # Log each review found
+            for i, review in enumerate(review_data):
+                source = review.get('source', 'Unknown')
+                score = review.get('text', 'N/A')
+                self.logger.info(f"📈 Review {i+1}: {source} = {score}")
+            
             # Create and apply review badge
+            self.logger.info("🎨 Applying review badge to poster...")
             result_path = await self._apply_review_badge(
                 poster_path, review_data, settings, output_path
             )
             
             if result_path:
+                self.logger.info(f"✅ Review badge applied successfully: {result_path}")
                 return PosterResult(
                     source_path=poster_path,
                     output_path=result_path,
@@ -81,7 +96,7 @@ class ReviewBadgeProcessor(BaseBadgeProcessor):
                     success=True
                 )
             else:
-                self.logger.error("Review badge applicator returned None - check applicator logs")
+                self.logger.error("❌ Review badge applicator returned None - check applicator logs")
                 return PosterResult(
                     source_path=poster_path,
                     success=False,
@@ -89,11 +104,13 @@ class ReviewBadgeProcessor(BaseBadgeProcessor):
                 )
                 
         except Exception as e:
-            self.logger.error(f"Error processing review badge: {e}", exc_info=True)
+            self.logger.error(f"🚨 CRITICAL ERROR in review processor: {e}", exc_info=True)
+            self.logger.error(f"🚨 Error type: {type(e).__name__}")
+            self.logger.error(f"🚨 Error details: {str(e)}")
             return PosterResult(
                 source_path=poster_path,
                 success=False,
-                error=str(e)
+                error=f"Review processor exception: {str(e)}"
             )
     
     async def process_bulk(

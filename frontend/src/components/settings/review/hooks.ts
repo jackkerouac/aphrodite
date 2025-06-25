@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { saveSettingsWithCacheClear } from '@/lib/settings-utils';
 import { ReviewSettings, ReviewSource, ReviewSourceSettings, defaultReviewSettings, defaultReviewSourceSettings, defaultReviewSources } from './types';
 
 export function useReviewSettings() {
@@ -208,24 +209,9 @@ export function useReviewSettings() {
       console.log('Saving review settings:', settingsToSave);
       console.log('Sources being saved:', syncedSources);
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/config/badge_settings_review.yml`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(settingsToSave),
-      });
-
-      console.log('Save response status:', response.status);
+      await saveSettingsWithCacheClear('badge_settings_review.yml', settingsToSave);
       
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('Save failed with response:', errorData);
-        throw new Error(`Failed to save settings: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('Save successful:', result);
+      console.log('Save successful');
       
       // Update local settings state to match what was saved
       setSettings(settingsToSave);

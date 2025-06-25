@@ -172,10 +172,23 @@ class SettingsService:
             self.logger.error(f"Error getting review settings standalone: {e}", exc_info=True)
             return None
     
-    def clear_cache(self):
+    def clear_cache(self, key: Optional[str] = None):
         """Clear the settings cache"""
-        self._cache.clear()
-        self.logger.info("Settings cache cleared")
+        if key:
+            cache_key = f"settings_{key}"
+            if cache_key in self._cache:
+                del self._cache[cache_key]
+                self.logger.info(f"Cleared cache for {key}")
+        else:
+            self._cache.clear()
+            self.logger.info("Settings cache cleared")
+    
+    def invalidate_badge_cache(self):
+        """Invalidate all badge-related cache entries"""
+        badge_keys = [key for key in self._cache.keys() if 'badge_settings' in key]
+        for key in badge_keys:
+            del self._cache[key]
+        self.logger.info(f"Invalidated {len(badge_keys)} badge cache entries")
 
 # Global instance for easy access
 settings_service = SettingsService()

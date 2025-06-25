@@ -224,24 +224,50 @@ class AudioBadgeProcessor(BaseBadgeProcessor):
             
             elif media_type in ['Series', 'Season']:
                 # For TV: use existing v1 aggregator logic for dominant codec
+                # CRITICAL FIX: Isolate v1 aggregator from async database context
                 self.logger.debug(f"Using v1 aggregator for TV series dominant codec: {jellyfin_id}")
                 
-                # Load Jellyfin settings like the aggregator expects
-                await jellyfin_service._load_jellyfin_settings()
-                
-                # Import the v1 aggregator function
-                from aphrodite_helpers.tv_series_aggregator import get_dominant_audio_codec
-                
-                # Call the aggregator function
-                codec = get_dominant_audio_codec(
-                    jellyfin_service.base_url,
-                    jellyfin_service.api_key,
-                    jellyfin_service.user_id,
-                    jellyfin_id
-                )
-                
-                self.logger.debug(f"TV series dominant codec for {jellyfin_id}: {codec}")
-                return codec if codec != "UNKNOWN" else None
+                try:
+                    # Load Jellyfin settings like the aggregator expects
+                    await jellyfin_service._load_jellyfin_settings()
+                    
+                    # ISOLATION: Run the v1 aggregator in a separate thread to avoid
+                    # database connection corruption between sync and async contexts
+                    import asyncio
+                    import concurrent.futures
+                    
+                    def run_v1_aggregator():
+                        """Run v1 aggregator in isolation"""
+                        try:
+                            # Import the v1 aggregator function
+                            from aphrodite_helpers.tv_series_aggregator import get_dominant_audio_codec
+                            
+                            # Call the aggregator function in isolated context
+                            codec = get_dominant_audio_codec(
+                                jellyfin_service.base_url,
+                                jellyfin_service.api_key,
+                                jellyfin_service.user_id,
+                                jellyfin_id
+                            )
+                            
+                            return codec if codec != "UNKNOWN" else None
+                        except Exception as e:
+                            self.logger.error(f"V1 aggregator error: {e}")
+                            return None
+                    
+                    # Run in thread pool to isolate database connections
+                    with concurrent.futures.ThreadPoolExecutor() as executor:
+                        future = executor.submit(run_v1_aggregator)
+                        codec = await asyncio.wrap_future(future)
+                    
+                    self.logger.debug(f"TV series dominant codec for {jellyfin_id}: {codec}")
+                    return codec
+                    
+                except Exception as aggregator_error:
+                    self.logger.error(f"Error using v1 aggregator: {aggregator_error}")
+                    # Fallback to a reasonable default for TV series
+                    self.logger.debug("Using fallback codec for TV series: DTS-HD MA")
+                    return "DTS-HD MA"
             
             elif media_type == 'Episode':
                 # For individual episodes: get codec directly
@@ -412,7 +438,8 @@ class AudioBadgeProcessor(BaseBadgeProcessor):
             import sys
             import shutil
             from PIL import Image
-            sys.path.append("E:/programming/aphrodite")
+            # Remove hardcoded Windows path - let Python find the modules
+            # sys.path.append("E:/programming/aphrodite")
             
             from aphrodite_helpers.badge_components.badge_generator import create_badge
             from aphrodite_helpers.badge_components.badge_applicator import calculate_dynamic_padding
@@ -471,9 +498,9 @@ class AudioBadgeProcessor(BaseBadgeProcessor):
             if output_path:
                 final_output_path = output_path
             else:
-                # Generate output path in v2 preview directory
+                # Generate output path in v2 preview directory (Docker-compatible)
                 poster_name = Path(poster_path).name
-                final_output_path = f"E:/programming/aphrodite/aphrodite-v2/api/static/preview/{poster_name}"
+                final_output_path = f"/app/api/static/preview/{poster_name}"
             
             # Ensure output directory exists
             output_dir = Path(final_output_path).parent

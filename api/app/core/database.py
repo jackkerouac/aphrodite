@@ -22,6 +22,22 @@ Base = declarative_base()
 async_engine: Optional[Engine] = None
 async_session_factory: Optional[async_sessionmaker] = None
 
+# Connection recovery utilities
+def reset_database_connections():
+    """Reset all database connections (for error recovery)"""
+    global async_engine, async_session_factory
+    
+    logger = get_logger("aphrodite.database.recovery", service="database")
+    logger.warning("Resetting database connections for error recovery")
+    
+    if async_engine:
+        # Schedule engine disposal for next event loop iteration
+        import asyncio
+        asyncio.create_task(async_engine.dispose())
+    
+    async_engine = None
+    async_session_factory = None
+
 def get_engine() -> Engine:
     """Get the async database engine"""
     global async_engine
@@ -37,9 +53,40 @@ def get_engine() -> Engine:
             max_overflow=settings.database_max_overflow,
             pool_pre_ping=True,
             pool_recycle=3600,
+            # CRITICAL FIX: Add connection error recovery options
+            pool_reset_on_return='commit',
+            pool_timeout=30,
+            connect_args={
+                "server_settings": {
+                    "application_name": "aphrodite_v2",
+                    "jit": "off"
+                }
+            },
             poolclass=NullPool if settings.environment == "testing" else None
         )
     return async_engine
+
+def create_fresh_engine() -> Engine:
+    """Create a completely new engine instance for connection recovery"""
+    settings = get_settings()
+    database_url = settings.get_database_url()
+    
+    return create_async_engine(
+        database_url,
+        echo=settings.debug,
+        pool_size=5,  # Smaller pool for fresh connections
+        max_overflow=10,
+        pool_pre_ping=True,
+        pool_recycle=1800,  # Shorter recycle time
+        pool_reset_on_return='commit',
+        pool_timeout=20,
+        connect_args={
+            "server_settings": {
+                "application_name": "aphrodite_v2_recovery",
+                "jit": "off"
+            }
+        }
+    )
 
 async def init_db() -> None:
     """Initialize database connection and create tables"""
@@ -84,7 +131,7 @@ async def close_db() -> None:
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     """
-    Get database session for dependency injection
+    Get database session for dependency injection with error recovery
     
     Yields:
         AsyncSession: Database session
@@ -92,34 +139,88 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     if not async_session_factory:
         raise RuntimeError("Database not initialized")
     
-    async with async_session_factory() as session:
+    max_retries = 3
+    retry_count = 0
+    
+    while retry_count < max_retries:
         try:
+            async with async_session_factory() as session:
+                # Test the connection
+                from sqlalchemy import text
+                await session.execute(text("SELECT 1"))
+                yield session
+                break
+        except Exception as e:
+            retry_count += 1
+            logger = get_logger("aphrodite.database.session", service="database")
+            logger.warning(f"Database session attempt {retry_count} failed: {e}")
+            
+            if retry_count >= max_retries:
+                logger.error(f"Failed to create database session after {max_retries} attempts")
+                raise
+            
+            # Wait before retry
+            import asyncio
+            await asyncio.sleep(0.5 * retry_count)
+
+async def get_fresh_db_session() -> AsyncGenerator[AsyncSession, None]:
+    """
+    Get a completely fresh database session using a new engine
+    
+    Yields:
+        AsyncSession: Fresh database session
+    """
+    fresh_engine = create_fresh_engine()
+    fresh_session_factory = async_sessionmaker(
+        fresh_engine,
+        class_=AsyncSession,
+        expire_on_commit=False
+    )
+    
+    try:
+        async with fresh_session_factory() as session:
+            # Test the connection
+            from sqlalchemy import text
+            await session.execute(text("SELECT 1"))
             yield session
-        except Exception:
-            await session.rollback()
-            raise
-        finally:
-            await session.close()
+    finally:
+        await fresh_engine.dispose()
 
 class DatabaseManager:
     """Database management utilities"""
     
     @staticmethod
     async def health_check() -> dict:
-        """Check database health"""
+        """Check database health with multiple strategies"""
         logger = get_logger("aphrodite.database.health", service="database")
         
         try:
             if not async_engine:
                 return {"status": "error", "message": "Database not initialized"}
             
-            # Test connection
-            from sqlalchemy import text
-            async with async_engine.begin() as conn:
-                result = await conn.execute(text("SELECT 1"))
-                result.fetchone()  # Remove await here
+            # Test connection using multiple strategies
+            strategies = [
+                ("main_engine", async_engine),
+                ("fresh_engine", create_fresh_engine())
+            ]
             
-            return {"status": "healthy", "message": "Database connection successful"}
+            for strategy_name, engine in strategies:
+                try:
+                    from sqlalchemy import text
+                    async with engine.begin() as conn:
+                        result = await conn.execute(text("SELECT 1"))
+                        result.fetchone()
+                    
+                    logger.info(f"Database health check successful using {strategy_name}")
+                    return {"status": "healthy", "message": f"Database connection successful ({strategy_name})"}
+                    
+                except Exception as strategy_error:
+                    logger.warning(f"Database health check failed with {strategy_name}: {strategy_error}")
+                    if strategy_name == "fresh_engine":
+                        await engine.dispose()
+                    continue
+            
+            return {"status": "error", "message": "All database connection strategies failed"}
             
         except Exception as e:
             logger.error(f"Database health check failed: {e}")
@@ -162,3 +263,15 @@ def on_checkin(dbapi_connection, connection_record):
     """Log connection checkin"""
     logger = get_logger("aphrodite.database.pool", service="database")
     logger.debug("Database connection returned to pool")
+
+@event.listens_for(Engine, "invalidate")
+def on_invalidate(dbapi_connection, connection_record, exception):
+    """Log connection invalidation"""
+    logger = get_logger("aphrodite.database.connection", service="database")
+    logger.warning(f"Database connection invalidated: {exception}")
+
+@event.listens_for(Engine, "soft_invalidate")
+def on_soft_invalidate(dbapi_connection, connection_record, exception):
+    """Log soft connection invalidation"""
+    logger = get_logger("aphrodite.database.connection", service="database")
+    logger.warning(f"Database connection soft invalidated: {exception}")

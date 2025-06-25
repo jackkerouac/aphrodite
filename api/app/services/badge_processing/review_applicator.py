@@ -31,7 +31,8 @@ class ReviewBadgeApplicator:
             import sys
             import shutil
             from PIL import Image
-            sys.path.append("E:/programming/aphrodite")
+            # Remove hardcoded Windows path - let Python find the modules
+            # sys.path.append("E:/programming/aphrodite")
             
             from aphrodite_helpers.apply_review_badges import create_review_container
             from aphrodite_helpers.badge_components.badge_applicator import calculate_dynamic_padding
@@ -51,9 +52,9 @@ class ReviewBadgeApplicator:
             if output_path:
                 final_output_path = output_path
             else:
-                # Generate output path in v2 preview directory
+                # Generate output path in v2 preview directory (Docker-compatible)
                 poster_name = Path(poster_path).name
-                final_output_path = f"E:/programming/aphrodite/aphrodite-v2/api/static/preview/{poster_name}"
+                final_output_path = f"/app/api/static/preview/{poster_name}"
             
             # Ensure output directory exists
             output_dir = Path(final_output_path).parent

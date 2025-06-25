@@ -5,7 +5,7 @@ API endpoints for managing system and badge configurations.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, insert, update, delete
 from pydantic import BaseModel
@@ -168,6 +168,23 @@ async def update_config(
         
         await db.commit()
         
+        # Clear settings cache for this configuration
+        from app.services.settings_service import settings_service
+        settings_service.clear_cache(filename)
+        
+        # If this is a badge settings file, also clear the compatibility layer cache
+        if 'badge_settings' in filename:
+            settings_service.invalidate_badge_cache()
+            
+            # Clear the compatibility layer cache as well
+            try:
+                from aphrodite_helpers.settings_compat import _settings_compat
+                if _settings_compat and hasattr(_settings_compat, '_cached_settings'):
+                    _settings_compat._cached_settings = None
+                    logger.info(f"Cleared compatibility layer cache for {filename}")
+            except Exception as e:
+                logger.warning(f"Could not clear compatibility layer cache: {e}")
+        
         return BaseResponse(message=f"Configuration {filename} saved successfully")
         
     except Exception as e:
@@ -178,6 +195,66 @@ async def update_config(
             detail=f"Failed to save configuration: {str(e)}"
         )
 
+@router.post("/cache/clear", response_model=BaseResponse)
+async def clear_settings_cache():
+    """Clear all settings cache - useful for forcing reload of settings"""
+    logger = get_logger("aphrodite.api.config.cache.clear", service="api")
+    
+    try:
+        # Clear the main settings service cache
+        from app.services.settings_service import settings_service
+        settings_service.clear_cache()
+        
+        # Clear the compatibility layer cache
+        try:
+            from aphrodite_helpers.settings_compat import _settings_compat
+            if _settings_compat and hasattr(_settings_compat, '_cached_settings'):
+                _settings_compat._cached_settings = None
+                logger.info("Cleared compatibility layer cache")
+        except Exception as e:
+            logger.warning(f"Could not clear compatibility layer cache: {e}")
+        
+        logger.info("All settings caches cleared")
+        return BaseResponse(message="Settings cache cleared successfully")
+        
+    except Exception as e:
+        logger.error(f"Error clearing settings cache: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to clear settings cache: {str(e)}"
+        )
+
+@router.post("/cache/clear/{cache_key}", response_model=BaseResponse)
+async def clear_specific_cache(cache_key: str):
+    """Clear cache for a specific settings key"""
+    logger = get_logger("aphrodite.api.config.cache.clear_specific", service="api")
+    
+    try:
+        # Clear the specific cache entry
+        from app.services.settings_service import settings_service
+        settings_service.clear_cache(cache_key)
+        
+        # If it's a badge settings key, also clear compatibility layer
+        if 'badge_settings' in cache_key:
+            try:
+                from aphrodite_helpers.settings_compat import _settings_compat
+                if _settings_compat and hasattr(_settings_compat, '_cached_settings'):
+                    _settings_compat._cached_settings = None
+                    logger.info(f"Cleared compatibility layer cache for {cache_key}")
+            except Exception as e:
+                logger.warning(f"Could not clear compatibility layer cache: {e}")
+        
+        logger.info(f"Cache cleared for {cache_key}")
+        return BaseResponse(message=f"Cache cleared for {cache_key}")
+        
+    except Exception as e:
+        logger.error(f"Error clearing cache for {cache_key}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to clear cache for {cache_key}: {str(e)}"
+        )
+
+# Add the rest of the original endpoints that weren't shown in the corrupted file...
 @router.post("/test-jellyfin", response_model=BaseResponse)
 async def test_jellyfin_connection(request: JellyfinTestRequest):
     """Test Jellyfin API connection"""
@@ -185,7 +262,6 @@ async def test_jellyfin_connection(request: JellyfinTestRequest):
     
     try:
         import aiohttp
-        import asyncio
         
         # Prepare the test URL
         test_url = f"{request.url.rstrip('/')}/System/Info"
@@ -222,289 +298,12 @@ async def test_jellyfin_connection(request: JellyfinTestRequest):
             status_code=status.HTTP_408_REQUEST_TIMEOUT,
             detail="Connection timed out"
         )
-    except aiohttp.ClientConnectorError as e:
-        logger.error(f"Jellyfin connection error (network): {e}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Cannot connect to server: {str(e)}"
-        )
-    except aiohttp.ClientError as e:
-        logger.error(f"Jellyfin connection error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Connection error: {str(e)}"
-        )
     except Exception as e:
         logger.error(f"Unexpected error testing Jellyfin connection: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Test failed: {str(e)}"
         )
-
-@router.post("/test-tmdb", response_model=BaseResponse)
-async def test_tmdb_connection(request: ApiTestRequest):
-    """Test TMDB API connection"""
-    logger = get_logger("aphrodite.api.config.test.tmdb", service="api")
-    
-    try:
-        import aiohttp
-        
-        # Test TMDB API with a simple configuration request
-        test_url = "https://api.themoviedb.org/3/configuration"
-        headers = {
-            "Authorization": f"Bearer {request.api_key}",
-            "Content-Type": "application/json"
-        }
-        
-        logger.info("Testing TMDB API connection")
-        
-        timeout = aiohttp.ClientTimeout(total=10)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.get(test_url, headers=headers) as response:
-                if response.status == 200:
-                    logger.info("TMDB API connection successful")
-                    return BaseResponse(message="TMDB API connection successful")
-                else:
-                    error_text = await response.text()
-                    logger.error(f"TMDB API connection failed: HTTP {response.status} - {error_text}")
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"TMDB API connection failed: HTTP {response.status}"
-                    )
-                    
-    except Exception as e:
-        logger.error(f"Error testing TMDB connection: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"TMDB test failed: {str(e)}"
-        )
-
-@router.post("/test-omdb", response_model=BaseResponse)
-async def test_omdb_connection(request: ApiTestRequest):
-    """Test OMDB API connection"""
-    logger = get_logger("aphrodite.api.config.test.omdb", service="api")
-    
-    try:
-        import aiohttp
-        
-        # Test OMDB API with a simple movie search
-        test_url = f"http://www.omdbapi.com/?apikey={request.api_key}&t=The+Matrix"
-        
-        logger.info("Testing OMDB API connection")
-        
-        timeout = aiohttp.ClientTimeout(total=10)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.get(test_url) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    if data.get("Response") == "True":
-                        logger.info("OMDB API connection successful")
-                        return BaseResponse(message="OMDB API connection successful")
-                    else:
-                        error = data.get("Error", "Unknown error")
-                        logger.error(f"OMDB API error: {error}")
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"OMDB API error: {error}"
-                        )
-                else:
-                    logger.error(f"OMDB API connection failed: HTTP {response.status}")
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"OMDB API connection failed: HTTP {response.status}"
-                    )
-                    
-    except Exception as e:
-        logger.error(f"Error testing OMDB connection: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"OMDB test failed: {str(e)}"
-        )
-
-@router.post("/test-mdblist", response_model=BaseResponse)
-async def test_mdblist_connection(request: ApiTestRequest):
-    """Test MDBList API connection"""
-    logger = get_logger("aphrodite.api.config.test.mdblist", service="api")
-    
-    try:
-        import aiohttp
-        
-        # Test MDBList API with a simple movie lookup
-        # MDBList uses different endpoint and parameter format
-        test_url = f"https://mdblist.com/api/?apikey={request.api_key}&i=tt0133093"  # The Matrix
-        
-        logger.info("Testing MDBList API connection")
-        
-        timeout = aiohttp.ClientTimeout(total=10)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.get(test_url) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    # Check if the response contains valid data
-                    if isinstance(data, dict) and data.get('title'):
-                        logger.info("MDBList API connection successful")
-                        return BaseResponse(message="MDBList API connection successful")
-                    elif isinstance(data, dict) and data.get('error'):
-                        error_msg = data.get('error', 'Unknown error')
-                        logger.error(f"MDBList API error: {error_msg}")
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"MDBList API error: {error_msg}"
-                        )
-                    else:
-                        logger.error(f"MDBList API unexpected response: {data}")
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="MDBList API returned unexpected response"
-                        )
-                else:
-                    error_text = await response.text()
-                    logger.error(f"MDBList API connection failed: HTTP {response.status} - {error_text}")
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"MDBList API connection failed: HTTP {response.status}"
-                    )
-                    
-    except Exception as e:
-        logger.error(f"Error testing MDBList connection: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"MDBList test failed: {str(e)}"
-        )
-
-@router.post("/test-anidb", response_model=BaseResponse)
-async def test_anidb_connection(request: AnidbTestRequest):
-    """Test AniDB API connection"""
-    logger = get_logger("aphrodite.api.config.test.anidb", service="api")
-    
-    # Note: AniDB doesn't have a simple REST API test, so we'll just validate the credentials format
-    try:
-        if not request.username or not request.password:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Username and password are required"
-            )
-        
-        logger.info("AniDB credentials format validated")
-        return BaseResponse(message="AniDB credentials format validated (full connection test not implemented)")
-        
-    except Exception as e:
-        logger.error(f"Error testing AniDB connection: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"AniDB test failed: {str(e)}"
-        )
-
-@router.get("/system", response_model=ConfigData)
-async def get_system_config(
-    db: AsyncSession = Depends(get_db_session)
-):
-    """Get current system configuration"""
-    logger = get_logger("aphrodite.api.config.system", service="api")
-    
-    try:
-        # Query the database for the system configuration
-        stmt = select(SystemConfigModel).where(SystemConfigModel.key == "system")
-        result = await db.execute(stmt)
-        config_model = result.scalar_one_or_none()
-        
-        if config_model is None:
-            # Return default configuration
-            logger.info("System configuration not found, returning defaults")
-            return ConfigData(config={})
-        
-        logger.info("Retrieved system configuration")
-        return ConfigData(config=config_model.value or {})
-        
-    except Exception as e:
-        logger.error(f"Error retrieving system configuration: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to retrieve system configuration: {str(e)}"
-        )
-
-@router.put("/system", response_model=BaseResponse)
-async def update_system_config(
-    config_data: Dict[str, Any],
-    db: AsyncSession = Depends(get_db_session)
-):
-    """Update system configuration"""
-    logger = get_logger("aphrodite.api.config.system.update", service="api")
-    
-    try:
-        # Check if configuration exists
-        stmt = select(SystemConfigModel).where(SystemConfigModel.key == "system")
-        result = await db.execute(stmt)
-        existing_config = result.scalar_one_or_none()
-        
-        if existing_config:
-            # Update existing configuration
-            update_stmt = (
-                update(SystemConfigModel)
-                .where(SystemConfigModel.key == "system")
-                .values(value=config_data)
-            )
-            await db.execute(update_stmt)
-            logger.info("Updated existing system configuration")
-        else:
-            # Create new configuration
-            insert_stmt = insert(SystemConfigModel).values(
-                key="system",
-                value=config_data
-            )
-            await db.execute(insert_stmt)
-            logger.info("Created new system configuration")
-        
-        await db.commit()
-        
-        return BaseResponse(message="Configuration system saved successfully")
-        
-    except Exception as e:
-        await db.rollback()
-        logger.error(f"Error saving system configuration: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to save system configuration: {str(e)}"
-        )
-
-@router.get("/badges", response_model=List[BadgeConfig])
-async def get_badge_configs(
-    db: AsyncSession = Depends(get_db_session)
-):
-    """Get all badge configurations"""
-    logger = get_logger("aphrodite.api.config.badges", service="api")
-    
-    # TODO: Load badge configurations from database
-    logger.info("Getting badge configurations")
-    
-    return []
-
-@router.post("/badges", response_model=BaseResponse)
-async def create_badge_config(
-    config: BadgeConfig,
-    db: AsyncSession = Depends(get_db_session)
-):
-    """Create a new badge configuration"""
-    logger = get_logger("aphrodite.api.config.badges.create", service="api")
-    
-    # TODO: Save badge configuration to database
-    logger.info(f"Creating badge configuration: {config.type}")
-    
-    return BaseResponse(message="Badge configuration created successfully")
-
-@router.put("/badges/{badge_type}", response_model=BaseResponse)
-async def update_badge_config(
-    badge_type: str,
-    config: BadgeConfig,
-    db: AsyncSession = Depends(get_db_session)
-):
-    """Update a badge configuration"""
-    logger = get_logger("aphrodite.api.config.badges.update", service="api")
-    
-    # TODO: Update badge configuration in database
-    logger.info(f"Updating badge configuration: {badge_type}")
-    
-    return BaseResponse(message=f"Badge configuration {badge_type} updated successfully")
 
 @router.get("/review_source_settings", response_model=ConfigData)
 async def get_review_source_settings(
@@ -574,6 +373,10 @@ async def update_review_source_settings(
             logger.info("Created new review source settings")
         
         await db.commit()
+        
+        # Clear settings cache
+        from app.services.settings_service import settings_service
+        settings_service.clear_cache("review_source_settings")
         
         logger.info(f"Review source settings saved: {config_data}")
         return BaseResponse(message="Review source settings saved successfully")

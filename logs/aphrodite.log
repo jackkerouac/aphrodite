@@ -2602,3 +2602,5 @@ AttributeError: 'NoneType' object has no attribute 'send'
 2025-06-18 07:34:23 - WARNING - Could not retrieve media item for ID: 01433be8d82b46d07a1d599bca7f8c3e
 2025-06-18 07:34:23 - WARNING - No awards detected, skipping awards badge
 2025-06-18 07:34:23 - WARNING - No badges applied, using resized poster
+2025-06-25 08:21:20 - ERROR - Could not load badge settings from PostgreSQL database: No module named 'app'
+2025-06-25 08:21:20 - ERROR - Could not load review badge settings from PostgreSQL database: No module named 'app'

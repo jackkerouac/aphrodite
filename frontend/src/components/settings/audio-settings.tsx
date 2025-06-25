@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Save, Plus, Trash2, Volume2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { saveSettingsWithCacheClear } from '@/lib/settings-utils';
 
 interface AudioSettings {
   General: {
@@ -139,18 +140,7 @@ export function AudioSettings() {
     setSaving(true);
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/config/badge_settings_audio.yml`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(settings),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save settings');
-      }
-
+      await saveSettingsWithCacheClear('badge_settings_audio.yml', settings);
       toast.success('Audio badge settings saved successfully!');
     } catch (error) {
       console.error('Error saving audio settings:', error);

@@ -173,8 +173,12 @@ class SettingsCompat:
         self._cached_settings = result
         return result
     
-    def load_badge_settings(self, badge_file):
+    def load_badge_settings(self, badge_file, force_reload=False):
         """Load badge settings in YAML-compatible format (prioritize database over YAML)"""
+        # Clear cached settings if force_reload is requested
+        if force_reload:
+            self._cached_settings = None
+        
         # Determine badge type from filename
         badge_type = None
         if 'audio' in badge_file.lower():
@@ -186,15 +190,37 @@ class SettingsCompat:
         elif 'awards' in badge_file.lower():
             badge_type = 'awards'
         
-        # Try to load from database first if we have a badge type and settings service
-        if badge_type and self.settings_service:
+        # Try to load from database first using async session approach
+        if badge_type:
             try:
-                version = self.settings_service.get_current_version()
-                if version > 0:
-                    badge_settings = self.settings_service.get_badge_settings(badge_type)
-                    if badge_settings:
-                        logger.info(f"Loaded {badge_type} badge settings from database")
-                        return badge_settings
+                import asyncio
+                from api.app.services.settings_service import settings_service
+                from api.app.core.database import async_session_factory
+                
+                async def get_from_db():
+                    async with async_session_factory() as db:
+                        return await settings_service.get_settings(badge_file, db, force_reload=force_reload)
+                
+                # Try to get the running event loop
+                try:
+                    loop = asyncio.get_running_loop()
+                    # If we're in an async context, create a task
+                    if loop.is_running():
+                        # Use run_in_executor to avoid "cannot be called from a running event loop" error
+                        import concurrent.futures
+                        with concurrent.futures.ThreadPoolExecutor() as executor:
+                            future = executor.submit(asyncio.run, get_from_db())
+                            badge_settings = future.result(timeout=10)
+                    else:
+                        badge_settings = asyncio.run(get_from_db())
+                except RuntimeError:
+                    # No event loop running, safe to use asyncio.run
+                    badge_settings = asyncio.run(get_from_db())
+                
+                if badge_settings:
+                    logger.info(f"Loaded {badge_type} badge settings from database")
+                    return badge_settings
+                    
             except Exception as e:
                 logger.warning(f"Error loading badge settings from database: {e}")
         
@@ -214,13 +240,14 @@ class SettingsCompat:
         logger.error(f"Could not load badge settings for {badge_file}")
         return None
 
-# Global instance for backward compatibility
-try:
-    _settings_compat = SettingsCompat()
-    logger.info("Successfully created global SettingsCompat instance")
-except Exception as e:
-    logger.error(f"Error creating global SettingsCompat instance: {e}")
-    _settings_compat = None
+# Global instance for backward compatibility - DISABLED to prevent connection issues
+# try:
+#     _settings_compat = SettingsCompat()
+#     logger.info("Successfully created global SettingsCompat instance")
+# except Exception as e:
+#     logger.error(f"Error creating global SettingsCompat instance: {e}")
+#     _settings_compat = None
+_settings_compat = None  # Disabled to prevent async connection conflicts
 
 def load_settings(path="settings.yaml"):
     """Global function for backward compatibility"""
@@ -241,10 +268,10 @@ def load_settings(path="settings.yaml"):
                 logger.error(f"Error loading fallback YAML: {e}")
         return None
 
-def load_badge_settings(badge_file):
+def load_badge_settings(badge_file, force_reload=False):
     """Global function for backward compatibility"""
     if _settings_compat:
-        return _settings_compat.load_badge_settings(badge_file)
+        return _settings_compat.load_badge_settings(badge_file, force_reload=force_reload)
     else:
         # Fallback to direct YAML loading
         logger.warning("Using fallback badge YAML loading due to SettingsCompat initialization failure")

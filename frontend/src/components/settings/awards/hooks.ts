@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { saveSettingsWithCacheClear } from '@/lib/settings-utils';
 import { AwardsSettings, defaultAwardsSettings } from './types';
 
 export function useAwardsSettings() {
@@ -77,24 +78,9 @@ export function useAwardsSettings() {
     try {
       console.log('Saving awards settings:', settings);
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/config/badge_settings_awards.yml`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(settings),
-      });
-
-      console.log('Save response status:', response.status);
+      await saveSettingsWithCacheClear('badge_settings_awards.yml', settings);
       
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('Save failed with response:', errorData);
-        throw new Error(`Failed to save settings: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('Save successful:', result);
+      console.log('Save successful');
       
       toast.success('Awards badge settings saved successfully!', {
         description: 'Your settings have been updated and saved.',

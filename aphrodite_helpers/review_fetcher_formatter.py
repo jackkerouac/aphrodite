@@ -6,15 +6,16 @@ class ReviewFormatterMixin:
         """Format the review data from various sources into a structured format"""
         formatted_reviews = []
         
-        # Get image mappings from settings
-        image_mappings = self.badge_settings.get("ImageBadges", {}).get("image_mapping", {})
+        # Get image mappings from review badge settings
+        image_mappings = self.review_badge_settings.get("ImageBadges", {}).get("image_mapping", {})
         
-        # Process OMDB data
+        # Process OMDB data - NOW WITH INDIVIDUAL SOURCE FILTERING
         if review_data.get("omdb"):
             omdb_data = review_data["omdb"]
+            omdb_sources = review_data.get("omdb_sources", {})
             
-            # IMDB Rating - Convert to percentage (FIXED: Priority-based selection)
-            if "imdbRating" in omdb_data and omdb_data["imdbRating"] != "N/A":
+            # IMDB Rating - Only if enabled
+            if omdb_sources.get("imdb_enabled", False) and "imdbRating" in omdb_data and omdb_data["imdbRating"] != "N/A":
                 try:
                     # Convert rating from 0-10 scale to percentage
                     imdb_rating = float(omdb_data["imdbRating"])
@@ -59,10 +60,11 @@ class ReviewFormatterMixin:
                 except (ValueError, TypeError):
                     pass
                 
-            # Rotten Tomatoes
+            # Process ratings from OMDB - only for enabled sources
             if "Ratings" in omdb_data:
                 for rating in omdb_data["Ratings"]:
-                    if rating["Source"] == "Rotten Tomatoes":
+                    # Rotten Tomatoes - only if enabled
+                    if rating["Source"] == "Rotten Tomatoes" and omdb_sources.get("rotten_tomatoes_enabled", False):
                         rt_value = rating["Value"].rstrip("%")
                         try:
                             rt_score = int(rt_value)
@@ -84,7 +86,8 @@ class ReviewFormatterMixin:
                         except ValueError:
                             pass
                     
-                    elif rating["Source"] == "Metacritic":
+                    # Metacritic - only if enabled
+                    elif rating["Source"] == "Metacritic" and omdb_sources.get("metacritic_enabled", False):
                         mc_value = rating["Value"].split("/")[0]
                         try:
                             mc_score = int(mc_value)
@@ -224,33 +227,54 @@ class ReviewFormatterMixin:
         # Item type - movie or tv series
         media_type = "tv" if item_data.get("Type") == "Series" else "movie"
         
-        # Collect review data from different sources
+        # Collect review data from different sources - BUT ONLY IF ENABLED
         review_data = {}
         
-        # OMDB (includes IMDb, Rotten Tomatoes, Metacritic)
+        # OMDB (includes IMDb, Rotten Tomatoes, Metacritic) - check each separately
         if imdb_id and self.omdb_settings.get("api_key"):
-            review_data["omdb"] = self.fetch_omdb_ratings(imdb_id)
+            # Check if any OMDB-based sources are enabled
+            imdb_enabled = self.is_source_enabled('imdb')
+            rt_enabled = self.is_source_enabled('rotten_tomatoes')
+            mc_enabled = self.is_source_enabled('metacritic')
+            
+            if imdb_enabled or rt_enabled or mc_enabled:
+                log_milestone(f"Fetching OMDB data (IMDb: {imdb_enabled}, RT: {rt_enabled}, MC: {mc_enabled})", "review_formatter")
+                omdb_data = self.fetch_omdb_ratings(imdb_id)
+                if omdb_data:
+                    review_data["omdb"] = omdb_data
+                    # Store which sources are enabled for filtering in format_review_data
+                    review_data["omdb_sources"] = {
+                        "imdb_enabled": imdb_enabled,
+                        "rotten_tomatoes_enabled": rt_enabled,
+                        "metacritic_enabled": mc_enabled
+                    }
+            else:
+                log_milestone("Skipping OMDB - no OMDB-based sources enabled", "review_formatter")
         
         # TMDB
-        if tmdb_id and self.tmdb_settings.get("api_key"):
+        if tmdb_id and self.tmdb_settings.get("api_key") and self.is_source_enabled('tmdb'):
+            log_milestone("Fetching TMDB data", "review_formatter")
             review_data["tmdb"] = self.fetch_tmdb_ratings(tmdb_id, media_type)
+        elif tmdb_id and self.tmdb_settings.get("api_key"):
+            log_milestone("Skipping TMDB - source disabled", "review_formatter")
         
-        # AniDB (with auto-discovery fallback)
-        if self.anidb_settings:
-            # Try with AniDB ID first, fall back to auto-discovery
+        # AniDB
+        if self.anidb_settings and self.is_source_enabled('anidb'):
+            log_milestone("Fetching AniDB data", "review_formatter")
             item_name = item_data.get('Name')
             review_data["anidb"] = self.fetch_anidb_ratings(anidb_id, item_name, item_data)
+        elif self.anidb_settings:
+            log_milestone("Skipping AniDB - source disabled", "review_formatter")
         
-        # MyAnimeList (via Jikan API - always try to fetch, filtering handled by v2)
-        item_name = item_data.get('Name')
-        review_data["myanimelist"] = self.fetch_myanimelist_ratings(mal_id, item_name, item_data)
+        # MyAnimeList - NOW PROPERLY FILTERED
+        if self.is_source_enabled('myanimelist'):
+            log_milestone("Fetching MyAnimeList data", "review_formatter")
+            item_name = item_data.get('Name')
+            review_data["myanimelist"] = self.fetch_myanimelist_ratings(mal_id, item_name, item_data)
+        else:
+            log_milestone("Skipping MyAnimeList - source disabled", "review_formatter")
         
         # Format the collected review data
         formatted_reviews = self.format_review_data(review_data, show_details)
-        
-        # REMOVED: SQLite-based filtering - now handled by v2 PostgreSQL settings
-        # The v2 badge processing will handle filtering based on PostgreSQL settings
-        # from aphrodite_helpers.review_preferences import filter_reviews_by_preferences
-        # filtered_reviews = filter_reviews_by_preferences(formatted_reviews, item_data)
         
         return formatted_reviews
