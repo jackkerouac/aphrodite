@@ -14,7 +14,7 @@
 /coverage
 
 # next.js
-/.next/
+# /.next/ - Allow pre-built frontend for Docker deployment
 /out/
 
 # production
