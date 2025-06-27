@@ -9,6 +9,7 @@ from typing import List, Any, Dict, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, insert, update, delete
 from pydantic import BaseModel
+import asyncio
 
 from app.core.database import get_db_session
 from app.core.config import get_settings
@@ -292,7 +293,7 @@ async def test_jellyfin_connection(request: JellyfinTestRequest):
                         detail=f"Jellyfin connection failed: HTTP {response.status}"
                     )
                     
-    except aiohttp.ClientTimeout:
+    except asyncio.TimeoutError:
         logger.error("Jellyfin connection timed out")
         raise HTTPException(
             status_code=status.HTTP_408_REQUEST_TIMEOUT,
@@ -330,7 +331,7 @@ async def test_omdb_connection(request: ApiTestRequest):
                 logger.error(f"OMDb connection failed: HTTP {response.status} - {error_text}")
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"HTTP {response.status}")
 
-    except aiohttp.ClientTimeout:
+    except asyncio.TimeoutError:
         logger.error("OMDb connection timed out")
         raise HTTPException(status_code=status.HTTP_408_REQUEST_TIMEOUT, detail="Connection timed out")
     except Exception as e:
@@ -362,7 +363,7 @@ async def test_tmdb_connection(request: ApiTestRequest):
                 logger.error(f"TMDb connection failed: HTTP {response.status} - {error_text}")
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"HTTP {response.status}")
 
-    except aiohttp.ClientTimeout:
+    except asyncio.TimeoutError:
         logger.error("TMDb connection timed out")
         raise HTTPException(status_code=status.HTTP_408_REQUEST_TIMEOUT, detail="Connection timed out")
     except Exception as e:
@@ -394,7 +395,7 @@ async def test_mdblist_connection(request: ApiTestRequest):
                 logger.error(f"MDBList connection failed: HTTP {response.status} - {error_text}")
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"HTTP {response.status}")
 
-    except aiohttp.ClientTimeout:
+    except asyncio.TimeoutError:
         logger.error("MDBList connection timed out")
         raise HTTPException(status_code=status.HTTP_408_REQUEST_TIMEOUT, detail="Connection timed out")
     except Exception as e:

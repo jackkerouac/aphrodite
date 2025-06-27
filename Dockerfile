@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     gosu \
     libpq5 \
+    postgresql-client \
     fonts-dejavu-core \
     fonts-liberation \
     && rm -rf /var/lib/apt/lists/* \
@@ -54,10 +55,6 @@ RUN mkdir -p /app/logs /app/data /app/media /app/assets /app/assets/fonts /app/a
 COPY --chown=aphrodite:aphrodite fonts/ ./assets/fonts/
 COPY --chown=aphrodite:aphrodite images/ ./assets/images/
 
-# Copy startup script
-COPY --chown=aphrodite:aphrodite start-production.sh ./
-RUN chmod +x start-production.sh
-
 # Create symlink for backward compatibility with /app/fonts paths in database
 RUN ln -sf /app/assets/fonts /app/fonts && \
     ln -sf /app/assets/images /app/images
@@ -75,5 +72,5 @@ USER aphrodite
 # Set working directory to API
 WORKDIR /app/api
 
-# Start with production script
-CMD ["./start-production.sh"]
+# Start the FastAPI application directly
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

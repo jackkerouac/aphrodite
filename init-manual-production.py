@@ -1,52 +1,20 @@
+#!/usr/bin/env python3
 """
-Database Defaults Initialization Module
+Manual Production Settings Initialization
 
-Auto-initializes default settings on application startup for production deployments.
+Run this to manually initialize production settings in the running container.
 """
 
-import asyncio
+import requests
 import json
-import uuid
-from datetime import datetime
-from pathlib import Path
-from typing import Dict, Any
 
-from aphrodite_logging import get_logger
-
-async def auto_initialize_on_startup():
-    """Auto-initialize default settings if database is empty"""
-    logger = get_logger("aphrodite.database.init", service="database")
+def initialize_production_settings():
+    print("🔧 Manually Initializing Production Settings")
+    print("=" * 50)
     
-    try:
-        from app.core.database import async_session_factory
-        from sqlalchemy import text
-        
-        async with async_session_factory() as db:
-            # Check if any badge settings exist
-            result = await db.execute(
-                text("SELECT COUNT(*) as count FROM system_config WHERE key LIKE 'badge_settings_%'")
-            )
-            badge_count = result.fetchone()[0]
-            
-            if badge_count == 0:
-                logger.info("No badge settings found - initializing production defaults")
-                await initialize_production_defaults(db)
-                await db.commit()
-                logger.info("Production defaults initialized successfully")
-            else:
-                logger.debug(f"Found {badge_count} badge settings - skipping initialization")
-                
-    except Exception as e:
-        logger.warning(f"Auto-initialization failed: {e}")
-        # Don't raise - this is non-critical for app startup
-
-async def initialize_production_defaults(db):
-    """Initialize production-ready default settings using the same format as the API"""
-    from sqlalchemy import text
-    
-    # Badge settings files in the format the API expects
-    badge_files = {
-        "badge_settings_audio.yml": {
+    # Production-ready badge settings with Docker paths
+    badge_settings = {
+        "audio": {
             "General": {
                 "general_badge_size": 300,
                 "general_edge_padding": 30,
@@ -55,8 +23,8 @@ async def initialize_production_defaults(db):
                 "use_dynamic_sizing": True
             },
             "Text": {
-                "font": "AvenirNextLTProBold.otf",
-                "fallback_font": "DejaVuSans.ttf",
+                "font": "/app/assets/fonts/AvenirNextLTProBold.otf",
+                "fallback_font": "/app/assets/fonts/DejaVuSans.ttf",
                 "text_color": "#FFFFFF",
                 "text_size": 90
             },
@@ -104,7 +72,7 @@ async def initialize_production_defaults(db):
                 }
             }
         },
-        "badge_settings_awards.yml": {
+        "awards": {
             "General": {
                 "enabled": True,
                 "general_badge_size": 120,
@@ -119,8 +87,8 @@ async def initialize_production_defaults(db):
                 "award_sources": ["oscars", "emmys", "golden", "bafta", "cannes", "crunchyroll"]
             },
             "Text": {
-                "font": "AvenirNextLTProBold.otf",
-                "fallback_font": "DejaVuSans.ttf",
+                "font": "/app/assets/fonts/AvenirNextLTProBold.otf",
+                "fallback_font": "/app/assets/fonts/DejaVuSans.ttf",
                 "text_color": "#FFFFFF",
                 "text_size": 90
             },
@@ -150,44 +118,11 @@ async def initialize_production_defaults(db):
                     "golden": "golden.png",
                     "bafta": "bafta.png",
                     "emmys": "emmys.png",
-                    "crunchyroll": "crunchyroll.png",
-                    "berlinale": "berlinale.png",
-                    "venice": "venice.png",
-                    "sundance": "sundance.png",
-                    "spirit": "spirit.png",
-                    "choice": "choice.png",
-                    "cesar": "cesar.png",
-                    "imdb": "imdb.png",
-                    "letterboxd": "letterboxd.png",
-                    "metacritic": "metacritic.png",
-                    "netflix": "netflix.png",
-                    "razzie": "razzie.png",
-                    "rotten": "rotten.png"
+                    "crunchyroll": "crunchyroll.png"
                 }
-            },
-            "AwardSources": {
-                "enable_academy_awards": True,
-                "enable_cannes": True,
-                "enable_golden_globes": True,
-                "enable_bafta": True,
-                "enable_emmys": True,
-                "enable_crunchyroll_anime": True,
-                "enable_berlinale": False,
-                "enable_venice": False,
-                "enable_sundance": False,
-                "enable_spirit": False,
-                "enable_critics_choice": False,
-                "enable_cesar": False,
-                "enable_imdb_top": False,
-                "enable_letterboxd": False,
-                "enable_metacritic": False,
-                "enable_netflix": False,
-                "enable_razzie": False,
-                "enable_rotten_tomatoes": False,
-                "enable_rotten_tomatoes_verified": False
             }
         },
-        "badge_settings_resolution.yml": {
+        "resolution": {
             "General": {
                 "general_badge_size": 300,
                 "general_edge_padding": 30,
@@ -196,8 +131,8 @@ async def initialize_production_defaults(db):
                 "use_dynamic_sizing": True
             },
             "Text": {
-                "font": "AvenirNextLTProBold.otf",
-                "fallback_font": "DejaVuSans.ttf",
+                "font": "/app/assets/fonts/AvenirNextLTProBold.otf",
+                "fallback_font": "/app/assets/fonts/DejaVuSans.ttf",
                 "text_color": "#FFFFFF",
                 "text_size": 90
             },
@@ -236,7 +171,7 @@ async def initialize_production_defaults(db):
                 }
             }
         },
-        "badge_settings_review.yml": {
+        "review": {
             "General": {
                 "general_badge_size": 100,
                 "general_edge_padding": 30,
@@ -264,8 +199,8 @@ async def initialize_production_defaults(db):
                 "enable_trakt": False
             },
             "Text": {
-                "font": "AvenirNextLTProBold.otf",
-                "fallback_font": "DejaVuSans.ttf",
+                "font": "/app/assets/fonts/AvenirNextLTProBold.otf",
+                "fallback_font": "/app/assets/fonts/DejaVuSans.ttf",
                 "text_color": "#FFFFFF",
                 "text_size": 45
             },
@@ -305,68 +240,52 @@ async def initialize_production_defaults(db):
         }
     }
     
-    # Insert badge settings using the same format as the API
-    now = datetime.utcnow()
-    for key, settings in badge_files.items():
-        badge_id = str(uuid.uuid4())
-        await db.execute(
-            text("INSERT INTO system_config (id, key, value, created_at, updated_at) VALUES (:id, :key, :value, :created_at, :updated_at)"),
-            {"id": badge_id, "key": key, "value": json.dumps(settings), "created_at": now, "updated_at": now}
-        )
+    print("📄 Uploading badge settings...")
     
-    # Initialize review source settings
-    review_settings = {
-        "max_badges_display": 5,
-        "source_selection_mode": "priority",
-        "show_percentage_only": True,
-        "group_related_sources": True,
-        "anime_sources_for_anime_only": True,
-        "Sources": {
-            "max_badges_to_display": 4,
-            "selection_mode": "priority_order",
-            "show_percentage_only": True,
-            "enable_imdb": True,
-            "imdb_priority": 1,
-            "enable_rotten_tomatoes_critics": True,
-            "rotten_tomatoes_critics_priority": 2,
-            "enable_metacritic": True,
-            "metacritic_priority": 3,
-            "enable_tmdb": True,
-            "tmdb_priority": 4,
-            "enable_anidb": True,
-            "anidb_priority": 5,
-            "enable_rotten_tomatoes_audience": False,
-            "rotten_tomatoes_audience_priority": 6,
-            "enable_letterboxd": False,
-            "letterboxd_priority": 7,
-            "enable_myanimelist": True,
-            "myanimelist_priority": 8,
-            "enable_trakt": False,
-            "trakt_priority": 9,
-            "enable_mdblist": False,
-            "mdblist_priority": 10
-        }
-    }
+    # Upload each badge setting type
+    for badge_type, settings in badge_settings.items():
+        try:
+            response = requests.post(
+                f"http://localhost:8000/api/v1/config/badge-settings/{badge_type}",
+                json=settings,
+                headers={"Content-Type": "application/json"},
+                timeout=10
+            )
+            
+            if response.status_code in [200, 201]:
+                print(f"✅ {badge_type.title()} badge settings uploaded successfully")
+            else:
+                print(f"❌ {badge_type.title()} badge settings failed: HTTP {response.status_code}")
+                if response.text:
+                    print(f"   Error: {response.text[:200]}")
+        except Exception as e:
+            print(f"❌ {badge_type.title()} badge settings upload failed: {e}")
     
-    review_id = str(uuid.uuid4())
-    await db.execute(
-        text("INSERT INTO system_config (id, key, value, created_at, updated_at) VALUES (:id, :key, :value, :created_at, :updated_at)"),
-        {"id": review_id, "key": "review_source_settings", "value": json.dumps(review_settings), "created_at": now, "updated_at": now}
-    )
+    print("\n🔍 Verifying uploaded settings...")
     
-    # Initialize placeholder settings.yaml (without sensitive data)
-    placeholder_settings = {
-        "api_keys": {
-            "Jellyfin": [],
-            "OMDB": [],
-            "TMDB": [],
-            "aniDB": [],
-            "MDBList": []
-        }
-    }
+    # Verify the settings were uploaded
+    try:
+        response = requests.get("http://localhost:8000/api/v1/config/badge-settings", timeout=10)
+        if response.status_code == 200:
+            settings = response.json()
+            uploaded_types = list(settings.keys())
+            print(f"✅ Badge settings verified: {', '.join(uploaded_types)}")
+            
+            # Check first setting for Docker paths
+            if uploaded_types:
+                first_type = uploaded_types[0]
+                font_path = settings[first_type].get('Text', {}).get('font', '')
+                if font_path.startswith('/app/assets/fonts/'):
+                    print("✅ Docker paths confirmed in uploaded settings")
+                else:
+                    print(f"⚠️  Font path check: {font_path}")
+        else:
+            print(f"❌ Verification failed: HTTP {response.status_code}")
+    except Exception as e:
+        print(f"❌ Verification failed: {e}")
     
-    settings_id = str(uuid.uuid4())
-    await db.execute(
-        text("INSERT INTO system_config (id, key, value, created_at, updated_at) VALUES (:id, :key, :value, :created_at, :updated_at)"),
-        {"id": settings_id, "key": "settings.yaml", "value": json.dumps(placeholder_settings), "created_at": now, "updated_at": now}
-    )
+    print("\n🎉 Manual initialization complete!")
+    print("Your container now has production-ready badge settings with Docker paths.")
+
+if __name__ == "__main__":
+    initialize_production_settings()
