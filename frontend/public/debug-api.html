@@ -1,0 +1,48 @@
+// Debug API configuration - place in frontend/public/debug-api.html
+// Access via http://localhost:8000/debug-api.html
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Debug</title>
+</head>
+<body>
+    <h1>API Configuration Debug</h1>
+    <div id="results"></div>
+
+    <script>
+        async function debugApi() {
+            const results = document.getElementById('results');
+            
+            // Test current origin detection
+            results.innerHTML += `<p><strong>Current Origin:</strong> ${window.location.origin}</p>`;
+            
+            // Test different API URLs
+            const testUrls = [
+                '/api',
+                '/health/live',
+                'http://localhost:8000/api',
+                window.location.origin + '/api'
+            ];
+            
+            for (const url of testUrls) {
+                try {
+                    results.innerHTML += `<p>Testing: ${url}</p>`;
+                    const response = await fetch(url);
+                    results.innerHTML += `<p style="color: green;">✅ ${url} - Status: ${response.status}</p>`;
+                    
+                    if (url.includes('/api')) {
+                        const data = await response.json();
+                        results.innerHTML += `<p>Response: ${JSON.stringify(data)}</p>`;
+                    }
+                } catch (error) {
+                    results.innerHTML += `<p style="color: red;">❌ ${url} - Error: ${error.message}</p>`;
+                }
+                results.innerHTML += '<hr>';
+            }
+        }
+        
+        debugApi();
+    </script>
+</body>
+</html>
