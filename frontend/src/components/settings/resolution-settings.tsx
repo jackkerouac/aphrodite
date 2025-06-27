@@ -20,7 +20,9 @@ export function ResolutionSettings() {
     loading,
     saving,
     settings,
+    availableFonts,
     loadSettings,
+    loadFonts,
     saveSettings,
     updateSetting,
     addResolutionMapping,
@@ -29,7 +31,11 @@ export function ResolutionSettings() {
   } = useResolutionSettings();
 
   useEffect(() => {
-    loadSettings();
+    const loadAllData = async () => {
+      await loadFonts();
+      await loadSettings();
+    };
+    loadAllData();
   }, []);
 
   const handleSave = (e: React.FormEvent) => {
@@ -70,7 +76,11 @@ export function ResolutionSettings() {
           </TabsContent>
 
           <TabsContent value="text">
-            <TextTab settings={settings} updateSetting={updateSetting} />
+            <TextTab 
+              settings={settings} 
+              updateSetting={updateSetting}
+              availableFonts={availableFonts}
+            />
           </TabsContent>
 
           <TabsContent value="background">

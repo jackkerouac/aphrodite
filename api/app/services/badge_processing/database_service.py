@@ -101,8 +101,22 @@ class BadgeSettingsService:
         return await self.get_badge_settings("resolution", db, force_reload=force_reload)
     
     async def get_review_settings(self, db: AsyncSession, force_reload: bool = False) -> Optional[Dict[str, Any]]:
-        """Get review badge settings"""
-        return await self.get_badge_settings("review", db, force_reload=force_reload)
+        """Get review badge settings - use ONLY the main settings as single source of truth"""
+        try:
+            # Get main review badge settings - this is the single source of truth
+            settings = await self.get_badge_settings("review", db, force_reload=force_reload)
+            if not settings:
+                return None
+            
+            # REMOVED: No longer merge review_source_settings as it causes conflicts
+            # The Settings UI saves to badge_settings_review.yml and that should be the authority
+            
+            self.logger.debug("Using badge_settings_review.yml as single source of truth for review settings")
+            return settings
+            
+        except Exception as e:
+            self.logger.error(f"Error getting review settings: {e}", exc_info=True)
+            return await self.get_badge_settings("review", db, force_reload=force_reload)
     
     async def get_awards_settings(self, db: AsyncSession, force_reload: bool = False) -> Optional[Dict[str, Any]]:
         """Get awards badge settings"""

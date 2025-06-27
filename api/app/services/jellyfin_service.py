@@ -604,6 +604,37 @@ class JellyfinService:
             self.logger.error(f"Error extracting video resolution info: {e}")
             return None
     
+    async def get_series_episodes(self, series_id: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """Get episodes for a TV series, limited to specified count"""
+        try:
+            # Use the same pattern as other methods - user-specific API
+            url = urljoin(self.base_url, f"/Shows/{series_id}/Episodes")
+            
+            params = {
+                "Fields": "MediaSources,MediaStreams",
+                "Limit": limit,
+                "UserId": self.user_id
+            }
+            
+            session = await self._get_session()
+            
+            try:
+                async with session.get(url, params=params) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        episodes = data.get("Items", [])
+                        self.logger.debug(f"Retrieved {len(episodes)} episodes for series {series_id}")
+                        return episodes
+                    else:
+                        self.logger.error(f"Failed to get series episodes {series_id}: HTTP {response.status}")
+                        return []
+            finally:
+                await session.close()
+                    
+        except Exception as e:
+            self.logger.error(f"Error getting series episodes {series_id}: {e}")
+            return []
+    
     async def _verify_upload(self, item_id: str) -> bool:
         """Verify that the uploaded image is retrievable (v1 method)"""
         try:

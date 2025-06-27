@@ -106,12 +106,13 @@ async def _process_batch_job_async(job_id: str) -> Dict[str, Any]:
                     await job_repo.update_poster_status(job_id, poster_id, PosterStatus.PROCESSING)
                     
                     try:
-                        # Process single poster
+                        # Process single poster with progress tracking
                         result = await poster_processor.process_poster(
                             poster_id=poster_id,
                             badge_types=job.badge_types,
                             job_id=job_id,
-                            db_session=db_session
+                            db_session=db_session,
+                            progress_tracker=progress_updater.progress_tracker
                         )
                         
                         if result["success"]:

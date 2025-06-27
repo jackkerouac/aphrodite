@@ -38,6 +38,10 @@ class BackupCreateRequest(BaseModel):
 class BackupRestoreRequest(BaseModel):
     filename: str
 
+class DatabaseRestoreRequest(BaseModel):
+    filename: str
+    confirm_restore: bool = False
+
 class LogsQueryRequest(BaseModel):
     level: Optional[str] = None
     search: Optional[str] = None
@@ -322,6 +326,413 @@ async def clear_logs():
     except Exception as e:
         logger.error(f"Error clearing logs: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to clear logs: {str(e)}")
+
+@router.post("/database/backup")
+async def create_backup(request: BackupCreateRequest, db: AsyncSession = Depends(get_db_session)):
+    """Create a PostgreSQL database backup."""
+    try:
+        logger.info(f"Creating PostgreSQL database backup")
+        settings = get_settings()
+        
+        # Generate backup filename
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_name = request.backup_name or f"aphrodite_backup_{timestamp}"
+        
+        # Add .sql extension if not present
+        if not backup_name.endswith('.sql'):
+            backup_name += '.sql'
+        
+        backup_file = BACKUP_DIR / backup_name
+        
+        # Parse database URL to get connection parameters
+        import urllib.parse as urlparse
+        parsed = urlparse.urlparse(settings.database_url)
+        
+        # Build pg_dump command
+        env = os.environ.copy()
+        env['PGPASSWORD'] = parsed.password or ''
+        
+        cmd = [
+            'pg_dump',
+            '-h', parsed.hostname or 'localhost',
+            '-p', str(parsed.port or 5432),
+            '-U', parsed.username or 'postgres',
+            '-d', parsed.path.lstrip('/') if parsed.path else 'aphrodite',
+            '--no-password',
+            '--verbose',
+            '--clean',
+            '--if-exists',
+            '--create'
+        ]
+        
+        logger.info(f"Running pg_dump command to {backup_file}")
+        
+        # Run pg_dump
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            env=env
+        )
+        
+        stdout, stderr = await process.communicate()
+        
+        if process.returncode != 0:
+            error_msg = stderr.decode() if stderr else "pg_dump failed"
+            logger.error(f"pg_dump failed: {error_msg}")
+            raise HTTPException(status_code=500, detail=f"Backup failed: {error_msg}")
+        
+        # Write backup to file
+        with open(backup_file, 'wb') as f:
+            f.write(stdout)
+        
+        # Compress if requested
+        final_file = backup_file
+        if request.compress:
+            import gzip
+            compressed_file = backup_file.with_suffix('.sql.gz')
+            with open(backup_file, 'rb') as f_in:
+                with gzip.open(compressed_file, 'wb') as f_out:
+                    f_out.writelines(f_in)
+            
+            # Remove uncompressed file
+            backup_file.unlink()
+            final_file = compressed_file
+        
+        # Get file info
+        file_stat = final_file.stat()
+        
+        logger.info(f"Backup created successfully: {final_file}")
+        
+        return {
+            "success": True,
+            "message": "Backup created successfully",
+            "filename": final_file.name,
+            "size": file_stat.st_size,
+            "size_formatted": format_file_size(file_stat.st_size),
+            "compressed": request.compress,
+            "created": datetime.fromtimestamp(file_stat.st_mtime).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error creating backup: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to create backup: {str(e)}")
+
+@router.post("/database/export")
+async def export_database(db: AsyncSession = Depends(get_db_session)):
+    """Export database data to JSON format."""
+    try:
+        logger.info(f"Exporting PostgreSQL database to JSON")
+        
+        # Get all table names
+        tables_result = await db.execute(text("""
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_type = 'BASE TABLE'
+            ORDER BY table_name
+        """))
+        
+        tables = [row.table_name for row in tables_result.fetchall()]
+        logger.info(f"Found {len(tables)} tables to export: {tables}")
+        
+        export_data = {
+            "export_info": {
+                "timestamp": datetime.now().isoformat(),
+                "database": "aphrodite",
+                "tables_count": len(tables)
+            },
+            "tables": {}
+        }
+        
+        # Export each table
+        for table_name in tables:
+            try:
+                logger.info(f"Exporting table: {table_name}")
+                
+                # Get table data
+                result = await db.execute(text(f"SELECT * FROM {table_name}"))
+                rows = result.fetchall()
+                
+                # Convert rows to dictionaries
+                if rows:
+                    columns = list(rows[0]._mapping.keys())
+                    table_data = []
+                    
+                    for row in rows:
+                        row_dict = {}
+                        for col in columns:
+                            value = getattr(row, col)
+                            # Convert datetime objects to ISO strings
+                            if isinstance(value, datetime):
+                                value = value.isoformat()
+                            # Convert other non-serializable types
+                            elif hasattr(value, '__dict__'):
+                                value = str(value)
+                            row_dict[col] = value
+                        table_data.append(row_dict)
+                    
+                    export_data["tables"][table_name] = {
+                        "columns": columns,
+                        "row_count": len(table_data),
+                        "data": table_data
+                    }
+                else:
+                    export_data["tables"][table_name] = {
+                        "columns": [],
+                        "row_count": 0,
+                        "data": []
+                    }
+                    
+                logger.info(f"Exported {len(export_data['tables'][table_name]['data'])} rows from {table_name}")
+                
+            except Exception as table_error:
+                logger.error(f"Error exporting table {table_name}: {table_error}")
+                export_data["tables"][table_name] = {
+                    "error": str(table_error),
+                    "row_count": 0,
+                    "data": []
+                }
+        
+        # Generate export filename
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        export_filename = f"aphrodite_export_{timestamp}.json"
+        export_file = BACKUP_DIR / export_filename
+        
+        # Write JSON export
+        with open(export_file, 'w', encoding='utf-8') as f:
+            json.dump(export_data, f, indent=2, ensure_ascii=False)
+        
+        # Get file info
+        file_stat = export_file.stat()
+        
+        logger.info(f"Database exported successfully: {export_file}")
+        
+        return {
+            "success": True,
+            "message": "Database exported successfully",
+            "filename": export_file.name,
+            "size": file_stat.st_size,
+            "size_formatted": format_file_size(file_stat.st_size),
+            "tables_exported": len([t for t in export_data["tables"].values() if "error" not in t]),
+            "tables_failed": len([t for t in export_data["tables"].values() if "error" in t]),
+            "total_rows": sum(t.get("row_count", 0) for t in export_data["tables"].values()),
+            "created": datetime.fromtimestamp(file_stat.st_mtime).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error exporting database: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to export database: {str(e)}")
+
+@router.post("/database/restore")
+async def restore_database(request: BackupRestoreRequest, db: AsyncSession = Depends(get_db_session)):
+    """Restore database from SQL backup file."""
+    try:
+        logger.info(f"Restoring PostgreSQL database from backup: {request.filename}")
+        settings = get_settings()
+        
+        # Check if backup file exists
+        backup_file = BACKUP_DIR / request.filename
+        if not backup_file.exists():
+            raise HTTPException(status_code=404, detail=f"Backup file not found: {request.filename}")
+        
+        logger.info(f"Found backup file: {backup_file}")
+        
+        # Parse database URL to get connection parameters
+        import urllib.parse as urlparse
+        parsed = urlparse.urlparse(settings.database_url)
+        
+        # Build psql command for restore
+        env = os.environ.copy()
+        env['PGPASSWORD'] = parsed.password or ''
+        
+        # Determine if file is compressed
+        is_compressed = backup_file.suffix == '.gz'
+        
+        if is_compressed:
+            # For compressed files, decompress and pipe to psql
+            logger.info(f"Restoring from compressed backup: {backup_file}")
+            
+            # Use gunzip and pipe to psql
+            gunzip_process = await asyncio.create_subprocess_exec(
+                'gunzip', '-c', str(backup_file),
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            
+            psql_process = await asyncio.create_subprocess_exec(
+                'psql',
+                '-h', parsed.hostname or 'localhost',
+                '-p', str(parsed.port or 5432),
+                '-U', parsed.username or 'postgres',
+                '-d', parsed.path.lstrip('/') if parsed.path else 'aphrodite',
+                '--no-password',
+                stdin=gunzip_process.stdout,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                env=env
+            )
+            
+            # Wait for both processes
+            gunzip_stdout, gunzip_stderr = await gunzip_process.communicate()
+            psql_stdout, psql_stderr = await psql_process.communicate()
+            
+            if gunzip_process.returncode != 0:
+                error_msg = gunzip_stderr.decode() if gunzip_stderr else "Failed to decompress backup"
+                logger.error(f"Gunzip failed: {error_msg}")
+                raise HTTPException(status_code=500, detail=f"Decompression failed: {error_msg}")
+            
+            if psql_process.returncode != 0:
+                error_msg = psql_stderr.decode() if psql_stderr else "Database restore failed"
+                logger.error(f"psql restore failed: {error_msg}")
+                raise HTTPException(status_code=500, detail=f"Restore failed: {error_msg}")
+                
+        else:
+            # For uncompressed files, restore directly
+            logger.info(f"Restoring from uncompressed backup: {backup_file}")
+            
+            with open(backup_file, 'r', encoding='utf-8') as f:
+                sql_content = f.read()
+            
+            psql_process = await asyncio.create_subprocess_exec(
+                'psql',
+                '-h', parsed.hostname or 'localhost',
+                '-p', str(parsed.port or 5432),
+                '-U', parsed.username or 'postgres',
+                '-d', parsed.path.lstrip('/') if parsed.path else 'aphrodite',
+                '--no-password',
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                env=env
+            )
+            
+            stdout, stderr = await psql_process.communicate(input=sql_content.encode())
+            
+            if psql_process.returncode != 0:
+                error_msg = stderr.decode() if stderr else "Database restore failed"
+                logger.error(f"psql restore failed: {error_msg}")
+                raise HTTPException(status_code=500, detail=f"Restore failed: {error_msg}")
+        
+        logger.info(f"Database restored successfully from: {backup_file}")
+        
+        return {
+            "success": True,
+            "message": f"Database restored successfully from {request.filename}",
+            "backup_file": request.filename,
+            "compressed": is_compressed,
+            "restored_at": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error restoring database: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to restore database: {str(e)}")
+
+@router.post("/database/import")
+async def import_database_settings(request: DatabaseRestoreRequest, db: AsyncSession = Depends(get_db_session)):
+    """Import database settings from JSON export file."""
+    try:
+        logger.info(f"Importing database settings from JSON: {request.filename}")
+        
+        # Check if export file exists
+        export_file = BACKUP_DIR / request.filename
+        if not export_file.exists():
+            raise HTTPException(status_code=404, detail=f"Export file not found: {request.filename}")
+        
+        if not request.filename.endswith('.json'):
+            raise HTTPException(status_code=400, detail="File must be a JSON export")
+        
+        logger.info(f"Found export file: {export_file}")
+        
+        # Read and parse JSON export
+        try:
+            with open(export_file, 'r', encoding='utf-8') as f:
+                export_data = json.load(f)
+        except json.JSONDecodeError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid JSON format: {str(e)}")
+        
+        # Validate export format
+        if "export_info" not in export_data or "tables" not in export_data:
+            raise HTTPException(status_code=400, detail="Invalid export format - missing required sections")
+        
+        export_info = export_data["export_info"]
+        tables_data = export_data["tables"]
+        
+        logger.info(f"Import info: {export_info}")
+        logger.info(f"Found {len(tables_data)} tables in export")
+        
+        # Safety check - require confirmation for destructive operation
+        if not request.confirm_restore:
+            return {
+                "success": False,
+                "message": "Import requires confirmation - this will overwrite existing data",
+                "export_info": export_info,
+                "tables_to_import": list(tables_data.keys()),
+                "requires_confirmation": True
+            }
+        
+        imported_tables = 0
+        failed_tables = 0
+        total_rows_imported = 0
+        
+        # Import each table
+        for table_name, table_info in tables_data.items():
+            if "error" in table_info:
+                logger.warning(f"Skipping table {table_name} - had export error: {table_info['error']}")
+                failed_tables += 1
+                continue
+            
+            table_data = table_info.get("data", [])
+            if not table_data:
+                logger.info(f"Skipping empty table: {table_name}")
+                continue
+            
+            try:
+                logger.info(f"Importing table: {table_name} ({len(table_data)} rows)")
+                
+                # Clear existing data (DANGEROUS!)
+                await db.execute(text(f"TRUNCATE TABLE {table_name} CASCADE"))
+                
+                # Import data row by row
+                for row_data in table_data:
+                    columns = list(row_data.keys())
+                    values = list(row_data.values())
+                    
+                    # Build parameterized insert query
+                    columns_str = ', '.join(columns)
+                    placeholders = ', '.join([f":{col}" for col in columns])
+                    
+                    insert_query = f"INSERT INTO {table_name} ({columns_str}) VALUES ({placeholders})"
+                    
+                    await db.execute(text(insert_query), row_data)
+                
+                await db.commit()
+                imported_tables += 1
+                total_rows_imported += len(table_data)
+                logger.info(f"Successfully imported {len(table_data)} rows into {table_name}")
+                
+            except Exception as table_error:
+                await db.rollback()
+                logger.error(f"Error importing table {table_name}: {table_error}")
+                failed_tables += 1
+        
+        logger.info(f"Import completed: {imported_tables} tables imported, {failed_tables} failed")
+        
+        return {
+            "success": True,
+            "message": f"Database settings imported successfully from {request.filename}",
+            "export_file": request.filename,
+            "tables_imported": imported_tables,
+            "tables_failed": failed_tables,
+            "total_rows_imported": total_rows_imported,
+            "export_info": export_info,
+            "imported_at": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error importing database settings: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to import database settings: {str(e)}")
 
 @router.get("/logs/download")
 async def download_logs():

@@ -9,9 +9,11 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Save, Plus, Trash2, Volume2 } from 'lucide-react';
+import { Loader2, Save, Plus, Trash2, Volume2, Type } from 'lucide-react';
 import { toast } from 'sonner';
 import { saveSettingsWithCacheClear } from '@/lib/settings-utils';
+import { FontSelect } from '@/components/ui/font-select';
+import { loadAvailableFonts } from '@/lib/font-utils';
 
 interface AudioSettings {
   General: {
@@ -100,7 +102,19 @@ export function AudioSettings() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<AudioSettings>(defaultSettings);
+  const [availableFonts, setAvailableFonts] = useState<string[]>([]);
   const [newMapping, setNewMapping] = useState({ codec: '', image: '' });
+
+  // Load fonts
+  const loadFonts = async () => {
+    try {
+      const fonts = await loadAvailableFonts();
+      setAvailableFonts(fonts);
+    } catch (error) {
+      console.error('Error loading fonts:', error);
+      setAvailableFonts([]);
+    }
+  };
 
   // Load settings from API
   const loadSettings = async () => {
@@ -203,7 +217,11 @@ export function AudioSettings() {
   };
 
   useEffect(() => {
-    loadSettings();
+    const loadAllData = async () => {
+      await loadFonts();
+      await loadSettings();
+    };
+    loadAllData();
   }, []);
 
   if (loading) {
@@ -328,44 +346,45 @@ export function AudioSettings() {
           <TabsContent value="text">
             <Card>
               <CardHeader>
-                <CardTitle>Text Settings</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Type className="h-5 w-5" />
+                  Text Settings
+                </CardTitle>
                 <CardDescription>
-                  Configure text appearance for audio badges
+                  Configure font, size, and text appearance for audio badges
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="font">Font</Label>
-                    <Input
-                      id="font"
-                      type="text"
+                    <Label htmlFor="font">Primary Font</Label>
+                    <FontSelect
                       value={settings.Text.font}
-                      onChange={(e) => setSettings(prev => ({
+                      onValueChange={(value) => setSettings(prev => ({
                         ...prev,
-                        Text: { ...prev.Text, font: e.target.value }
+                        Text: { ...prev.Text, font: value }
                       }))}
-                      placeholder="AvenirNextLTProBold.otf"
+                      availableFonts={availableFonts}
+                      placeholder="Select a font..."
                     />
                   </div>
                   
                   <div className="space-y-2">
                     <Label htmlFor="fallback-font">Fallback Font</Label>
-                    <Input
-                      id="fallback-font"
-                      type="text"
+                    <FontSelect
                       value={settings.Text.fallback_font}
-                      onChange={(e) => setSettings(prev => ({
+                      onValueChange={(value) => setSettings(prev => ({
                         ...prev,
-                        Text: { ...prev.Text, fallback_font: e.target.value }
+                        Text: { ...prev.Text, fallback_font: value }
                       }))}
-                      placeholder="DejaVuSans.ttf"
+                      availableFonts={availableFonts}
+                      placeholder="Select a font..."
                     />
                   </div>
                   
                   <div className="space-y-2">
                     <Label htmlFor="text-color">Text Color</Label>
-                    <div className="flex gap-2">
+                    <div className="flex items-center space-x-2">
                       <input
                         type="color"
                         value={settings.Text['text-color']}
@@ -373,16 +392,17 @@ export function AudioSettings() {
                           ...prev,
                           Text: { ...prev.Text, 'text-color': e.target.value }
                         }))}
-                        className="w-12 h-10 rounded border border-input"
+                        className="w-12 h-10 border rounded cursor-pointer"
                       />
                       <Input
+                        type="text"
                         value={settings.Text['text-color']}
                         onChange={(e) => setSettings(prev => ({
                           ...prev,
                           Text: { ...prev.Text, 'text-color': e.target.value }
                         }))}
-                        placeholder="#FFFFFF"
                         className="flex-1"
+                        placeholder="#FFFFFF"
                       />
                     </div>
                   </div>
@@ -398,6 +418,7 @@ export function AudioSettings() {
                         ...prev,
                         Text: { ...prev.Text, 'text-size': parseInt(e.target.value) || 90 }
                       }))}
+                      placeholder="90"
                     />
                   </div>
                 </div>

@@ -245,7 +245,7 @@ class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
             
             if media_type == 'Movie':
                 # For movies: get resolution directly
-                resolution = await jellyfin_service.get_video_resolution(media_item)
+                resolution = await jellyfin_service.get_video_resolution_info(media_item)
                 self.logger.debug(f"🎬 [V2 RESOLUTION] Movie resolution: {resolution}")
                 return resolution
             
@@ -257,7 +257,7 @@ class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
             
             elif media_type == 'Episode':
                 # For episodes: get resolution directly
-                resolution = await jellyfin_service.get_video_resolution(media_item)
+                resolution = await jellyfin_service.get_video_resolution_info(media_item)
                 self.logger.debug(f"📻 [V2 RESOLUTION] Episode resolution: {resolution}")
                 return resolution
             
@@ -287,7 +287,7 @@ class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
             resolutions = []
             for i, episode in enumerate(episodes[:5]):  # Sample first 5 episodes
                 try:
-                    resolution = await jellyfin_service.get_video_resolution(episode)
+                    resolution = await jellyfin_service.get_video_resolution_info(episode)
                     if resolution and resolution != "UNKNOWN":
                         resolutions.append(resolution)
                         self.logger.debug(f"📻 [V2 RESOLUTION] Episode {i+1} resolution: {resolution}")

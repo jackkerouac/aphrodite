@@ -1,12 +1,26 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { saveSettingsWithCacheClear } from '@/lib/settings-utils';
+import { loadAvailableFonts } from '@/lib/font-utils';
 import { ResolutionSettings, defaultResolutionSettings } from './types';
 
 export function useResolutionSettings() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<ResolutionSettings>(defaultResolutionSettings);
+  const [availableFonts, setAvailableFonts] = useState<string[]>([]);
+
+  // Load available fonts
+  const loadFonts = async () => {
+    try {
+      console.log('Loading available fonts...');
+      const fonts = await loadAvailableFonts();
+      setAvailableFonts(fonts);
+    } catch (error) {
+      console.error('Error loading fonts:', error);
+      setAvailableFonts([]);
+    }
+  };
 
   // Load settings from API
   const loadSettings = async () => {
@@ -150,7 +164,9 @@ export function useResolutionSettings() {
     loading,
     saving,
     settings,
+    availableFonts,
     loadSettings,
+    loadFonts,
     saveSettings,
     updateSetting,
     addResolutionMapping,

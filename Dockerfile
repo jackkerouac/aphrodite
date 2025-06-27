@@ -36,6 +36,7 @@ COPY --chown=aphrodite:aphrodite api/ ./api/
 COPY --chown=aphrodite:aphrodite shared/ ./shared/
 COPY --chown=aphrodite:aphrodite aphrodite_logging/ ./aphrodite_logging/
 COPY --chown=aphrodite:aphrodite aphrodite_helpers/ ./aphrodite_helpers/
+COPY --chown=aphrodite:aphrodite init-badge-settings-production.py ./
 
 # Copy pre-built frontend
 COPY --chown=aphrodite:aphrodite frontend/.next ./frontend/.next
@@ -52,6 +53,10 @@ RUN mkdir -p /app/logs /app/data /app/media /app/assets /app/assets/fonts /app/a
 # Copy fonts and assets
 COPY --chown=aphrodite:aphrodite fonts/ ./assets/fonts/
 COPY --chown=aphrodite:aphrodite images/ ./assets/images/
+
+# Copy startup script
+COPY --chown=aphrodite:aphrodite start-production.sh ./
+RUN chmod +x start-production.sh
 
 # Create symlink for backward compatibility with /app/fonts paths in database
 RUN ln -sf /app/assets/fonts /app/fonts && \
@@ -70,5 +75,5 @@ USER aphrodite
 # Set working directory to API
 WORKDIR /app/api
 
-# Start the FastAPI application
-CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+# Start with production script
+CMD ["./start-production.sh"]

@@ -90,6 +90,8 @@ LICENSE*
 example*.png
 test-*
 *.test.js
+test-production-readiness.py
+init-badge-settings.py
 
 # Build artifacts
 dist/

@@ -25,8 +25,8 @@ from .types import (
 # Import V2 processors
 from .v2_audio_processor import V2AudioBadgeProcessor
 from .v2_resolution_processor import V2ResolutionBadgeProcessor
-from .review_processor import ReviewBadgeProcessor  # Keep current until migrated
-from .awards_processor import AwardsBadgeProcessor  # Keep current until migrated
+from .v2_review_processor import V2ReviewBadgeProcessor
+from .v2_awards_processor import V2AwardsBadgeProcessor
 
 
 class V2UniversalBadgeProcessor:
@@ -141,8 +141,8 @@ class V2UniversalBadgeProcessor:
         processors = {
             "audio": V2AudioBadgeProcessor(),
             "resolution": V2ResolutionBadgeProcessor(),
-            "review": ReviewBadgeProcessor(),  # Keep current until migrated
-            "awards": AwardsBadgeProcessor()   # Keep current until migrated
+            "review": V2ReviewBadgeProcessor(),
+            "awards": V2AwardsBadgeProcessor()
         }
         
         # Start with the resized poster
