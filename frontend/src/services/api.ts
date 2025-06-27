@@ -33,6 +33,8 @@ export class ApiError extends Error {
 }
 
 async function handleResponse(response: Response) {
+  console.log(`🌐 API Response: ${response.status} ${response.url}`);
+  
   if (!response.ok) {
     let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
     try {
@@ -41,13 +43,17 @@ async function handleResponse(response: Response) {
     } catch {
       // If we can't parse the error response, use the default message
     }
+    console.error(`❌ API Error: ${errorMessage} (${response.url})`);
     throw new ApiError(errorMessage, response.status);
   }
   
   try {
-    return await response.json();
+    const data = await response.json();
+    console.log(`✅ API Success: ${response.url}`);
+    return data;
   } catch {
     // If there's no JSON response, return empty object
+    console.log(`⚠️ API No JSON: ${response.url}`);
     return {};
   }
 }

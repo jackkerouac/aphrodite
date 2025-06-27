@@ -57,16 +57,25 @@ export function useDashboardData(): DashboardData {
 
   const fetchDashboardData = async () => {
     try {
+      console.log('🔍 Dashboard: Starting data fetch...');
       setData(prev => ({ ...prev, isLoading: true, error: null }));
 
+      console.log('🔍 Dashboard: Making API calls...');
       // Fetch all required data in parallel
       const [analyticsOverview, systemHealth, recentJobs, todayCompletedJobs, systemInfo] = await Promise.all([
-        apiService.getAnalyticsOverview().catch(() => null),
-        apiService.getSystemStatus().catch(() => null),
-        apiService.getJobs({ user_id: 'default_user' }).catch(() => []),
-        apiService.getJobs({ user_id: 'default_user' }).catch(() => []),
-        apiService.getSystemInfo().catch(() => null),
+        apiService.getAnalyticsOverview().catch((err) => { console.error('Analytics failed:', err); return null; }),
+        apiService.getSystemStatus().catch((err) => { console.error('System status failed:', err); return null; }),
+        apiService.getJobs({ user_id: 'default_user' }).catch((err) => { console.error('Jobs failed:', err); return []; }),
+        apiService.getJobs({ user_id: 'default_user' }).catch((err) => { console.error('Jobs2 failed:', err); return []; }),
+        apiService.getSystemInfo().catch((err) => { console.error('System info failed:', err); return null; }),
       ]);
+      
+      console.log('🔍 Dashboard: API responses:', {
+        analyticsOverview,
+        systemHealth,
+        recentJobs: Array.isArray(recentJobs) ? recentJobs.length : 'not array',
+        systemInfo
+      });
 
       // Process system status
       const systemStatus = {

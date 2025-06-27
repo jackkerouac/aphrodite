@@ -139,21 +139,41 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     if not async_session_factory:
         raise RuntimeError("Database not initialized")
     
+    session = None
     max_retries = 3
     retry_count = 0
     
     while retry_count < max_retries:
         try:
-            async with async_session_factory() as session:
-                # Test the connection
-                from sqlalchemy import text
-                await session.execute(text("SELECT 1"))
+            session = async_session_factory()
+            # Test the connection
+            from sqlalchemy import text
+            await session.execute(text("SELECT 1"))
+            
+            try:
                 yield session
-                break
+            finally:
+                # CRITICAL FIX: Ensure session is always closed properly
+                if session:
+                    try:
+                        await session.close()
+                    except Exception as close_error:
+                        logger = get_logger("aphrodite.database.session", service="database")
+                        logger.warning(f"Error closing database session: {close_error}")
+            break
+            
         except Exception as e:
             retry_count += 1
             logger = get_logger("aphrodite.database.session", service="database")
             logger.warning(f"Database session attempt {retry_count} failed: {e}")
+            
+            # Ensure failed session is closed
+            if session:
+                try:
+                    await session.close()
+                except Exception:
+                    pass
+                session = None
             
             if retry_count >= max_retries:
                 logger.error(f"Failed to create database session after {max_retries} attempts")

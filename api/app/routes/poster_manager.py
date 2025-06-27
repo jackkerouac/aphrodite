@@ -63,11 +63,21 @@ async def get_libraries(db: AsyncSession = Depends(get_db_session)):
     try:
         jellyfin_service = get_jellyfin_service()
         
-        # Test connection first
-        connected, message = await jellyfin_service.test_connection()
-        if not connected:
-            logger.error(f"Jellyfin connection failed: {message}")
-            raise HTTPException(status_code=503, detail=f"Jellyfin connection failed: {message}")
+        # Test connection first with proper error handling
+        try:
+            connected, message = await jellyfin_service.test_connection()
+            if not connected:
+                logger.error(f"Jellyfin connection failed: {message}")
+                return {
+                    "error": f"Jellyfin connection failed: {message}",
+                    "libraries": []
+                }
+        except Exception as conn_error:
+            logger.error(f"Jellyfin connection test failed: {conn_error}")
+            return {
+                "error": f"Jellyfin connection error: {str(conn_error)}",
+                "libraries": []
+            }
         
         # Get libraries
         libraries = await jellyfin_service.get_libraries()

@@ -2,11 +2,11 @@
   "/_not-found/page": "/_not-found",
   "/favicon.ico/route": "/favicon.ico",
   "/about/page": "/about",
-  "/analytics/page": "/analytics",
   "/maintenance/page": "/maintenance",
   "/page": "/",
-  "/poster-manager/page": "/poster-manager",
   "/preview/page": "/preview",
+  "/poster-manager/page": "/poster-manager",
   "/schedules/page": "/schedules",
+  "/analytics/page": "/analytics",
   "/settings/page": "/settings"
 }
