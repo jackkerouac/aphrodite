@@ -1,5 +1,5 @@
 # Development Docker Compose - Uses locally built image
-# For fast iteration without releases
+# For fast iteration without releases!
 
 services:
   # PostgreSQL Database
