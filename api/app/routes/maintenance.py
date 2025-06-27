@@ -628,7 +628,7 @@ async def restore_database(request: BackupRestoreRequest, db: AsyncSession = Dep
         logger.error(f"Error restoring database: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to restore database: {str(e)}")
 
-@router.post("/database/import")
+@router.post("/database/import-settings")
 async def import_database_settings(request: DatabaseRestoreRequest, db: AsyncSession = Depends(get_db_session)):
     """Import database settings from JSON export file."""
     try:
