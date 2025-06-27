@@ -2,9 +2,11 @@
 Application Configuration Management
 
 Centralized configuration using Pydantic Settings with environment variable support.
+Enhanced with deployment-agnostic CORS handling.
 """
 
 import os
+import socket
 from typing import List, Optional, Union, Any, Dict
 from functools import lru_cache
 from pydantic import Field, field_validator
@@ -103,7 +105,7 @@ class Settings(BaseSettings):
     
     # CORS - Simple string field to avoid Pydantic issues
     cors_origins: str = Field(
-        default="http://localhost:3000,http://127.0.0.1:3000",
+        default="*",
         description="Allowed CORS origins (comma-separated or *)"
     )
     
@@ -115,10 +117,78 @@ class Settings(BaseSettings):
         return [host.strip() for host in self.allowed_hosts.split(',') if host.strip()]
     
     def get_cors_origins_list(self) -> List[str]:
-        """Get CORS origins as a list"""
+        """Get CORS origins as a list with deployment-agnostic defaults"""
+        # If explicitly set to wildcard, allow everything
         if self.cors_origins == "*":
             return ["*"]
-        return [origin.strip() for origin in self.cors_origins.split(',') if origin.strip()]
+        
+        # Parse explicit origins
+        explicit_origins = [origin.strip() for origin in self.cors_origins.split(',') if origin.strip()]
+        
+        # If no explicit origins or in production, use smart defaults
+        if not explicit_origins or self.environment.lower() == "production":
+            return self._get_smart_cors_origins()
+        
+        return explicit_origins
+    
+    def _get_smart_cors_origins(self) -> List[str]:
+        """Generate smart CORS origins based on deployment context"""
+        origins = set()
+        
+        # Always allow common localhost variations for development/testing
+        port = str(self.api_port)
+        localhost_origins = [
+            f"http://localhost:{port}",
+            f"http://127.0.0.1:{port}",
+            f"http://0.0.0.0:{port}"
+        ]
+        origins.update(localhost_origins)
+        
+        # Try to detect current machine's network interfaces
+        try:
+            # Get hostname
+            hostname = socket.gethostname()
+            if hostname and hostname != "localhost":
+                origins.add(f"http://{hostname}:{port}")
+            
+            # Get local IP addresses
+            for interface_info in socket.getaddrinfo(hostname, None):
+                ip = interface_info[4][0]
+                if ip and not ip.startswith("127.") and ":" not in ip:  # IPv4, not loopback
+                    origins.add(f"http://{ip}:{port}")
+        except Exception:
+            # If network detection fails, don't crash
+            pass
+        
+        # Check for Docker container networking
+        try:
+            # In Docker, try to get the host gateway IP
+            with open('/proc/net/route', 'r') as f:
+                for line in f:
+                    fields = line.strip().split()
+                    if fields[1] == "00000000":  # Default route
+                        gateway_hex = fields[2]
+                        gateway_ip = socket.inet_ntoa(bytes.fromhex(gateway_hex)[::-1])
+                        if gateway_ip and gateway_ip != "0.0.0.0":
+                            origins.add(f"http://{gateway_ip}:{port}")
+                        break
+        except Exception:
+            pass
+        
+        # Environment-specific origins
+        env_host = os.environ.get('EXTERNAL_HOST')
+        if env_host:
+            origins.add(f"http://{env_host}:{port}")
+            origins.add(f"https://{env_host}:{port}")
+        
+        # Convert to list and add wildcard as fallback for production
+        origins_list = list(origins)
+        
+        # For production, also allow wildcard to ensure compatibility
+        if self.environment.lower() == "production":
+            origins_list.append("*")
+        
+        return origins_list if origins_list else ["*"]
     
     # File Storage
     media_root: str = Field(default="./media", description="Media files root directory")

@@ -142,3 +142,5 @@ test_output/*
 DEPLOYMENT.md
 FRESH_INSTALL.md
 *.backup
+docker-compose.dev.yml
+docker-compose.datredis.yml
