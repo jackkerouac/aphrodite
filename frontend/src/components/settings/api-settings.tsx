@@ -9,6 +9,21 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle, XCircle, Save } from 'lucide-react';
 import { toast } from 'sonner';
 
+// Dynamic API URL helper for production/remote deployments
+const getApiBaseUrl = () => {
+  if (typeof window !== 'undefined') {
+    // In browser, always use current origin
+    return window.location.origin;
+  }
+  // Server-side: only use environment variable, no hardcoded fallback
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (apiUrl === undefined || apiUrl === '') {
+    // Empty means use relative URLs in production
+    return '';
+  }
+  return apiUrl;
+};
+
 interface JellyfinConfig {
   url: string;
   api_key: string;
@@ -101,7 +116,7 @@ export function ApiSettings() {
     
     try {
       console.log('Loading API settings from settings.yaml...');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/config/settings.yaml`);
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/config/settings.yaml`);
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -223,7 +238,7 @@ export function ApiSettings() {
         }
       };
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/config/settings.yaml`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/config/settings.yaml`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -258,7 +273,7 @@ export function ApiSettings() {
     setJellyfinStatus(null);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/config/test-jellyfin`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/config/test-jellyfin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -321,7 +336,7 @@ export function ApiSettings() {
     setMdblistStatus(null);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/config/test-mdblist`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/config/test-mdblist`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -368,7 +383,7 @@ export function ApiSettings() {
     setAnidbStatus(null);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/config/test-anidb`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/config/test-anidb`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -419,7 +434,7 @@ export function ApiSettings() {
     setOmdbStatus(null);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/config/test-omdb`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/config/test-omdb`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -466,7 +481,7 @@ export function ApiSettings() {
     setTmdbStatus(null);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/config/test-tmdb`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/config/test-tmdb`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

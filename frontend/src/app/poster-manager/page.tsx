@@ -21,6 +21,22 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2, RefreshCw, Briefcase, Images } from "lucide-react"
 import { toast } from "sonner"
+import { apiService } from "@/services/api"
+
+// Dynamic API URL helper for components that need direct fetch
+const getApiBaseUrl = () => {
+  if (typeof window !== 'undefined') {
+    // In browser, always use current origin
+    return window.location.origin
+  }
+  // Server-side: only fallback to localhost if explicitly in development
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+  if (apiUrl === undefined || apiUrl === '') {
+    // Empty means use relative URLs in production
+    return ''
+  }
+  return apiUrl
+}
 
 interface Library {
   id: string
@@ -114,14 +130,11 @@ export default function PosterManagerPage() {
 
   const loadJobCount = async () => {
     try {
-      const response = await fetch("/api/v1/workflow/jobs")
-      if (response.ok) {
-        const data = await response.json()
-        const activeJobs = data.jobs?.filter((job: any) => 
-          ['processing', 'paused', 'queued'].includes(job.status)
-        ) || []
-        setJobCount(activeJobs.length)
-      }
+      const data = await apiService.getJobs({ user_id: 'default_user' })
+      const activeJobs = data.jobs?.filter((job: any) => 
+        ['processing', 'paused', 'queued'].includes(job.status)
+      ) || []
+      setJobCount(activeJobs.length)
     } catch (error) {
       // Silently fail - job count is not critical
       console.log("Could not load job count:", error)
@@ -132,7 +145,7 @@ export default function PosterManagerPage() {
   const loadLibraries = async () => {
     try {
       setLoading(true)
-      const response = await fetch("/api/v1/poster-manager/libraries")
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/poster-manager/libraries`)
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
@@ -156,7 +169,7 @@ export default function PosterManagerPage() {
     try {
       setLoading(true)
       const offset = (page - 1) * itemsPerPage
-      const response = await fetch(`/api/v1/poster-manager/libraries/${selectedLibrary}/items?limit=${itemsPerPage}&offset=${offset}`)
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/poster-manager/libraries/${selectedLibrary}/items?limit=${itemsPerPage}&offset=${offset}`)
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
@@ -177,7 +190,7 @@ export default function PosterManagerPage() {
     if (!selectedLibrary) return
     
     try {
-      const response = await fetch(`/api/v1/poster-manager/libraries/${selectedLibrary}/stats`)
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/poster-manager/libraries/${selectedLibrary}/stats`)
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
@@ -205,7 +218,7 @@ export default function PosterManagerPage() {
         params.append("badge_filter", badgeFilter)
       }
       
-      const response = await fetch(`/api/v1/poster-manager/search?${params}`)
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/poster-manager/search?${params}`)
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }

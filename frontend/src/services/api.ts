@@ -5,23 +5,19 @@
 
 // Use the current page's origin for API calls, falling back to localhost for development
 const getApiBaseUrl = () => {
-  // If explicitly set via environment variable, use that
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL;
+  // Always prefer window.location.origin when available (browser environment)
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
   }
   
-  // In production (when NEXT_PUBLIC_API_URL is empty), use relative URLs
-  if (process.env.NODE_ENV === 'production') {
-    // In browser, use current origin (same host as frontend)
-    if (typeof window !== 'undefined') {
-      return window.location.origin;
-    }
-    // For SSR in production, assume same origin
+  // Server-side: use environment variable or empty for relative URLs
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (apiUrl === undefined || apiUrl === '') {
+    // Empty means use relative URLs
     return '';
   }
   
-  // Development fallback
-  return 'http://localhost:8000';
+  return apiUrl;
 };
 
 // Helper function to build API URLs dynamically
