@@ -16,7 +16,7 @@ from ..models.jobs import ProcessingJobModel
 from ..models.schedules import ScheduleModel, ScheduleExecutionModel
 from ..models.media import MediaItemModel
 
-router = APIRouter(prefix="/v1/analytics", tags=["analytics"])
+router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 # Set up logging
 logger = logging.getLogger(__name__)

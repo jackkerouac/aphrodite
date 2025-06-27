@@ -11,7 +11,7 @@ from app.core.database import get_db_session
 from app.services.workflow import JobManager, JobCreator, PriorityManager, ResourceManager, JobRepository
 from aphrodite_logging import get_logger
 
-router = APIRouter(prefix="/v1/workflow/control", tags=["workflow-control"])
+router = APIRouter(prefix="/workflow/control", tags=["workflow-control"])
 logger = get_logger("aphrodite.api.workflow.control")
 
 

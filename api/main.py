@@ -153,24 +153,24 @@ def create_application() -> FastAPI:
     # Setup static file serving BEFORE routes
     setup_static_files(app)
     
-    # Include API routers with /api prefix
+    # Include API routers with correct /api/v1 prefix to match frontend expectations
     app.include_router(health.router, prefix="/health", tags=["Health"])
     app.include_router(media.router, prefix="/api/v1/media", tags=["Media"])
     app.include_router(jobs.router, prefix="/api/v1/jobs", tags=["Jobs"])
     app.include_router(config.router, prefix="/api/v1/config", tags=["Configuration"])
-    app.include_router(schedules.router, prefix="/api", tags=["Schedules"])
-    app.include_router(analytics.router, prefix="/api", tags=["Analytics"])
-    app.include_router(system.router, prefix="/api", tags=["System"])
-    app.include_router(maintenance.router, prefix="/api", tags=["Maintenance"])
+    app.include_router(schedules.router, prefix="/api/v1", tags=["Schedules"])
+    app.include_router(analytics.router, prefix="/api/v1", tags=["Analytics"])
+    app.include_router(system.router, prefix="/api/v1", tags=["System"])
+    app.include_router(maintenance.router, prefix="/api/v1", tags=["Maintenance"])
     app.include_router(preview.router, prefix="/api/v1/preview", tags=["Preview"])
     app.include_router(poster_manager.router, prefix="/api/v1/poster-manager", tags=["Poster Manager"])
     app.include_router(poster_replacement.router, prefix="/api/v1", tags=["Poster Replacement"])
     app.include_router(image_proxy.router, prefix="/api/v1/images", tags=["Image Proxy"])
     
     # Workflow routes
-    app.include_router(job_router, prefix="/api", tags=["Workflow"])
-    app.include_router(control_router, prefix="/api", tags=["Workflow Control"])
-    app.include_router(progress_router, prefix="/api", tags=["Workflow Progress"])
+    app.include_router(job_router, prefix="/api/v1", tags=["Workflow"])
+    app.include_router(control_router, prefix="/api/v1", tags=["Workflow Control"])
+    app.include_router(progress_router, prefix="/api/v1", tags=["Workflow Progress"])
     
     # WebSocket route
     app.websocket("/api/v1/workflow/ws/{job_id}")(websocket_endpoint)
