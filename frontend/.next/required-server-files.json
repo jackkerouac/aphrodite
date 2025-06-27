@@ -333,12 +333,7 @@
     },
     "_originalRewrites": {
       "beforeFiles": [],
-      "afterFiles": [
-        {
-          "source": "/api/:path*",
-          "destination": "http://localhost:8000/api/:path*"
-        }
-      ],
+      "afterFiles": [],
       "fallback": []
     }
   },

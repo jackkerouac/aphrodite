@@ -10,16 +10,25 @@ const getApiBaseUrl = () => {
     return process.env.NEXT_PUBLIC_API_URL;
   }
   
-  // In browser, use current origin (same host as frontend)
-  if (typeof window !== 'undefined') {
-    return window.location.origin;
+  // In production (when NEXT_PUBLIC_API_URL is empty), use relative URLs
+  if (process.env.NODE_ENV === 'production') {
+    // In browser, use current origin (same host as frontend)
+    if (typeof window !== 'undefined') {
+      return window.location.origin;
+    }
+    // For SSR in production, assume same origin
+    return '';
   }
   
-  // Fallback for server-side rendering or development
+  // Development fallback
   return 'http://localhost:8000';
 };
 
-const API_BASE_URL = getApiBaseUrl();
+// Helper function to build API URLs dynamically
+const buildApiUrl = (path: string) => {
+  const baseUrl = getApiBaseUrl();
+  return `${baseUrl}${path}`;
+};
 
 export class ApiError extends Error {
   constructor(
@@ -61,12 +70,12 @@ async function handleResponse(response: Response) {
 export const apiService = {
   // Configuration endpoints
   async getConfig(filename: string) {
-    const response = await fetch(`${API_BASE_URL}/api/v1/config/${filename}`);
+    const response = await fetch(buildApiUrl(`/api/v1/config/${filename}`));
     return handleResponse(response);
   },
 
   async updateConfig(filename: string, config: any) {
-    const response = await fetch(`${API_BASE_URL}/api/v1/config/${filename}`, {
+    const response = await fetch(buildApiUrl(`/api/v1/config/${filename}`), {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -77,7 +86,7 @@ export const apiService = {
   },
 
   async getConfigFiles() {
-    const response = await fetch(`${API_BASE_URL}/api/v1/config/files`);
+    const response = await fetch(buildApiUrl('/api/v1/config/files'));
     return handleResponse(response);
   },
 
@@ -87,7 +96,7 @@ export const apiService = {
     api_key: string;
     user_id: string;
   }) {
-    const response = await fetch(`${API_BASE_URL}/api/v1/config/test-jellyfin`, {
+    const response = await fetch(buildApiUrl('/api/v1/config/test-jellyfin'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -98,7 +107,7 @@ export const apiService = {
   },
 
   async testConnection(service: string, config: any) {
-    const response = await fetch(`${API_BASE_URL}/api/v1/config/test-${service}`, {
+    const response = await fetch(buildApiUrl(`/api/v1/config/test-${service}`), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -110,28 +119,28 @@ export const apiService = {
 
   // System endpoints
   async getSystemStatus() {
-    const response = await fetch(`${API_BASE_URL}/health/detailed`);
+    const response = await fetch(buildApiUrl('/health/detailed'));
     return handleResponse(response);
   },
 
   async getSystemInfo() {
-    const response = await fetch(`${API_BASE_URL}/api/v1/system/info`);
+    const response = await fetch(buildApiUrl('/api/v1/system/info'));
     return handleResponse(response);
   },
 
   async getSystemConfig() {
-    const response = await fetch(`${API_BASE_URL}/api/v1/config/system`);
+    const response = await fetch(buildApiUrl('/api/v1/config/system'));
     return handleResponse(response);
   },
 
   // Preview endpoints
   async getPreviewBadgeTypes() {
-    const response = await fetch(`${API_BASE_URL}/api/v1/preview/badge-types`);
+    const response = await fetch(buildApiUrl('/api/v1/preview/badge-types'));
     return handleResponse(response);
   },
 
   async generatePreview(request: { badgeTypes: string[] }) {
-    const response = await fetch(`${API_BASE_URL}/api/v1/preview/generate`, {
+    const response = await fetch(buildApiUrl('/api/v1/preview/generate'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -142,7 +151,7 @@ export const apiService = {
   },
 
   async getPreviewLibraries() {
-    const response = await fetch(`${API_BASE_URL}/api/v1/preview/libraries`);
+    const response = await fetch(buildApiUrl('/api/v1/preview/libraries'));
     return handleResponse(response);
   },
 
@@ -158,7 +167,7 @@ export const apiService = {
     if (params?.page) searchParams.set('page', params.page.toString());
     if (params?.limit) searchParams.set('limit', params.limit.toString());
 
-    const url = `${API_BASE_URL}/api/v1/preview/media${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    const url = buildApiUrl(`/api/v1/preview/media${searchParams.toString() ? '?' + searchParams.toString() : ''}`);
     const response = await fetch(url);
     return handleResponse(response);
   },
@@ -176,18 +185,18 @@ export const apiService = {
     if (params?.search) searchParams.set('search', params.search);
     if (params?.media_type) searchParams.set('media_type', params.media_type);
 
-    const url = `${API_BASE_URL}/api/v1/media${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    const url = buildApiUrl(`/api/v1/media${searchParams.toString() ? '?' + searchParams.toString() : ''}`);
     const response = await fetch(url);
     return handleResponse(response);
   },
 
   async getMediaItem(id: string) {
-    const response = await fetch(`${API_BASE_URL}/api/v1/media/${id}`);
+    const response = await fetch(buildApiUrl(`/api/v1/media/${id}`));
     return handleResponse(response);
   },
 
   async scanLibrary() {
-    const response = await fetch(`${API_BASE_URL}/api/v1/media/scan`, {
+    const response = await fetch(buildApiUrl('/api/v1/media/scan'), {
       method: 'POST',
     });
     return handleResponse(response);
@@ -204,7 +213,7 @@ export const apiService = {
     if (params?.user_id) searchParams.set('user_id', params.user_id);
     // Note: workflow API doesn't support page/per_page/status filtering like the regular jobs API
 
-    const url = `${API_BASE_URL}/api/v1/workflow/jobs/${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    const url = buildApiUrl(`/api/v1/workflow/jobs/${searchParams.toString() ? '?' + searchParams.toString() : ''}`);
     const response = await fetch(url);
     return handleResponse(response);
   },
@@ -214,7 +223,7 @@ export const apiService = {
     job_type: string;
     parameters?: any;
   }) {
-    const response = await fetch(`${API_BASE_URL}/api/v1/jobs`, {
+    const response = await fetch(buildApiUrl('/api/v1/jobs'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -225,7 +234,7 @@ export const apiService = {
   },
 
   async getJob(id: string) {
-    const response = await fetch(`${API_BASE_URL}/api/v1/workflow/jobs/${id}`);
+    const response = await fetch(buildApiUrl(`/api/v1/workflow/jobs/${id}`));
     return handleResponse(response);
   },
 
@@ -238,7 +247,7 @@ export const apiService = {
     if (params?.skip) searchParams.set('skip', params.skip.toString());
     if (params?.limit) searchParams.set('limit', params.limit.toString());
 
-    const url = `${API_BASE_URL}/api/v1/schedules${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    const url = buildApiUrl(`/api/v1/schedules${searchParams.toString() ? '?' + searchParams.toString() : ''}`);
     const response = await fetch(url);
     return handleResponse(response);
   },
@@ -252,7 +261,7 @@ export const apiService = {
     enabled: boolean;
     target_libraries: string[];
   }) {
-    const response = await fetch(`${API_BASE_URL}/api/v1/schedules`, {
+    const response = await fetch(buildApiUrl('/api/v1/schedules'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -263,7 +272,7 @@ export const apiService = {
   },
 
   async updateSchedule(id: string, schedule: any) {
-    const response = await fetch(`${API_BASE_URL}/api/v1/schedules/${id}`, {
+    const response = await fetch(buildApiUrl(`/api/v1/schedules/${id}`), {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -274,7 +283,7 @@ export const apiService = {
   },
 
   async deleteSchedule(id: string) {
-    const response = await fetch(`${API_BASE_URL}/api/v1/schedules/${id}`, {
+    const response = await fetch(buildApiUrl(`/api/v1/schedules/${id}`), {
       method: 'DELETE',
     });
     return handleResponse(response);
@@ -292,61 +301,61 @@ export const apiService = {
     if (params?.schedule_id) searchParams.set('schedule_id', params.schedule_id);
     if (params?.status) searchParams.set('status', params.status);
 
-    const url = `${API_BASE_URL}/api/v1/schedules/executions/history${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    const url = buildApiUrl(`/api/v1/schedules/executions/history${searchParams.toString() ? '?' + searchParams.toString() : ''}`);
     const response = await fetch(url);
     return handleResponse(response);
   },
 
   async executeSchedule(id: string) {
-    const response = await fetch(`${API_BASE_URL}/api/v1/schedules/${id}/execute`, {
+    const response = await fetch(buildApiUrl(`/api/v1/schedules/${id}/execute`), {
       method: 'POST',
     });
     return handleResponse(response);
   },
 
   async getScheduleBadgeTypes() {
-    const response = await fetch(`${API_BASE_URL}/api/v1/schedules/config/badge-types`);
+    const response = await fetch(buildApiUrl('/api/v1/schedules/config/badge-types'));
     return handleResponse(response);
   },
 
   async getScheduleCronPresets() {
-    const response = await fetch(`${API_BASE_URL}/api/v1/schedules/config/cron-presets`);
+    const response = await fetch(buildApiUrl('/api/v1/schedules/config/cron-presets'));
     return handleResponse(response);
   },
 
   async getScheduleLibraries() {
-    const response = await fetch(`${API_BASE_URL}/api/v1/schedules/config/libraries`);
+    const response = await fetch(buildApiUrl('/api/v1/schedules/config/libraries'));
     return handleResponse(response);
   },
 
   // Analytics endpoints
   async getAnalyticsOverview() {
-    const response = await fetch(`${API_BASE_URL}/api/v1/analytics/overview`);
+    const response = await fetch(buildApiUrl('/api/v1/analytics/overview'));
     return handleResponse(response);
   },
 
   async getJobStatusDistribution() {
-    const response = await fetch(`${API_BASE_URL}/api/v1/analytics/jobs/status-distribution`);
+    const response = await fetch(buildApiUrl('/api/v1/analytics/jobs/status-distribution'));
     return handleResponse(response);
   },
 
   async getProcessingTrends(days: number = 30) {
-    const response = await fetch(`${API_BASE_URL}/api/v1/analytics/jobs/trends?days=${days}`);
+    const response = await fetch(buildApiUrl(`/api/v1/analytics/jobs/trends?days=${days}`));
     return handleResponse(response);
   },
 
   async getJobTypeDistribution() {
-    const response = await fetch(`${API_BASE_URL}/api/v1/analytics/jobs/types`);
+    const response = await fetch(buildApiUrl('/api/v1/analytics/jobs/types'));
     return handleResponse(response);
   },
 
   async getScheduleAnalytics() {
-    const response = await fetch(`${API_BASE_URL}/api/v1/analytics/schedules`);
+    const response = await fetch(buildApiUrl('/api/v1/analytics/schedules'));
     return handleResponse(response);
   },
 
   async getSystemPerformance() {
-    const response = await fetch(`${API_BASE_URL}/api/v1/analytics/performance`);
+    const response = await fetch(buildApiUrl('/api/v1/analytics/performance'));
     return handleResponse(response);
   },
 };
