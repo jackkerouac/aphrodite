@@ -22,7 +22,7 @@ from app.models.poster_sources import (
 )
 from aphrodite_logging import get_logger
 
-router = APIRouter(prefix="/poster-manager", tags=["poster-replacement"])
+router = APIRouter(tags=["poster-replacement"])
 logger = get_logger("aphrodite.api.poster_replacement", service="api")
 
 @router.get("/items/{item_id}/poster-sources", response_model=PosterSearchResponse)

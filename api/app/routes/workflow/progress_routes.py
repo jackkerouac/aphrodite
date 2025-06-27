@@ -16,6 +16,18 @@ logger = get_logger("aphrodite.api.progress")
 router = APIRouter(prefix="/progress", tags=["Progress"])
 
 
+@router.get("/", response_model=dict)
+async def progress_root():
+    """Progress API root endpoint"""
+    return {
+        "success": True,
+        "message": "Progress API endpoints",
+        "endpoints": [
+            "/{job_id}",
+            "/{job_id}/posters"
+        ]
+    }
+
 @router.get("/{job_id}")
 async def get_job_progress(
     job_id: str,

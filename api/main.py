@@ -164,7 +164,7 @@ def create_application() -> FastAPI:
     app.include_router(maintenance.router, prefix="/api/v1", tags=["Maintenance"])
     app.include_router(preview.router, prefix="/api/v1/preview", tags=["Preview"])
     app.include_router(poster_manager.router, prefix="/api/v1/poster-manager", tags=["Poster Manager"])
-    app.include_router(poster_replacement.router, prefix="/api/v1", tags=["Poster Replacement"])
+    app.include_router(poster_replacement.router, prefix="/api/v1/poster-replacement", tags=["Poster Replacement"])
     app.include_router(image_proxy.router, prefix="/api/v1/images", tags=["Image Proxy"])
     
     # Workflow routes

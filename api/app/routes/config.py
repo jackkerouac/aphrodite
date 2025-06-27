@@ -41,6 +41,24 @@ class AnidbTestRequest(BaseModel):
     client_name: str = ""
     language: str = "en"
 
+@router.get("/", response_model=dict)
+async def config_root():
+    """Configuration root endpoint"""
+    return {
+        "success": True,
+        "message": "Configuration API endpoints",
+        "endpoints": [
+            "/files",
+            "/debug",
+            "/cache/clear",
+            "/test-jellyfin",
+            "/test-omdb",
+            "/test-tmdb",
+            "/test-mdblist",
+            "/review_source_settings"
+        ]
+    }
+
 @router.get("/debug", response_model=dict)
 async def debug_settings():
     """Debug endpoint to see raw settings"""

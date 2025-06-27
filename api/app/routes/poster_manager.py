@@ -57,6 +57,26 @@ class RestoreOriginalResponse(BaseModel):
     original_poster_found: bool = False
     restored_to_jellyfin: bool = False
 
+@router.get("/", response_model=dict)
+async def poster_manager_root():
+    """Poster Manager API root endpoint"""
+    return {
+        "success": True,
+        "message": "Poster Manager API endpoints",
+        "endpoints": [
+            "/libraries",
+            "/libraries/{library_id}/items",
+            "/libraries/{library_id}/stats",
+            "/search",
+            "/settings",
+            "/tags/add",
+            "/tags/remove",
+            "/items/{item_id}/tags",
+            "/apply-badges",
+            "/restore-original"
+        ]
+    }
+
 @router.get("/libraries")
 async def get_libraries(db: AsyncSession = Depends(get_db_session)):
     """Get all available Jellyfin libraries"""

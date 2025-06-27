@@ -41,6 +41,22 @@ class BadgeTypesResponse(BaseModel):
     success: bool
     badgeTypes: List[BadgeType]
 
+@router.get("/", response_model=dict)
+async def preview_root():
+    """Preview API root endpoint"""
+    return {
+        "success": True,
+        "message": "Preview API endpoints",
+        "endpoints": [
+            "/badge-types",
+            "/generate",
+            "/preview/cleanup",
+            "/cache/cleanup",
+            "/libraries",
+            "/media"
+        ]
+    }
+
 @router.get("/badge-types", response_model=BadgeTypesResponse)
 async def get_badge_types():
     """Get all available badge types for preview"""

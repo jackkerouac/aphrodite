@@ -81,9 +81,11 @@ function SettingsPageContent() {
     setIsLoading(true);
     
     try {
+      // Import the apiService instead of hardcoding URL
+      const { apiService } = await import('@/services/api');
+      
       // Get list of available config files
-      const configFilesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/config/files`);
-      const configData = await configFilesResponse.json();
+      const configData = await apiService.getConfigFiles();
       const availableFiles = configData.config_files || [];
       
       console.log('Available config files:', availableFiles);
@@ -94,7 +96,7 @@ function SettingsPageContent() {
           if (availableFiles.includes(file)) {
             console.log(`Checking ${name}...`);
             // Just verify we can access the config
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/config/${file}`);
+            await apiService.getConfig(file);
             setLoadingStatus(prev => ({ ...prev, [key]: true }));
             console.log(`✓ ${name} accessible`);
           } else {

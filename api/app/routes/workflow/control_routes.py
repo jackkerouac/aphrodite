@@ -25,6 +25,19 @@ async def get_job_manager(session: AsyncSession = Depends(get_db_session)) -> Jo
     return JobManager(job_repository, job_creator, priority_manager, resource_manager)
 
 
+@router.get("/", response_model=dict)
+async def workflow_control_root():
+    """Workflow Control API root endpoint"""
+    return {
+        "success": True,
+        "message": "Workflow Control API endpoints",
+        "endpoints": [
+            "/{job_id}/pause",
+            "/{job_id}/resume",
+            "/{job_id}/cancel"
+        ]
+    }
+
 @router.post("/{job_id}/pause")
 async def pause_job(
     job_id: str,

@@ -106,6 +106,21 @@ def format_uptime(seconds: float) -> str:
     except Exception:
         return 'Unknown'
 
+@router.get("/", response_model=dict)
+async def system_root():
+    """System API root endpoint"""
+    return {
+        "success": True,
+        "message": "System information API endpoints",
+        "endpoints": [
+            "/info",
+            "/check-updates",
+            "/health",
+            "/stats",
+            "/logs"
+        ]
+    }
+
 @router.get("/info", response_model=SystemInfoResponse)
 async def get_system_info():
     """

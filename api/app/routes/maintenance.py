@@ -24,7 +24,7 @@ from app.core.config import get_settings
 # Set up logging
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/v1/maintenance", tags=["maintenance"])
+router = APIRouter(prefix="/maintenance", tags=["maintenance"])
 
 # Request/Response Models
 class ConnectionTestRequest(BaseModel):
@@ -87,6 +87,25 @@ except Exception as e:
     LOGS_DIR = Path("./logs")
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
+
+@router.get("/", response_model=dict)
+async def maintenance_root():
+    """Maintenance API root endpoint"""
+    return {
+        "success": True,
+        "message": "Maintenance API endpoints",
+        "endpoints": [
+            "/database/status",
+            "/database/backup",
+            "/database/export",
+            "/database/restore",
+            "/database/import-settings",
+            "/logs",
+            "/logs/levels",
+            "/logs/download",
+            "/logs/clear"
+        ]
+    }
 
 @router.get("/database/status")
 async def get_database_status(db: AsyncSession = Depends(get_db_session)):

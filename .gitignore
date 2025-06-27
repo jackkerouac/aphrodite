@@ -146,3 +146,4 @@ docker-compose.dev.yml
 docker-compose.datredis.yml
 docker-compose.local.yml
 force-rebuild.bat
+test*.py

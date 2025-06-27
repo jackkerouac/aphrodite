@@ -17,6 +17,19 @@ from aphrodite_logging import get_logger
 router = APIRouter(tags=["image-proxy"])
 logger = get_logger("aphrodite.api.image_proxy", service="api")
 
+@router.get("/", response_model=dict)
+async def image_proxy_root():
+    """Image Proxy API root endpoint"""
+    return {
+        "success": True,
+        "message": "Image Proxy API endpoints",
+        "endpoints": [
+            "/proxy/image/{item_id}",
+            "/proxy/image/{item_id}/thumbnail",
+            "/proxy/external/"
+        ]
+    }
+
 @router.get("/proxy/image/{item_id}")
 async def proxy_jellyfin_image(item_id: str, image_type: str = "Primary"):
     """
