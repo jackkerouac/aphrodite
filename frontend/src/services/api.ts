@@ -3,7 +3,23 @@
  * Handles all HTTP requests to the backend API
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Use the current page's origin for API calls, falling back to localhost for development
+const getApiBaseUrl = () => {
+  // If explicitly set via environment variable, use that
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  
+  // In browser, use current origin (same host as frontend)
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  
+  // Fallback for server-side rendering or development
+  return 'http://localhost:8000';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export class ApiError extends Error {
   constructor(
