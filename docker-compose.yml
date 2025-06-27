@@ -1,5 +1,5 @@
 # Aphrodite v4.0.0 Production Docker Compose
-# Complete frontend + backend deployment with clean database
+# Complete frontend + backend deployment with pre-built image
 
 services:
   # PostgreSQL Database
@@ -7,7 +7,7 @@ services:
     image: postgres:15-alpine
     restart: unless-stopped
     ports:
-      - "${POSTGRES_PORT:-5433}:5432"  # External port configurable, internal still 5432
+      - "${POSTGRES_PORT:-5433}:5432"
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-aphrodite}
       POSTGRES_USER: ${POSTGRES_USER:-aphrodite}
@@ -20,12 +20,12 @@ services:
       timeout: 10s
       retries: 5
 
-  # Redis Cache (optional but recommended)
+  # Redis Cache
   redis:
     image: redis:7-alpine
     restart: unless-stopped
     ports:
-      - "${REDIS_PORT:-6379}:6379"  # External port configurable
+      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -36,9 +36,8 @@ services:
 
   # Aphrodite - Complete Application (Frontend + API)
   aphrodite:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${APHRODITE_IMAGE:-ghcr.io/jackkerouac/aphrodite:latest}
+    pull_policy: always
     restart: unless-stopped
     environment:
       # Database Configuration
@@ -53,10 +52,8 @@ services:
       ENVIRONMENT: ${ENVIRONMENT:-production}
       SECRET_KEY: ${SECRET_KEY:-please-change-this-secret-key-in-production}
       
-      # Allow all hosts for local network access
+      # Network Configuration
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
-      
-      # CORS Configuration
       CORS_ORIGINS: ${CORS_ORIGINS:-*}
       
       # Logging
@@ -79,8 +76,7 @@ services:
       - aphrodite_data:/app/data
       - aphrodite_logs:/app/logs
       - aphrodite_media:/app/media
-      # Local posters directory for testing
-      - ./api/static/originals:/app/api/static/originals
+      - aphrodite_static:/app/api/static/originals
     depends_on:
       postgres:
         condition: service_healthy
@@ -93,11 +89,10 @@ services:
       retries: 5
       start_period: 40s
 
-  # Celery Worker - Always runs alongside main app
+  # Celery Worker - Background job processing
   aphrodite-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${APHRODITE_IMAGE:-ghcr.io/jackkerouac/aphrodite:latest}
+    pull_policy: always
     restart: unless-stopped
     command: ["python", "-m", "celery", "-A", "celery_app", "worker", "--loglevel=info", "--pool=solo", "--concurrency=1"]
     environment:
@@ -115,7 +110,7 @@ services:
       - aphrodite_data:/app/data
       - aphrodite_logs:/app/logs
       - aphrodite_media:/app/media
-      - ./api/static/originals:/app/api/static/originals
+      - aphrodite_static:/app/api/static/originals
     depends_on:
       postgres:
         condition: service_healthy
@@ -138,6 +133,8 @@ volumes:
   aphrodite_logs:
     driver: local
   aphrodite_media:
+    driver: local
+  aphrodite_static:
     driver: local
 
 networks:

@@ -139,3 +139,6 @@ quick-setup.sh
 prepare-docker-build.py
 test_output/
 test_output/*
+DEPLOYMENT.md
+FRESH_INSTALL.md
+*.backup

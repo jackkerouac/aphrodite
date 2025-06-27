@@ -1,4 +1,4 @@
-name: Build Docker Image
+name: Build Docker Image and Release
 
 on:
   release:
@@ -8,7 +8,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
     
     steps:
@@ -50,3 +50,28 @@ jobs:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         platforms: linux/amd64
+
+    - name: Update docker-compose.yml for release
+      run: |
+        # Update the image reference to use the actual repository
+        sed -i 's|ghcr.io/your-username/aphrodite:latest|ghcr.io/${{ github.repository }}:latest|g' docker-compose.yml
+        
+    - name: Upload deployment files to release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: docker-compose.yml
+        asset_name: docker-compose.yml
+        asset_content_type: text/yaml
+
+    - name: Upload environment template to release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: .env.example
+        asset_name: .env.example
+        asset_content_type: text/plain
