@@ -148,6 +148,7 @@ export function SourcesTab({
             <Badge variant="default" className="bg-green-500">IMDb</Badge>
             <Badge variant="default" className="bg-green-500">Metacritic</Badge>
             <Badge variant="default" className="bg-green-500">MyAnimeList</Badge>
+            <Badge variant="default" className="bg-green-500">Rotten Tomatoes Critics</Badge>
             <Badge variant="default" className="bg-green-500">TMDb</Badge>
           </div>
           <p className="text-xs text-muted-foreground">Other sources are included for future functionality and testing purposes. I will get to them, I promise!</p>

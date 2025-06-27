@@ -325,18 +325,30 @@ async def test_omdb_connection(request: ApiTestRequest):
                         logger.info("OMDb connection successful")
                         return BaseResponse(message="Connection successful!")
                     error_msg = data.get("Error", "Unknown error")
-                    logger.error(f"OMDb connection failed: {error_msg}")
-                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_msg)
+                    logger.error(f"OMDb API error: {error_msg}")
+                    return BaseResponse(
+                        success=False,
+                        message=f"OMDb API error: {error_msg}"
+                    )
                 error_text = await response.text()
                 logger.error(f"OMDb connection failed: HTTP {response.status} - {error_text}")
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"HTTP {response.status}")
+                return BaseResponse(
+                    success=False,
+                    message=f"HTTP {response.status}: {error_text[:100]}"
+                )
 
     except asyncio.TimeoutError:
         logger.error("OMDb connection timed out")
-        raise HTTPException(status_code=status.HTTP_408_REQUEST_TIMEOUT, detail="Connection timed out")
+        return BaseResponse(
+            success=False,
+            message="Connection timed out"
+        )
     except Exception as e:
         logger.error(f"Unexpected error testing OMDb connection: {e}", exc_info=True)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Test failed: {str(e)}")
+        return BaseResponse(
+            success=False,
+            message=f"Test failed: {str(e)}"
+        )
 
 
 @router.post("/test-tmdb", response_model=BaseResponse)
@@ -361,14 +373,23 @@ async def test_tmdb_connection(request: ApiTestRequest):
                     return BaseResponse(message="Connection successful!")
                 error_text = await response.text()
                 logger.error(f"TMDb connection failed: HTTP {response.status} - {error_text}")
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"HTTP {response.status}")
+                return BaseResponse(
+                    success=False,
+                    message=f"HTTP {response.status}: {error_text[:100]}"
+                )
 
     except asyncio.TimeoutError:
         logger.error("TMDb connection timed out")
-        raise HTTPException(status_code=status.HTTP_408_REQUEST_TIMEOUT, detail="Connection timed out")
+        return BaseResponse(
+            success=False,
+            message="Connection timed out"
+        )
     except Exception as e:
         logger.error(f"Unexpected error testing TMDb connection: {e}", exc_info=True)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Test failed: {str(e)}")
+        return BaseResponse(
+            success=False,
+            message=f"Test failed: {str(e)}"
+        )
 
 
 @router.post("/test-mdblist", response_model=BaseResponse)
@@ -385,22 +406,52 @@ async def test_mdblist_connection(request: ApiTestRequest):
             async with session.get(test_url) as response:
                 if response.status == 200:
                     data = await response.json()
-                    if data.get("response") == "True":
-                        logger.info("MDBList connection successful")
+                    # Check if the response indicates success
+                    # MDBList returns different response formats, so let's be more flexible
+                    if isinstance(data, dict):
+                        # Check for various success indicators
+                        if (data.get("response") == "True" or 
+                            data.get("id") or 
+                            data.get("imdb_id") or
+                            "title" in data):
+                            logger.info("MDBList connection successful")
+                            return BaseResponse(message="Connection successful!")
+                        # Check for error messages
+                        elif "error" in data:
+                            error_msg = data.get("error", "Unknown error")
+                            logger.error(f"MDBList API error: {error_msg}")
+                            return BaseResponse(
+                                success=False,
+                                message=f"MDBList API error: {error_msg}"
+                            )
+                        else:
+                            # Got a response but format is unexpected
+                            logger.info(f"MDBList responded with data: {data}")
+                            return BaseResponse(message="Connection successful - API responded with data")
+                    else:
+                        # Non-dict response, assume success if we got data
+                        logger.info("MDBList connection successful - got response data")
                         return BaseResponse(message="Connection successful!")
-                    error_msg = data.get("error", "Unknown error")
-                    logger.error(f"MDBList connection failed: {error_msg}")
-                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_msg)
-                error_text = await response.text()
-                logger.error(f"MDBList connection failed: HTTP {response.status} - {error_text}")
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"HTTP {response.status}")
+                else:
+                    error_text = await response.text()
+                    logger.error(f"MDBList connection failed: HTTP {response.status} - {error_text}")
+                    return BaseResponse(
+                        success=False,
+                        message=f"HTTP {response.status}: {error_text[:100]}"
+                    )
 
     except asyncio.TimeoutError:
         logger.error("MDBList connection timed out")
-        raise HTTPException(status_code=status.HTTP_408_REQUEST_TIMEOUT, detail="Connection timed out")
+        return BaseResponse(
+            success=False,
+            message="Connection timed out"
+        )
     except Exception as e:
         logger.error(f"Unexpected error testing MDBList connection: {e}", exc_info=True)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Test failed: {str(e)}")
+        return BaseResponse(
+            success=False,
+            message=f"Test failed: {str(e)}"
+        )
 
 @router.get("/review_source_settings", response_model=ConfigData)
 async def get_review_source_settings(

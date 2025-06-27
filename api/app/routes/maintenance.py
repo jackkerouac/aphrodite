@@ -10,7 +10,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, HTTPException, Response, Depends
+from fastapi import APIRouter, HTTPException, Response, Depends, UploadFile, File
 from pydantic import BaseModel
 import logging
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,6 +40,11 @@ class BackupRestoreRequest(BaseModel):
 
 class DatabaseRestoreRequest(BaseModel):
     filename: str
+    confirm_restore: bool = False
+
+class DatabaseImportRequest(BaseModel):
+    filename: Optional[str] = None
+    jsonData: Optional[Dict[str, Any]] = None
     confirm_restore: bool = False
 
 class LogsQueryRequest(BaseModel):
@@ -420,9 +425,9 @@ async def create_backup(request: BackupCreateRequest, db: AsyncSession = Depends
 
 @router.post("/database/export")
 async def export_database(db: AsyncSession = Depends(get_db_session)):
-    """Export database data to JSON format."""
+    """Export database data to JSON format and return as downloadable file."""
     try:
-        logger.info(f"Exporting PostgreSQL database to JSON")
+        logger.info(f"Exporting PostgreSQL database to JSON for download")
         
         # Get all table names
         tables_result = await db.execute(text("""
@@ -440,10 +445,16 @@ async def export_database(db: AsyncSession = Depends(get_db_session)):
             "export_info": {
                 "timestamp": datetime.now().isoformat(),
                 "database": "aphrodite",
-                "tables_count": len(tables)
+                "tables_count": len(tables),
+                "version": "4.0.0",
+                "export_type": "full_database"
             },
             "tables": {}
         }
+        
+        total_rows_exported = 0
+        tables_exported = 0
+        tables_failed = 0
         
         # Export each table
         for table_name in tables:
@@ -477,12 +488,15 @@ async def export_database(db: AsyncSession = Depends(get_db_session)):
                         "row_count": len(table_data),
                         "data": table_data
                     }
+                    total_rows_exported += len(table_data)
+                    tables_exported += 1
                 else:
                     export_data["tables"][table_name] = {
                         "columns": [],
                         "row_count": 0,
                         "data": []
                     }
+                    tables_exported += 1
                     
                 logger.info(f"Exported {len(export_data['tables'][table_name]['data'])} rows from {table_name}")
                 
@@ -493,32 +507,32 @@ async def export_database(db: AsyncSession = Depends(get_db_session)):
                     "row_count": 0,
                     "data": []
                 }
+                tables_failed += 1
         
-        # Generate export filename
+        # Update export info with final stats
+        export_data["export_info"].update({
+            "tables_exported": tables_exported,
+            "tables_failed": tables_failed,
+            "total_rows": total_rows_exported
+        })
+        
+        # Convert to JSON string
+        json_content = json.dumps(export_data, indent=2, ensure_ascii=False)
+        
+        # Generate filename
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        export_filename = f"aphrodite_export_{timestamp}.json"
-        export_file = BACKUP_DIR / export_filename
+        filename = f"aphrodite_export_{timestamp}.json"
         
-        # Write JSON export
-        with open(export_file, 'w', encoding='utf-8') as f:
-            json.dump(export_data, f, indent=2, ensure_ascii=False)
+        logger.info(f"Database export completed: {tables_exported} tables, {total_rows_exported} rows, {tables_failed} failed")
         
-        # Get file info
-        file_stat = export_file.stat()
-        
-        logger.info(f"Database exported successfully: {export_file}")
-        
-        return {
-            "success": True,
-            "message": "Database exported successfully",
-            "filename": export_file.name,
-            "size": file_stat.st_size,
-            "size_formatted": format_file_size(file_stat.st_size),
-            "tables_exported": len([t for t in export_data["tables"].values() if "error" not in t]),
-            "tables_failed": len([t for t in export_data["tables"].values() if "error" in t]),
-            "total_rows": sum(t.get("row_count", 0) for t in export_data["tables"].values()),
-            "created": datetime.fromtimestamp(file_stat.st_mtime).isoformat()
-        }
+        # Return as downloadable file
+        return Response(
+            content=json_content,
+            media_type="application/json",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
         
     except Exception as e:
         logger.error(f"Error exporting database: {e}", exc_info=True)
@@ -629,27 +643,66 @@ async def restore_database(request: BackupRestoreRequest, db: AsyncSession = Dep
         raise HTTPException(status_code=500, detail=f"Failed to restore database: {str(e)}")
 
 @router.post("/database/import-settings")
-async def import_database_settings(request: DatabaseRestoreRequest, db: AsyncSession = Depends(get_db_session)):
+async def import_database_settings(request: DatabaseImportRequest, db: AsyncSession = Depends(get_db_session)):
     """Import database settings from JSON export file."""
     try:
-        logger.info(f"Importing database settings from JSON: {request.filename}")
+        # Log the raw request data for debugging
+        logger.info(f"Raw request data: filename={request.filename}, confirm_restore={request.confirm_restore}")
+        if request.jsonData:
+            logger.info(f"JsonData type: {type(request.jsonData)}, has export_info: {'export_info' in request.jsonData if isinstance(request.jsonData, dict) else 'N/A'}")
         
-        # Check if export file exists
-        export_file = BACKUP_DIR / request.filename
-        if not export_file.exists():
-            raise HTTPException(status_code=404, detail=f"Export file not found: {request.filename}")
+        # Extract filename or file content from request
+        filename = None
+        file_content = None
         
-        if not request.filename.endswith('.json'):
-            raise HTTPException(status_code=400, detail="File must be a JSON export")
+        if request.filename:
+            filename = request.filename
+        elif request.jsonData and isinstance(request.jsonData, dict):
+            if 'filename' in request.jsonData:
+                filename = request.jsonData['filename']
+            # Check if jsonData contains the actual export data
+            elif 'export_info' in request.jsonData and 'tables' in request.jsonData:
+                logger.info("Direct export data found in jsonData")
+                file_content = request.jsonData
+                filename = "uploaded_data.json"  # placeholder name
         
-        logger.info(f"Found export file: {export_file}")
+        if not filename and not file_content:
+            raise HTTPException(status_code=400, detail="No filename or export data provided")
         
-        # Read and parse JSON export
-        try:
-            with open(export_file, 'r', encoding='utf-8') as f:
-                export_data = json.load(f)
-        except json.JSONDecodeError as e:
-            raise HTTPException(status_code=400, detail=f"Invalid JSON format: {str(e)}")
+        logger.info(f"Importing database settings from JSON: {filename}")
+        logger.info(f"Looking for file in backup directory: {BACKUP_DIR}")
+        logger.info(f"Full file path: {BACKUP_DIR / filename}")
+        
+        # Get export data - either from file or direct content
+        if file_content:
+            # Use direct content provided in request
+            export_data = file_content
+            logger.info("Using direct export data from request")
+        else:
+            # Read from file system
+            # List all files in backup directory for debugging
+            if BACKUP_DIR.exists():
+                backup_files = list(BACKUP_DIR.glob("*"))
+                logger.info(f"Files in backup directory: {[f.name for f in backup_files]}")
+            else:
+                logger.warning(f"Backup directory does not exist: {BACKUP_DIR}")
+            
+            # Check if export file exists
+            export_file = BACKUP_DIR / filename
+            if not export_file.exists():
+                raise HTTPException(status_code=404, detail=f"Export file not found: {filename}")
+            
+            if not filename.endswith('.json'):
+                raise HTTPException(status_code=400, detail="File must be a JSON export")
+            
+            logger.info(f"Found export file: {export_file}")
+            
+            # Read and parse JSON export
+            try:
+                with open(export_file, 'r', encoding='utf-8') as f:
+                    export_data = json.load(f)
+            except json.JSONDecodeError as e:
+                raise HTTPException(status_code=400, detail=f"Invalid JSON format: {str(e)}")
         
         # Validate export format
         if "export_info" not in export_data or "tables" not in export_data:
@@ -660,9 +713,11 @@ async def import_database_settings(request: DatabaseRestoreRequest, db: AsyncSes
         
         logger.info(f"Import info: {export_info}")
         logger.info(f"Found {len(tables_data)} tables in export")
+        logger.info(f"Confirmation status: confirm_restore={request.confirm_restore}")
         
         # Safety check - require confirmation for destructive operation
         if not request.confirm_restore:
+            logger.info("Import requires confirmation - returning confirmation request")
             return {
                 "success": False,
                 "message": "Import requires confirmation - this will overwrite existing data",
@@ -670,6 +725,8 @@ async def import_database_settings(request: DatabaseRestoreRequest, db: AsyncSes
                 "tables_to_import": list(tables_data.keys()),
                 "requires_confirmation": True
             }
+        
+        logger.info("Starting confirmed import process...")
         
         imported_tables = 0
         failed_tables = 0
@@ -696,7 +753,15 @@ async def import_database_settings(request: DatabaseRestoreRequest, db: AsyncSes
                 # Import data row by row
                 for row_data in table_data:
                     columns = list(row_data.keys())
-                    values = list(row_data.values())
+                    
+                    # Process values - convert dicts to JSON strings for PostgreSQL
+                    processed_row = {}
+                    for col, value in row_data.items():
+                        if isinstance(value, (dict, list)):
+                            # Convert dict/list to JSON string for database storage
+                            processed_row[col] = json.dumps(value)
+                        else:
+                            processed_row[col] = value
                     
                     # Build parameterized insert query
                     columns_str = ', '.join(columns)
@@ -704,7 +769,7 @@ async def import_database_settings(request: DatabaseRestoreRequest, db: AsyncSes
                     
                     insert_query = f"INSERT INTO {table_name} ({columns_str}) VALUES ({placeholders})"
                     
-                    await db.execute(text(insert_query), row_data)
+                    await db.execute(text(insert_query), processed_row)
                 
                 await db.commit()
                 imported_tables += 1
@@ -720,8 +785,8 @@ async def import_database_settings(request: DatabaseRestoreRequest, db: AsyncSes
         
         return {
             "success": True,
-            "message": f"Database settings imported successfully from {request.filename}",
-            "export_file": request.filename,
+            "message": f"Database settings imported successfully from {filename}",
+            "export_file": filename,
             "tables_imported": imported_tables,
             "tables_failed": failed_tables,
             "total_rows_imported": total_rows_imported,
@@ -775,3 +840,119 @@ def format_file_size(bytes_size: int) -> str:
         bytes_size /= 1024.0
     
     return f"{bytes_size:.1f} PB"
+
+@router.post("/database/import-settings-upload")
+async def import_database_settings_upload(
+    file: UploadFile = File(...),
+    confirm_restore: bool = False,
+    db: AsyncSession = Depends(get_db_session)
+):
+    """Import database settings from uploaded JSON export file."""
+    try:
+        # Validate file type
+        if not file.filename or not file.filename.endswith('.json'):
+            raise HTTPException(status_code=400, detail="File must be a JSON export")
+        
+        logger.info(f"Importing database settings from uploaded file: {file.filename}")
+        
+        # Read uploaded file content
+        content = await file.read()
+        
+        # Parse JSON content
+        try:
+            export_data = json.loads(content.decode('utf-8'))
+        except json.JSONDecodeError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid JSON format: {str(e)}")
+        except UnicodeDecodeError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid file encoding: {str(e)}")
+        
+        # Validate export format
+        if "export_info" not in export_data or "tables" not in export_data:
+            raise HTTPException(status_code=400, detail="Invalid export format - missing required sections")
+        
+        export_info = export_data["export_info"]
+        tables_data = export_data["tables"]
+        
+        logger.info(f"Import info: {export_info}")
+        logger.info(f"Found {len(tables_data)} tables in export")
+        
+        # Safety check - require confirmation for destructive operation
+        if not confirm_restore:
+            return {
+                "success": False,
+                "message": "Import requires confirmation - this will overwrite existing data",
+                "export_info": export_info,
+                "tables_to_import": list(tables_data.keys()),
+                "requires_confirmation": True
+            }
+        
+        imported_tables = 0
+        failed_tables = 0
+        total_rows_imported = 0
+        
+        # Import each table
+        for table_name, table_info in tables_data.items():
+            if "error" in table_info:
+                logger.warning(f"Skipping table {table_name} - had export error: {table_info['error']}")
+                failed_tables += 1
+                continue
+            
+            table_data = table_info.get("data", [])
+            if not table_data:
+                logger.info(f"Skipping empty table: {table_name}")
+                continue
+            
+            try:
+                logger.info(f"Importing table: {table_name} ({len(table_data)} rows)")
+                
+                # Clear existing data (DANGEROUS!)
+                await db.execute(text(f"TRUNCATE TABLE {table_name} CASCADE"))
+                
+                # Import data row by row
+                for row_data in table_data:
+                    columns = list(row_data.keys())
+                    
+                    # Process values - convert dicts to JSON strings for PostgreSQL
+                    processed_row = {}
+                    for col, value in row_data.items():
+                        if isinstance(value, (dict, list)):
+                            # Convert dict/list to JSON string for database storage
+                            processed_row[col] = json.dumps(value)
+                        else:
+                            processed_row[col] = value
+                    
+                    # Build parameterized insert query
+                    columns_str = ', '.join(columns)
+                    placeholders = ', '.join([f":{col}" for col in columns])
+                    
+                    insert_query = f"INSERT INTO {table_name} ({columns_str}) VALUES ({placeholders})"
+                    
+                    await db.execute(text(insert_query), processed_row)
+                
+                await db.commit()
+                imported_tables += 1
+                total_rows_imported += len(table_data)
+                logger.info(f"Successfully imported {len(table_data)} rows into {table_name}")
+                
+            except Exception as table_error:
+                await db.rollback()
+                logger.error(f"Error importing table {table_name}: {table_error}")
+                failed_tables += 1
+        
+        logger.info(f"Import completed: {imported_tables} tables imported, {failed_tables} failed")
+        
+        return {
+            "success": True,
+            "message": f"Database settings imported successfully from {file.filename}",
+            "export_file": file.filename,
+            "tables_imported": imported_tables,
+            "tables_failed": failed_tables,
+            "total_rows_imported": total_rows_imported,
+            "export_info": export_info,
+            "imported_at": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error importing database settings: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to import database settings: {str(e)}")

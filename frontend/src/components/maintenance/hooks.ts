@@ -457,38 +457,76 @@ export function useDatabaseOperations() {
     setLoading(prev => ({ ...prev, restore: true }));
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/maintenance/database/import-settings`, {
+      // First, try without confirmation to check what's needed
+      const initialResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/maintenance/database/import-settings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ jsonData }),
+        body: JSON.stringify({ jsonData, confirm_restore: false }),
       });
 
-      const data = await response.json();
+      const initialData = await initialResponse.json();
       
-      if (data.success) {
-        const summary = data.import_summary;
+      if (initialData.success === false && initialData.requires_confirmation) {
+        // Backend is asking for confirmation, now send with confirmation
+        console.log('Backend requires confirmation for import, proceeding with confirmed request');
+        
+        const confirmedResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/maintenance/database/import-settings`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ jsonData, confirm_restore: true }),
+        });
+
+        const confirmedData = await confirmedResponse.json();
+        
+        if (confirmedData.success) {
+          toast.success(
+            `Database settings imported successfully: ${confirmedData.tables_imported} tables imported, ${confirmedData.tables_failed} failed`,
+            { duration: 6000 }
+          );
+          
+          await loadDatabaseInfo(); // Refresh info
+          
+          return {
+            success: true,
+            message: `Database settings imported successfully: ${confirmedData.tables_imported} tables imported, ${confirmedData.tables_failed} failed`,
+            details: confirmedData
+          };
+        } else {
+          toast.error(`Import failed: ${confirmedData.detail || confirmedData.message || 'Unknown error'}`);
+          return {
+            success: false,
+            message: confirmedData.detail || confirmedData.message || 'Import failed',
+            details: confirmedData
+          };
+        }
+      } else if (initialData.success) {
+        // Import succeeded on first try
         toast.success(
-          `Database settings imported successfully: ${summary.tables_imported} tables imported, ${summary.tables_skipped} skipped`,
+          `Database settings imported successfully: ${initialData.tables_imported} tables imported, ${initialData.tables_failed} failed`,
           { duration: 6000 }
         );
         
-        if (data.errors && data.errors.length > 0) {
-          toast.warning(`Import completed with ${data.errors.length} errors. Check console for details.`);
-          console.warn('Import errors:', data.errors);
-        }
-        
         await loadDatabaseInfo(); // Refresh info
+        
+        return {
+          success: true,
+          message: `Database settings imported successfully: ${initialData.tables_imported} tables imported, ${initialData.tables_failed} failed`,
+          details: initialData
+        };
       } else {
-        toast.error(`Import failed: ${data.detail || 'Unknown error'}`);
+        // Import failed
+        toast.error(`Import failed: ${initialData.detail || initialData.message || 'Unknown error'}`);
+        return {
+          success: false,
+          message: initialData.detail || initialData.message || 'Import failed',
+          details: initialData
+        };
       }
 
-      return {
-        success: data.success,
-        message: data.success ? 'Database settings imported successfully' : (data.detail || 'Import failed'),
-        details: data
-      };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Import failed';
       toast.error(errorMessage);
