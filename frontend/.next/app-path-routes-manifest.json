@@ -3,10 +3,10 @@
   "/favicon.ico/route": "/favicon.ico",
   "/about/page": "/about",
   "/maintenance/page": "/maintenance",
-  "/page": "/",
-  "/preview/page": "/preview",
-  "/poster-manager/page": "/poster-manager",
-  "/schedules/page": "/schedules",
   "/analytics/page": "/analytics",
+  "/page": "/",
+  "/poster-manager/page": "/poster-manager",
+  "/preview/page": "/preview",
+  "/schedules/page": "/schedules",
   "/settings/page": "/settings"
 }
