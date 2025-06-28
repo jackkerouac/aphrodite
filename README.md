@@ -6,6 +6,7 @@
 
 [![License](https://img.shields.io/github/license/jackkerouac/aphrodite)](LICENSE.md)
 [![GitHub Release](https://img.shields.io/github/v/release/jackkerouac/aphrodite)](https://github.com/jackkerouac/aphrodite/releases)
+[![Production Ready](https://img.shields.io/badge/status-production%20ready-green.svg)](https://github.com/jackkerouac/aphrodite/releases/tag/v4.0.0)
 
 </div>
 
@@ -20,19 +21,19 @@
 
 ---
 
-## 🚨 **BREAKING CHANGE NOTICE - v4.0.0**
+## 🚀 **PRODUCTION READY - v4.0.0**
 
-**Aphrodite v4.0.0 is a complete rewrite with breaking changes:**
+**Aphrodite v4.0.0 is now production-ready with:**
 
-- **New Docker-first architecture** - Simplified deployment
-- **Modern web-based configuration** - No more YAML files to edit
-- **Database migration required** - All settings need to be reconfigured
-- **Improved performance** - 3x faster processing with async architecture
+- **🐳 Docker-first architecture** - Single command deployment
+- **🎨 Modern web interface** - Real-time configuration and monitoring
+- **⚡ High-performance processing** - 3x faster with async architecture
+- **🔐 Enterprise security** - Secure defaults and best practices
+- **📊 Advanced analytics** - Comprehensive system monitoring
 
-**Migration Required:**
-- Older users must reconfigure all settings through the new web interface
-- Poster processing history will not be migrated
-- Badge configurations will need to be recreated (defaults provided)
+**First-time users:** Everything works out of the box with secure defaults!
+
+**Upgrading from v3.x:** Database migration required - see migration guide below.
 
 ---
 
@@ -49,23 +50,58 @@ Perfect for **Jellyfin**, **Plex**, and other media servers!
 
 ## Quick Start with Docker
 
-### Manual Setup (3 steps)
+### Production Setup (Recommended)
 
 ```bash
-# 1. Download files
+# 1. Download production files
 mkdir aphrodite && cd aphrodite
-curl -L https://github.com/jackkerouac/aphrodite/releases/latest/download/docker-compose.yml -o docker-compose.yml
-curl -L https://github.com/jackkerouac/aphrodite/releases/latest/download/.env.example -o .env
 
-# 2. Edit .env (optional - secure defaults provided)
-nano .env
+# Using wget (Linux/macOS with wget)
+wget https://github.com/jackkerouac/aphrodite/releases/latest/download/docker-compose.yml
+wget https://github.com/jackkerouac/aphrodite/releases/latest/download/.env.example
+
+# OR using curl (macOS/Linux/Windows with curl)
+curl -L https://github.com/jackkerouac/aphrodite/releases/latest/download/docker-compose.yml -o docker-compose.yml
+curl -L https://github.com/jackkerouac/aphrodite/releases/latest/download/.env.example -o .env.example
+
+# Setup environment file
+mv .env.example .env
+
+# 2. Configure for production (important!)
+nano .env  # Update passwords and security settings
 
 # 3. Start services
+docker-compose up -d
+
+# 4. Check status
+docker-compose ps
+```
+
+### Quick Development Setup
+
+```bash
+# For testing/development only
+curl -L https://github.com/jackkerouac/aphrodite/releases/latest/download/docker-compose.yml -o docker-compose.yml
+curl -L https://github.com/jackkerouac/aphrodite/releases/latest/download/.env.example -o .env
 docker-compose up -d
 ```
 
 ### That's it! 
 Visit **http://localhost:8000** to configure your media server and start processing!
+
+### 💾 **Migration from v3.x**
+
+Upgrading from Aphrodite v3.x requires reconfiguration:
+
+1. **Export your v3.x settings** (if desired)
+2. **Install v4.0.0** using the setup above
+3. **Reconfigure through web interface** at http://localhost:8000
+4. **Import your media libraries** - automatic discovery available
+5. **Customize badge settings** - improved defaults provided
+
+**Note:** v3.x poster processing history will not be migrated, but all media will be rediscovered automatically.
+
+---
 
 ## Configuration
 
@@ -87,17 +123,21 @@ No more editing YAML files! Configure everything through the modern web interfac
    - Custom image mappings
 
 ### Environment Variables
-Only basic settings needed in `.env`:
+Critical settings to customize in `.env`:
 
 ```env
-# Security (change these!)
-POSTGRES_PASSWORD=your_secure_password
-REDIS_PASSWORD=your_redis_password
-SECRET_KEY=your_very_long_secret_key
+# SECURITY - CHANGE THESE FOR PRODUCTION!
+POSTGRES_PASSWORD=your_secure_password_here
+REDIS_PASSWORD=your_redis_password_here
+SECRET_KEY=your_very_long_secret_key_64_characters_minimum_for_security
 
-# Ports (change if needed)
+# Network (change if ports conflict)
 API_PORT=8000
 FRONTEND_PORT=3000
+
+# Optional: Custom user IDs (Linux/macOS)
+# PUID=1000
+# PGID=1000
 ```
 
 ## What's New in v4.0.0?
@@ -177,38 +217,45 @@ docker-compose restart
 
 | Service | Description | Access |
 |---------|-------------|--------|
-| **Web Interface** | Configure and monitor | http://localhost:8000 |
-| **API** | REST API for automation | http://localhost:8000/docs |
-| **Database** | PostgreSQL (managed) | Internal |
-| **Cache** | Redis (managed) | Internal |
-| **Worker** | Background processing | Internal |
+| **Dashboard** | Main control interface | http://localhost:8000 |
+| **API** | REST API + documentation | http://localhost:8000/api/docs |
+| **Database** | PostgreSQL (auto-managed) | Internal only |
+| **Cache** | Redis (auto-managed) | Internal only |
+| **Workers** | Background processing | Internal only |
 
 ## Advanced Usage
 
-### API Integration
+### Health & Status
 ```bash
 # Check system health
-curl http://localhost:8000/health/live
+curl http://localhost:8000/health
 
-# Start processing job
-curl -X POST http://localhost:8000/api/v1/jobs/process \
+# Detailed system status
+curl http://localhost:8000/health/detailed
+
+# Start processing job (requires authentication)
+curl -X POST http://localhost:8000/api/v1/workflow/jobs/ \
   -H "Content-Type: application/json" \
-  -d '{"library_id": "movies"}'
+  -d '{"name": "Manual Processing", "user_id": "admin"}'
 
-# Get job status
-curl http://localhost:8000/api/v1/jobs/{job_id}
+# Monitor job progress
+curl http://localhost:8000/api/v1/workflow/jobs/{job_id}
 ```
 
-### Automation
+### Production Maintenance
 ```bash
 # Update to latest version
-docker-compose pull && docker-compose up -d
+docker-compose pull
+docker-compose up -d
 
-# Backup configuration
-docker-compose exec postgresql pg_dump -U aphrodite aphrodite_v2 > backup.sql
+# Backup database
+docker-compose exec postgres pg_dump -U aphrodite aphrodite_v2 > backup-$(date +%Y%m%d).sql
 
-# View detailed logs
+# View logs
 docker-compose logs -f --tail=100
+
+# Restart specific service
+docker-compose restart api
 ```
 
 ## Troubleshooting
@@ -233,6 +280,30 @@ sudo chown -R $(id -u):$(id -g) posters images
 # Or set user IDs in .env
 echo "PUID=$(id -u)" >> .env
 echo "PGID=$(id -g)" >> .env
+```
+
+**Database connection issues:**
+```bash
+# Check all services
+docker-compose ps
+
+# Restart database
+docker-compose restart postgres redis
+
+# Check database logs
+docker-compose logs postgres
+```
+
+**Performance issues:**
+```bash
+# Monitor resource usage
+docker stats
+
+# Check system health
+curl http://localhost:8000/health/detailed
+
+# Scale workers (if needed)
+docker-compose up -d --scale worker=3
 ```
 
 **Reset everything:**
@@ -261,20 +332,40 @@ docker-compose up -d
 docker image prune -f
 ```
 
-## Security
+## Production Deployment
 
-- **Change default passwords** in `.env`
-- **Use strong SECRET_KEY** (64+ characters)
-- **Keep Docker images updated**
-- **Consider reverse proxy** for external access
-- **Regular backups** of database
+### Reverse Proxy Setup
+For production, use a reverse proxy:
 
-## Documentation
+```nginx
+# Nginx example
+server {
+    listen 80;
+    server_name your-domain.com;
+    
+    location / {
+        proxy_pass http://localhost:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
 
-- **[Docker Setup Guide](DOCKER.md)** - Detailed Docker instructions
-- **[Configuration Guide](docs/configuration.md)** - Advanced configuration
-- **[API Documentation](http://localhost:8000/docs)** - Interactive API docs
-- **[Contributing Guide](CONTRIBUTING.md)** - Development setup
+### Security Checklist
+- ✅ Changed default passwords in `.env`
+- ✅ Generated strong SECRET_KEY (64+ characters)
+- ✅ Configured firewall rules
+- ✅ Set up reverse proxy with SSL
+- ✅ Regular backups scheduled
+- ✅ Log monitoring configured
+
+## Links & Resources
+
+- **[Production Setup Guide](docs/production.md)** - Complete production deployment
+- **[API Documentation](http://localhost:8000/api/docs)** - Interactive API explorer
+- **[Migration Guide](docs/migration.md)** - Upgrading from v3.x
+- **[Troubleshooting Guide](docs/troubleshooting.md)** - Common issues and solutions
+- **[Contributing Guide](CONTRIBUTING.md)** - Development and contributions
 
 ## Credits
 
