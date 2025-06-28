@@ -1,4 +1,4 @@
-"""
+"""    
 Pure V2 Resolution Badge Processor
 
 Completely V2-native resolution badge processing with no V1 dependencies.
@@ -7,6 +7,7 @@ Clear logging for system differentiation.
 
 from typing import Dict, Any, Optional, List
 from pathlib import Path
+import re
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from aphrodite_logging import get_logger
@@ -400,17 +401,52 @@ class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
             return None
     
     def _map_resolution_to_image(self, resolution: str) -> str:
-        """Map resolution to image filename"""
-        # Simple resolution to image mapping
-        resolution_upper = resolution.upper()
+        """Improved resolution to image mapping with HDR/DV support"""
+        resolution_upper = resolution.upper().strip()
         
-        if "4K" in resolution_upper or "2160P" in resolution_upper:
-            return "4k.png"
-        elif "1080P" in resolution_upper or "1080" in resolution_upper:
-            return "1080p.png"
-        elif "720P" in resolution_upper or "720" in resolution_upper:
-            return "720p.png"
-        elif "480P" in resolution_upper or "480" in resolution_upper:
-            return "480p.png"
+        # Parse components
+        is_dv = bool(re.search(r'DV|DOLBY.?VISION', resolution_upper))
+        is_hdr = bool(re.search(r'HDR|HDR10', resolution_upper)) and not is_dv
+        is_plus = bool(re.search(r'PLUS|\+', resolution_upper))
+        
+        # Extract base resolution
+        if re.search(r'4K|2160P', resolution_upper):
+            base_res = "4k"
+        elif re.search(r'1440P', resolution_upper):
+            base_res = "1080p"  # Fallback since 1440p images don't exist
+            self.logger.debug("1440p detected, using 1080p images")
+        elif re.search(r'1080P|1080', resolution_upper):
+            base_res = "1080p"
+        elif re.search(r'720P|720', resolution_upper):
+            base_res = "720p"
+        elif re.search(r'576P|576', resolution_upper):
+            base_res = "576p"
+        elif re.search(r'480P|480', resolution_upper):
+            base_res = "480p"
         else:
+            self.logger.warning(f"Unknown resolution format: {resolution}")
             return "resolution-generic.png"
+        
+        # Build image name with priority order
+        image_name = base_res
+        
+        if is_dv and is_hdr:
+            image_name += "dvhdr"
+        elif is_dv:
+            image_name += "dv"
+        elif is_hdr:
+            image_name += "hdr"
+        elif is_plus:
+            image_name += "plus"
+        
+        image_file = f"{image_name}.png"
+        
+        # Verify image exists, fallback if needed
+        image_path = Path("images/resolution") / image_file
+        if not image_path.exists():
+            fallback = f"{base_res}.png"
+            self.logger.warning(f"Image {image_file} not found, using fallback: {fallback}")
+            return fallback
+        
+        self.logger.debug(f"Resolution '{resolution}' mapped to image: {image_file}")
+        return image_file
