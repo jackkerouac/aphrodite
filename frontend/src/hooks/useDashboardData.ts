@@ -61,10 +61,26 @@ export function useDashboardData(): DashboardData {
       setData(prev => ({ ...prev, isLoading: true, error: null }));
 
       console.log('🔍 Dashboard: Making API calls...');
-      // Fetch all required data in parallel
+      
+      // Test API connectivity first with a simple health check
+      let apiOnline = false;
+      try {
+        const basicHealth = await fetch('/health', { 
+          method: 'GET',
+          headers: { 'Cache-Control': 'no-cache' },
+          signal: AbortSignal.timeout(5000) // 5 second timeout
+        });
+        apiOnline = basicHealth.ok;
+        console.log('🔍 Dashboard: Basic health check result:', apiOnline);
+      } catch (healthErr) {
+        console.warn('🔍 Dashboard: Basic health check failed:', healthErr);
+        apiOnline = false;
+      }
+      
+      // Fetch all required data in parallel with individual timeouts
       const [analyticsOverview, systemHealth, recentJobs, todayCompletedJobs, systemInfo] = await Promise.all([
         apiService.getAnalyticsOverview().catch((err) => { console.error('Analytics failed:', err); return null; }),
-        apiService.getSystemStatus().catch((err) => { console.error('System status failed:', err); return null; }),
+        fetchSystemHealthWithTimeout().catch((err) => { console.error('System status failed:', err); return { status: apiOnline ? 'healthy' : 'unhealthy' }; }),
         apiService.getJobs({ user_id: 'default_user' }).catch((err) => { console.error('Jobs failed:', err); return []; }),
         apiService.getJobs({ user_id: 'default_user' }).catch((err) => { console.error('Jobs2 failed:', err); return []; }),
         apiService.getSystemInfo().catch((err) => { console.error('System info failed:', err); return null; }),
@@ -77,9 +93,9 @@ export function useDashboardData(): DashboardData {
         systemInfo
       });
 
-      // Process system status
+      // Process system status with fallback to basic connectivity test
       const systemStatus = {
-        api_status: systemHealth?.status === 'healthy' ? 'online' as const : 'offline' as const,
+        api_status: (systemHealth?.status === 'healthy' || apiOnline) ? 'online' as const : 'offline' as const,
         jellyfin_status: systemHealth?.components?.database?.status === 'healthy' ? 'connected' as const : 'disconnected' as const,
         database_status: systemHealth?.components?.database?.status === 'healthy' ? 'healthy' as const : 'unhealthy' as const,
         queue_status: systemHealth?.components?.redis?.status === 'healthy' ? 'healthy' as const : 'unhealthy' as const,
@@ -132,13 +148,61 @@ export function useDashboardData(): DashboardData {
   useEffect(() => {
     fetchDashboardData();
     
-    // Set up polling for real-time updates
-    const interval = setInterval(fetchDashboardData, 30000); // Update every 30 seconds
+    // Set up polling for real-time updates with exponential backoff on errors
+    let retryCount = 0;
+    const maxRetries = 3;
     
-    return () => clearInterval(interval);
+    const scheduleNextFetch = (delay = 30000) => {
+      return setTimeout(async () => {
+        try {
+          await fetchDashboardData();
+          retryCount = 0; // Reset on success
+          scheduleNextFetch(30000); // Normal 30-second interval
+        } catch (error) {
+          retryCount++;
+          const backoffDelay = Math.min(30000, 5000 * Math.pow(2, retryCount - 1));
+          console.warn(`Dashboard fetch failed (attempt ${retryCount}), retrying in ${backoffDelay}ms`);
+          
+          if (retryCount <= maxRetries) {
+            scheduleNextFetch(backoffDelay);
+          } else {
+            console.error('Dashboard fetch failed after max retries, stopping polling');
+          }
+        }
+      }, delay);
+    };
+    
+    const timeoutId = scheduleNextFetch();
+    
+    return () => clearTimeout(timeoutId);
   }, []);
 
   return data;
+}
+
+// Helper function for system health with timeout
+async function fetchSystemHealthWithTimeout() {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+  
+  try {
+    const response = await fetch('/health/detailed', {
+      method: 'GET',
+      headers: { 'Cache-Control': 'no-cache' },
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
 }
 
 // Helper functions
