@@ -70,7 +70,7 @@ export function ReplacePosterModal({
     setError(null)
     
     try {
-      const response = await fetch(`/api/v1/poster-manager/items/${item.id}/poster-sources`)
+      const response = await fetch(`/api/v1/poster-replacement/items/${item.id}/poster-sources`)
       
       if (!response.ok) {
         throw new Error(`Search failed: ${response.status}`)
@@ -104,7 +104,7 @@ export function ReplacePosterModal({
     setIsReplacing(true)
     
     try {
-      const response = await fetch(`/api/v1/poster-manager/items/${item.id}/replace-poster`, {
+      const response = await fetch(`/api/v1/poster-replacement/items/${item.id}/replace-poster`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

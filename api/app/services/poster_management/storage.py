@@ -214,7 +214,7 @@ class StorageManager:
             self.logger.error(f"Error cleaning up preview files: {e}", exc_info=True)
             return 0
     
-    def get_file_url(self, file_path: str, base_url: str = "http://localhost:8000/api/v1/static") -> str:
+    def get_file_url(self, file_path: str, base_url: str = "/api/v1/static") -> str:
         """
         Convert file path to accessible URL.
         
