@@ -89,7 +89,7 @@ async def initialize_default_settings():
             "badge_settings_awards.yml": {
                 "General": {
                     "enabled": True,
-                    "general_badge_size": 120,
+                    "general_badge_size": 351,
                     "general_badge_position": "bottom-right-flush",
                     "general_edge_padding": 0,
                     "general_text_padding": 0,
@@ -108,7 +108,7 @@ async def initialize_default_settings():
                 },
                 "Background": {
                     "background_color": "#000000",
-                    "background_opacity": 60
+                    "background_opacity": 0
                 },
                 "Border": {
                     "border_color": "#000000",

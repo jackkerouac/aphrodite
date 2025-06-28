@@ -67,12 +67,20 @@ class V2ReviewDataFetcher:
             
             # Fetch IMDb rating if enabled
             if imdb_id and sources.get('enable_imdb', True):
+                if self.omdb_api_key:
+                    self.logger.info(f"✅ [V2 REVIEW FETCHER] Using real OMDb API key for IMDb: {imdb_id}")
+                else:
+                    self.logger.warning(f"❌ [V2 REVIEW FETCHER] No OMDb API key - IMDb fetch will fail: {imdb_id}")
                 review = await self.imdb_fetcher.fetch(imdb_id, self.omdb_api_key)
                 if review:
                     reviews.append(review)
             
             # Fetch TMDb rating if enabled
             if tmdb_id and sources.get('enable_tmdb', True):
+                if self.tmdb_api_key:
+                    self.logger.info(f"✅ [V2 REVIEW FETCHER] Using real TMDb API key for TMDb: {tmdb_id}")
+                else:
+                    self.logger.warning(f"❌ [V2 REVIEW FETCHER] No TMDb API key - TMDb fetch will fail: {tmdb_id}")
                 tmdb_media_type = "movie" if media_type == "movie" else "tv"
                 review = await self.tmdb_fetcher.fetch(tmdb_id, tmdb_media_type, self.tmdb_api_key)
                 if review:
@@ -80,6 +88,10 @@ class V2ReviewDataFetcher:
             
             # Fetch RT Critics if enabled (default True to match processor defaults)
             if imdb_id and sources.get('enable_rotten_tomatoes_critics', True):
+                if self.omdb_api_key:
+                    self.logger.info(f"✅ [V2 REVIEW FETCHER] Using real OMDb API key for RT Critics: {imdb_id}")
+                else:
+                    self.logger.warning(f"❌ [V2 REVIEW FETCHER] No OMDb API key available for RT Critics - using demo data")
                 self.logger.debug(f"🍅 [V2 REVIEW FETCHER] Fetching RT Critics for IMDb: {imdb_id}")
                 review = await self.rt_fetcher.fetch(imdb_id, self.omdb_api_key)
                 if review:
@@ -90,6 +102,10 @@ class V2ReviewDataFetcher:
             
             # Fetch Metacritic if enabled (default True to match processor defaults)
             if imdb_id and sources.get('enable_metacritic', True):
+                if self.omdb_api_key:
+                    self.logger.info(f"✅ [V2 REVIEW FETCHER] Using real OMDb API key for Metacritic: {imdb_id}")
+                else:
+                    self.logger.warning(f"❌ [V2 REVIEW FETCHER] No OMDb API key available for Metacritic - using demo data")
                 self.logger.debug(f"🎭 [V2 REVIEW FETCHER] Fetching Metacritic for IMDb: {imdb_id}")
                 review = await self.metacritic_fetcher.fetch(imdb_id, self.omdb_api_key)
                 if review:
@@ -226,40 +242,87 @@ class V2ReviewDataFetcher:
             return []
     
     async def _load_api_keys(self):
-        """Load API keys from PostgreSQL database"""
+        """Load API keys from PostgreSQL database using worker-safe methods"""
         if self._api_keys_loaded:
             return
         
+        # CRITICAL DEBUG: This should appear in logs if container is using updated code
+        self.logger.info("🔧 [DEBUG] NEW API KEY LOADING METHOD CALLED - CONTAINER UPDATED!")
+        
         try:
-            from app.services.settings_service import settings_service
+            # Use the working badge settings approach instead of the failing settings service
             from app.core.database import async_session_factory
+            from sqlalchemy import select
+            from app.models.config import SystemConfigModel
             
-            # Load settings.yaml from PostgreSQL
-            async with async_session_factory() as db:
-                settings_yaml = await settings_service.get_settings(
-                    "settings.yaml", db, use_cache=True, force_reload=True
-                )
+            api_keys_data = None
             
-            if settings_yaml and 'api_keys' in settings_yaml:
-                api_keys = settings_yaml['api_keys']
+            if async_session_factory is not None:
+                # Use the working session factory pattern from badge settings
+                async with async_session_factory() as db:
+                    stmt = select(SystemConfigModel).where(SystemConfigModel.key == "settings.yaml")
+                    result = await db.execute(stmt)
+                    config_model = result.scalar_one_or_none()
+                    
+                    if config_model and config_model.value:
+                        api_keys_data = config_model.value.get("api_keys", {})
+                        self.logger.info("✅ [V2 REVIEW FETCHER] Loaded API keys using direct database access")
+            
+            if not api_keys_data:
+                # Fallback: create temporary session like badge settings service does
+                from app.core.config import get_settings
+                from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
                 
+                settings = get_settings()
+                database_url = settings.get_database_url()
+                
+                temp_engine = create_async_engine(
+                    database_url,
+                    echo=False,
+                    pool_size=1,
+                    max_overflow=0,
+                    pool_pre_ping=True
+                )
+                
+                temp_session_factory = async_sessionmaker(
+                    temp_engine,
+                    class_=AsyncSession,
+                    expire_on_commit=False
+                )
+                
+                try:
+                    async with temp_session_factory() as db:
+                        stmt = select(SystemConfigModel).where(SystemConfigModel.key == "settings.yaml")
+                        result = await db.execute(stmt)
+                        config_model = result.scalar_one_or_none()
+                        
+                        if config_model and config_model.value:
+                            api_keys_data = config_model.value.get("api_keys", {})
+                            self.logger.info("✅ [V2 REVIEW FETCHER] Loaded API keys using temporary session")
+                finally:
+                    await temp_engine.dispose()
+            
+            if api_keys_data:
                 # Extract OMDb API key
-                omdb_config = api_keys.get("OMDB", [])
+                omdb_config = api_keys_data.get("OMDB", [])
                 if omdb_config and len(omdb_config) > 0 and omdb_config[0].get("api_key"):
                     self.omdb_api_key = omdb_config[0]["api_key"]
                     masked_key = '*' * (len(self.omdb_api_key) - 4) + self.omdb_api_key[-4:]
                     self.logger.info(f"✅ [V2 REVIEW FETCHER] Loaded OMDb API key: {masked_key}")
                 
                 # Extract TMDb API key
-                tmdb_config = api_keys.get("TMDB", [])
+                tmdb_config = api_keys_data.get("TMDB", [])
                 if tmdb_config and len(tmdb_config) > 0 and tmdb_config[0].get("api_key"):
                     self.tmdb_api_key = tmdb_config[0]["api_key"]
                     self.logger.info(f"✅ [V2 REVIEW FETCHER] Loaded TMDb Bearer token")
+            else:
+                self.logger.warning("⚠️ [V2 REVIEW FETCHER] No API keys found in settings.yaml")
             
             self._api_keys_loaded = True
             
         except Exception as e:
             self.logger.error(f"❌ [V2 REVIEW FETCHER] Error loading API keys: {e}")
+            self._api_keys_loaded = True  # Prevent infinite retries
     
     async def _get_jellyfin_metadata(self, jellyfin_id: str) -> Optional[Dict[str, Any]]:
         """Get media metadata from Jellyfin service"""

@@ -49,13 +49,13 @@ export function GeneralTab({ settings, updateSetting }: GeneralTabProps) {
               id="badge-size"
               type="number"
               min={50}
-              max={200}
+              max={351}
               value={settings.General.general_badge_size}
-              onChange={(e) => updateSetting('General', 'general_badge_size', parseInt(e.target.value) || 120)}
+              onChange={(e) => updateSetting('General', 'general_badge_size', e.target.value === '' ? 351 : parseInt(e.target.value))}
               disabled={!settings.General.enabled}
             />
             <div className="text-sm text-muted-foreground">
-              Recommended: 120px for ribbon visibility
+              Recommended: 351px (full native resolution)
             </div>
           </div>
 

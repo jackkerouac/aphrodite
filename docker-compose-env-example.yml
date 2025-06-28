@@ -1,0 +1,15 @@
+# Add these environment variables to your docker-compose.yml
+# Under the aphrodite-worker service:
+
+services:
+  aphrodite-worker:
+    environment:
+      # Add your actual API keys here
+      - OMDB_API_KEY=your_omdb_api_key_here
+      - TMDB_API_KEY=your_tmdb_api_key_here
+      
+      # Or if you prefer, add them to the main service too:
+  aphrodite:
+    environment:
+      - OMDB_API_KEY=your_omdb_api_key_here
+      - TMDB_API_KEY=your_tmdb_api_key_here

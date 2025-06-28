@@ -17,7 +17,7 @@ from .types import (
 )
 from .v2_audio_processor import V2AudioBadgeProcessor as AudioBadgeProcessor
 from .v2_resolution_processor import V2ResolutionBadgeProcessor as ResolutionBadgeProcessor
-from .review_processor import ReviewBadgeProcessor
+from .v2_review_processor import V2ReviewBadgeProcessor as ReviewBadgeProcessor
 from .awards_processor import AwardsBadgeProcessor
 
 

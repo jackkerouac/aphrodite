@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Aphrodite v2 - Media Poster Enhancement",
+  title: "Aphrodite - Media Poster Enhancer",
   description: "Modern media poster enhancement system for Jellyfin",
 };
 

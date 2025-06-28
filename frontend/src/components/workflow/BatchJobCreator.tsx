@@ -113,7 +113,21 @@ export const BatchJobCreator: React.FC<BatchJobCreatorProps> = ({
 
         {/* Badge Selection */}
         <div className="space-y-3">
-          <Label>Badge Types to Apply</Label>
+          <div className="flex items-center justify-between">
+            <Label>Badge Types to Apply</Label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const allBadgeIds = availableBadges.map(badge => badge.id)
+                setBadgeTypes(allBadgeIds)
+              }}
+              className="text-xs"
+            >
+              Select All
+            </Button>
+          </div>
           <div className="grid grid-cols-1 gap-3">
             {availableBadges.map(badge => (
               <div key={badge.id} className="flex items-start space-x-3">

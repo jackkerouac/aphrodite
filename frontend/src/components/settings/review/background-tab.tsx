@@ -50,7 +50,7 @@ export function BackgroundTab({ settings, updateSetting }: BackgroundTabProps) {
               min="0"
               max="100"
               value={settings.Background.background_opacity}
-              onChange={(e) => updateSetting('Background', 'background_opacity', parseInt(e.target.value) || 60)}
+              onChange={(e) => updateSetting('Background', 'background_opacity', e.target.value === '' ? 60 : parseInt(e.target.value))}
               placeholder="60"
             />
           </div>

@@ -22,7 +22,7 @@ class IMDbFetcher(BaseReviewFetcher):
     """IMDb rating fetcher using OMDb API"""
     
     async def fetch(self, imdb_id: str, omdb_api_key: Optional[str] = None) -> Optional[Dict[str, Any]]:
-        """Fetch IMDb rating"""
+        """Fetch IMDb rating - PRODUCTION: NO DEMO DATA"""
         try:
             cache_key = f"imdb_{imdb_id}"
             if cache_key in self.cache:
@@ -31,34 +31,25 @@ class IMDbFetcher(BaseReviewFetcher):
                     return entry["data"]
             
             if not omdb_api_key:
-                # Generate demo rating
-                hash_val = int(hashlib.md5(imdb_id.encode()).hexdigest()[:8], 16)
-                rating = 6.0 + (hash_val % 35) / 10.0
+                self.logger.warning(f"❌ No OMDb API key available - using demo data for {imdb_id} (IMDb)")
+                return None  # NO DEMO DATA IN PRODUCTION
+            
+            # Real API call only
+            omdb_data = await self._call_omdb_api(imdb_id, omdb_api_key)
+            if omdb_data and "imdbRating" in omdb_data and omdb_data["imdbRating"] != "N/A":
+                rating = float(omdb_data["imdbRating"])
                 percentage = int((rating / 10.0) * 100)
                 
                 result = {
                     "source": "IMDb",
-                    "text": f"{percentage}%",
+                    "text": f"{percentage}%", 
                     "score": percentage,
                     "score_max": 100,
                     "image_key": "IMDb"
                 }
             else:
-                # Real API call
-                omdb_data = await self._call_omdb_api(imdb_id, omdb_api_key)
-                if omdb_data and "imdbRating" in omdb_data and omdb_data["imdbRating"] != "N/A":
-                    rating = float(omdb_data["imdbRating"])
-                    percentage = int((rating / 10.0) * 100)
-                    
-                    result = {
-                        "source": "IMDb",
-                        "text": f"{percentage}%", 
-                        "score": percentage,
-                        "score_max": 100,
-                        "image_key": "IMDb"
-                    }
-                else:
-                    return None
+                self.logger.info(f"📊 [IMDb] No rating data available for {imdb_id}")
+                return None
             
             # Cache result
             self.cache[cache_key] = {
@@ -94,7 +85,7 @@ class TMDbFetcher(BaseReviewFetcher):
     """TMDb rating fetcher"""
     
     async def fetch(self, tmdb_id: str, media_type: str = "movie", tmdb_api_key: Optional[str] = None) -> Optional[Dict[str, Any]]:
-        """Fetch TMDb rating"""
+        """Fetch TMDb rating - PRODUCTION: NO DEMO DATA"""
         try:
             cache_key = f"tmdb_{tmdb_id}_{media_type}"
             if cache_key in self.cache:
@@ -103,16 +94,16 @@ class TMDbFetcher(BaseReviewFetcher):
                     return entry["data"]
             
             if not tmdb_api_key:
-                # Generate demo rating
-                hash_val = int(hashlib.md5(tmdb_id.encode()).hexdigest()[:8], 16)
-                percentage = 60 + (hash_val % 36)
+                self.logger.warning(f"❌ No TMDb API key available - using demo data for {tmdb_id} (TMDb)")
+                return None  # NO DEMO DATA IN PRODUCTION
+            
+            # Real API call only
+            rating = await self._call_tmdb_api(tmdb_id, media_type, tmdb_api_key)
+            if rating:
+                percentage = int(round(rating * 10))
             else:
-                # Real API call
-                rating = await self._call_tmdb_api(tmdb_id, media_type, tmdb_api_key)
-                if rating:
-                    percentage = int(round(rating * 10))
-                else:
-                    return None
+                self.logger.info(f"📊 [TMDb] No rating data available for {tmdb_id}")
+                return None
             
             result = {
                 "source": "TMDb",
