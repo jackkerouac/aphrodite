@@ -78,8 +78,8 @@ class V2ReviewDataFetcher:
                 if review:
                     reviews.append(review)
             
-            # Fetch RT Critics if enabled
-            if imdb_id and sources.get('enable_rotten_tomatoes_critics', False):
+            # Fetch RT Critics if enabled (default True to match processor defaults)
+            if imdb_id and sources.get('enable_rotten_tomatoes_critics', True):
                 self.logger.debug(f"🍅 [V2 REVIEW FETCHER] Fetching RT Critics for IMDb: {imdb_id}")
                 review = await self.rt_fetcher.fetch(imdb_id, self.omdb_api_key)
                 if review:
@@ -88,8 +88,8 @@ class V2ReviewDataFetcher:
                 else:
                     self.logger.warning(f"⚠️ [V2 REVIEW FETCHER] RT Critics fetch failed for {imdb_id}")
             
-            # Fetch Metacritic if enabled
-            if imdb_id and sources.get('enable_metacritic', False):
+            # Fetch Metacritic if enabled (default True to match processor defaults)
+            if imdb_id and sources.get('enable_metacritic', True):
                 self.logger.debug(f"🎭 [V2 REVIEW FETCHER] Fetching Metacritic for IMDb: {imdb_id}")
                 review = await self.metacritic_fetcher.fetch(imdb_id, self.omdb_api_key)
                 if review:
@@ -171,8 +171,8 @@ class V2ReviewDataFetcher:
                     "image_key": "TMDb"
                 })
             
-            # RT Critics and Metacritic - show demo data for preview, but often unavailable for TV series
-            if sources.get('enable_rotten_tomatoes_critics', False):
+            # RT Critics and Metacritic - enabled by default to match processor defaults
+            if sources.get('enable_rotten_tomatoes_critics', True):
                 reviews.append({
                     "source": "RT Critics",
                     "text": f"{rt_critics}%", 
@@ -182,7 +182,7 @@ class V2ReviewDataFetcher:
                 })
                 self.logger.debug(f"📝 [V2 REVIEW FETCHER] Demo RT Critics: {rt_critics}% (may not be available for all content)")
             
-            if sources.get('enable_metacritic', False):
+            if sources.get('enable_metacritic', True):
                 reviews.append({
                     "source": "Metacritic",
                     "text": f"{metacritic}%",
