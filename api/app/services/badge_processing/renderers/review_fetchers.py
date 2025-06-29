@@ -209,8 +209,8 @@ class TMDbFetcher(BaseReviewFetcher):
 class RottenTomatoesFetcher(BaseReviewFetcher):
     """Rotten Tomatoes Critics rating fetcher"""
     
-    async def fetch(self, imdb_id: str, omdb_api_key: Optional[str] = None) -> Optional[Dict[str, Any]]:
-        """Fetch RT Critics rating from OMDb API"""
+    async def fetch(self, imdb_id: str, omdb_data: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+        """Fetch RT Critics rating from shared OMDb data"""
         try:
             cache_key = f"rt_{imdb_id}"
             if cache_key in self.cache:
@@ -220,10 +220,9 @@ class RottenTomatoesFetcher(BaseReviewFetcher):
             
             result = None
             
-            if omdb_api_key:
-                # Try real API call first
-                omdb_data = await self._call_omdb_api(imdb_id, omdb_api_key)
-                if omdb_data and "Ratings" in omdb_data:
+            if omdb_data:
+                # Use shared OMDb data
+                if "Ratings" in omdb_data:
                     for rating in omdb_data["Ratings"]:
                         if rating["Source"] == "Rotten Tomatoes":
                             score = int(rating["Value"].rstrip("%"))
@@ -235,6 +234,9 @@ class RottenTomatoesFetcher(BaseReviewFetcher):
                                 "image_key": "RT-Crit-Fresh" if score >= 60 else "RT-Crit-Rotten"
                             }
                             break
+            else:
+                # No shared OMDb data available
+                self.logger.info(f"🍅 [RT FETCHER] No OMDb data provided for {imdb_id}")
             
             # Don't show badge if no real data available (common for TV series)
             if not result:
@@ -275,8 +277,8 @@ class RottenTomatoesFetcher(BaseReviewFetcher):
 class MetacriticFetcher(BaseReviewFetcher):
     """Metacritic rating fetcher"""
     
-    async def fetch(self, imdb_id: str, omdb_api_key: Optional[str] = None) -> Optional[Dict[str, Any]]:
-        """Fetch Metacritic rating from OMDb API"""
+    async def fetch(self, imdb_id: str, omdb_data: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+        """Fetch Metacritic rating from shared OMDb data"""
         try:
             cache_key = f"meta_{imdb_id}"
             if cache_key in self.cache:
@@ -286,10 +288,9 @@ class MetacriticFetcher(BaseReviewFetcher):
             
             result = None
             
-            if omdb_api_key:
-                # Try real API call first
-                omdb_data = await self._call_omdb_api(imdb_id, omdb_api_key)
-                if omdb_data and "Ratings" in omdb_data:
+            if omdb_data:
+                # Use shared OMDb data
+                if "Ratings" in omdb_data:
                     for rating in omdb_data["Ratings"]:
                         if rating["Source"] == "Metacritic":
                             score = int(rating["Value"].split("/")[0])
@@ -301,6 +302,9 @@ class MetacriticFetcher(BaseReviewFetcher):
                                 "image_key": "Metacritic"
                             }
                             break
+            else:
+                # No shared OMDb data available
+                self.logger.info(f"🎭 [METACRITIC FETCHER] No OMDb data provided for {imdb_id}")
             
             # Don't show badge if no real data available (common for TV series)
             if not result:

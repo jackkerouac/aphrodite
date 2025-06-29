@@ -87,7 +87,7 @@ class V2ReviewDataFetcher:
             
             # Fetch IMDb rating if enabled
             if imdb_id and sources.get('enable_imdb', True):
-                review = await self.imdb_fetcher.fetch(imdb_id, omdb_data, self.omdb_api_key)
+                review = await self.imdb_fetcher.fetch(imdb_id, self.omdb_api_key)
                 if review:
                     reviews.append(review)
                     self.logger.debug(f"✅ [V2 REVIEW FETCHER] IMDb: {review['text']}")
@@ -107,7 +107,7 @@ class V2ReviewDataFetcher:
             # Fetch RT Critics if enabled (default True to match processor defaults)
             if imdb_id and sources.get('enable_rotten_tomatoes_critics', True):
                 self.logger.debug(f"🍅 [V2 REVIEW FETCHER] Fetching RT Critics for IMDb: {imdb_id}")
-                review = await self.rt_fetcher.fetch(imdb_id, omdb_data, self.omdb_api_key)
+                review = await self.rt_fetcher.fetch(imdb_id, omdb_data)
                 if review:
                     reviews.append(review)
                     self.logger.debug(f"✅ [V2 REVIEW FETCHER] RT Critics: {review['text']}")
@@ -117,7 +117,7 @@ class V2ReviewDataFetcher:
             # Fetch Metacritic if enabled (default True to match processor defaults)
             if imdb_id and sources.get('enable_metacritic', True):
                 self.logger.debug(f"🎭 [V2 REVIEW FETCHER] Fetching Metacritic for IMDb: {imdb_id}")
-                review = await self.metacritic_fetcher.fetch(imdb_id, omdb_data, self.omdb_api_key)
+                review = await self.metacritic_fetcher.fetch(imdb_id, omdb_data)
                 if review:
                     reviews.append(review)
                     self.logger.debug(f"✅ [V2 REVIEW FETCHER] Metacritic: {review['text']}")
