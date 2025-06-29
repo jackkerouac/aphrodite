@@ -67,3 +67,43 @@ ImageBadges:
     hdr: hdr.png
     plus: plus.png
   image_padding: 20
+
+# Enhanced Detection Settings
+enhanced_detection:
+  enabled: false  # Disabled by default for existing users
+  
+  fallback_rules:
+    "1440p": "1080p"
+    "8k": "4k"
+    "2160p": "4k"
+  
+  hdr_detection_patterns:
+    - "HDR"
+    - "HDR10"
+    - "BT2020" 
+    - "PQ"
+    - "ST2084"
+    - "HLG"
+  
+  dv_detection_patterns:
+    - "DV"
+    - "DOLBY VISION"
+    - "DVHE"
+    - "DVH1"
+  
+  priority_order:
+    - "dvhdrplus"
+    - "dvhdr"
+    - "dvplus" 
+    - "hdrplus"
+    - "dv"
+    - "hdr"
+    - "plus"
+    - "base"
+
+# Performance Settings
+performance:
+  enable_parallel_processing: true
+  enable_caching: true
+  cache_ttl_hours: 24
+  max_episodes_to_sample: 5

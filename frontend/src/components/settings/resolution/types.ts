@@ -34,6 +34,55 @@ export interface ResolutionSettings {
     image_padding: number;
     image_mapping: Record<string, string>;
   };
+  enhanced_detection: {
+    enabled: boolean;
+    fallback_rules: Record<string, string>;
+    hdr_detection_patterns: string[];
+    dv_detection_patterns: string[];
+    priority_order: string[];
+  };
+  performance: {
+    enable_parallel_processing: boolean;
+    enable_caching: boolean;
+    cache_ttl_hours: number;
+    max_episodes_to_sample: number;
+  };
+}
+
+export interface ImageCoverageReport {
+  total_images: number;
+  coverage_by_resolution: Record<string, {
+    available_variants: string[];
+    missing_variants: string[];
+    has_base: boolean;
+  }>;
+  missing_combinations: string[];
+  standalone_images: string[];
+  fallback_coverage: Record<string, {
+    target: string;
+    target_available: boolean;
+  }>;
+}
+
+export interface CacheStats {
+  hit_rate_percent: number;
+  total_hits: number;
+  total_misses: number;
+  cache_size: number;
+  ttl_hours: number;
+  last_cleanup: string;
+}
+
+export interface DiagnosticResults {
+  imageCoverage?: ImageCoverageReport;
+  cacheStats?: CacheStats;
+  testResults?: {
+    test_passed: boolean;
+    detected_resolution: string;
+    used_image: string;
+    detection_method: string;
+    processing_time_ms: number;
+  };
 }
 
 export const defaultResolutionSettings: ResolutionSettings = {
@@ -77,5 +126,43 @@ export const defaultResolutionSettings: ResolutionSettings = {
       '480p': '480p.png',
       'SD': 'SD.png'
     }
+  },
+  enhanced_detection: {
+    enabled: false,
+    fallback_rules: {
+      '1440p': '1080p',
+      '8k': '4k',
+      '2160p': '4k'
+    },
+    hdr_detection_patterns: [
+      'HDR',
+      'HDR10',
+      'BT2020',
+      'PQ',
+      'ST2084',
+      'HLG'
+    ],
+    dv_detection_patterns: [
+      'DV',
+      'DOLBY VISION',
+      'DVHE',
+      'DVH1'
+    ],
+    priority_order: [
+      'dvhdrplus',
+      'dvhdr',
+      'dvplus',
+      'hdrplus',
+      'dv',
+      'hdr',
+      'plus',
+      'base'
+    ]
+  },
+  performance: {
+    enable_parallel_processing: true,
+    enable_caching: true,
+    cache_ttl_hours: 24,
+    max_episodes_to_sample: 5
   }
 };

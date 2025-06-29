@@ -17,6 +17,16 @@ from .database_service import badge_settings_service
 from .renderers import UnifiedBadgeRenderer
 from app.core.database import async_session_factory
 
+# Enhanced resolution detection components
+try:
+    from .resolution_detector import EnhancedResolutionDetector
+    from .image_manager import ResolutionImageManager
+    from .parallel_processor import ParallelResolutionProcessor
+    from .resolution_cache import ResolutionCache
+    ENHANCED_DETECTION_AVAILABLE = True
+except ImportError:
+    ENHANCED_DETECTION_AVAILABLE = False
+
 
 class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
     """Pure V2 resolution badge processor - no V1 dependencies"""
@@ -25,6 +35,18 @@ class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
         super().__init__("resolution")
         self.logger = get_logger("aphrodite.badge.resolution.v2", service="badge")
         self.renderer = UnifiedBadgeRenderer()
+        
+        # Initialize enhanced detection components if available
+        if ENHANCED_DETECTION_AVAILABLE:
+            self.logger.info("🚀 [V2 RESOLUTION] Enhanced detection components available")
+            self.enhanced_detector = EnhancedResolutionDetector()
+            self.image_manager = ResolutionImageManager()
+            self.parallel_processor = ParallelResolutionProcessor()
+            self.cache = ResolutionCache()
+            self.enhanced_enabled = True
+        else:
+            self.logger.info("⚠️ [V2 RESOLUTION] Using legacy detection (enhanced components not available)")
+            self.enhanced_enabled = False
     
     async def process_single(
         self, 
@@ -227,7 +249,7 @@ class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
             return None
     
     async def _get_v2_jellyfin_resolution(self, jellyfin_id: str) -> Optional[str]:
-        """Get real resolution using pure V2 Jellyfin service (NO V1 AGGREGATOR)"""
+        """Get real resolution using enhanced detection when available, fallback to legacy"""
         try:
             self.logger.debug(f"🌐 [V2 RESOLUTION] Querying Jellyfin for ID: {jellyfin_id}")
             
@@ -245,22 +267,34 @@ class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
             self.logger.debug(f"📺 [V2 RESOLUTION] Media type: {media_type}")
             
             if media_type == 'Movie':
-                # For movies: get resolution directly
-                resolution = await jellyfin_service.get_video_resolution_info(media_item)
-                self.logger.debug(f"🎬 [V2 RESOLUTION] Movie resolution: {resolution}")
-                return resolution
+                # For movies: use enhanced detection if available
+                if self.enhanced_enabled:
+                    return await self._get_enhanced_movie_resolution(media_item)
+                else:
+                    # Legacy detection
+                    resolution = await jellyfin_service.get_video_resolution_info(media_item)
+                    self.logger.debug(f"🎬 [V2 RESOLUTION] Movie resolution (legacy): {resolution}")
+                    return resolution
             
             elif media_type in ['Series', 'Season']:
-                # For TV: PURE V2 episode sampling (NO V1 AGGREGATOR)
-                resolution = await self._get_v2_tv_series_resolution(jellyfin_id, jellyfin_service)
-                self.logger.debug(f"📺 [V2 RESOLUTION] TV series resolution: {resolution}")
-                return resolution
+                # For TV: use enhanced parallel processing if available
+                if self.enhanced_enabled:
+                    return await self._get_enhanced_series_resolution(jellyfin_id, jellyfin_service)
+                else:
+                    # Legacy series detection
+                    resolution = await self._get_v2_tv_series_resolution_legacy(jellyfin_id, jellyfin_service)
+                    self.logger.debug(f"📺 [V2 RESOLUTION] TV series resolution (legacy): {resolution}")
+                    return resolution
             
             elif media_type == 'Episode':
-                # For episodes: get resolution directly
-                resolution = await jellyfin_service.get_video_resolution_info(media_item)
-                self.logger.debug(f"📻 [V2 RESOLUTION] Episode resolution: {resolution}")
-                return resolution
+                # For episodes: use enhanced detection if available
+                if self.enhanced_enabled:
+                    return await self._get_enhanced_movie_resolution(media_item)  # Same logic as movies
+                else:
+                    # Legacy detection
+                    resolution = await jellyfin_service.get_video_resolution_info(media_item)
+                    self.logger.debug(f"📻 [V2 RESOLUTION] Episode resolution (legacy): {resolution}")
+                    return resolution
             
             else:
                 self.logger.warning(f"⚠️ [V2 RESOLUTION] Unsupported media type: {media_type}")
@@ -270,7 +304,51 @@ class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
             self.logger.error(f"❌ [V2 RESOLUTION] Jellyfin resolution error: {e}", exc_info=True)
             return None
     
-    async def _get_v2_tv_series_resolution(self, jellyfin_id: str, jellyfin_service) -> Optional[str]:
+    async def _get_enhanced_movie_resolution(self, media_item: Dict[str, Any]) -> Optional[str]:
+        """Get movie resolution using enhanced detection"""
+        try:
+            resolution_info = self.enhanced_detector.extract_resolution_info(media_item)
+            if resolution_info:
+                result = str(resolution_info)
+                self.logger.debug(f"🎆 [V2 RESOLUTION] Enhanced movie resolution: {result}")
+                return result
+            else:
+                self.logger.warning("⚠️ [V2 RESOLUTION] Enhanced detection failed, using fallback")
+                return None
+        except Exception as e:
+            self.logger.error(f"❌ [V2 RESOLUTION] Enhanced movie detection error: {e}")
+            return None
+    
+    async def _get_enhanced_series_resolution(self, jellyfin_id: str, jellyfin_service) -> Optional[str]:
+        """Get series resolution using enhanced parallel processing and caching"""
+        try:
+            # Check cache first
+            cached_resolution = self.cache.get_cached_resolution(jellyfin_id)
+            if cached_resolution:
+                result = str(cached_resolution)
+                self.logger.debug(f"📦 [V2 RESOLUTION] Cached series resolution: {result}")
+                return result
+            
+            # Use parallel processing for fresh detection
+            resolution_info = await self.parallel_processor.get_series_resolution_parallel(
+                jellyfin_service, jellyfin_id, max_episodes=5
+            )
+            
+            if resolution_info:
+                # Cache the result
+                self.cache.cache_series_resolution(jellyfin_id, resolution_info)
+                result = str(resolution_info)
+                self.logger.debug(f"🎆 [V2 RESOLUTION] Enhanced series resolution: {result}")
+                return result
+            else:
+                self.logger.warning("⚠️ [V2 RESOLUTION] Enhanced series detection failed")
+                return "1080p"  # Reasonable default
+                
+        except Exception as e:
+            self.logger.error(f"❌ [V2 RESOLUTION] Enhanced series detection error: {e}")
+            return "1080p"  # Fallback default
+    
+    async def _get_v2_tv_series_resolution_legacy(self, jellyfin_id: str, jellyfin_service) -> Optional[str]:
         """Get TV series dominant resolution using PURE V2 methods (no V1 aggregator)"""
         try:
             self.logger.debug(f"📺 [V2 RESOLUTION] Sampling TV series episodes for: {jellyfin_id}")
@@ -401,6 +479,85 @@ class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
             return None
     
     def _map_resolution_to_image(self, resolution: str) -> str:
+        """Enhanced resolution to image mapping with fallback to legacy"""
+        if self.enhanced_enabled:
+            try:
+                # Use enhanced image manager
+                from .resolution_types import ResolutionInfo
+                
+                # Create a basic ResolutionInfo from the string for image mapping
+                # This is a simplified approach for backward compatibility
+                resolution_info = self._parse_resolution_string(resolution)
+                
+                # Get user mappings from settings (if available)
+                user_mappings = self._get_user_image_mappings()
+                
+                # Use enhanced image matching
+                image_file = self.image_manager.find_best_image_match(resolution_info, user_mappings)
+                
+                self.logger.debug(f"🎆 [V2 RESOLUTION] Enhanced image mapping: '{resolution}' -> {image_file}")
+                return image_file
+                
+            except Exception as e:
+                self.logger.warning(f"⚠️ [V2 RESOLUTION] Enhanced image mapping failed: {e}, using legacy")
+                # Fall through to legacy mapping
+        
+        # Legacy mapping (original implementation)
+        return self._map_resolution_to_image_legacy(resolution)
+    
+    def _parse_resolution_string(self, resolution: str) -> 'ResolutionInfo':
+        """Parse resolution string into ResolutionInfo for image mapping"""
+        from .resolution_types import ResolutionInfo
+        
+        resolution_upper = resolution.upper().strip()
+        
+        # Parse components
+        is_dv = bool(re.search(r'DV|DOLBY.?VISION', resolution_upper))
+        is_hdr = bool(re.search(r'HDR|HDR10', resolution_upper)) and not is_dv
+        is_plus = bool(re.search(r'PLUS|\+', resolution_upper))
+        
+        # Extract base resolution and dimensions
+        if re.search(r'4K|2160P', resolution_upper):
+            base_res = "4k"
+            height, width = 2160, 3840
+        elif re.search(r'1440P', resolution_upper):
+            base_res = "1440p"
+            height, width = 1440, 2560
+        elif re.search(r'1080P|1080', resolution_upper):
+            base_res = "1080p"
+            height, width = 1080, 1920
+        elif re.search(r'720P|720', resolution_upper):
+            base_res = "720p"
+            height, width = 720, 1280
+        elif re.search(r'576P|576', resolution_upper):
+            base_res = "576p"
+            height, width = 576, 720
+        elif re.search(r'480P|480', resolution_upper):
+            base_res = "480p"
+            height, width = 480, 720
+        else:
+            base_res = "1080p"  # Default
+            height, width = 1080, 1920
+        
+        return ResolutionInfo(
+            height=height,
+            width=width,
+            base_resolution=base_res,
+            is_hdr=is_hdr,
+            is_dolby_vision=is_dv,
+            is_hdr_plus=is_plus
+        )
+    
+    def _get_user_image_mappings(self) -> Optional[Dict[str, str]]:
+        """Get user-defined image mappings from settings"""
+        try:
+            # This would be loaded from settings in a real implementation
+            # For now, return None to use automatic detection
+            return None
+        except Exception:
+            return None
+    
+    def _map_resolution_to_image_legacy(self, resolution: str) -> str:
         """Improved resolution to image mapping with HDR/DV support"""
         resolution_upper = resolution.upper().strip()
         

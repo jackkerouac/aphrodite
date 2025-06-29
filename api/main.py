@@ -32,7 +32,7 @@ from app.middleware.logging import LoggingMiddleware
 from app.middleware.correlation import CorrelationMiddleware
 
 # Import routes
-from app.routes import health, media, jobs, config, system, maintenance, preview, poster_manager, poster_replacement, image_proxy, schedules, analytics
+from app.routes import health, media, jobs, config, system, maintenance, preview, poster_manager, poster_replacement, image_proxy, schedules, analytics, resolution_diagnostics
 from app.routes.workflow import job_router, control_router, progress_router, websocket_endpoint
 
 # Import exception handlers
@@ -158,6 +158,7 @@ def create_application() -> FastAPI:
     app.include_router(media.router, prefix="/api/v1/media", tags=["Media"])
     app.include_router(jobs.router, prefix="/api/v1/jobs", tags=["Jobs"])
     app.include_router(config.router, prefix="/api/v1/config", tags=["Configuration"])
+    app.include_router(resolution_diagnostics.router, prefix="/api/v1/settings/resolution", tags=["Resolution Diagnostics"])
     app.include_router(schedules.router, prefix="/api/v1", tags=["Schedules"])
     app.include_router(analytics.router, prefix="/api/v1", tags=["Analytics"])
     app.include_router(system.router, prefix="/api/v1", tags=["System"])

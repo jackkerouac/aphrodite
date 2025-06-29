@@ -12,6 +12,9 @@ import {
   BorderTab, 
   ShadowTab, 
   ImagesTab,
+  EnhancedDetectionTab,
+  PerformanceTab,
+  DiagnosticsTab,
   useResolutionSettings 
 } from './resolution';
 
@@ -27,7 +30,12 @@ export function ResolutionSettings() {
     updateSetting,
     addResolutionMapping,
     removeResolutionMapping,
-    updateResolutionName
+    updateResolutionName,
+    // Diagnostic functions
+    runImageCoverageAnalysis,
+    getCacheStats,
+    clearResolutionCache,
+    testEnhancedDetection
   } = useResolutionSettings();
 
   useEffect(() => {
@@ -62,13 +70,16 @@ export function ResolutionSettings() {
 
       <form onSubmit={handleSave} className="space-y-6">
         <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="text">Text</TabsTrigger>
             <TabsTrigger value="background">Background</TabsTrigger>
             <TabsTrigger value="border">Border</TabsTrigger>
             <TabsTrigger value="shadow">Shadow</TabsTrigger>
             <TabsTrigger value="images">Images</TabsTrigger>
+            <TabsTrigger value="enhanced">Enhanced</TabsTrigger>
+            <TabsTrigger value="performance">Performance</TabsTrigger>
+            <TabsTrigger value="diagnostics">Diagnostics</TabsTrigger>
           </TabsList>
 
           <TabsContent value="general">
@@ -102,6 +113,30 @@ export function ResolutionSettings() {
               addResolutionMapping={addResolutionMapping}
               removeResolutionMapping={removeResolutionMapping}
               updateResolutionName={updateResolutionName}
+            />
+          </TabsContent>
+
+          <TabsContent value="enhanced">
+            <EnhancedDetectionTab 
+              settings={settings} 
+              updateSetting={updateSetting}
+            />
+          </TabsContent>
+
+          <TabsContent value="performance">
+            <PerformanceTab 
+              settings={settings} 
+              updateSetting={updateSetting}
+            />
+          </TabsContent>
+
+          <TabsContent value="diagnostics">
+            <DiagnosticsTab 
+              settings={settings}
+              runImageCoverageAnalysis={runImageCoverageAnalysis}
+              getCacheStats={getCacheStats}
+              clearResolutionCache={clearResolutionCache}
+              testEnhancedDetection={testEnhancedDetection}
             />
           </TabsContent>
         </Tabs>
