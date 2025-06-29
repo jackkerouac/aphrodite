@@ -122,13 +122,13 @@ api/static/*/*
 # Exclude backups and logs
 data/backups/
 data/logs/
-.env.development
 
-# Docker build scripts (local development only)
-docker-build-scripts/
-docker-build-scripts/*
-scripts/
-scripts/*
+# Development scripts are TRACKED - only ignore specific old scripts
+# DON'T ignore scripts/ directory - we need development scripts!
+# scripts/ - REMOVED - We need to track development scripts
+# scripts/* - REMOVED - We need to track development scripts
+
+# Ignore specific deployment and debug files
 deployment-fix/
 deployment-fix/*
 apply-host-header*
@@ -142,13 +142,18 @@ test_output/*
 DEPLOYMENT.md
 FRESH_INSTALL.md
 *.backup
-docker-compose.dev.yml
 docker-compose.datredis.yml
 docker-compose.local.yml
 force-rebuild.bat
-test*.py
+debug_omdb_test.py
+
+# Ignore specific old test files but not our new test scripts
 test/
 test/*
-scripts/
-scripts/*
-debug_omdb_test.py
+
+# Docker build scripts (local development only) - but allow our development scripts
+docker-build-scripts/
+docker-build-scripts/*
+
+# Environment files to ignore (keep .env.development tracked)
+.env.development.local

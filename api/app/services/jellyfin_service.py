@@ -271,10 +271,16 @@ class JellyfinService:
         try:
             # Use consistent header-based authentication like other methods
             url = urljoin(self.base_url, f"/Items/{item_id}")
+            
+            # Add MediaSources and MediaStreams fields for badge compatibility
+            params = {
+                "Fields": "MediaSources,MediaStreams,ProviderIds,Tags,Genres,Overview,ProductionYear,CommunityRating,OfficialRating"
+            }
+            
             session = await self._get_session()
             
             try:
-                async with session.get(url) as response:
+                async with session.get(url, params=params) as response:
                     if response.status == 200:
                         metadata = await response.json()
                         self.logger.debug(f"Retrieved metadata for item {item_id}")

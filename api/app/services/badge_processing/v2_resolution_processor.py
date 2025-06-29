@@ -270,8 +270,8 @@ class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
             from app.services.jellyfin_service import get_jellyfin_service
             jellyfin_service = get_jellyfin_service()
             
-            # Get media item
-            media_item = await jellyfin_service.get_media_item_by_id(jellyfin_id)
+            # Get media item with fallback for API compatibility
+            media_item = await jellyfin_service.get_item_details(jellyfin_id)
             if not media_item:
                 self.logger.warning(f"⚠️ [V2 RESOLUTION] Media item not found: {jellyfin_id}")
                 return None

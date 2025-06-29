@@ -1,5 +1,5 @@
-# Development Docker Compose - Uses locally built image
-# For fast iteration without releases!
+# Development Docker Compose with hot reloading
+# Build from source with live code changes
 
 services:
   # PostgreSQL Database
@@ -11,7 +11,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-aphrodite}
       POSTGRES_USER: ${POSTGRES_USER:-aphrodite}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aphrodite123}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -34,13 +34,49 @@ services:
       timeout: 10s
       retries: 5
 
-  # Aphrodite - Complete Application (Frontend + API)
-  aphrodite:
-    image: ${APHRODITE_IMAGE:-aphrodite:dev-latest}
-    restart: unless-stopped
+  # Frontend Development Server (Next.js with hot reloading)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app:delegated
+      - frontend_node_modules:/app/node_modules
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - WATCHPACK_POLLING=true
+    command: npm run dev
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backend API Development Server (FastAPI with hot reloading)
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      # Mount source code for hot reloading
+      - ./api:/app/api:delegated
+      - ./shared:/app/shared:delegated
+      - ./aphrodite_logging:/app/aphrodite_logging:delegated
+      - ./aphrodite_helpers:/app/aphrodite_helpers:delegated
+      - ./VERSION:/app/VERSION:ro
+      # Persistent data volumes
+      - aphrodite_data:/app/data
+      - aphrodite_logs:/app/logs
+      - aphrodite_media:/app/media
+      - aphrodite_static:/app/api/static/originals
     environment:
       # Database Configuration
-      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://aphrodite:${POSTGRES_PASSWORD:-changeme}@postgres:5432/aphrodite}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://aphrodite:aphrodite123@postgres:5432/aphrodite}
       
       # Redis Configuration
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
@@ -48,16 +84,16 @@ services:
       # Application Configuration
       API_HOST: ${API_HOST:-0.0.0.0}
       API_PORT: ${API_PORT:-8000}
-      ENVIRONMENT: ${ENVIRONMENT:-production}
-      SECRET_KEY: ${SECRET_KEY:-please-change-this-secret-key-in-production}
+      ENVIRONMENT: development
+      SECRET_KEY: ${SECRET_KEY:-development-clean-secret-key-change-in-production}
       
-      # Network Configuration - Deployment agnostic
+      # Development Settings
+      DEBUG: true
+      LOG_LEVEL: debug
+      
+      # Network Configuration
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
-      CORS_ORIGINS: ${CORS_ORIGINS:-*}
-      
-      # Logging
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      DEBUG: ${DEBUG:-false}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
       
       # Background Jobs
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
@@ -68,14 +104,6 @@ services:
       JELLYFIN_URL: ${JELLYFIN_URL:-}
       JELLYFIN_API_KEY: ${JELLYFIN_API_KEY:-}
       JELLYFIN_USER_ID: ${JELLYFIN_USER_ID:-}
-    ports:
-      - "${APHRODITE_PORT:-8000}:8000"
-    volumes:
-      # Persistent application data
-      - aphrodite_data:/app/data
-      - aphrodite_logs:/app/logs
-      - aphrodite_media:/app/media
-      - aphrodite_static:/app/api/static/originals
     depends_on:
       postgres:
         condition: service_healthy
@@ -83,32 +111,40 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health/live"]
-      interval: 10s
+      interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 3
       start_period: 40s
 
-  # Celery Worker - Background job processing
-  aphrodite-worker:
-    image: ${APHRODITE_IMAGE:-aphrodite:dev-latest}
-    restart: unless-stopped
-    command: ["python", "-m", "celery", "-A", "celery_app", "worker", "--loglevel=info", "--pool=solo", "--concurrency=1"]
-    environment:
-      # Same environment as main application
-      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://aphrodite:${POSTGRES_PASSWORD:-changeme}@postgres:5432/aphrodite}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
-      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
-      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/1}
-      ENVIRONMENT: ${ENVIRONMENT:-production}
-      SECRET_KEY: ${SECRET_KEY:-please-change-this-secret-key-in-production}
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      PYTHONPATH: /app
+  # Celery Worker - Background job processing (development)
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: ["python", "-m", "celery", "-A", "celery_app", "worker", "--loglevel=debug", "--pool=solo", "--concurrency=1"]
     volumes:
-      # Share volumes with main application
+      # Mount source code for hot reloading
+      - ./api:/app/api:delegated
+      - ./shared:/app/shared:delegated
+      - ./aphrodite_logging:/app/aphrodite_logging:delegated
+      - ./aphrodite_helpers:/app/aphrodite_helpers:delegated
+      - ./VERSION:/app/VERSION:ro
+      # Persistent data volumes
       - aphrodite_data:/app/data
       - aphrodite_logs:/app/logs
       - aphrodite_media:/app/media
       - aphrodite_static:/app/api/static/originals
+    environment:
+      # Same environment as API
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://aphrodite:aphrodite123@postgres:5432/aphrodite}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/1}
+      ENVIRONMENT: development
+      SECRET_KEY: ${SECRET_KEY:-development-clean-secret-key-change-in-production}
+      DEBUG: true
+      LOG_LEVEL: debug
+      PYTHONPATH: /app
     depends_on:
       postgres:
         condition: service_healthy
@@ -133,6 +169,8 @@ volumes:
   aphrodite_media:
     driver: local
   aphrodite_static:
+    driver: local
+  frontend_node_modules:
     driver: local
 
 networks:

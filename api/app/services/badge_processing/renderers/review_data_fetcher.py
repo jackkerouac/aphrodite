@@ -339,7 +339,7 @@ class V2ReviewDataFetcher:
         try:
             from app.services.jellyfin_service import get_jellyfin_service
             jellyfin_service = get_jellyfin_service()
-            return await jellyfin_service.get_media_item_by_id(jellyfin_id)
+            return await jellyfin_service.get_item_details(jellyfin_id)
         except Exception as e:
             self.logger.error(f"❌ [V2 REVIEW FETCHER] Error getting Jellyfin metadata: {e}")
             return None

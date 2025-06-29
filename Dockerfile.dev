@@ -1,0 +1,72 @@
+# Development Dockerfile with hot reloading
+FROM python:3.11-slim
+
+# Install runtime dependencies, build tools, and fonts
+RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    gosu \
+    libpq5 \
+    postgresql-client \
+    fonts-dejavu-core \
+    fonts-liberation \
+    # Additional tools for development
+    git \
+    vim \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd -r aphrodite \
+    && useradd -r -g aphrodite aphrodite
+
+# Set environment variables for development
+ENV PATH="/home/aphrodite/.local/bin:$PATH" \
+    PYTHONPATH="/app" \
+    PYTHONUNBUFFERED=1 \
+    API_HOST=0.0.0.0 \
+    API_PORT=8000 \
+    ENVIRONMENT=development \
+    DEBUG=true \
+    LOG_LEVEL=debug \
+    APHRODITE_ROOT=/app \
+    APHRODITE_API_DIR=/app/api \
+    APHRODITE_ASSETS_DIR=/app/assets \
+    APHRODITE_DATA_DIR=/app/data
+
+# Create application directory structure
+WORKDIR /app
+RUN mkdir -p /app/logs /app/data /app/media /app/assets /app/assets/fonts /app/assets/images \
+             /app/api/static /app/api/static/preview /app/api/static/processed /app/api/static/originals \
+             /app/api/static/awards /app/api/static/awards/black /app/api/static/awards/white && \
+    chown -R aphrodite:aphrodite /app && \
+    chmod -R 755 /app
+
+# Install Python dependencies
+COPY api/requirements.txt ./api/
+RUN pip install --no-cache-dir -r ./api/requirements.txt
+
+# Copy static assets (fonts and images)
+COPY --chown=aphrodite:aphrodite fonts/ ./assets/fonts/
+COPY --chown=aphrodite:aphrodite images/ ./assets/images/
+
+# Create symlinks for backward compatibility
+RUN ln -sf /app/assets/fonts /app/fonts && \
+    ln -sf /app/assets/images /app/images
+
+# Copy VERSION file
+COPY --chown=aphrodite:aphrodite VERSION ./
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health/live || exit 1
+
+# Expose port
+EXPOSE 8000
+
+# Switch to non-root user
+USER aphrodite
+
+# Set working directory to API
+WORKDIR /app/api
+
+# Start the FastAPI application with hot reloading for development
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app"]
