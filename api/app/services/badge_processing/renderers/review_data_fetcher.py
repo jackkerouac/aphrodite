@@ -12,7 +12,8 @@ from pathlib import Path
 from aphrodite_logging import get_logger
 from .review_fetchers import (
     IMDbFetcher, TMDbFetcher, RottenTomatoesFetcher, 
-    MetacriticFetcher, MDBListFetcher, MyAnimeListFetcher
+    MetacriticFetcher, MDBListFetcher, MyAnimeListFetcher,
+    SharedOMDbFetcher
 )
 
 
@@ -22,7 +23,8 @@ class V2ReviewDataFetcher:
     def __init__(self):
         self.logger = get_logger("aphrodite.badge.review.fetcher.v2", service="badge")
         
-        # Initialize individual fetchers
+        # Initialize shared OMDb fetcher and individual fetchers
+        self.shared_omdb = SharedOMDbFetcher()
         self.imdb_fetcher = IMDbFetcher()
         self.tmdb_fetcher = TMDbFetcher()
         self.rt_fetcher = RottenTomatoesFetcher()
@@ -65,35 +67,47 @@ class V2ReviewDataFetcher:
             # Collect reviews from enabled sources
             reviews = []
             
+            # Fetch shared OMDb data once if we need it for any OMDb-based sources
+            omdb_data = None
+            needs_omdb = (imdb_id and (
+                sources.get('enable_imdb', True) or 
+                sources.get('enable_rotten_tomatoes_critics', True) or 
+                sources.get('enable_metacritic', True)
+            ))
+            
+            if needs_omdb and self.omdb_api_key:
+                self.logger.info(f"✅ [V2 REVIEW FETCHER] Making single OMDb API call for: {imdb_id}")
+                omdb_data = await self.shared_omdb.fetch_omdb_data(imdb_id, self.omdb_api_key)
+                if omdb_data:
+                    self.logger.debug(f"✅ [V2 REVIEW FETCHER] OMDb data retrieved successfully for {imdb_id}")
+                else:
+                    self.logger.warning(f"⚠️ [V2 REVIEW FETCHER] OMDb API call failed for {imdb_id}")
+            elif needs_omdb:
+                self.logger.warning(f"❌ [V2 REVIEW FETCHER] No OMDb API key available for {imdb_id}")
+            
             # Fetch IMDb rating if enabled
             if imdb_id and sources.get('enable_imdb', True):
-                if self.omdb_api_key:
-                    self.logger.info(f"✅ [V2 REVIEW FETCHER] Using real OMDb API key for IMDb: {imdb_id}")
-                else:
-                    self.logger.warning(f"❌ [V2 REVIEW FETCHER] No OMDb API key - IMDb fetch will fail: {imdb_id}")
-                review = await self.imdb_fetcher.fetch(imdb_id, self.omdb_api_key)
+                review = await self.imdb_fetcher.fetch(imdb_id, omdb_data, self.omdb_api_key)
                 if review:
                     reviews.append(review)
+                    self.logger.debug(f"✅ [V2 REVIEW FETCHER] IMDb: {review['text']}")
             
             # Fetch TMDb rating if enabled
             if tmdb_id and sources.get('enable_tmdb', True):
                 if self.tmdb_api_key:
-                    self.logger.info(f"✅ [V2 REVIEW FETCHER] Using real TMDb API key for TMDb: {tmdb_id}")
+                    self.logger.debug(f"✅ [V2 REVIEW FETCHER] Using real TMDb API key for TMDb: {tmdb_id}")
                 else:
                     self.logger.warning(f"❌ [V2 REVIEW FETCHER] No TMDb API key - TMDb fetch will fail: {tmdb_id}")
                 tmdb_media_type = "movie" if media_type == "movie" else "tv"
                 review = await self.tmdb_fetcher.fetch(tmdb_id, tmdb_media_type, self.tmdb_api_key)
                 if review:
                     reviews.append(review)
+                    self.logger.debug(f"✅ [V2 REVIEW FETCHER] TMDb: {review['text']}")
             
             # Fetch RT Critics if enabled (default True to match processor defaults)
             if imdb_id and sources.get('enable_rotten_tomatoes_critics', True):
-                if self.omdb_api_key:
-                    self.logger.info(f"✅ [V2 REVIEW FETCHER] Using real OMDb API key for RT Critics: {imdb_id}")
-                else:
-                    self.logger.warning(f"❌ [V2 REVIEW FETCHER] No OMDb API key available for RT Critics - using demo data")
                 self.logger.debug(f"🍅 [V2 REVIEW FETCHER] Fetching RT Critics for IMDb: {imdb_id}")
-                review = await self.rt_fetcher.fetch(imdb_id, self.omdb_api_key)
+                review = await self.rt_fetcher.fetch(imdb_id, omdb_data, self.omdb_api_key)
                 if review:
                     reviews.append(review)
                     self.logger.debug(f"✅ [V2 REVIEW FETCHER] RT Critics: {review['text']}")
@@ -102,12 +116,8 @@ class V2ReviewDataFetcher:
             
             # Fetch Metacritic if enabled (default True to match processor defaults)
             if imdb_id and sources.get('enable_metacritic', True):
-                if self.omdb_api_key:
-                    self.logger.info(f"✅ [V2 REVIEW FETCHER] Using real OMDb API key for Metacritic: {imdb_id}")
-                else:
-                    self.logger.warning(f"❌ [V2 REVIEW FETCHER] No OMDb API key available for Metacritic - using demo data")
                 self.logger.debug(f"🎭 [V2 REVIEW FETCHER] Fetching Metacritic for IMDb: {imdb_id}")
-                review = await self.metacritic_fetcher.fetch(imdb_id, self.omdb_api_key)
+                review = await self.metacritic_fetcher.fetch(imdb_id, omdb_data, self.omdb_api_key)
                 if review:
                     reviews.append(review)
                     self.logger.debug(f"✅ [V2 REVIEW FETCHER] Metacritic: {review['text']}")

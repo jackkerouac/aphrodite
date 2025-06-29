@@ -151,3 +151,4 @@ test/
 test/*
 scripts/
 scripts/*
+debug_omdb_test.py

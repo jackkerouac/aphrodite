@@ -9,6 +9,65 @@ import aiohttp
 from aphrodite_logging import get_logger
 
 
+class SharedOMDbFetcher:
+    """Shared OMDb API fetcher to avoid multiple API calls"""
+    
+    def __init__(self):
+        self.logger = get_logger("aphrodite.badge.review.fetcher.omdb", service="badge")
+        self.cache = {}
+        self.cache_expiration = 60 * 60  # 1 hour cache
+    
+    async def fetch_omdb_data(self, imdb_id: str, api_key: str) -> Optional[Dict[str, Any]]:
+        """Fetch OMDb data once and cache it for all fetchers"""
+        try:
+            cache_key = f"omdb_{imdb_id}"
+            if cache_key in self.cache:
+                entry = self.cache[cache_key]
+                if time.time() - entry["timestamp"] < self.cache_expiration:
+                    self.logger.debug(f"🔄 [SHARED OMDB] Using cached data for {imdb_id}")
+                    return entry["data"]
+            
+            self.logger.debug(f"🌐 [SHARED OMDB] Making API call for {imdb_id}")
+            url = f"http://www.omdbapi.com/?i={imdb_id}&apikey={api_key}"
+            
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        if data.get("Response") == "True":
+                            # Cache the result
+                            self.cache[cache_key] = {
+                                "timestamp": time.time(),
+                                "data": data
+                            }
+                            self.logger.debug(f"✅ [SHARED OMDB] Successfully fetched and cached data for {imdb_id}")
+                            return data
+                        else:
+                            error_msg = data.get('Error', 'Unknown error')
+                            if "Request limit reached" in error_msg:
+                                self.logger.error(f"🚫 [SHARED OMDB] OMDb API quota exceeded: {error_msg}")
+                            else:
+                                self.logger.warning(f"⚠️ [SHARED OMDB] OMDb returned error: {error_msg}")
+                    elif response.status == 401:
+                        try:
+                            data = await response.json()
+                            error_msg = data.get('Error', 'Unauthorized')
+                            if "Request limit reached" in error_msg:
+                                self.logger.error(f"🚫 [SHARED OMDB] OMDb API quota exceeded (HTTP 401): {error_msg}")
+                            else:
+                                self.logger.error(f"🔒 [SHARED OMDB] OMDb API authentication failed: {error_msg}")
+                        except:
+                            self.logger.error(f"🔒 [SHARED OMDB] OMDb API returned HTTP 401 (likely quota exceeded)")
+                    else:
+                        self.logger.warning(f"⚠️ [SHARED OMDB] HTTP {response.status} for {imdb_id}")
+            
+            return None
+            
+        except Exception as e:
+            self.logger.error(f"❌ [SHARED OMDB] Error fetching data for {imdb_id}: {e}")
+            return None
+
+
 class BaseReviewFetcher:
     """Base class for review fetchers"""
     
