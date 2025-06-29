@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle2, Info, RefreshCw, Clock, Database, Settings, ExternalLink } from 'lucide-react';
+import { CheckCircle2, Info, RefreshCw, Clock, Database, Settings, ExternalLink, Container } from 'lucide-react';
 import { SystemInfo, UpdateInfo } from './types';
 
 interface SystemDetailsCardProps {
@@ -90,15 +90,7 @@ function ExecutionModeSection({ executionMode }: { executionMode: string }) {
 
   const getIcon = (mode: string) => {
     if (mode === 'Docker') {
-      return (
-        <svg 
-          className="h-8 w-8 text-blue-500" 
-          viewBox="0 0 24 24" 
-          fill="currentColor"
-        >
-          <path d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185"/>
-        </svg>
-      );
+      return <Container className="h-8 w-8 text-blue-500" />;
     }
     return <Settings className="h-8 w-8 text-green-500" />;
   };
