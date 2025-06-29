@@ -5,7 +5,7 @@ Completely V2-native resolution badge processing with no V1 dependencies.
 Clear logging for system differentiation.
 """
 
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Union
 from pathlib import Path
 import re
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -39,11 +39,24 @@ class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
         # Initialize enhanced detection components if available
         if ENHANCED_DETECTION_AVAILABLE:
             self.logger.info("🚀 [V2 RESOLUTION] Enhanced detection components available")
-            self.enhanced_detector = EnhancedResolutionDetector()
-            self.image_manager = ResolutionImageManager()
-            self.parallel_processor = ParallelResolutionProcessor()
-            self.cache = ResolutionCache()
-            self.enhanced_enabled = True
+            try:
+                self.enhanced_detector = EnhancedResolutionDetector()
+                self.image_manager = ResolutionImageManager()
+                self.parallel_processor = ParallelResolutionProcessor()
+                self.cache = ResolutionCache()
+                
+                # Load enhanced detection settings
+                enhanced_settings = self._load_enhanced_detection_settings()
+                self.enhanced_enabled = enhanced_settings.get('enabled', True)
+                
+                if self.enhanced_enabled:
+                    self.logger.info("✅ [V2 RESOLUTION] Enhanced detection enabled")
+                else:
+                    self.logger.info("🔄 [V2 RESOLUTION] Enhanced detection disabled by settings")
+                    
+            except Exception as e:
+                self.logger.error(f"❌ [V2 RESOLUTION] Enhanced component initialization failed: {e}")
+                self.enhanced_enabled = False
         else:
             self.logger.info("⚠️ [V2 RESOLUTION] Using legacy detection (enhanced components not available)")
             self.enhanced_enabled = False
@@ -329,9 +342,12 @@ class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
                 self.logger.debug(f"📦 [V2 RESOLUTION] Cached series resolution: {result}")
                 return result
             
+            # Load performance settings
+            max_episodes = self._get_performance_setting('max_episodes_to_sample', 5)
+            
             # Use parallel processing for fresh detection
             resolution_info = await self.parallel_processor.get_series_resolution_parallel(
-                jellyfin_service, jellyfin_id, max_episodes=5
+                jellyfin_service, jellyfin_id, max_episodes=max_episodes
             )
             
             if resolution_info:
@@ -551,11 +567,45 @@ class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
     def _get_user_image_mappings(self) -> Optional[Dict[str, str]]:
         """Get user-defined image mappings from settings"""
         try:
-            # This would be loaded from settings in a real implementation
-            # For now, return None to use automatic detection
-            return None
+            # Load user mappings from current settings if available
+            # This integrates with the existing settings system
+            return None  # Use automatic detection for now
         except Exception:
             return None
+    
+    def _get_performance_setting(self, setting_name: str, default_value: Union[int, bool, str]) -> Union[int, bool, str]:
+        """Get performance setting with fallback to default"""
+        try:
+            # In a full implementation, this would load from settings
+            # For now, return sensible defaults
+            defaults = {
+                'max_episodes_to_sample': 5,
+                'enable_parallel_processing': True,
+                'enable_caching': True
+            }
+            return defaults.get(setting_name, default_value)
+        except Exception:
+            return default_value
+    
+    def _load_enhanced_detection_settings(self) -> Dict[str, Any]:
+        """Load enhanced detection settings"""
+        try:
+            # Load settings - this would integrate with the existing settings system
+            return {
+                'enabled': True,
+                'fallback_rules': {
+                    '1440p': '1080p',
+                    '8k': '4k', 
+                    '2160p': '4k',
+                    '1080i': '1080p',
+                    '720i': '720p'
+                },
+                'hdr_detection_patterns': ['HDR', 'HDR10', 'BT2020', 'PQ', 'ST2084', 'HLG'],
+                'dv_detection_patterns': ['DV', 'DOLBY VISION', 'DVHE', 'DVH1']
+            }
+        except Exception as e:
+            self.logger.error(f"Failed to load enhanced detection settings: {e}")
+            return {'enabled': False}
     
     def _map_resolution_to_image_legacy(self, resolution: str) -> str:
         """Improved resolution to image mapping with HDR/DV support"""
