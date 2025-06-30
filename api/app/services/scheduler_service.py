@@ -164,7 +164,7 @@ class SchedulerService:
             await self._process_schedule_execution(db, schedule, execution)
             
         except Exception as e:
-            self.logger.error(f"Error executing schedule {schedule.id}: {e}", exc_info=True)
+            self.logger.error(f"Error executing schedule: {e}", exc_info=True)
             # Update execution status to failed if it exists
             try:
                 if 'execution' in locals():
@@ -250,14 +250,17 @@ class SchedulerService:
             # Update execution with results
             execution.status = "completed" if failed_items == 0 else "failed"
             execution.completed_at = datetime.now(timezone.utc)
-            execution.items_processed = {
+            
+            # Convert the results dictionary to JSON string for database storage
+            import json
+            execution.items_processed = json.dumps({
                 "total_items": total_items,
                 "processed_items": processed_items,
                 "failed_items": failed_items,
                 "job_ids": job_ids,
                 "badge_types": schedule.badge_types,
                 "libraries": schedule.target_libraries
-            }
+            })
             
             if failed_items > 0:
                 execution.error_message = f"Failed to process {failed_items} out of {total_items} items"
@@ -267,7 +270,7 @@ class SchedulerService:
             self.logger.info(f"Schedule execution {execution.id} completed: {processed_items} jobs created, {failed_items} failed")
             
         except Exception as e:
-            self.logger.error(f"Error processing schedule execution {execution.id}: {e}", exc_info=True)
+            self.logger.error(f"Error processing schedule execution: {e}", exc_info=True)
             execution.status = "failed"
             execution.error_message = str(e)
             execution.completed_at = datetime.now(timezone.utc)

@@ -227,6 +227,13 @@ class JellyfinService:
     async def get_library_items(self, library_id: str) -> List[Dict[str, Any]]:
         """Get all items from a specific library"""
         try:
+            # Load settings first
+            await self._load_jellyfin_settings()
+            
+            if not self.base_url or not self.api_key:
+                self.logger.error("Jellyfin not configured")
+                return []
+            
             url = urljoin(
                 self.base_url,
                 f"/Items?ParentId={library_id}&Recursive=true&api_key={self.api_key}"
