@@ -157,3 +157,6 @@ docker-build-scripts/*
 
 # Environment files to ignore (keep .env.development tracked)
 .env.development.local
+
+# Test files to ignore
+test_*.py

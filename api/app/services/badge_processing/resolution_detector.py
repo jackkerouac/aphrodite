@@ -104,42 +104,53 @@ class EnhancedResolutionDetector:
         return None
     
     def _map_height_to_resolution(self, height: int, width: int = 0) -> str:
-        """Map pixel dimensions to resolution string with comprehensive coverage"""
-        # For widescreen/ultrawide content, use both width and height for better accuracy
-        # This fixes issues where widescreen content was incorrectly classified to lower resolutions
+        """Map pixel dimensions to resolution string with intelligent letterbox and orientation handling"""
+        # Improved logic to handle letterboxed content, ultrawide, portrait, and edge cases
+        # This fixes the user's issue where 1280x536 and 1280x690 should both be 720p
         
-        if height >= 4320:
+        # For portrait content, swap dimensions to use landscape logic
+        if height > width:
+            width, height = height, width
+        
+        # Ultra-high resolution content (8K)
+        if height >= 4320 or width >= 7680:
             return "8k"      # 8K UHD (7680×4320)
-        elif height >= 2160:
+        
+        # 4K content - be more selective to avoid ultrawide misclassification
+        elif height >= 2160 or (width >= 3840 and height >= 1600):
             return "4k"      # 4K UHD (3840×2160)
+        elif width >= 4000 and height >= 1200 and width < 5000:  # Very wide 4K letterboxed (but not super ultrawide)
+            return "4k"
+        
+        # 1440p content - stricter criteria to prevent ultrawide 1080p misclassification
         elif height >= 1440:
             return "1440p"   # QHD (2560×1440)
-        elif height >= 1080:
-            return "1080p"   # Full HD (1920×1080)
-        elif height >= 720:
-            # Handle widescreen 1080p content (e.g., 1928×820, 2048×858)
-            # Only upgrade to 1080p if:
-            # 1. Width suggests 1080p content (≥1800px) AND
-            # 2. Height is above standard 720p (>720) to avoid misclassifying 1920×720
-            if width >= 1800 and height > 720:
+        elif width >= 2560 and height >= 1200:  # Ultrawide 1440p
+            return "1440p"
+        
+        # 1080p content (Full HD and variants)
+        elif height >= 1080 or width >= 1920:
+            return "1080p"   # Full HD (1920×1080) and ultrawide variants
+        elif width >= 1600 and height >= 600:  # Letterboxed 1080p content
+            # Conservative threshold for letterboxed 1080p
+            if width >= 1800:  # High confidence threshold
                 return "1080p"
             else:
-                return "720p"    # HD (1280×720)
-        elif height >= 576:
-            # Handle widescreen 720p content (rare but possible)
-            # If width suggests 720p content (≥1200px), keep as 720p
-            if width >= 1200:  # Threshold for widescreen 720p
-                return "720p"
-            else:
-                return "576p"    # PAL DVD (720×576)
-        elif height >= 480:
-            # Handle widescreen 576p content
-            if width >= 1000:  # Threshold for widescreen 576p
-                return "576p"
-            else:
-                return "480p"    # NTSC DVD (720×480)
+                return "720p"   # Default to 720p for borderline cases
+        
+        # 720p content (HD and letterboxed variants)
+        elif height >= 720 or width >= 1280:
+            return "720p"   # HD (1280×720) and letterboxed variants
+        elif width >= 1200 and height >= 400:  # Letterboxed 720p content
+            return "720p"   # Handle letterboxed 720p (like user's 1280×536 case)
+        
+        # SD content with improved edge case handling
+        elif height >= 576 or (width >= 720 and width < 1200 and height >= 500):
+            return "576p"   # PAL DVD (720×576)
+        elif height >= 480 or (width >= 640 and width < 1024):
+            return "480p"   # NTSC DVD (720×480)
         else:
-            return f"{height}p"  # Custom resolution
+            return f"{height}p"  # Custom resolution for very low resolutions
     
     def _detect_hdr(self, video_stream: Dict[str, Any]) -> bool:
         """Enhanced HDR detection using multiple metadata fields"""
