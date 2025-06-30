@@ -281,6 +281,26 @@ async def get_target_libraries():
         return {"libraries": []}
 
 
+@router.get("/{schedule_id}/executions/{execution_id}", response_model=ScheduleExecutionResponse)
+async def get_schedule_execution(
+    schedule_id: str,
+    execution_id: str,
+    db: AsyncSession = Depends(get_db_session)
+):
+    """Get details of a specific schedule execution"""
+    stmt = select(ScheduleExecutionModel).where(
+        and_(
+            ScheduleExecutionModel.id == execution_id,
+            ScheduleExecutionModel.schedule_id == schedule_id
+        )
+    )
+    result = await db.execute(stmt)
+    execution = result.scalar_one_or_none()
+    if not execution:
+        raise HTTPException(status_code=404, detail="Schedule execution not found")
+    return ScheduleExecutionResponse.from_orm(execution)
+
+
 @router.post("/{schedule_id}/execute")
 async def execute_schedule(
     schedule_id: str,
@@ -298,6 +318,13 @@ async def execute_schedule(
     execution_id = await scheduler_service.execute_schedule_manually(schedule_id)
     
     if execution_id:
-        return {"message": "Schedule execution started", "execution_id": execution_id}
+        return {
+            "message": "Schedule execution started successfully",
+            "execution_id": execution_id,
+            "schedule_name": schedule.name,
+            "library_count": len(schedule.target_libraries),
+            "badge_types": schedule.badge_types,
+            "status": "processing"
+        }
     else:
         raise HTTPException(status_code=500, detail="Failed to execute schedule")

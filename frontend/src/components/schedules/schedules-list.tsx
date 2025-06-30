@@ -97,12 +97,90 @@ export function SchedulesList({ onCreateSchedule, onEditSchedule }: SchedulesLis
 
   const handleExecuteSchedule = async (schedule: Schedule) => {
     try {
-      await apiService.executeSchedule(schedule.id);
-      toast.success('Schedule execution started');
+      // Show initial start notification
+      toast.success(
+        `🚀 Starting schedule "${schedule.name}"`,
+        {
+          description: `Processing ${schedule.target_libraries.length || 'all'} libraries with ${schedule.badge_types.join(', ') || 'no'} badges`,
+          duration: 3000
+        }
+      );
+
+      const response = await apiService.executeSchedule(schedule.id);
+      
+      // Start polling for completion if we have an execution ID
+      if (response.execution_id) {
+        pollExecutionStatus(schedule, response.execution_id);
+      }
     } catch (error) {
       console.error('Failed to execute schedule:', error);
-      toast.error('Failed to execute schedule');
+      toast.error(
+        `❌ Failed to start schedule "${schedule.name}"`,
+        {
+          description: 'Please check the logs for more details',
+          duration: 5000
+        }
+      );
     }
+  };
+
+  const pollExecutionStatus = async (schedule: Schedule, executionId: string) => {
+    const maxPolls = 60; // Poll for up to 5 minutes (60 * 5s = 5min)
+    let pollCount = 0;
+
+    const poll = async () => {
+      try {
+        const execution = await apiService.getScheduleExecution(schedule.id, executionId);
+        
+        if (execution.status === 'completed') {
+          // Parse the items_processed JSON to get details
+          let processedInfo = '';
+          try {
+            const processed = JSON.parse(execution.items_processed || '{}');
+            processedInfo = `Processed ${processed.processed_items || 0} items${processed.failed_items ? ` (${processed.failed_items} failed)` : ''}`;
+          } catch {
+            processedInfo = 'Processing completed';
+          }
+
+          toast.success(
+            `✅ Schedule "${schedule.name}" completed`,
+            {
+              description: processedInfo,
+              duration: 5000
+            }
+          );
+          return; // Stop polling
+        } else if (execution.status === 'failed') {
+          toast.error(
+            `❌ Schedule "${schedule.name}" failed`,
+            {
+              description: execution.error_message || 'Check logs for details',
+              duration: 7000
+            }
+          );
+          return; // Stop polling
+        } else if (execution.status === 'processing' && pollCount < maxPolls) {
+          // Continue polling after 5 seconds
+          pollCount++;
+          setTimeout(poll, 5000);
+        } else if (pollCount >= maxPolls) {
+          // Timeout - stop polling but don't show error (execution might still be running)
+          toast.info(
+            `⏱️ Schedule "${schedule.name}" is still running`,
+            {
+              description: 'Check the schedule history for final status',
+              duration: 4000
+            }
+          );
+        }
+      } catch (error) {
+        console.error('Failed to check execution status:', error);
+        // Don't show error toast for polling failures - just stop polling
+      }
+    };
+
+    // Start the first poll after 2 seconds
+    setTimeout(poll, 2000);
   };
 
   const formatCronExpression = (cron: string) => {

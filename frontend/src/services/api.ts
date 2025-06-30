@@ -302,6 +302,11 @@ export const apiService = {
     return handleResponse(response);
   },
 
+  async getScheduleExecution(scheduleId: string, executionId: string) {
+    const response = await fetch(buildApiUrl(`/api/v1/schedules/${scheduleId}/executions/${executionId}`));
+    return handleResponse(response);
+  },
+
   async executeSchedule(id: string) {
     const response = await fetch(buildApiUrl(`/api/v1/schedules/${id}/execute`), {
       method: 'POST',

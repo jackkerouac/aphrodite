@@ -39,27 +39,29 @@ class JobService:
         try:
             # For library scans, we don't need to verify media item exists
             if job_type != "library_scan":
-                # Verify media item exists
-                media_result = await db.execute(
-                    select(MediaItemModel).where(MediaItemModel.id == media_id)
-                )
-                media_item = media_result.scalar_one_or_none()
+                # Find media item by ID or Jellyfin ID
+                media_item = await self._find_media_item(db, media_id)
                 
                 if not media_item:
                     self.logger.error(f"Media item not found: {media_id}")
                     return None
                 
-                # Check for existing pending/processing jobs
-                existing_job = await self._get_active_job_for_media(db, media_id, job_type)
+                # Use the database ID for the job
+                actual_media_id = media_item.id
+                
+                # Check for existing pending/processing jobs using database ID
+                existing_job = await self._get_active_job_for_media(db, actual_media_id, job_type)
                 if existing_job:
-                    self.logger.warning(f"Job already exists for media {media_id}: {existing_job.id}")
+                    self.logger.warning(f"Job already exists for media {actual_media_id}: {existing_job.id}")
                     return self._model_to_pydantic(existing_job)
+            else:
+                actual_media_id = media_id
             
-            # Create new job
+            # Create new job with the actual database media ID
             job_id = generate_id()
             job = ProcessingJobModel(
                 id=job_id,
-                media_id=media_id,
+                media_id=actual_media_id,
                 job_type=job_type,
                 status=ProcessingStatus.PENDING,
                 parameters=parameters or {},
@@ -69,12 +71,36 @@ class JobService:
             db.add(job)
             await db.commit()
             
-            self.logger.info(f"Created job {job_id} for media {media_id}")
+            self.logger.info(f"Created job {job_id} for media {actual_media_id}")
             return self._model_to_pydantic(job)
             
         except Exception as e:
             await db.rollback()
             self.logger.error(f"Error creating job for media {media_id}: {e}")
+            return None
+    
+    async def _find_media_item(self, db: AsyncSession, media_id: str) -> Optional[MediaItemModel]:
+        """Find media item by database ID or Jellyfin ID"""
+        try:
+            # First try by database ID
+            result = await db.execute(
+                select(MediaItemModel).where(MediaItemModel.id == media_id)
+            )
+            media_item = result.scalar_one_or_none()
+            
+            if media_item:
+                return media_item
+            
+            # If not found, try by Jellyfin ID
+            result = await db.execute(
+                select(MediaItemModel).where(MediaItemModel.jellyfin_id == media_id)
+            )
+            media_item = result.scalar_one_or_none()
+            
+            return media_item
+            
+        except Exception as e:
+            self.logger.error(f"Error finding media item {media_id}: {e}")
             return None
     
     async def _get_active_job_for_media(
