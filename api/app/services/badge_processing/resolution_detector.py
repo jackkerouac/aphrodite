@@ -50,7 +50,7 @@ class EnhancedResolutionDetector:
                 return None
             
             # Map to base resolution string
-            base_resolution = self._map_height_to_resolution(height)
+            base_resolution = self._map_height_to_resolution(height, width)
             
             # Detect advanced video properties
             is_hdr = self._detect_hdr(video_stream)
@@ -103,8 +103,11 @@ class EnhancedResolutionDetector:
         
         return None
     
-    def _map_height_to_resolution(self, height: int) -> str:
-        """Map pixel height to resolution string with comprehensive coverage"""
+    def _map_height_to_resolution(self, height: int, width: int = 0) -> str:
+        """Map pixel dimensions to resolution string with comprehensive coverage"""
+        # For widescreen/ultrawide content, use both width and height for better accuracy
+        # This fixes issues where widescreen content was incorrectly classified to lower resolutions
+        
         if height >= 4320:
             return "8k"      # 8K UHD (7680×4320)
         elif height >= 2160:
@@ -114,11 +117,27 @@ class EnhancedResolutionDetector:
         elif height >= 1080:
             return "1080p"   # Full HD (1920×1080)
         elif height >= 720:
-            return "720p"    # HD (1280×720)
+            # Handle widescreen 1080p content (e.g., 1928×820, 2048×858)
+            # Only upgrade to 1080p if:
+            # 1. Width suggests 1080p content (≥1800px) AND
+            # 2. Height is above standard 720p (>720) to avoid misclassifying 1920×720
+            if width >= 1800 and height > 720:
+                return "1080p"
+            else:
+                return "720p"    # HD (1280×720)
         elif height >= 576:
-            return "576p"    # PAL DVD (720×576)
+            # Handle widescreen 720p content (rare but possible)
+            # If width suggests 720p content (≥1200px), keep as 720p
+            if width >= 1200:  # Threshold for widescreen 720p
+                return "720p"
+            else:
+                return "576p"    # PAL DVD (720×576)
         elif height >= 480:
-            return "480p"    # NTSC DVD (720×480)
+            # Handle widescreen 576p content
+            if width >= 1000:  # Threshold for widescreen 576p
+                return "576p"
+            else:
+                return "480p"    # NTSC DVD (720×480)
         else:
             return f"{height}p"  # Custom resolution
     
