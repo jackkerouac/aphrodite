@@ -87,6 +87,15 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.warning(f"Failed to start WebSocket Redis listener: {e}")
         
+        # Start scheduler service
+        try:
+            from app.services.scheduler_service import get_scheduler_service
+            scheduler_service = get_scheduler_service()
+            await scheduler_service.start()
+            logger.info("Scheduler service started successfully")
+        except Exception as e:
+            logger.warning(f"Failed to start scheduler service: {e}")
+        
         yield
         
     except Exception as e:
@@ -95,6 +104,15 @@ async def lifespan(app: FastAPI):
     finally:
         # Shutdown
         logger.info("Shutting down Aphrodite v2 API server")
+        
+        # Stop scheduler service
+        try:
+            from app.services.scheduler_service import get_scheduler_service
+            scheduler_service = get_scheduler_service()
+            await scheduler_service.stop()
+            logger.info("Scheduler service stopped")
+        except Exception as e:
+            logger.warning(f"Error stopping scheduler service: {e}")
         
         # Stop WebSocket Redis listener
         try:

@@ -257,7 +257,7 @@ class JobService:
                 await self.update_job_status(db, job_id, ProcessingStatus.PROCESSING, progress=0.0)
                 
                 # Process based on job type
-                if job.job_type == "poster_processing":
+                if job.job_type in ["poster_processing", "scheduled_poster_processing"]:
                     await self._process_poster_job(db, job)
                 elif job.job_type == "library_scan":
                     await self._process_library_scan_job(db, job)

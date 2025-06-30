@@ -2,7 +2,7 @@
 Schedule management routes for Aphrodite v2
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +13,7 @@ import uuid
 from ..core.database import get_db_session
 from ..models.schedules import ScheduleModel, ScheduleExecutionModel
 from ..services.jellyfin_service import get_jellyfin_service
+from ..services.scheduler_service import get_scheduler_service
 
 
 router = APIRouter(prefix="/schedules", tags=["schedules"])
@@ -292,17 +293,11 @@ async def execute_schedule(
     if not schedule:
         raise HTTPException(status_code=404, detail="Schedule not found")
     
-    # Create execution record
-    execution = ScheduleExecutionModel(
-        schedule_id=schedule_id,
-        status="pending",
-        created_at=datetime.utcnow()
-    )
-    db.add(execution)
-    await db.commit()
-    await db.refresh(execution)
+    # Use scheduler service to execute the schedule
+    scheduler_service = get_scheduler_service()
+    execution_id = await scheduler_service.execute_schedule_manually(schedule_id)
     
-    # TODO: Queue the actual schedule execution job here
-    # This would integrate with the existing job system
-    
-    return {"message": "Schedule execution queued", "execution_id": str(execution.id)}
+    if execution_id:
+        return {"message": "Schedule execution started", "execution_id": execution_id}
+    else:
+        raise HTTPException(status_code=500, detail="Failed to execute schedule")

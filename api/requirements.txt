@@ -46,6 +46,7 @@ pyyaml==6.0.1
 python-dateutil==2.8.2
 pytz==2023.3
 packaging==23.2
+croniter==2.0.1
 
 # Development dependencies
 pytest==7.4.3
