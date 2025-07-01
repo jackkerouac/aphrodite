@@ -60,7 +60,8 @@ COPY --chown=aphrodite:aphrodite aphrodite_helpers/ ./aphrodite_helpers/
 COPY --chown=aphrodite:aphrodite init-badge-settings-production.py ./
 
 # Copy pre-built frontend
-COPY --chown=aphrodite:aphrodite frontend/.next ./frontend/.next
+# Check if frontend/.next exists (pre-built) and copy it if it does
+COPY --chown=aphrodite:aphrodite frontend/.next ./frontend/.next 2>/dev/null || true
 COPY --chown=aphrodite:aphrodite frontend/public ./frontend/public
 COPY --chown=aphrodite:aphrodite frontend/package.json ./frontend/package.json
 

@@ -12,11 +12,13 @@ from croniter import croniter
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, update
 from sqlalchemy.orm import sessionmaker
+from uuid import UUID
 
 from app.core.database import get_db_session
 from app.models.schedules import ScheduleModel, ScheduleExecutionModel
 from app.services.jellyfin_service import get_jellyfin_service
 from app.services.job_service import get_job_service
+from app.services.workflow import JobManager, JobCreator, PriorityManager, ResourceManager, JobRepository
 from aphrodite_logging import get_logger
 
 
@@ -160,8 +162,8 @@ class SchedulerService:
             execution.status = "processing"
             await db.commit()
             
-            # Process the schedule execution
-            await self._process_schedule_execution(db, schedule, execution)
+            # Process the schedule execution using proper job system
+            await self._process_schedule_execution_with_jobs(db, schedule, execution)
             
         except Exception as e:
             self.logger.error(f"Error executing schedule: {e}", exc_info=True)
@@ -175,14 +177,15 @@ class SchedulerService:
             except:
                 pass
                 
-    async def _process_schedule_execution(self, db: AsyncSession, schedule: ScheduleModel, execution: ScheduleExecutionModel):
-        """Process a schedule execution by directly processing poster enhancement"""
+    async def _process_schedule_execution_with_jobs(self, db: AsyncSession, schedule: ScheduleModel, execution: ScheduleExecutionModel):
+        """Process a schedule execution by creating proper jobs for badge processing"""
         try:
             jellyfin_service = get_jellyfin_service()
             
             total_items = 0
             processed_items = 0
             failed_items = 0
+            created_jobs = []
             
             # Process each target library
             for library_id in schedule.target_libraries:
@@ -196,45 +199,76 @@ class SchedulerService:
                     
                     self.logger.info(f"Found {library_total} items in library {library_id}")
                     
-                    # Process each item directly (skip job system)
+                    # Filter items that need processing
+                    items_to_process = []
                     for item in items:
+                        jellyfin_id = item.get('Id')
+                        item_name = item.get('Name', 'Unknown')
+                        item_type = item.get('Type', '').lower()
+                        
+                        if not jellyfin_id:
+                            continue
+                            
+                        # Only process movies and series
+                        if item_type not in ['movie', 'series']:
+                            continue
+                            
+                        # Check if item should be processed
+                        should_process = schedule.reprocess_all
+                        
+                        if not should_process:
+                            # Only process items without aphrodite-overlay tag
+                            tags = item.get('Tags', [])
+                            has_overlay_tag = 'aphrodite-overlay' in tags
+                            should_process = not has_overlay_tag
+                            
+                        if should_process:
+                            items_to_process.append(jellyfin_id)
+                            self.logger.debug(f"Will process {item_name} (ID: {jellyfin_id})")
+                        else:
+                            self.logger.debug(f"Skipping {item_name} (already has aphrodite-overlay tag)")
+                    
+                    # Create batch job for this library if we have items to process
+                    if items_to_process:
                         try:
-                            jellyfin_id = item.get('Id')
-                            item_name = item.get('Name', 'Unknown')
+                            # Convert string IDs to UUIDs for the job system
+                            poster_ids = [UUID(item_id) for item_id in items_to_process]
                             
-                            if not jellyfin_id:
-                                continue
-                                
-                            # Check if we should process this item
-                            should_process = schedule.reprocess_all
+                            # Create job manager with proper dependencies
+                            job_repository = JobRepository(db)
+                            job_creator = JobCreator(job_repository)
+                            priority_manager = PriorityManager(job_repository)
+                            resource_manager = ResourceManager()
                             
-                            if not should_process:
-                                # Only process if not already processed with these badge types
-                                # For now, we'll process all items (TODO: add tracking)
-                                should_process = True
-                                
-                            if should_process:
-                                # Process directly without creating job
-                                success = await self._process_item_directly(
-                                    db, jellyfin_id, item_name, schedule.badge_types
-                                )
-                                
-                                if success:
-                                    processed_items += 1
-                                    self.logger.debug(f"Processed item {item_name} directly")
-                                else:
-                                    failed_items += 1
-                                    self.logger.warning(f"Failed to process item {item_name}")
+                            job_manager = JobManager(job_repository, job_creator, priority_manager, resource_manager)
                             
-                        except Exception as e:
-                            failed_items += 1
-                            self.logger.error(f"Error processing item {item.get('Id', 'unknown')}: {e}")
+                            # Create batch job for this library
+                            job_name = f"Schedule: {schedule.name} - Library {library_id}"
                             
+                            job = await job_manager.create_job(
+                                user_id="scheduler",
+                                name=job_name,
+                                poster_ids=poster_ids,
+                                badge_types=schedule.badge_types
+                            )
+                            
+                            created_jobs.append(str(job.id))
+                            processed_items += len(items_to_process)
+                            
+                            self.logger.info(f"Created job {job.id} for {len(items_to_process)} items from library {library_id}")
+                            
+                        except Exception as job_error:
+                            self.logger.error(f"Failed to create job for library {library_id}: {job_error}", exc_info=True)
+                            failed_items += len(items_to_process)
+                    else:
+                        self.logger.info(f"No items to process in library {library_id} (all items already have badges or reprocess_all=False)")
+                        
                 except Exception as e:
-                    self.logger.error(f"Error processing library {library_id}: {e}")
+                    self.logger.error(f"Error processing library {library_id}: {e}", exc_info=True)
+                    failed_items += library_total
                     
             # Update execution with results
-            execution.status = "completed" if failed_items == 0 else "failed"
+            execution.status = "completed" if failed_items == 0 else "completed_with_errors"
             execution.completed_at = datetime.now(timezone.utc)
             
             # Convert the results dictionary to JSON string for database storage
@@ -245,15 +279,16 @@ class SchedulerService:
                 "failed_items": failed_items,
                 "badge_types": schedule.badge_types,
                 "libraries": schedule.target_libraries,
-                "processing_method": "direct"
+                "processing_method": "jobs",
+                "created_jobs": created_jobs
             })
             
             if failed_items > 0:
-                execution.error_message = f"Failed to process {failed_items} out of {total_items} items"
+                execution.error_message = f"Failed to create jobs for {failed_items} out of {total_items} items"
                 
             await db.commit()
             
-            self.logger.info(f"Schedule execution {execution.id} completed: {processed_items} items processed directly, {failed_items} failed")
+            self.logger.info(f"Schedule execution {execution.id} completed: Created {len(created_jobs)} jobs for {processed_items} items, {failed_items} failed")
             
         except Exception as e:
             self.logger.error(f"Error processing schedule execution: {e}", exc_info=True)
@@ -299,31 +334,6 @@ class SchedulerService:
         except Exception as e:
             self.logger.error(f"Error manually executing schedule {schedule_id}: {e}", exc_info=True)
             return None
-    
-    async def _process_item_directly(self, db: AsyncSession, jellyfin_id: str, item_name: str, badge_types: list) -> bool:
-        """Process a single item directly without using the job system"""
-        try:
-            # For now, just simulate processing since we're bypassing the complex job system
-            # This is the "quick fix" approach to get the scheduler working
-            
-            self.logger.debug(f"Direct processing: {item_name} (ID: {jellyfin_id}) with badges: {badge_types}")
-            
-            # Simulate some processing time
-            await asyncio.sleep(0.1)  # Very quick processing
-            
-            # In a real implementation, this would:
-            # 1. Download poster from Jellyfin using jellyfin_id
-            # 2. Apply the specified badge_types  
-            # 3. Save the enhanced poster
-            # 4. Update any tracking/cache as needed
-            
-            # For now, just log success
-            self.logger.debug(f"Successfully processed {item_name} directly")
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Error in direct processing for {item_name}: {e}")
-            return False
 
 
 # Global service instance

@@ -15,11 +15,12 @@ sys.path.insert(0, str(project_root))
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
+from fastapi.responses import JSONResponse, FileResponse, HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import time
 import uuid
+import aiohttp
 
 # Import our logging system
 from aphrodite_logging import get_logger, setup_logging
@@ -75,6 +76,16 @@ async def lifespan(app: FastAPI):
         frontend_path = Path(__file__).parent.parent / "frontend" / ".next"
         if frontend_path.exists():
             logger.info("Frontend build found - serving Next.js application")
+            # Log the contents of the .next directory for debugging
+            try:
+                next_server_dir = frontend_path / "server"
+                if next_server_dir.exists():
+                    logger.info(f"Found Next.js server directory at {next_server_dir}")
+                    logger.debug(f"Next.js server directory contents: {list(next_server_dir.glob('**/*.html'))}")
+                else:
+                    logger.warning(f"Next.js server directory not found at {next_server_dir}")
+            except Exception as e:
+                logger.warning(f"Error checking Next.js directory structure: {e}")
         else:
             logger.warning("Frontend build not found - API only mode")
         
@@ -195,23 +206,74 @@ def create_application() -> FastAPI:
     # WebSocket route
     app.websocket("/api/v1/workflow/ws/{job_id}")(websocket_endpoint)
     
-    # Handle Next.js image optimization (now safe since /_next mount is removed)
+    # Handle OPTIONS requests for Next.js image optimization
+    @app.options("/_next/image")
+    async def nextjs_image_options():
+        """Handle CORS preflight for Next.js image optimization"""
+        return Response(
+            status_code=200,
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+            }
+        )
+    
+    # Handle Next.js image optimization directly without redirects
     @app.get("/_next/image")
     async def nextjs_image_proxy(url: str, w: int = 384, q: int = 75):
-        """Proxy Next.js image optimization requests through our external image proxy"""
-        from fastapi.responses import RedirectResponse
+        """Handle Next.js image optimization requests directly"""
         import urllib.parse
+        import aiohttp
+        from fastapi.responses import Response
         
-        # Decode the URL parameter
-        decoded_url = urllib.parse.unquote(url)
+        logger = get_logger("aphrodite.api.nextjs_image", service="api")
         
-        # If it's a relative URL, make it absolute
-        if decoded_url.startswith('/'):
-            decoded_url = f"http://localhost:8000{decoded_url}"
-        
-        # Redirect to our external image proxy service with proper CORS handling
-        proxy_url = f"/api/v1/images/proxy/external/?url={urllib.parse.quote(decoded_url, safe='')}&w={w}&q={q}"
-        return RedirectResponse(url=proxy_url, status_code=302)
+        try:
+            # Decode the URL parameter
+            decoded_url = urllib.parse.unquote(url)
+            
+            logger.info(f"🖼️ Next.js image optimization request: {decoded_url} (w={w}, q={q})")
+            
+            # Validate URL to prevent SSRF attacks
+            if not decoded_url.startswith(('http://', 'https://')):
+                logger.warning(f"❌ Invalid URL scheme in Next.js image request: {decoded_url}")
+                raise HTTPException(status_code=400, detail="Invalid URL scheme")
+            
+            # Get the image from external source with timeout
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
+                async with session.get(decoded_url) as response:
+                    if response.status == 200:
+                        # Get the content type
+                        content_type = response.headers.get('content-type', 'image/jpeg')
+                        
+                        # Read the image data
+                        image_data = await response.read()
+                        
+                        logger.info(f"✅ Successfully served Next.js optimized image: {len(image_data)} bytes")
+                        
+                        # Return the image directly with proper headers
+                        return Response(
+                            content=image_data,
+                            media_type=content_type,
+                            headers={
+                                "Cache-Control": "public, max-age=3600",  # Cache for 1 hour
+                                "Access-Control-Allow-Origin": "*",
+                                "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+                                "Access-Control-Allow-Headers": "*",
+                                "Content-Length": str(len(image_data))
+                            }
+                        )
+                    else:
+                        logger.warning(f"⚠️ External service returned status {response.status} for Next.js image: {decoded_url}")
+                        raise HTTPException(status_code=404, detail="Image not found")
+                        
+        except aiohttp.ClientError as e:
+            logger.error(f"🌐 Network error in Next.js image optimization {decoded_url}: {e}")
+            raise HTTPException(status_code=502, detail="Failed to fetch image")
+        except Exception as e:
+            logger.error(f"💥 Error in Next.js image optimization {decoded_url}: {e}", exc_info=True)
+            raise HTTPException(status_code=500, detail="Failed to optimize image")
     
     # Add redirect routes for endpoints without trailing slashes
     from fastapi.responses import RedirectResponse
@@ -243,6 +305,7 @@ def setup_static_files(app: FastAPI):
     
     # Paths for frontend files
     project_root = Path(__file__).parent.parent
+    frontend_build = project_root / "frontend" / ".next"
     frontend_static = project_root / "frontend" / ".next" / "static"
     frontend_public = project_root / "frontend" / "public"
     
@@ -272,6 +335,7 @@ def setup_static_files(app: FastAPI):
     if frontend_static.exists():
         logger.info(f"Mounting Next.js static files from {frontend_static}")
         app.mount("/_next/static", StaticFiles(directory=str(frontend_static), html=True), name="nextjs-static")
+        # Note: We do NOT mount the entire /_next directory here to avoid conflicts with /_next/image endpoint
     
     # Mount public files
     if frontend_public.exists():
@@ -383,6 +447,8 @@ def serve_nextjs_page(page_name: str):
     
     # Final fallback
     return HTMLResponse(content=create_simple_frontend(), status_code=200)
+
+
 
 def create_simple_frontend():
     """Create a simple frontend page when Next.js files aren't available"""
