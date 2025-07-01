@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import { ApiSettings } from '@/components/settings/api-settings';
-import { AudioSettings } from '@/components/settings/audio-settings';
+import { EnhancedAudioSettings } from '@/components/settings/enhanced-audio-settings';
 import { ResolutionSettings } from '@/components/settings/resolution-settings';
 import { ReviewSettings } from '@/components/settings/review-settings';
 import { AwardsSettings } from '@/components/settings/awards-settings';
@@ -25,7 +25,7 @@ interface LoadingStatus {
 
 const tabs = [
   { id: 'api', name: 'API', component: ApiSettings },
-  { id: 'audio', name: 'Audio', component: AudioSettings },
+  { id: 'audio', name: 'Audio', component: EnhancedAudioSettings },
   { id: 'resolution', name: 'Resolution', component: ResolutionSettings },
   { id: 'review', name: 'Review', component: ReviewSettings },
   { id: 'awards', name: 'Awards', component: AwardsSettings },

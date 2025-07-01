@@ -1,0 +1,11 @@
+export { GeneralTab } from './general-tab';
+export { TextTab } from './text-tab';
+export { BackgroundTab } from './background-tab';
+export { BorderTab } from './border-tab';
+export { ShadowTab } from './shadow-tab';
+export { ImagesTab } from './images-tab';
+export { EnhancedDetectionTab } from './enhanced-detection-tab';
+export { PerformanceTab } from './performance-tab';
+export { DiagnosticsTab } from './diagnostics-tab';
+export { useAudioSettings } from './hooks';
+export type { AudioSettings, AudioCoverageReport, AudioCacheStats, AudioDetectionTestResult } from './types';
