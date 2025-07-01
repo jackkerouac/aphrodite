@@ -85,5 +85,17 @@ Install Docker Desktop or enable buildx:
 docker buildx install
 ```
 
+### ARM64 Build Failures (psutil, other native packages)
+The Dockerfile uses multi-stage builds to handle native dependencies:
+- **Builder stage**: Installs gcc, python3-dev, and other build tools
+- **Production stage**: Only includes runtime dependencies
+- **Package copying**: Pre-compiled packages are copied from builder
+
+If you see build errors for native packages, verify your Dockerfile includes:
+```dockerfile
+FROM python:3.11-slim AS builder
+RUN apt-get update && apt-get install -y gcc g++ python3-dev libpq-dev
+```
+
 ### ARM64 Performance
 ARM64 builds may be slower on AMD64 hosts due to emulation. For best performance, build on native ARM64 hardware when possible.

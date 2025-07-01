@@ -1,4 +1,20 @@
-# Simplified Dockerfile using pre-built frontend
+# Multi-stage Dockerfile with ARM64 build support
+FROM python:3.11-slim AS builder
+
+# Install build dependencies for compiling Python packages
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    python3-dev \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+WORKDIR /app
+COPY api/requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt
+
+# Production stage
 FROM python:3.11-slim AS production
 
 # Install runtime dependencies and fonts
@@ -14,10 +30,14 @@ RUN apt-get update && apt-get install -y \
     && groupadd -r aphrodite \
     && useradd -r -g aphrodite aphrodite
 
+# Copy Python packages from builder stage
+COPY --from=builder /root/.local /home/aphrodite/.local
+
+# Fix ownership of Python packages
+RUN chown -R aphrodite:aphrodite /home/aphrodite/.local
+
 # Install Python dependencies
 WORKDIR /app
-COPY api/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
 # Set environment variables
 ENV PATH="/home/aphrodite/.local/bin:$PATH" \

@@ -101,8 +101,21 @@ if docker buildx version &> /dev/null; then
         --tag "aphrodite:latest" \
         --platform linux/amd64,linux/arm64 \
         --file Dockerfile \
+        --progress=plain \
         --load \
-        .
+        . || {
+        print_error "Multi-platform build failed, trying with build args..."
+        docker buildx build \
+            --label "aphrodite-build" \
+            --tag "aphrodite:$VERSION" \
+            --tag "aphrodite:latest" \
+            --platform linux/amd64,linux/arm64 \
+            --file Dockerfile \
+            --build-arg BUILDPLATFORM=linux/amd64 \
+            --progress=plain \
+            --load \
+            .
+    }
 else
     print_warning "Docker Buildx not available, building for current platform only"
     docker build \
