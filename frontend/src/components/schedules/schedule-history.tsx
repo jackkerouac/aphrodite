@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Clock, CheckCircle, XCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Clock, CheckCircle, XCircle, AlertCircle, RefreshCw, Trash2 } from 'lucide-react';
 import { apiService } from '@/services/api';
 import { toast } from 'sonner';
 
@@ -24,6 +25,8 @@ export function ScheduleHistory() {
   const [executions, setExecutions] = useState<ScheduleExecution[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [clearingHistory, setClearingHistory] = useState(false);
+  const [showClearDialog, setShowClearDialog] = useState(false);
 
   const fetchHistory = async () => {
     try {
@@ -45,6 +48,21 @@ export function ScheduleHistory() {
   useEffect(() => {
     fetchHistory();
   }, [statusFilter]);
+
+  const handleClearHistory = async () => {
+    try {
+      setClearingHistory(true);
+      const result = await apiService.clearScheduleHistory();
+      toast.success(`${result.message}`);
+      await fetchHistory(); // Refresh the history list
+      setShowClearDialog(false);
+    } catch (error) {
+      console.error('Failed to clear schedule history:', error);
+      toast.error('Failed to clear schedule history');
+    } finally {
+      setClearingHistory(false);
+    }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -131,6 +149,14 @@ export function ScheduleHistory() {
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowClearDialog(true)}
+            disabled={clearingHistory || executions.length === 0}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Clear History
+          </Button>
         </div>
       </div>
 
@@ -211,6 +237,44 @@ export function ScheduleHistory() {
           ))}
         </div>
       )}
+
+      {/* Clear History Confirmation Dialog */}
+      <Dialog open={showClearDialog} onOpenChange={setShowClearDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Clear Schedule History</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to clear all schedule execution history? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowClearDialog(false)}
+              disabled={clearingHistory}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleClearHistory}
+              disabled={clearingHistory}
+            >
+              {clearingHistory ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Clearing...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Clear History
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

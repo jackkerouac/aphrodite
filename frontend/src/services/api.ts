@@ -329,6 +329,17 @@ export const apiService = {
     return handleResponse(response);
   },
 
+  async clearScheduleHistory(scheduleId?: string) {
+    const url = scheduleId 
+      ? buildApiUrl(`/api/v1/schedules/executions/history?schedule_id=${scheduleId}`)
+      : buildApiUrl('/api/v1/schedules/executions/history');
+    
+    const response = await fetch(url, {
+      method: 'DELETE',
+    });
+    return handleResponse(response);
+  },
+
   // Analytics endpoints
   async getAnalyticsOverview() {
     const response = await fetch(buildApiUrl('/api/v1/analytics/overview'));

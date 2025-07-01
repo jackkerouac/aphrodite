@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, delete, and_
 from pydantic import BaseModel, Field
 import uuid
 
@@ -328,3 +328,32 @@ async def execute_schedule(
         }
     else:
         raise HTTPException(status_code=500, detail="Failed to execute schedule")
+
+
+@router.delete("/executions/history")
+async def clear_schedule_history(
+    schedule_id: Optional[str] = Query(None, description="Clear history for specific schedule, or all if not provided"),
+    db: AsyncSession = Depends(get_db_session)
+):
+    """Clear schedule execution history"""
+    if schedule_id:
+        # Clear history for specific schedule
+        stmt = delete(ScheduleExecutionModel).where(ScheduleExecutionModel.schedule_id == schedule_id)
+        result = await db.execute(stmt)
+        count = result.rowcount
+        await db.commit()
+        return {
+            "message": f"Cleared {count} execution records for schedule",
+            "count": count,
+            "schedule_id": schedule_id
+        }
+    else:
+        # Clear all history
+        stmt = delete(ScheduleExecutionModel)
+        result = await db.execute(stmt)
+        count = result.rowcount
+        await db.commit()
+        return {
+            "message": f"Cleared {count} execution records",
+            "count": count
+        }

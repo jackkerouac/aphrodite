@@ -4,9 +4,9 @@
   "/about/page": "/about",
   "/analytics/page": "/analytics",
   "/maintenance/page": "/maintenance",
+  "/preview/page": "/preview",
   "/page": "/",
   "/poster-manager/page": "/poster-manager",
-  "/preview/page": "/preview",
   "/schedules/page": "/schedules",
   "/settings/page": "/settings"
 }
