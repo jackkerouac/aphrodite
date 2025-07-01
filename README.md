@@ -50,6 +50,15 @@ Perfect for **Jellyfin**, **Plex**, and other media servers!
 
 ## Quick Start with Docker
 
+### Multi-Platform Support 🏗️
+
+Aphrodite supports both **AMD64** (Intel/AMD) and **ARM64** (Apple Silicon, Raspberry Pi 4+, AWS Graviton) architectures out of the box!
+
+- **Apple Silicon Macs**: Native ARM64 performance
+- **Raspberry Pi 4+**: Full support with 64-bit OS
+- **AWS Graviton**: Optimized for ARM-based cloud instances
+- **Standard x86_64**: Works on all traditional systems
+
 ### Production Setup (Recommended)
 
 ```bash
@@ -362,6 +371,7 @@ server {
 ## Links & Resources
 
 - **[Production Setup Guide](docs/production.md)** - Complete production deployment
+- **[ARM Support Guide](docs/ARM_SUPPORT.md)** - Multi-platform builds and deployment
 - **[API Documentation](http://localhost:8000/api/docs)** - Interactive API explorer
 - **[Migration Guide](docs/migration.md)** - Upgrading from v3.x
 - **[Troubleshooting Guide](docs/troubleshooting.md)** - Common issues and solutions

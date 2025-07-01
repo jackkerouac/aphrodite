@@ -87,12 +87,31 @@ print_success "Frontend build completed with Tailwind v4"
 # Build production Docker image
 print_status "Building production Docker image..."
 
-docker build \
-    --label "aphrodite-build" \
-    --tag "aphrodite:$VERSION" \
-    --tag "aphrodite:latest" \
-    --file Dockerfile \
-    .
+# Check if buildx is available for multi-platform builds
+if docker buildx version &> /dev/null; then
+    print_status "Using Docker Buildx for multi-platform support..."
+    
+    # Create and use multi-platform builder if not exists
+    docker buildx create --name aphrodite-builder --use 2>/dev/null || docker buildx use aphrodite-builder 2>/dev/null || true
+    
+    # Build for multiple platforms
+    docker buildx build \
+        --label "aphrodite-build" \
+        --tag "aphrodite:$VERSION" \
+        --tag "aphrodite:latest" \
+        --platform linux/amd64,linux/arm64 \
+        --file Dockerfile \
+        --load \
+        .
+else
+    print_warning "Docker Buildx not available, building for current platform only"
+    docker build \
+        --label "aphrodite-build" \
+        --tag "aphrodite:$VERSION" \
+        --tag "aphrodite:latest" \
+        --file Dockerfile \
+        .
+fi
 
 print_success "Production image built successfully"
 
