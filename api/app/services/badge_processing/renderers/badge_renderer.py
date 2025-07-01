@@ -605,7 +605,7 @@ class UnifiedBadgeRenderer:
             return False
     
     def _find_image_file(self, image_name: str, badge_type: str, settings: Optional[Dict[str, Any]] = None) -> Optional[Path]:
-        """Find image file in various locations, respecting user settings"""
+        """Find image file in various locations, respecting user settings and dev environment"""
         try:
             search_paths = []
             
@@ -620,7 +620,21 @@ class UnifiedBadgeRenderer:
                         corrected_path = codec_dir.replace('/app/assets/images', '/app/images')
                         search_paths.append(corrected_path)
             
-            # Try specific badge type directories
+            # DEVELOPMENT ENVIRONMENT PATHS - Add these first for dev priority
+            import os
+            if os.name == 'nt' or not os.path.exists('/app'):
+                # Windows development environment or non-Docker environment
+                dev_paths = [
+                    f"images/{badge_type}",     # Relative to project root
+                    "images/codec",            # Main codec directory
+                    "images/audio",            # Audio fallback
+                    "images/rating",           # Reviews
+                    "images/resolution",       # Resolution
+                    "images/awards",           # Awards
+                ]
+                search_paths.extend(dev_paths)
+            
+            # Try specific badge type directories (Docker paths)
             type_specific_paths = [
                 f"/app/images/{badge_type}",
                 f"/app/images/codec",  # Audio codec images
