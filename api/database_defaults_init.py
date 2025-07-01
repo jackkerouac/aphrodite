@@ -174,15 +174,15 @@ async def initialize_production_defaults(db):
                 "enable_crunchyroll_anime": True,
                 "enable_berlinale": False,
                 "enable_venice": False,
-                "enable_sundance": False,
+                "enable_sundance": True,
                 "enable_spirit": False,
                 "enable_critics_choice": False,
                 "enable_cesar": False,
-                "enable_imdb_top": False,
+                "enable_imdb_top": True,
                 "enable_letterboxd": False,
                 "enable_metacritic": False,
-                "enable_netflix": False,
-                "enable_razzie": False,
+                "enable_netflix": True,
+                "enable_razzie": True,
                 "enable_rotten_tomatoes": False,
                 "enable_rotten_tomatoes_verified": False
             }
@@ -238,7 +238,7 @@ async def initialize_production_defaults(db):
         },
         "badge_settings_review.yml": {
             "General": {
-                "general_badge_size": 100,
+                "general_badge_size": 250,
                 "general_edge_padding": 30,
                 "general_badge_position": "bottom-left",
                 "general_text_padding": 10,
@@ -267,7 +267,7 @@ async def initialize_production_defaults(db):
                 "font": "AvenirNextLTProBold.otf",
                 "fallback_font": "DejaVuSans.ttf",
                 "text_color": "#FFFFFF",
-                "text_size": 45
+                "text_size": 40
             },
             "Background": {
                 "background_color": "#2C2C2C",
@@ -316,7 +316,7 @@ async def initialize_production_defaults(db):
     
     # Initialize review source settings
     review_settings = {
-        "max_badges_display": 5,
+        "max_badges_display": 4,
         "source_selection_mode": "priority",
         "show_percentage_only": True,
         "group_related_sources": True,
