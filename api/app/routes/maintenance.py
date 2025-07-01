@@ -10,6 +10,8 @@ import re
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any, Optional
+from uuid import UUID
+from decimal import Decimal
 from fastapi import APIRouter, HTTPException, Response, Depends, UploadFile, File
 from pydantic import BaseModel
 import logging
@@ -25,6 +27,22 @@ from app.core.config import get_settings
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/maintenance", tags=["maintenance"])
+
+# Custom JSON encoder for database types
+class DatabaseJSONEncoder(json.JSONEncoder):
+    """Custom JSON encoder that handles database-specific types."""
+    
+    def default(self, obj):
+        if isinstance(obj, UUID):
+            return str(obj)
+        elif isinstance(obj, Decimal):
+            return float(obj)
+        elif isinstance(obj, datetime):
+            return obj.isoformat()
+        elif hasattr(obj, '__dict__'):
+            # For any other complex object, convert to string
+            return str(obj)
+        return super().default(obj)
 
 # Request/Response Models
 class ConnectionTestRequest(BaseModel):
@@ -493,12 +511,7 @@ async def export_database(db: AsyncSession = Depends(get_db_session)):
                         row_dict = {}
                         for col in columns:
                             value = getattr(row, col)
-                            # Convert datetime objects to ISO strings
-                            if isinstance(value, datetime):
-                                value = value.isoformat()
-                            # Convert other non-serializable types
-                            elif hasattr(value, '__dict__'):
-                                value = str(value)
+                            # Let the custom encoder handle type conversion
                             row_dict[col] = value
                         table_data.append(row_dict)
                     
@@ -535,8 +548,8 @@ async def export_database(db: AsyncSession = Depends(get_db_session)):
             "total_rows": total_rows_exported
         })
         
-        # Convert to JSON string
-        json_content = json.dumps(export_data, indent=2, ensure_ascii=False)
+        # Convert to JSON string using custom encoder
+        json_content = json.dumps(export_data, indent=2, ensure_ascii=False, cls=DatabaseJSONEncoder)
         
         # Generate filename
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

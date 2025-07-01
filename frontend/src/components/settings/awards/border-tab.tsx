@@ -51,7 +51,7 @@ export function BorderTab({ settings, updateSetting }: BorderTabProps) {
               type="number"
               min="0"
               value={settings.Border.border_width}
-              onChange={(e) => updateSetting('Border', 'border_width', parseInt(e.target.value) || 1)}
+              onChange={(e) => updateSetting('Border', 'border_width', parseInt(e.target.value) || 0)}
               disabled={!settings.General.enabled}
               placeholder="1"
             />
