@@ -1,8 +1,8 @@
 """
-Pure V2 Audio Badge Processor
+Pure V2 Audio Badge Processor - Enhanced with Advanced Detection
 
-Completely V2-native audio badge processing with no V1 dependencies.
-Clear logging for system differentiation.
+Completely V2-native audio badge processing with enhanced detection capabilities.
+Modularized for maintainability and enhanced with Dolby Atmos, DTS-X detection.
 """
 
 from typing import Dict, Any, Optional, List
@@ -16,14 +16,30 @@ from .database_service import badge_settings_service
 from .renderers import UnifiedBadgeRenderer
 from app.core.database import async_session_factory
 
+# Enhanced audio components
+from .audio_enhanced_components import EnhancedAudioComponents
+from .audio_enhanced_data import EnhancedAudioDataHandler
+from .audio_legacy_handler import LegacyAudioHandler
+from .audio_badge_creator import AudioBadgeCreator
+
 
 class V2AudioBadgeProcessor(BaseBadgeProcessor):
-    """Pure V2 audio badge processor - no V1 dependencies"""
+    """Pure V2 audio badge processor with enhanced detection capabilities"""
     
     def __init__(self):
         super().__init__("audio")
         self.logger = get_logger("aphrodite.badge.audio.v2", service="badge")
         self.renderer = UnifiedBadgeRenderer()
+        
+        # Initialize modular components
+        self.enhanced_components = EnhancedAudioComponents()
+        self.enhanced_data_handler = EnhancedAudioDataHandler(self.enhanced_components)
+        self.legacy_handler = LegacyAudioHandler()
+        self.badge_creator = AudioBadgeCreator(
+            self.renderer, 
+            self.enhanced_components, 
+            self.legacy_handler
+        )
     
     async def process_single(
         self, 
@@ -33,11 +49,16 @@ class V2AudioBadgeProcessor(BaseBadgeProcessor):
         db_session: Optional[AsyncSession] = None,
         jellyfin_id: Optional[str] = None
     ) -> PosterResult:
-        """Process a single poster with audio badge using pure V2 system"""
+        """Process a single poster with audio badge using enhanced V2 system"""
         try:
             self.logger.info(f"🎧 [V2 AUDIO] PROCESSOR STARTED for: {poster_path}")
             self.logger.info(f"🎧 [V2 AUDIO] Jellyfin ID: {jellyfin_id}")
             self.logger.info(f"🎧 [V2 AUDIO] Use demo data: {use_demo_data}")
+            
+            if self.enhanced_components.enabled:
+                self.logger.info("🚀 [V2 AUDIO] ✅ Enhanced detection enabled")
+            else:
+                self.logger.info("⚠️ [V2 AUDIO] Using legacy detection")
             
             # Load audio badge settings from PostgreSQL
             settings = await self._load_v2_settings(db_session)
@@ -51,10 +72,11 @@ class V2AudioBadgeProcessor(BaseBadgeProcessor):
             
             self.logger.info("✅ [V2 AUDIO] Settings loaded from PostgreSQL")
             
-            # Get audio codec data using pure V2 methods
-            codec_data = await self._get_v2_audio_codec(jellyfin_id, use_demo_data, poster_path)
-            if not codec_data:
-                self.logger.warning("⚠️ [V2 AUDIO] No audio codec detected, skipping badge")
+            # Get audio data using enhanced or legacy methods
+            audio_data = await self._get_audio_data(jellyfin_id, use_demo_data, poster_path, settings)
+            
+            if not audio_data:
+                self.logger.warning("⚠️ [V2 AUDIO] No audio data detected, skipping badge")
                 return PosterResult(
                     source_path=poster_path,
                     output_path=poster_path,
@@ -62,11 +84,11 @@ class V2AudioBadgeProcessor(BaseBadgeProcessor):
                     success=True
                 )
             
-            self.logger.info(f"📊 [V2 AUDIO] Codec detected: {codec_data}")
+            self.logger.info(f"📊 [V2 AUDIO] Audio detected: {audio_data}")
             
-            # Create audio badge using V2 renderer
-            result_path = await self._create_v2_audio_badge(
-                poster_path, codec_data, settings, output_path
+            # Create audio badge
+            result_path = await self.badge_creator.create_badge(
+                poster_path, audio_data, settings, output_path
             )
             
             if result_path:
@@ -92,6 +114,21 @@ class V2AudioBadgeProcessor(BaseBadgeProcessor):
                 success=False,
                 error=f"V2 audio processor error: {str(e)}"
             )
+    
+    async def _get_audio_data(self, jellyfin_id, use_demo_data, poster_path, settings):
+        """Get audio data using enhanced or legacy methods"""
+        # Try enhanced detection first
+        if self.enhanced_components.enabled:
+            audio_data = await self.enhanced_data_handler.get_audio_info(
+                jellyfin_id, use_demo_data, poster_path, settings
+            )
+            if audio_data:
+                return audio_data
+        
+        # Fallback to legacy detection
+        return await self.legacy_handler.get_audio_codec(
+            jellyfin_id, use_demo_data, poster_path
+        )
     
     async def process_bulk(
         self,
@@ -159,8 +196,8 @@ class V2AudioBadgeProcessor(BaseBadgeProcessor):
             return self._get_v2_default_settings()
     
     def _get_v2_default_settings(self) -> Dict[str, Any]:
-        """Get V2 default audio badge settings"""
-        return {
+        """Get V2 default audio badge settings with enhanced detection"""
+        base_settings = {
             "General": {
                 "general_badge_size": 100,
                 "general_text_padding": 12,
@@ -190,238 +227,55 @@ class V2AudioBadgeProcessor(BaseBadgeProcessor):
                 "shadow_offset_y": 2
             },
             "ImageBadges": {
-                "enable_image_badges": False,
+                "enable_image_badges": True,
                 "fallback_to_text": True,
                 "image_padding": 15,
-                "codec_image_directory": "images/audio"
+                "codec_image_directory": "images/codec",
+                "image_mapping": {
+                    "Dolby Atmos": "TrueHD-Atmos.png",
+                    "DTS-X": "DTS-X.png",
+                    "TrueHD": "TrueHD.png",
+                    "DTS-HD MA": "DTS-HD.png",
+                    "Dolby Digital Plus": "DigitalPlus.png",
+                    "Dolby Digital": "dolby-digital.png",
+                    "DTS": "DTS-HD.png",
+                    "AAC": "aac.png"
+                }
             }
         }
-    
-    async def _get_v2_audio_codec(
-        self, 
-        jellyfin_id: Optional[str], 
-        use_demo_data: bool, 
-        poster_path: str
-    ) -> Optional[str]:
-        """Get audio codec using pure V2 methods only"""
-        try:
-            # Use real Jellyfin data when available
-            if jellyfin_id:
-                self.logger.debug(f"🔍 [V2 AUDIO] Getting real codec for ID: {jellyfin_id}")
-                codec = await self._get_v2_jellyfin_codec(jellyfin_id)
-                if codec and codec != "UNKNOWN":
-                    self.logger.debug(f"✅ [V2 AUDIO] Real codec found: {codec}")
-                    return codec
-            
-            # Use demo data as fallback
-            if use_demo_data:
-                self.logger.debug("🎭 [V2 AUDIO] Using demo codec data")
-                return self._get_v2_demo_codec(poster_path)
-            
-            self.logger.warning("⚠️ [V2 AUDIO] No codec source available")
-            return None
-            
-        except Exception as e:
-            self.logger.error(f"❌ [V2 AUDIO] Error getting codec: {e}", exc_info=True)
-            return None
-    
-    async def _get_v2_jellyfin_codec(self, jellyfin_id: str) -> Optional[str]:
-        """Get real audio codec using pure V2 Jellyfin service (NO V1 AGGREGATOR)"""
-        try:
-            self.logger.debug(f"🌐 [V2 AUDIO] Querying Jellyfin for ID: {jellyfin_id}")
-            
-            # Import V2 Jellyfin service
-            from app.services.jellyfin_service import get_jellyfin_service
-            jellyfin_service = get_jellyfin_service()
-            
-            # Get media item with fallback for API compatibility
-            media_item = await jellyfin_service.get_item_details(jellyfin_id)
-            if not media_item:
-                self.logger.warning(f"⚠️ [V2 AUDIO] Media item not found: {jellyfin_id}")
-                return None
-            
-            media_type = media_item.get('Type', '')
-            self.logger.debug(f"📺 [V2 AUDIO] Media type: {media_type}")
-            
-            if media_type == 'Movie':
-                # For movies: get codec directly
-                codec = await jellyfin_service.get_audio_codec_info(media_item)
-                self.logger.debug(f"🎬 [V2 AUDIO] Movie codec: {codec}")
-                return codec
-            
-            elif media_type in ['Series', 'Season']:
-                # For TV: PURE V2 episode sampling (NO V1 AGGREGATOR)
-                codec = await self._get_v2_tv_series_codec(jellyfin_id, jellyfin_service)
-                self.logger.debug(f"📺 [V2 AUDIO] TV series codec: {codec}")
-                return codec
-            
-            elif media_type == 'Episode':
-                # For episodes: get codec directly
-                codec = await jellyfin_service.get_audio_codec_info(media_item)
-                self.logger.debug(f"📻 [V2 AUDIO] Episode codec: {codec}")
-                return codec
-            
-            else:
-                self.logger.warning(f"⚠️ [V2 AUDIO] Unsupported media type: {media_type}")
-                return None
-            
-        except Exception as e:
-            self.logger.error(f"❌ [V2 AUDIO] Jellyfin codec error: {e}", exc_info=True)
-            return None
-    
-    async def _get_v2_tv_series_codec(self, jellyfin_id: str, jellyfin_service) -> Optional[str]:
-        """Get TV series dominant codec using PURE V2 methods (no V1 aggregator)"""
-        try:
-            self.logger.debug(f"📺 [V2 AUDIO] Sampling TV series episodes for: {jellyfin_id}")
-            
-            # Get series episodes using V2 Jellyfin service
-            episodes = await jellyfin_service.get_series_episodes(jellyfin_id, limit=10)
-            
-            if not episodes:
-                self.logger.warning(f"⚠️ [V2 AUDIO] No episodes found for series: {jellyfin_id}")
-                return "EAC3 6.0"  # Reasonable default for TV series
-            
-            self.logger.debug(f"📺 [V2 AUDIO] Found {len(episodes)} episodes to sample")
-            
-            # Sample codecs from episodes
-            codecs = []
-            for i, episode in enumerate(episodes[:5]):  # Sample first 5 episodes
-                try:
-                    codec = await jellyfin_service.get_audio_codec_info(episode)
-                    if codec and codec != "UNKNOWN":
-                        codecs.append(codec)
-                        self.logger.debug(f"📻 [V2 AUDIO] Episode {i+1} codec: {codec}")
-                except Exception as ep_error:
-                    self.logger.warning(f"⚠️ [V2 AUDIO] Episode {i+1} codec error: {ep_error}")
-                    continue
-            
-            if not codecs:
-                self.logger.warning(f"⚠️ [V2 AUDIO] No valid codecs from episodes")
-                return "EAC3 6.0"  # Reasonable default
-            
-            # Determine dominant codec using simple frequency count
-            codec_counts = {}
-            for codec in codecs:
-                codec_counts[codec] = codec_counts.get(codec, 0) + 1
-            
-            # Get most common codec
-            dominant_codec = max(codec_counts.items(), key=lambda x: x[1])[0]
-            
-            self.logger.debug(f"📊 [V2 AUDIO] Codec frequency: {codec_counts}")
-            self.logger.debug(f"🏆 [V2 AUDIO] Dominant codec: {dominant_codec}")
-            
-            return dominant_codec
-            
-        except Exception as e:
-            self.logger.error(f"❌ [V2 AUDIO] TV series codec error: {e}", exc_info=True)
-            return "EAC3 6.0"  # Fallback default
-    
-    def _get_v2_demo_codec(self, poster_path: str) -> str:
-        """Get demo audio codec using V2 consistent algorithm"""
-        import hashlib
         
-        # Create consistent hash from poster filename
-        poster_name = Path(poster_path).stem
-        hash_value = int(hashlib.md5(poster_name.encode()).hexdigest()[:8], 16)
+        # Add enhanced detection settings if components available
+        if self.enhanced_components.enabled:
+            base_settings["enhanced_detection"] = {
+                "enabled": True,
+                "fallback_rules": {
+                    "dolby_atmos": "truehd",
+                    "dts_x": "dts_hd_ma",
+                    "dolby_digital_plus": "dolby_digital",
+                    "dts_hd_ma": "dts_hd",
+                    "dts_hd": "dts"
+                },
+                "atmos_detection_patterns": [
+                    "ATMOS", "DOLBY ATMOS", "TRUEHD ATMOS", "Atmos"
+                ],
+                "dts_x_detection_patterns": [
+                    "DTS-X", "DTS:X", "DTSX", "DTS X"
+                ],
+                "performance": {
+                    "enable_parallel_processing": True,
+                    "enable_caching": True,
+                    "cache_ttl_hours": 24,
+                    "max_episodes_to_sample": 5
+                }
+            }
         
-        # V2 demo codec list
-        demo_codecs = [
-            "DTS-HD MA 7.1",
-            "TRUEHD ATMOS",
-            "DOLBY DIGITAL PLUS 5.1",
-            "DTS-X",
-            "TRUEHD 7.1",
-            "ATMOS",
-            "EAC3 6.0",
-            "AC3 5.1"
-        ]
-        
-        # Select codec based on hash (consistent for same poster)
-        selected_codec = demo_codecs[hash_value % len(demo_codecs)]
-        
-        self.logger.debug(f"🎭 [V2 AUDIO] Demo codec for {poster_name}: {selected_codec}")
-        return selected_codec
+        return base_settings
     
-    async def _create_v2_audio_badge(
-        self,
-        poster_path: str,
-        codec_data: str,
-        settings: Dict[str, Any],
-        output_path: Optional[str] = None
-    ) -> Optional[str]:
-        """Create audio badge using pure V2 renderer"""
-        try:
-            self.logger.debug(f"🎨 [V2 AUDIO] Creating badge for codec: {codec_data}")
-            
-            # Determine output path
-            if output_path:
-                final_output_path = output_path
-            else:
-                # Generate V2 preview path
-                poster_name = Path(poster_path).name
-                final_output_path = f"/app/api/static/preview/{poster_name}"
-            
-            # Create badge using V2 renderer
-            image_badges_enabled = settings.get('ImageBadges', {}).get('enable_image_badges', False)
-            
-            if image_badges_enabled:
-                # Try image badge first
-                self.logger.debug(f"🖼️ [V2 AUDIO] Attempting image badge for: {codec_data}")
-                badge = self.renderer.create_image_badge(
-                    self._map_codec_to_image(codec_data),
-                    settings,
-                    "audio"
-                )
-                
-                if not badge:
-                    # Fallback to text badge
-                    self.logger.debug(f"📝 [V2 AUDIO] Image failed, using text badge")
-                    badge = self.renderer.create_text_badge(codec_data, settings, "audio")
-            else:
-                # Use text badge
-                self.logger.debug(f"📝 [V2 AUDIO] Creating text badge")
-                badge = self.renderer.create_text_badge(codec_data, settings, "audio")
-            
-            if not badge:
-                self.logger.error(f"❌ [V2 AUDIO] Badge creation failed")
-                return None
-            
-            # Apply badge to poster
-            success = self.renderer.apply_badge_to_poster(
-                poster_path, badge, settings, final_output_path
-            )
-            
-            if success:
-                self.logger.debug(f"✅ [V2 AUDIO] Badge applied successfully: {final_output_path}")
-                return final_output_path
-            else:
-                self.logger.error(f"❌ [V2 AUDIO] Badge application failed")
-                return None
-                
-        except Exception as e:
-            self.logger.error(f"❌ [V2 AUDIO] Badge creation error: {e}", exc_info=True)
-            return None
+    # Enhanced component access methods for diagnostics
+    def get_enhanced_components_status(self) -> Dict[str, Any]:
+        """Get status of enhanced components for diagnostics"""
+        return self.enhanced_components.get_status()
     
-    def _map_codec_to_image(self, codec: str) -> str:
-        """Map audio codec to image filename"""
-        # Simple codec to image mapping
-        codec_upper = codec.upper()
-        
-        if "DTS-HD MA" in codec_upper or "DTS-HD" in codec_upper:
-            return "dts-hd-ma.png"
-        elif "TRUEHD" in codec_upper and "ATMOS" in codec_upper:
-            return "truehd-atmos.png"
-        elif "TRUEHD" in codec_upper:
-            return "truehd.png"
-        elif "ATMOS" in codec_upper:
-            return "atmos.png"
-        elif "DTS-X" in codec_upper:
-            return "dts-x.png"
-        elif "DTS" in codec_upper:
-            return "dts.png"
-        elif "DOLBY" in codec_upper or "EAC3" in codec_upper:
-            return "dolby-digital-plus.png"
-        elif "AC3" in codec_upper:
-            return "dolby-digital.png"
-        else:
-            return "audio-generic.png"
+    def clear_audio_cache(self) -> bool:
+        """Clear audio cache (for diagnostics)"""
+        return self.enhanced_components.clear_cache()
