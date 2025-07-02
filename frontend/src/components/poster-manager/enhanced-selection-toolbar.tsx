@@ -9,10 +9,11 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { X, Zap, Users, Settings, Download, Trash2 } from "lucide-react"
+import { X, Zap, Users, Settings, Download, Trash2, Image } from "lucide-react"
 import { ProcessingDecision, BatchJobCreator } from '@/components/workflow'
 import { useNotifications } from '@/components/workflow'
 import { useRouter } from 'next/navigation'
+import { PosterReplacementModal } from './poster-replacement-modal'
 
 interface MediaItem {
   id: string
@@ -38,6 +39,7 @@ export const EnhancedSelectionToolbar: React.FC<EnhancedSelectionToolbarProps> =
   disabled = false
 }) => {
   const [showBatchCreator, setShowBatchCreator] = useState(false)
+  const [showReplacementModal, setShowReplacementModal] = useState(false)
   const { showJobCreated } = useNotifications()
   const router = useRouter()
 
@@ -51,6 +53,16 @@ export const EnhancedSelectionToolbar: React.FC<EnhancedSelectionToolbarProps> =
 
   const handleBatchProcess = () => {
     setShowBatchCreator(true)
+  }
+
+  const handleReplacePostersBulk = () => {
+    setShowReplacementModal(true)
+  }
+
+  const handleReplacementSuccess = async () => {
+    // Refresh the items grid and clear selection
+    await onRefreshItems()
+    onClearSelection()
   }
 
   const handleJobCreated = (jobId: string) => {
@@ -101,23 +113,43 @@ export const EnhancedSelectionToolbar: React.FC<EnhancedSelectionToolbarProps> =
           {/* Action Buttons */}
           <div className="flex items-center space-x-2">
             {selectedCount === 1 ? (
-              <Button
-                onClick={() => handleImmediateProcess(selectedPosters[0])}
-                disabled={disabled}
-                className="flex-1"
-              >
-                <Zap className="h-4 w-4 mr-2" />
-                Generate Preview
-              </Button>
+              <>
+                <Button
+                  onClick={() => handleImmediateProcess(selectedPosters[0])}
+                  disabled={disabled}
+                  className="flex-1"
+                >
+                  <Zap className="h-4 w-4 mr-2" />
+                  Generate Preview
+                </Button>
+                <Button
+                  onClick={handleReplacePostersBulk}
+                  disabled={disabled}
+                  variant="outline"
+                >
+                  <Image className="h-4 w-4 mr-2" />
+                  Replace Poster
+                </Button>
+              </>
             ) : (
-              <Button
-                onClick={handleBatchProcess}
-                disabled={disabled}
-                className="flex-1"
-              >
-                <Users className="h-4 w-4 mr-2" />
-                Create Batch Job
-              </Button>
+              <>
+                <Button
+                  onClick={handleBatchProcess}
+                  disabled={disabled}
+                  className="flex-1"
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  Create Batch Job
+                </Button>
+                <Button
+                  onClick={handleReplacePostersBulk}
+                  disabled={disabled}
+                  variant="outline"
+                >
+                  <Image className="h-4 w-4 mr-2" />
+                  Replace Posters
+                </Button>
+              </>
             )}
 
             <Separator orientation="vertical" className="h-8" />
@@ -148,6 +180,14 @@ export const EnhancedSelectionToolbar: React.FC<EnhancedSelectionToolbarProps> =
           </div>
         </div>
       )}
+
+      {/* Poster Replacement Modal */}
+      <PosterReplacementModal
+        open={showReplacementModal}
+        onOpenChange={setShowReplacementModal}
+        selectedItems={selectedPosters}
+        onSuccess={handleReplacementSuccess}
+      />
     </div>
   )
 }

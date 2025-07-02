@@ -18,8 +18,10 @@ from app.services.poster_management import StorageManager
 from app.services.poster_sources import get_poster_source_manager
 from app.models.poster_sources import (
     PosterSearchRequest, PosterSearchResponse,
-    ReplacePosterRequest, ReplacePosterResponse
+    ReplacePosterRequest, ReplacePosterResponse,
+    BulkReplacePosterRequest, BulkReplacePosterResponse
 )
+from app.services.bulk_poster_replacement import get_bulk_poster_replacement_service
 from aphrodite_logging import get_logger
 
 router = APIRouter(tags=["poster-replacement"])
@@ -210,3 +212,48 @@ async def get_available_poster_sources(
     except Exception as e:
         logger.error(f"Error getting available poster sources: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to get poster sources: {str(e)}")
+
+@router.post("/bulk-replace-posters", response_model=BulkReplacePosterResponse)
+async def bulk_replace_posters(
+    request: BulkReplacePosterRequest,
+    db: AsyncSession = Depends(get_db_session)
+) -> BulkReplacePosterResponse:
+    """Replace posters for multiple items with random alternatives from external sources"""
+    try:
+        logger.info(
+            f"Starting bulk poster replacement for {len(request.item_ids)} items "
+            f"with language preference: {request.language_preference}"
+        )
+        
+        # Validate request
+        if not request.item_ids or not request.jellyfin_ids:
+            raise HTTPException(status_code=400, detail="Item IDs and Jellyfin IDs are required")
+            
+        if len(request.item_ids) != len(request.jellyfin_ids):
+            raise HTTPException(
+                status_code=400, 
+                detail="Item IDs and Jellyfin IDs must have the same length"
+            )
+            
+        if len(request.item_ids) > 50:  # Reasonable limit
+            raise HTTPException(
+                status_code=400, 
+                detail="Maximum 50 items can be processed in a single batch"
+            )
+            
+        # Get bulk replacement service and process
+        bulk_service = await get_bulk_poster_replacement_service()
+        result = await bulk_service.process_bulk_replacement(request, db)
+        
+        logger.info(
+            f"Bulk replacement completed: {result.successful_replacements} successful, "
+            f"{result.failed_replacements} failed"
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in bulk poster replacement: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to process bulk replacement: {str(e)}")

@@ -70,6 +70,33 @@ class CustomPosterUploadRequest(BaseModel):
     jellyfin_id: str
     # File data will be handled separately via multipart form
 
+class BulkReplacePosterRequest(BaseModel):
+    """Request to replace multiple posters with random alternatives"""
+    item_ids: List[str]
+    jellyfin_ids: List[str]
+    language_preference: str = "en"  # ISO language code
+    random_selection: bool = True
+
+class BulkItemResult(BaseModel):
+    """Result for a single item in bulk processing"""
+    item_id: str
+    jellyfin_id: str
+    success: bool
+    message: str
+    new_poster_url: Optional[str] = None
+    selected_poster: Optional[PosterOption] = None
+    error_details: Optional[str] = None
+
+class BulkReplacePosterResponse(BaseModel):
+    """Response from bulk poster replacement operation"""
+    success: bool
+    message: str
+    processed_count: int
+    successful_replacements: int
+    failed_replacements: int
+    processing_results: List[BulkItemResult] = []
+    processing_time: float
+
 class APIKeyConfig(BaseModel):
     """Configuration for external API access"""
     service: str
