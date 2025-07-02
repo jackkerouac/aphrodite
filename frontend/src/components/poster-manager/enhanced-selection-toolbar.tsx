@@ -152,18 +152,7 @@ export const EnhancedSelectionToolbar: React.FC<EnhancedSelectionToolbarProps> =
               </>
             )}
 
-            <Separator orientation="vertical" className="h-8" />
-
-            {/* Additional Actions */}
-            <Button variant="outline" size="sm" disabled={disabled}>
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
             
-            <Button variant="outline" size="sm" disabled={disabled}>
-              <Settings className="h-4 w-4 mr-2" />
-              Bulk Edit
-            </Button>
           </div>
         </CardContent>
       </Card>
