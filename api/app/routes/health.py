@@ -35,11 +35,12 @@ async def detailed_health_check():
         _check_api(),
         _check_database(),
         _check_redis(),
+        _check_jellyfin(),
         _check_system_resources(),
         return_exceptions=True
     )
     
-    api_check, db_check, redis_check, system_check = checks
+    api_check, db_check, redis_check, jellyfin_check, system_check = checks
     
     # Determine overall status
     all_healthy = all(
@@ -58,6 +59,7 @@ async def detailed_health_check():
             "api": api_check if not isinstance(api_check, Exception) else {"status": "error", "message": str(api_check)},
             "database": db_check if not isinstance(db_check, Exception) else {"status": "error", "message": str(db_check)},
             "redis": redis_check if not isinstance(redis_check, Exception) else {"status": "error", "message": str(redis_check)},
+            "jellyfin": jellyfin_check if not isinstance(jellyfin_check, Exception) else {"status": "error", "message": str(jellyfin_check)},
             "system": system_check if not isinstance(system_check, Exception) else {"status": "error", "message": str(system_check)}
         }
     }
@@ -176,6 +178,34 @@ async def _check_redis() -> Dict[str, Any]:
             "status": "error",
             "message": f"Redis connection failed: {str(e)}"
         }
+
+async def _check_jellyfin() -> Dict[str, Any]:
+    """Check Jellyfin connectivity and health"""
+    try:
+        from app.services.jellyfin_service import get_jellyfin_service
+        
+        jellyfin_service = get_jellyfin_service()
+        
+        # Test connection
+        connection_ok, message = await jellyfin_service.test_connection()
+        
+        if connection_ok:
+            return {
+                "status": "healthy",
+                "message": message
+            }
+        else:
+            return {
+                "status": "error",
+                "message": message
+            }
+        
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Jellyfin check failed: {str(e)}"
+        }
+
 
 async def _check_system_resources() -> Dict[str, Any]:
     """Check system resource health"""

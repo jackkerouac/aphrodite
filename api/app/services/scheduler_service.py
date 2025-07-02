@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any
 from croniter import croniter
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, update
+from sqlalchemy import select, and_, update, desc
 from sqlalchemy.orm import sessionmaker
 from uuid import UUID
 
@@ -109,17 +109,71 @@ class SchedulerService:
     async def _is_schedule_due(self, db: AsyncSession, schedule: ScheduleModel, current_time: datetime) -> bool:
         """Check if a schedule is due to run based on its cron expression"""
         try:
-            # Create croniter instance
-            cron = croniter(schedule.cron_expression, current_time)
+            # Handle timezone conversion for schedule
+            try:
+                import pytz
+                from pytz import timezone as pytz_timezone
+            except ImportError:
+                self.logger.warning("pytz not available, using basic timezone handling")
+                # Fallback to basic timezone handling
+                schedule_time = current_time
+                pytz_timezone = None
+            
+            # Convert current time to schedule's timezone
+            if schedule.timezone != 'UTC' and pytz_timezone:
+                try:
+                    schedule_tz = pytz_timezone(schedule.timezone)
+                    # Convert current UTC time to schedule timezone
+                    schedule_time = current_time.astimezone(schedule_tz)
+                except Exception as tz_error:
+                    self.logger.warning(f"Invalid timezone {schedule.timezone}, using UTC: {tz_error}")
+                    schedule_time = current_time
+            else:
+                schedule_time = current_time
+            
+            # Create croniter instance with schedule's timezone
+            cron = croniter(schedule.cron_expression, schedule_time)
             
             # Get the previous run time that should have occurred
             prev_run_time = cron.get_prev(datetime)
             
+            # Convert back to UTC for database comparison
+            if schedule.timezone != 'UTC' and pytz_timezone:
+                try:
+                    prev_run_time_utc = prev_run_time.astimezone(timezone.utc)
+                except:
+                    prev_run_time_utc = prev_run_time.replace(tzinfo=timezone.utc)
+            else:
+                # Ensure timezone info for comparison
+                if prev_run_time.tzinfo is None:
+                    prev_run_time_utc = prev_run_time.replace(tzinfo=timezone.utc)
+                else:
+                    prev_run_time_utc = prev_run_time
+            
             # Check if we have an execution for this schedule around the previous run time
-            # Look for executions within the last check interval + buffer
-            time_buffer = self.check_interval + 30  # 30 second buffer
-            earliest_time = prev_run_time.replace(second=0, microsecond=0)
+            # Use a proper time window: from 10 minutes before the scheduled time to now
+            from datetime import timedelta
+            time_buffer = timedelta(minutes=10)
+            
+            # Make sure we're comparing timezone-aware datetimes
+            if prev_run_time_utc.tzinfo is None:
+                prev_run_time_utc = prev_run_time_utc.replace(tzinfo=timezone.utc)
+            if current_time.tzinfo is None:
+                current_time = current_time.replace(tzinfo=timezone.utc)
+                
+            earliest_time = prev_run_time_utc - time_buffer
             latest_time = current_time
+            
+            self.logger.debug(f"Checking schedule {schedule.name}:")
+            self.logger.debug(f"  Cron expression: {schedule.cron_expression}")
+            self.logger.debug(f"  Current time (UTC): {current_time}")
+            self.logger.debug(f"  Schedule time ({schedule.timezone}): {schedule_time}")
+            self.logger.debug(f"  Previous run should have been: {prev_run_time_utc}")
+            self.logger.debug(f"  Looking for executions between {earliest_time} and {latest_time}")
+            
+            # Calculate time since last scheduled run for debugging
+            time_since_scheduled = current_time - prev_run_time_utc
+            self.logger.debug(f"  Time since last scheduled run: {time_since_scheduled}")
             
             stmt = select(ScheduleExecutionModel).where(
                 and_(
@@ -127,7 +181,7 @@ class SchedulerService:
                     ScheduleExecutionModel.created_at >= earliest_time,
                     ScheduleExecutionModel.created_at <= latest_time
                 )
-            )
+            ).order_by(desc(ScheduleExecutionModel.created_at)).limit(1)
             result = await db.execute(stmt)
             recent_execution = result.scalar_one_or_none()
             
@@ -135,12 +189,18 @@ class SchedulerService:
             is_due = recent_execution is None
             
             if is_due:
-                self.logger.debug(f"Schedule {schedule.name} is due - last run should have been at {prev_run_time}")
+                time_since_scheduled = current_time - prev_run_time_utc
+                self.logger.info(f"🔔 Schedule {schedule.name} is due for execution!")
+                self.logger.info(f"   Last scheduled run: {prev_run_time_utc} UTC")
+                self.logger.info(f"   Time since scheduled: {time_since_scheduled}")
+            else:
+                self.logger.debug(f"⏰ Schedule {schedule.name} not due - found recent execution at {recent_execution.created_at}")
             
             return is_due
             
         except Exception as e:
-            self.logger.error(f"Error checking if schedule {schedule.id} is due: {e}")
+            self.logger.error(f"❌ Error checking if schedule {schedule.id} ({schedule.name}) is due: {e}", exc_info=True)
+            # In case of error, don't run the schedule to avoid unintended executions
             return False
             
     async def _execute_schedule(self, db: AsyncSession, schedule: ScheduleModel):

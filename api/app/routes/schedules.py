@@ -357,3 +357,158 @@ async def clear_schedule_history(
             "message": f"Cleared {count} execution records",
             "count": count
         }
+
+
+@router.get("/{schedule_id}/debug")
+async def debug_schedule(
+    schedule_id: str,
+    db: AsyncSession = Depends(get_db_session)
+):
+    """Debug why a schedule is or isn't running"""
+    stmt = select(ScheduleModel).where(ScheduleModel.id == schedule_id)
+    result = await db.execute(stmt)
+    schedule = result.scalar_one_or_none()
+    if not schedule:
+        raise HTTPException(status_code=404, detail="Schedule not found")
+    
+    from datetime import datetime, timezone
+    from croniter import croniter
+    from datetime import timedelta
+    
+    current_time = datetime.now(timezone.utc)
+    
+    # Get cron information
+    try:
+        cron = croniter(schedule.cron_expression, current_time)
+        prev_run = cron.get_prev(datetime)
+        next_run = cron.get_next(datetime)
+        
+        # Make timezone aware
+        if prev_run.tzinfo is None:
+            prev_run = prev_run.replace(tzinfo=timezone.utc)
+        if next_run.tzinfo is None:
+            next_run = next_run.replace(tzinfo=timezone.utc)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid cron expression: {e}")
+    
+    # Check for recent executions
+    time_buffer = timedelta(minutes=10)
+    earliest_time = prev_run - time_buffer
+    
+    stmt = select(ScheduleExecutionModel).where(
+        and_(
+            ScheduleExecutionModel.schedule_id == schedule.id,
+            ScheduleExecutionModel.created_at >= earliest_time,
+            ScheduleExecutionModel.created_at <= current_time
+        )
+    ).order_by(desc(ScheduleExecutionModel.created_at))
+    result = await db.execute(stmt)
+    recent_executions = result.scalars().all()
+    
+    # Get latest execution
+    stmt = select(ScheduleExecutionModel).where(
+        ScheduleExecutionModel.schedule_id == schedule.id
+    ).order_by(desc(ScheduleExecutionModel.created_at)).limit(1)
+    result = await db.execute(stmt)
+    latest_execution = result.scalar_one_or_none()
+    
+    # Calculate status
+    time_since_scheduled = current_time - prev_run
+    is_overdue = time_since_scheduled > timedelta(minutes=15)  # Consider overdue after 15 minutes
+    should_have_run = len(recent_executions) == 0
+    
+    # Parse latest execution items_processed if available
+    latest_processing_info = None
+    if latest_execution and latest_execution.items_processed:
+        try:
+            import json
+            latest_processing_info = json.loads(latest_execution.items_processed)
+        except:
+            latest_processing_info = {"error": "Could not parse processing info"}
+    
+    debug_info = {
+        "schedule": {
+            "id": str(schedule.id),
+            "name": schedule.name,
+            "enabled": schedule.enabled,
+            "cron_expression": schedule.cron_expression,
+            "timezone": schedule.timezone,
+            "target_libraries": schedule.target_libraries,
+            "badge_types": schedule.badge_types,
+            "reprocess_all": schedule.reprocess_all
+        },
+        "timing": {
+            "current_time_utc": current_time.isoformat(),
+            "previous_scheduled_run_utc": prev_run.isoformat(),
+            "next_scheduled_run_utc": next_run.isoformat(),
+            "time_since_scheduled": str(time_since_scheduled),
+            "is_overdue": is_overdue,
+            "should_have_run": should_have_run
+        },
+        "execution_status": {
+            "recent_executions_count": len(recent_executions),
+            "latest_execution": {
+                "id": str(latest_execution.id) if latest_execution else None,
+                "status": latest_execution.status if latest_execution else None,
+                "created_at": latest_execution.created_at.isoformat() if latest_execution else None,
+                "processing_info": latest_processing_info
+            }
+        },
+        "diagnosis": []
+    }
+    
+    # Add diagnostic messages
+    if not schedule.enabled:
+        debug_info["diagnosis"].append({
+            "level": "error",
+            "message": "Schedule is disabled. Enable it to start automatic execution."
+        })
+    
+    if not schedule.target_libraries:
+        debug_info["diagnosis"].append({
+            "level": "error",
+            "message": "No target libraries configured. Add libraries to process."
+        })
+    
+    if should_have_run and schedule.enabled:
+        if is_overdue:
+            debug_info["diagnosis"].append({
+                "level": "error",
+                "message": f"Schedule is overdue by {time_since_scheduled}. Check if scheduler service is running."
+            })
+        else:
+            debug_info["diagnosis"].append({
+                "level": "warning",
+                "message": f"Schedule should run soon (last scheduled: {time_since_scheduled} ago)."
+            })
+    
+    if latest_processing_info:
+        total_items = latest_processing_info.get("total_items", 0)
+        processed_items = latest_processing_info.get("processed_items", 0)
+        created_jobs = latest_processing_info.get("created_jobs", [])
+        
+        if total_items > 0 and processed_items == 0:
+            if not schedule.reprocess_all:
+                debug_info["diagnosis"].append({
+                    "level": "info",
+                    "message": f"Found {total_items} items but processed none. This is normal if all items already have badges (reprocess_all=false)."
+                })
+            else:
+                debug_info["diagnosis"].append({
+                    "level": "error",
+                    "message": f"Found {total_items} items but processed none despite reprocess_all=true. Check logs for errors."
+                })
+        
+        if len(created_jobs) == 0 and processed_items > 0:
+            debug_info["diagnosis"].append({
+                "level": "error",
+                "message": "Items were marked for processing but no jobs were created. Check job system."
+            })
+    
+    if not debug_info["diagnosis"]:
+        debug_info["diagnosis"].append({
+            "level": "success",
+            "message": "No issues detected. Schedule appears to be configured correctly."
+        })
+    
+    return debug_info

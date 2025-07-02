@@ -160,3 +160,7 @@ docker-build-scripts/*
 
 # Test files to ignore
 test_*.py
+
+# Google Gemini
+.gemini/
+.gemini/*

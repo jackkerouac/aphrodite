@@ -122,6 +122,11 @@ class MediaService:
     async def _create_media_item(self, db: AsyncSession, data: Dict[str, Any]) -> Optional[MediaItemModel]:
         """Create new media item in database"""
         try:
+            # Ensure community_rating is a string
+            community_rating = data.get("community_rating")
+            if isinstance(community_rating, (int, float)):
+                community_rating = str(community_rating)  # Convert any numeric type to string
+
             media_item = MediaItemModel(
                 id=data["id"],
                 title=data["title"],
@@ -133,7 +138,7 @@ class MediaService:
                 overview=data.get("overview"),
                 genres=data.get("genres", []),
                 runtime=data.get("runtime"),
-                community_rating=data.get("community_rating"),
+                community_rating=community_rating,
                 official_rating=data.get("official_rating"),
                 premiere_date=data.get("premiere_date"),
                 series_name=data.get("series_name"),

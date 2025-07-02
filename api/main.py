@@ -72,6 +72,27 @@ async def lifespan(app: FastAPI):
         except Exception as init_error:
             logger.warning(f"Badge settings auto-initialization failed: {init_error}")
         
+        # NOTE: Automatic library scan disabled to prevent startup issues
+        # The dashboard will fetch live counts directly from Jellyfin instead
+        # Users can manually trigger scans from the Media page if needed
+        # 
+        # # Scan Jellyfin library on startup
+        # try:
+        #     from app.services.media_service import get_media_service
+        #     from app.core.database import get_db_session
+        #     
+        #     logger.info("Performing initial Jellyfin library scan...")
+        #     media_service = get_media_service()
+        #     async for db in get_db_session():
+        #         total, new, errors = await media_service.scan_jellyfin_library(db)
+        #         if errors:
+        #             logger.warning(f"Library scan completed with errors: {errors}")
+        #         else:
+        #             logger.info(f"Initial library scan complete: {total} found, {new} new items")
+        #         break # Run only once
+        # except Exception as scan_error:
+        #     logger.error(f"Initial Jellyfin library scan failed: {scan_error}")
+        
         # Check for frontend files
         frontend_path = Path(__file__).parent.parent / "frontend" / ".next"
         if frontend_path.exists():

@@ -15,6 +15,7 @@ from ..core.database import get_db_session
 from ..models.jobs import ProcessingJobModel
 from ..models.schedules import ScheduleModel, ScheduleExecutionModel
 from ..models.media import MediaItemModel
+from ..services.jellyfin_service import get_jellyfin_service
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
@@ -120,11 +121,12 @@ async def get_analytics_overview(db: AsyncSession = Depends(get_db_session)):
         )
         active_schedules = active_schedules_result.scalar() or 0
         
-        # Media statistics - get from workflow jobs completed posters
-        total_posters_result = await db.execute(
-            select(func.sum(BatchJobModel.completed_posters)).where(BatchJobModel.status == "completed")
-        )
-        total_media_items = total_posters_result.scalar() or 0
+        # Media statistics - try to get live count from Jellyfin, fallback to database
+        total_media_items = await get_live_media_count()
+        if total_media_items == 0:
+            # Fallback to database count if Jellyfin unavailable
+            total_media_items_result = await db.execute(select(func.count(MediaItemModel.id)))
+            total_media_items = total_media_items_result.scalar() or 0
         
         # Success rate calculation
         processed_jobs = completed_jobs + failed_jobs
@@ -449,3 +451,51 @@ async def get_system_performance(db: AsyncSession = Depends(get_db_session)):
     except Exception as e:
         logger.error(f"Error in get_system_performance: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch system performance: {str(e)}")
+
+
+async def get_live_media_count() -> int:
+    """Get live media count from Jellyfin"""
+    try:
+        jellyfin_service = get_jellyfin_service()
+        
+        # Load Jellyfin settings
+        await jellyfin_service._load_jellyfin_settings()
+        
+        # Test connection first
+        connection_ok, _ = await jellyfin_service.test_connection()
+        if not connection_ok:
+            logger.warning("Jellyfin connection failed for live media count")
+            return 0
+        
+        # Get all libraries
+        libraries = await jellyfin_service.get_libraries()
+        if not libraries:
+            logger.warning("No libraries found in Jellyfin")
+            return 0
+        
+        total_count = 0
+        
+        # Count items in each library
+        for library in libraries:
+            library_id = library.get("ItemId")
+            if not library_id:
+                continue
+                
+            # Get library items count efficiently
+            items = await jellyfin_service.get_library_items(library_id)
+            
+            # Filter for movies and TV shows only
+            media_items = [
+                item for item in items 
+                if item.get("Type") in ["Movie", "Series"]
+            ]
+            
+            total_count += len(media_items)
+            logger.debug(f"Library {library.get('Name', 'Unknown')}: {len(media_items)} items")
+        
+        logger.info(f"Live media count from Jellyfin: {total_count}")
+        return total_count
+        
+    except Exception as e:
+        logger.error(f"Error getting live media count from Jellyfin: {e}")
+        return 0

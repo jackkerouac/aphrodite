@@ -96,7 +96,7 @@ export function useDashboardData(): DashboardData {
       // Process system status with fallback to basic connectivity test
       const systemStatus = {
         api_status: (systemHealth?.status === 'healthy' || apiOnline) ? 'online' as const : 'offline' as const,
-        jellyfin_status: systemHealth?.components?.database?.status === 'healthy' ? 'connected' as const : 'disconnected' as const,
+        jellyfin_status: systemHealth?.components?.jellyfin?.status === 'healthy' ? 'connected' as const : 'disconnected' as const,
         database_status: systemHealth?.components?.database?.status === 'healthy' ? 'healthy' as const : 'unhealthy' as const,
         queue_status: systemHealth?.components?.redis?.status === 'healthy' ? 'healthy' as const : 'unhealthy' as const,
         uptime: formatUptime(systemHealth?.timestamp),
