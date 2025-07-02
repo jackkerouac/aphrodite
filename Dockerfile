@@ -59,16 +59,16 @@ COPY --chown=aphrodite:aphrodite aphrodite_logging/ ./aphrodite_logging/
 COPY --chown=aphrodite:aphrodite aphrodite_helpers/ ./aphrodite_helpers/
 COPY --chown=aphrodite:aphrodite init-badge-settings-production.py ./
 
-# Copy pre-built frontend
-# Check if frontend/.next exists (pre-built) and copy it if it does
-COPY --chown=aphrodite:aphrodite frontend/.next ./frontend/.next 2>/dev/null || true
+# Copy frontend files (pre-built .next directory should exist in repo)
+COPY --chown=aphrodite:aphrodite frontend/.next ./frontend/.next
 COPY --chown=aphrodite:aphrodite frontend/public ./frontend/public
 COPY --chown=aphrodite:aphrodite frontend/package.json ./frontend/package.json
 
 # Create necessary directories with proper permissions
 RUN mkdir -p /app/logs /app/data /app/media /app/assets /app/assets/fonts /app/assets/images \
              /app/api/static /app/api/static/preview /app/api/static/processed /app/api/static/originals \
-             /app/api/static/awards /app/api/static/awards/black /app/api/static/awards/white && \
+             /app/api/static/awards /app/api/static/awards/black /app/api/static/awards/white \
+             /app/frontend/.next && \
     chown -R aphrodite:aphrodite /app && \
     chmod -R 755 /app/api/static
 
