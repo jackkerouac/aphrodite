@@ -97,6 +97,48 @@ export default function PosterManagerPage() {
   const [selectedPoster, setSelectedPoster] = useState<MediaItem | null>(null)
   const [showDetailModal, setShowDetailModal] = useState(false)
 
+  // Handle tab switching with refresh on Library tab
+  const handleTabChange = async (newTab: string) => {
+    const previousTab = activeTab
+    setActiveTab(newTab)
+    
+    // If switching from Jobs to Library tab, refresh the library data
+    if (previousTab === "jobs" && newTab === "library" && selectedLibrary) {
+      toast.info("Refreshing library to show latest badge status...")
+      setRefreshing(true)
+      
+      try {
+        // Refresh library items to get updated badge status
+        if (searchQuery || badgeFilter !== 'all') {
+          await searchItems(currentPage)
+        } else {
+          await loadLibraryItems(currentPage)
+        }
+        
+        // Also refresh the poster URLs with cache-busting
+        const timestamp = Date.now()
+        setItems(prevItems => 
+          prevItems.map(item => {
+            if (item.poster_url) {
+              const refreshedUrl = item.poster_url.includes('?')
+                ? `${item.poster_url}&refresh=${timestamp}`
+                : `${item.poster_url}?refresh=${timestamp}`
+              return { ...item, poster_url: refreshedUrl }
+            }
+            return item
+          })
+        )
+        
+        toast.success("Library refreshed successfully")
+      } catch (error) {
+        console.error("Error refreshing library:", error)
+        toast.error("Failed to refresh library")
+      } finally {
+        setRefreshing(false)
+      }
+    }
+  }
+
   // Load job count for tab badge
   useEffect(() => {
     loadJobCount()
@@ -412,7 +454,7 @@ export default function PosterManagerPage() {
       </div>
 
       {/* Main Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="library" className="flex items-center">
             <Images className="h-4 w-4 mr-2" />

@@ -53,11 +53,47 @@ class JobManager:
         
         # CRITICAL: Dispatch job to Docker Celery worker
         try:
-            task = celery_app.send_task('app.services.workflow.workers.batch_worker.process_batch_job', args=[str(job.id)])
+            # First, check if the task is registered
+            task_name = 'app.services.workflow.workers.batch_worker.process_batch_job'
+            if task_name not in celery_app.tasks:
+                print(f"⚠️  Task {task_name} not found in registered tasks")
+                print(f"📋 Available tasks: {list(celery_app.tasks.keys())}")
+                # Try to import the task module explicitly
+                try:
+                    from app.services.workflow.workers.batch_worker import process_batch_job
+                    print(f"✅ Task module imported successfully: {process_batch_job}")
+                except Exception as import_error:
+                    print(f"❌ Failed to import task module: {import_error}")
+                    raise ValueError(f"Task not available: {import_error}")
+            
+            # Dispatch the task
+            task = celery_app.send_task(task_name, args=[str(job.id)])
             print(f"Job dispatched to Docker Celery worker: {job.id} -> {task.id}")
-            # TODO: Store task_id for monitoring
+            print(f"Task state: {task.state}")
+            
+            # Try to get more information about the broker connection
+            try:
+                inspector = celery_app.control.inspect()
+                active_workers = inspector.active()
+                print(f"Active workers at dispatch time: {active_workers}")
+                
+                # Check if workers are available to process tasks
+                if not active_workers:
+                    print("⚠️  WARNING: No active workers detected when dispatching job!")
+                    print("This job may remain in PENDING state until a worker becomes available.")
+                else:
+                    print(f"✅ {len(active_workers)} worker(s) available to process jobs")
+                    
+            except Exception as inspect_error:
+                print(f"⚠️  Could not inspect workers: {inspect_error}")
+            
+            # Store task_id for monitoring
+            # TODO: Add task_id field to job model if needed
+            
         except Exception as e:
             print(f"Failed to dispatch job {job.id}: {e}")
+            import traceback
+            traceback.print_exc()
             # If dispatch fails, mark job as failed
             await self.job_repository.update_job_status(str(job.id), JobStatus.FAILED)
             await self.job_repository.update_job_error(str(job.id), f"Failed to dispatch job: {e}")

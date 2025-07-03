@@ -307,11 +307,24 @@ async def test_specific_jellyfin_id(jellyfin_id: str):
                 "error": str(e)
             }
         
-        # Determine overall success
-        success = any(test.get("success", False) for test in details["tests"].values())
+        # Determine overall success - prioritize what's actually needed for processing
+        # For batch processing, we primarily need:
+        # 1. Either metadata API to work (user API is more reliable)
+        # 2. Poster to be available
+        
+        user_api_works = details["tests"].get("user_api", {}).get("success", False)
+        poster_works = details["tests"].get("poster", {}).get("success", False)
+        metadata_works = details["tests"].get("metadata", {}).get("success", False)
+        
+        # Success if we can get the item data AND poster (which is what batch processing needs)
+        success = (user_api_works or metadata_works) and poster_works
         
         if success:
             message = f"Jellyfin ID {jellyfin_id} is valid and accessible"
+        elif user_api_works and not poster_works:
+            message = f"Jellyfin ID {jellyfin_id} is valid but has no poster image"
+        elif poster_works and not (user_api_works or metadata_works):
+            message = f"Jellyfin ID {jellyfin_id} has poster but metadata access failed"
         else:
             message = f"Jellyfin ID {jellyfin_id} is not accessible - may be invalid or deleted"
         

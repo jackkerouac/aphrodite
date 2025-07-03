@@ -23,7 +23,7 @@ logger = get_logger("aphrodite.worker.batch")
 # Import Celery app for task decorator
 from celery_app import celery_app
 
-@celery_app.task
+@celery_app.task(name='app.services.workflow.workers.batch_worker.process_batch_job', bind=False)
 def process_batch_job(job_id: str) -> Dict[str, Any]:
     """
     Main Celery task for processing batch jobs.
@@ -84,6 +84,20 @@ async def _process_batch_job_async(job_id: str) -> Dict[str, Any]:
                 logger.error(f"Job not found: {job_id}")
                 return {"success": False, "error": "Job not found"}
             
+            # Debug the poster IDs being processed
+            logger.info(f"Job {job_id} details:")
+            logger.info(f"  - Total posters: {job.total_posters}")
+            logger.info(f"  - Badge types: {job.badge_types}")
+            logger.info(f"  - Selected poster IDs: {job.selected_poster_ids[:5]}{'...' if len(job.selected_poster_ids) > 5 else ''}")
+            
+            # Validate that we have poster IDs
+            if not job.selected_poster_ids:
+                error_msg = "No poster IDs found in job"
+                logger.error(error_msg)
+                await job_repo.update_job_status(job_id, JobStatus.FAILED)
+                await job_repo.update_job_error(job_id, error_msg)
+                return {"success": False, "error": error_msg}
+            
             # Update job status to processing
             await job_repo.update_job_status(job_id, JobStatus.PROCESSING)
             await job_repo.update_job_started_at(job_id, datetime.utcnow())
@@ -96,6 +110,8 @@ async def _process_batch_job_async(job_id: str) -> Dict[str, Any]:
             try:
                 # Process each poster
                 for poster_id in job.selected_poster_ids:
+                    logger.info(f"Processing poster {poster_id} ({completed + failed + 1}/{job.total_posters})")
+                    
                     # Check if job was cancelled or paused
                     current_job = await job_repo.get_job_by_id(job_id)
                     if current_job.status in [JobStatus.CANCELLED.value, JobStatus.PAUSED.value]:
@@ -135,16 +151,20 @@ async def _process_batch_job_async(job_id: str) -> Dict[str, Any]:
                             else:
                                 logger.warning(f"Skipping tag addition for {poster_id} - not uploaded to Jellyfin")
                             
-                            logger.debug(f"Completed poster {poster_id}")
+                            logger.info(f"✅ Completed poster {poster_id} successfully")
                         else:
+                            error_msg = result["error"]
+                            logger.error(f"❌ Failed to process poster {poster_id}: {error_msg}")
                             await error_handler.handle_poster_error(
-                                job_repo, job_id, poster_id, result["error"]
+                                job_repo, job_id, poster_id, error_msg
                             )
                             failed += 1
                             
                     except Exception as e:
+                        error_msg = str(e)
+                        logger.error(f"❌ Exception processing poster {poster_id}: {error_msg}", exc_info=True)
                         await error_handler.handle_poster_error(
-                            job_repo, job_id, poster_id, str(e)
+                            job_repo, job_id, poster_id, error_msg
                         )
                         failed += 1
                     

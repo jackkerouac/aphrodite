@@ -25,8 +25,12 @@ celery_app.conf.update(
     # Windows compatibility
     worker_pool='solo',
     worker_concurrency=1,
-    # Use the v2 batch worker instead of unified_worker
-    include=['app.services.workflow.workers.batch_worker']
+    # Task discovery - make sure our tasks are found
+    include=['app.services.workflow.workers.batch_worker'],
+    imports=['app.services.workflow.workers.batch_worker'],
 )
+
+# Explicitly import the task to register it
+from app.services.workflow.workers.batch_worker import process_batch_job
 
 __all__ = ['celery_app']

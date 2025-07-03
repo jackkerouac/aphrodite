@@ -63,7 +63,7 @@ class ProgressInfo(BaseModel):
 class BatchJobRequest(BaseModel):
     """Batch job creation request"""
     name: str
-    poster_ids: List[UUID]
+    poster_ids: List[str]  # Changed from List[UUID] to List[str] to support Jellyfin IDs
     badge_types: List[str]
     source: JobSource = JobSource.MANUAL
     priority: JobPriority = JobPriority.NORMAL

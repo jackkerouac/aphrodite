@@ -1,0 +1,99 @@
+# Aphrodite Worker Debug Configuration
+# Use this to debug worker issues
+
+services:
+  # Use existing services from main docker-compose.yml
+  postgres:
+    extends:
+      file: docker-compose.yml
+      service: postgres
+
+  redis:
+    extends:
+      file: docker-compose.yml
+      service: redis
+
+  aphrodite:
+    extends:
+      file: docker-compose.yml
+      service: aphrodite
+
+  # Debug version of the worker with more verbose logging
+  aphrodite-worker-debug:
+    image: ${APHRODITE_IMAGE:-ghcr.io/jackkerouac/aphrodite:latest}
+    pull_policy: always
+    restart: "no"  # Don't auto-restart for debugging
+    command: ["python", "-c", "
+      import sys, os;
+      sys.path.insert(0, '/app');
+      os.chdir('/app/api');
+      print('=== WORKER DEBUG START ===');
+      print(f'Python path: {sys.path[:3]}');
+      print(f'Working dir: {os.getcwd()}');
+      print('=== TESTING IMPORTS ===');
+      try:
+        from celery_app import celery_app;
+        print(f'✅ Celery app: {celery_app.main}');
+        print(f'📋 Broker: {celery_app.conf.broker_url}');
+        print(f'📋 Backend: {celery_app.conf.result_backend}');
+      except Exception as e:
+        print(f'❌ Celery import error: {e}');
+        import traceback; traceback.print_exc();
+      try:
+        from app.services.workflow.workers.batch_worker import process_batch_job;
+        print(f'✅ Task imported: {process_batch_job.name}');
+      except Exception as e:
+        print(f'❌ Task import error: {e}');
+        import traceback; traceback.print_exc();
+      print('=== STARTING WORKER ===');
+      exec(open('robust_worker.py').read())
+    "]
+    environment:
+      # Same environment as main worker
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-aphrodite}
+      POSTGRES_USER: ${POSTGRES_USER:-aphrodite}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://aphrodite:changeme@postgres:5432/aphrodite}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/1}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      SECRET_KEY: ${SECRET_KEY:-please-change-this-secret-key-in-production}
+      LOG_LEVEL: debug
+      PYTHONPATH: /app
+      # Debug settings
+      WORKER_STARTUP: "true"
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      # Share volumes with main application
+      - aphrodite_data:/app/data
+      - aphrodite_logs:/app/logs
+      - aphrodite_media:/app/media
+      - aphrodite_static:/app/api/static/originals
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    working_dir: /app/api
+
+volumes:
+  postgres_data:
+    external: true
+  redis_data:
+    external: true
+  aphrodite_data:
+    external: true
+  aphrodite_logs:
+    external: true
+  aphrodite_media:
+    external: true
+  aphrodite_static:
+    external: true
+
+networks:
+  default:
+    name: aphrodite_network
+    external: true

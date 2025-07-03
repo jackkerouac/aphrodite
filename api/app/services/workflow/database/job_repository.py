@@ -7,7 +7,6 @@ Database operations for batch jobs.
 from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, and_
-from uuid import UUID
 from datetime import datetime
 
 from .models import BatchJobModel, PosterProcessingStatusModel
@@ -29,7 +28,7 @@ class JobRepository:
             total_posters=len(request.poster_ids),
             priority=request.priority.value,
             badge_types=request.badge_types,
-            selected_poster_ids=[str(pid) for pid in request.poster_ids]
+            selected_poster_ids=request.poster_ids  # No need to convert since they're already strings
         )
         
         self.session.add(job)

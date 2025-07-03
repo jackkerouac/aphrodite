@@ -7,7 +7,6 @@ Endpoints for job creation, status, and management.
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from uuid import UUID
 from pydantic import BaseModel
 
 from app.core.database import get_db_session
@@ -24,7 +23,7 @@ logger = get_logger("aphrodite.api.workflow.jobs")
 class CreateBatchJobRequest(BaseModel):
     """Request model for creating batch jobs"""
     name: str
-    poster_ids: List[UUID]
+    poster_ids: List[str]  # Changed from List[UUID] to List[str] to support Jellyfin IDs
     badge_types: List[str]
     user_id: str = "default_user"
 
@@ -49,6 +48,24 @@ async def create_batch_job(
         logger.info(f"Received batch job request: {request.dict()}")
         logger.info(f"Creating batch job: {request.name} with {len(request.poster_ids)} posters")
         
+        # Debug the poster IDs being received
+        logger.info(f"Poster IDs received: {request.poster_ids[:5]}{'...' if len(request.poster_ids) > 5 else ''}")
+        
+        # Validate that poster IDs are not empty
+        if not request.poster_ids:
+            logger.error("No poster IDs provided in batch job request")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No poster IDs provided")
+        
+        # Validate that poster IDs are valid UUIDs/strings
+        invalid_ids = []
+        for poster_id in request.poster_ids:
+            if not poster_id or not isinstance(poster_id, str) or len(poster_id.strip()) == 0:
+                invalid_ids.append(poster_id)
+        
+        if invalid_ids:
+            logger.error(f"Invalid poster IDs found: {invalid_ids}")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid poster IDs: {invalid_ids}")
+        
         job = await job_manager.create_job(
             user_id=request.user_id,
             name=request.name, 
@@ -57,6 +74,7 @@ async def create_batch_job(
         )
         
         logger.info(f"Created batch job {job.id} successfully")
+        logger.info(f"Job stored with {len(job.selected_poster_ids)} poster IDs: {job.selected_poster_ids[:3]}{'...' if len(job.selected_poster_ids) > 3 else ''}")
         return {
             "job_id": job.id,
             "name": job.name,
