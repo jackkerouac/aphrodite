@@ -144,10 +144,14 @@ class JellyfinService:
         self.logger.debug(f"Final Jellyfin settings: base_url={self.base_url}, api_key={'***' if self.api_key else 'None'}, user_id={self.user_id}")
         
         if self.base_url and self.api_key:
-            self.logger.info(f"Using Jellyfin settings from environment: {self.base_url}")
+            self.logger.info(f"Using Jellyfin settings: {self.base_url}")
         else:
-            self.logger.warning("No Jellyfin settings available from database or environment")
-            self.logger.warning(f"Environment variables: JELLYFIN_URL={self.env_base_url}, JELLYFIN_API_KEY={'***' if self.env_api_key else 'None'}")
+            self.logger.error("No Jellyfin settings available from database or environment")
+            self.logger.error(f"Environment variables: JELLYFIN_URL={self.env_base_url}, JELLYFIN_API_KEY={'***' if self.env_api_key else 'None'}")
+            self.logger.error("This will cause poster downloads to fail!")
+            
+        # Always log the connection details for debugging
+        self.logger.info(f"Jellyfin configuration check: base_url={bool(self.base_url)}, api_key={bool(self.api_key)}, user_id={self.user_id}")
         
         self._settings_loaded = True
     
@@ -226,7 +230,7 @@ class JellyfinService:
                 self.logger.error("Jellyfin not configured")
                 return []
             
-            url = urljoin(self.base_url, f"/Library/VirtualFolders?api_key={self.api_key}")
+            url = urljoin(self.base_url, "/Library/VirtualFolders")
             session = await self._get_session()
             
             try:
@@ -257,11 +261,13 @@ class JellyfinService:
             
             url = urljoin(
                 self.base_url,
-                f"/Items?ParentId={library_id}&Recursive=true&api_key={self.api_key}"
+                f"/Items"
             )
             
             # Add Fields parameter to include Tags for badge status detection
             params = {
+                "ParentId": library_id,
+                "Recursive": "true",
                 "Fields": "Tags,Genres,Overview,ProductionYear,CommunityRating,OfficialRating"
             }
             
@@ -352,10 +358,10 @@ class JellyfinService:
                 self.logger.error(f"Jellyfin settings not configured when getting poster URL for {item_id}")
                 return None
             
-            # Primary poster image URL
+            # Primary poster image URL - use header-based auth instead of URL params
             poster_url = urljoin(
                 self.base_url,
-                f"/Items/{item_id}/Images/Primary?api_key={self.api_key}"
+                f"/Items/{item_id}/Images/Primary"
             )
             
             # Verify the image exists
@@ -366,13 +372,16 @@ class JellyfinService:
                         self.logger.debug(f"Found poster for item {item_id}")
                         return poster_url
                     else:
-                        self.logger.warning(f"No poster found for item {item_id}")
+                        self.logger.warning(f"No poster found for item {item_id} (HTTP {response.status})")
+                        # Log more details for debugging
+                        response_text = await response.text() if response.status != 404 else "Not Found"
+                        self.logger.debug(f"Poster check failed for {item_id}: {response_text}")
                         return None
             finally:
                 await session.close()
                     
         except Exception as e:
-            self.logger.error(f"Error getting poster URL: {e}")
+            self.logger.error(f"Error getting poster URL for {item_id}: {e}")
             return None
     
     async def download_poster(self, item_id: str) -> Optional[bytes]:
@@ -384,10 +393,13 @@ class JellyfinService:
             # Ensure settings are loaded first
             await self._load_jellyfin_settings()
             
+            self.logger.debug(f"Attempting to get poster URL for item {item_id}")
             poster_url = await self.get_poster_url(item_id)
             if not poster_url:
+                self.logger.warning(f"No poster found for item {item_id}")
                 return None
             
+            self.logger.debug(f"Downloading poster from URL: {poster_url}")
             session = await self._get_session()
             try:
                 async with session.get(poster_url) as response:
@@ -396,13 +408,13 @@ class JellyfinService:
                         self.logger.debug(f"Downloaded poster for item {item_id}: {len(poster_data)} bytes")
                         return poster_data
                     else:
-                        self.logger.error(f"Failed to download poster: HTTP {response.status}")
+                        self.logger.error(f"Failed to download poster for {item_id}: HTTP {response.status}")
                         return None
             finally:
                 await session.close()
                     
         except Exception as e:
-            self.logger.error(f"Error downloading poster: {e}")
+            self.logger.error(f"Error downloading poster for {item_id}: {e}")
             return None
     
     def _map_jellyfin_type(self, jellyfin_type: str) -> MediaType:
