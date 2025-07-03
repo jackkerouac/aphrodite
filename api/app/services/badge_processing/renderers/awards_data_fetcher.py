@@ -5,9 +5,11 @@ Pure V2 awards data collection - no V1 dependencies.
 Handles awards detection from metadata and demo generation.
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import hashlib
 from pathlib import Path
+import sys
+import os
 
 from aphrodite_logging import get_logger
 
@@ -95,31 +97,19 @@ class V2AwardsDataFetcher:
         imdb_id: Optional[str], 
         media_type: str
     ) -> Optional[str]:
-        """Detect awards from media metadata"""
+        """Detect awards from media metadata using real award detection"""
         try:
-            # For now, use deterministic demo logic based on title/year
-            # In a real implementation, this would query award databases
+            self.logger.debug(f"🔍 [V2 AWARDS FETCHER] Detecting awards for: {title} ({year})")
+            self.logger.debug(f"🔍 [V2 AWARDS FETCHER] IDs - TMDb: {tmdb_id}, IMDb: {imdb_id}")
             
-            title_hash = hashlib.md5(f"{title}{year or ''}".encode()).hexdigest()
-            hash_value = int(title_hash[:8], 16)
+            # Use the real awards detection system
+            awards_list = await self._get_real_awards(title, year, tmdb_id, imdb_id, media_type)
             
-            # 20% chance of awards
-            if hash_value % 10 < 2:
-                if media_type == "movie":
-                    # Movie awards
-                    movie_awards = ["oscars", "golden", "bafta", "cannes"]
-                    selected = movie_awards[hash_value % len(movie_awards)]
-                elif media_type in ["series", "season", "episode"]:
-                    # TV awards
-                    tv_awards = ["emmys", "golden", "bafta"]
-                    selected = tv_awards[hash_value % len(tv_awards)]
-                else:
-                    # General awards
-                    general_awards = ["oscars", "emmys", "golden", "bafta", "cannes"]
-                    selected = general_awards[hash_value % len(general_awards)]
-                
-                self.logger.debug(f"🏆 [V2 AWARDS FETCHER] Award detected: {selected}")
-                return selected
+            if awards_list:
+                # Get the primary (most prestigious) award
+                primary_award = self._get_primary_award(awards_list)
+                self.logger.debug(f"🏆 [V2 AWARDS FETCHER] Primary award detected: {primary_award} (from {awards_list})")
+                return primary_award
             
             self.logger.debug("🚫 [V2 AWARDS FETCHER] No awards detected")
             return None
@@ -127,3 +117,140 @@ class V2AwardsDataFetcher:
         except Exception as e:
             self.logger.error(f"❌ [V2 AWARDS FETCHER] Error detecting awards: {e}")
             return None
+    
+    async def _get_real_awards(self, title: str, year: Optional[int], tmdb_id: Optional[str], imdb_id: Optional[str], media_type: str) -> List[str]:
+        """Get real awards using the comprehensive awards detection system"""
+        try:
+            # Add the helpers directory to the path - adjust for Docker container
+            import sys
+            import os
+            
+            # Try multiple possible paths for the helpers directory
+            possible_paths = [
+                '/app/aphrodite_helpers',  # Docker container main path
+                os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'aphrodite_helpers'),  # Local development
+                os.path.join('/app', 'aphrodite_helpers'),  # Docker container alternative
+                os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'aphrodite_helpers'))  # Absolute path
+            ]
+            
+            awards_data_source_module = None
+            for helpers_path in possible_paths:
+                if os.path.exists(helpers_path) and helpers_path not in sys.path:
+                    sys.path.insert(0, helpers_path)
+                    self.logger.debug(f"🔍 [V2 AWARDS FETCHER] Added to path: {helpers_path}")
+                    
+                try:
+                    from awards_data_source import AwardsDataSource
+                    awards_data_source_module = AwardsDataSource
+                    self.logger.debug(f"✅ [V2 AWARDS FETCHER] Successfully imported AwardsDataSource from {helpers_path}")
+                    break
+                except ImportError:
+                    continue
+            
+            if not awards_data_source_module:
+                self.logger.error("❌ [V2 AWARDS FETCHER] Could not import AwardsDataSource from any path")
+                self.logger.debug(f"🔍 [V2 AWARDS FETCHER] Tried paths: {possible_paths}")
+                return []
+            
+            # Load settings for the awards data source
+            settings = await self._get_api_settings()
+            if not settings:
+                self.logger.warning("⚠️ [V2 AWARDS FETCHER] No API settings available for awards detection")
+                return []
+            
+            # Create awards data source
+            awards_source = awards_data_source_module(settings)
+            
+            # Get awards based on media type
+            if media_type == "movie":
+                awards_list = awards_source.get_movie_awards(tmdb_id=tmdb_id, imdb_id=imdb_id, title=title)
+            elif media_type in ["series", "season", "episode"]:
+                awards_list = awards_source.get_tv_awards(tmdb_id=tmdb_id, imdb_id=imdb_id, title=title)
+            else:
+                # Try movie first, then TV
+                awards_list = awards_source.get_movie_awards(tmdb_id=tmdb_id, imdb_id=imdb_id, title=title)
+                if not awards_list:
+                    awards_list = awards_source.get_tv_awards(tmdb_id=tmdb_id, imdb_id=imdb_id, title=title)
+            
+            self.logger.debug(f"🔍 [V2 AWARDS FETCHER] Awards from detection system: {awards_list}")
+            return awards_list
+            
+        except Exception as e:
+            self.logger.error(f"❌ [V2 AWARDS FETCHER] Error in real awards detection: {e}")
+            return []
+    
+    async def _get_api_settings(self) -> Optional[dict]:
+        """Get API settings for awards detection"""
+        try:
+            from app.core.database import async_session_factory
+            
+            async with async_session_factory() as db:
+                # Get API settings from database - try multiple possible keys
+                from sqlalchemy import text
+                
+                # First try the settings.yaml key (main settings)
+                result = await db.execute(text("SELECT value FROM system_config WHERE key = 'settings.yaml'"))
+                row = result.fetchone()
+                
+                if row:
+                    settings_data = row[0]
+                    # The API keys should be in the api_keys section
+                    if isinstance(settings_data, dict) and 'api_keys' in settings_data:
+                        api_settings = {"api_keys": settings_data['api_keys']}
+                        self.logger.debug(f"✅ [V2 AWARDS FETCHER] API settings loaded from settings.yaml")
+                        return api_settings
+                
+                # Fallback: try direct api_keys key
+                result = await db.execute(text("SELECT value FROM system_config WHERE key = 'api_keys'"))
+                row = result.fetchone()
+                
+                if row:
+                    api_settings = {"api_keys": row[0]}
+                    self.logger.debug(f"✅ [V2 AWARDS FETCHER] API settings loaded from api_keys")
+                    return api_settings
+                
+                # Debug: Show what keys are actually available
+                result = await db.execute(text("SELECT key FROM system_config WHERE key LIKE '%api%' OR key LIKE '%settings%'"))
+                available_keys = [row[0] for row in result.fetchall()]
+                self.logger.debug(f"🔍 [V2 AWARDS FETCHER] Available config keys: {available_keys}")
+                
+                self.logger.warning("⚠️ [V2 AWARDS FETCHER] No API keys found in database")
+                return None
+                    
+        except Exception as e:
+            self.logger.error(f"❌ [V2 AWARDS FETCHER] Error getting API settings: {e}")
+            return None
+    
+    def _get_primary_award(self, awards_list: List[str]) -> str:
+        """Return the most prestigious award from a list"""
+        if not awards_list:
+            return None
+        
+        # Award priority order (most prestigious first)
+        priority_order = [
+            "oscars",      # Academy Awards
+            "cannes",      # Cannes Film Festival
+            "golden",      # Golden Globes
+            "bafta",       # BAFTA Awards
+            "emmys",       # Emmy Awards
+            "crunchyroll", # Crunchyroll Anime Awards
+            "berlinale",   # Berlin International Film Festival
+            "venice",      # Venice Film Festival
+            "sundance",    # Sundance Film Festival
+            "spirit",      # Independent Spirit Awards
+            "cesar",       # César Awards
+            "choice",      # People's Choice Awards
+            "imdb",        # IMDb Top lists
+            "letterboxd",  # Letterboxd recognition
+            "metacritic",  # Metacritic recognition
+            "rotten",      # Rotten Tomatoes recognition
+            "netflix"      # Netflix awards/recognition
+        ]
+        
+        # Return the first award in priority order that exists in the list
+        for award in priority_order:
+            if award in awards_list:
+                return award
+        
+        # If none match priority order, return first available
+        return awards_list[0]
