@@ -6,9 +6,9 @@ echo 🚀 Building and running Aphrodite locally (fast mode)...
 
 REM Step 1: Build the frontend
 echo 📦 Building Next.js frontend...
-cd frontend
-call npm run build
-cd ..
+REM cd frontend
+REM call npm run build
+REM cd ..
 
 REM Step 2: Ensure all containers are stopped
 echo 🛑 Stopping any running containers...

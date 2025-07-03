@@ -218,49 +218,93 @@ class V2AwardsDataFetcher:
                 self.logger.debug(f"👾 [V2 AWARDS FETCHER] Using cached API settings")
                 return self._api_settings_cache
             
-            from app.core.database import async_session_factory
+            # Try multiple strategies to get database connection in worker
+            settings_data = None
             
-            async with async_session_factory() as db:
-                # Get API settings from database - try multiple possible keys
-                from sqlalchemy import text
-                
-                # First try the settings.yaml key (main settings)
-                result = await db.execute(text("SELECT value FROM system_config WHERE key = 'settings.yaml'"))
-                row = result.fetchone()
-                
-                if row:
-                    settings_data = row[0]
-                    # The API keys should be in the api_keys section
-                    if isinstance(settings_data, dict) and 'api_keys' in settings_data:
-                        api_settings = {"api_keys": settings_data['api_keys']}
-                        self.logger.debug(f"✅ [V2 AWARDS FETCHER] API settings loaded from settings.yaml")
-                        # Cache the settings
-                        self._api_settings_cache = api_settings
-                        self._api_settings_cache_time = current_time
-                        return api_settings
-                
-                # Fallback: try direct api_keys key
-                result = await db.execute(text("SELECT value FROM system_config WHERE key = 'api_keys'"))
-                row = result.fetchone()
-                
-                if row:
-                    api_settings = {"api_keys": row[0]}
-                    self.logger.debug(f"✅ [V2 AWARDS FETCHER] API settings loaded from api_keys")
-                    # Cache the settings
-                    self._api_settings_cache = api_settings
-                    self._api_settings_cache_time = current_time
-                    return api_settings
-                
-                # Debug: Show what keys are actually available
-                result = await db.execute(text("SELECT key FROM system_config WHERE key LIKE '%api%' OR key LIKE '%settings%'"))
-                available_keys = [row[0] for row in result.fetchall()]
-                self.logger.debug(f"🔍 [V2 AWARDS FETCHER] Available config keys: {available_keys}")
-                
-                self.logger.warning("⚠️ [V2 AWARDS FETCHER] No API keys found in database")
-                return None
+            # Strategy 1: Try the main session factory
+            try:
+                from app.core.database import async_session_factory
+                if async_session_factory and callable(async_session_factory):
+                    async with async_session_factory() as db:
+                        settings_data = await self._query_api_settings(db)
+                        if settings_data:
+                            self.logger.debug(f"✅ [V2 AWARDS FETCHER] API settings loaded via main session factory")
+                else:
+                    self.logger.debug(f"🔍 [V2 AWARDS FETCHER] Main session factory not available")
+            except Exception as e:
+                self.logger.debug(f"🔍 [V2 AWARDS FETCHER] Main session factory failed: {e}")
+            
+            # Strategy 2: Try creating fresh engine connection
+            if not settings_data:
+                try:
+                    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+                    from app.core.config import get_settings
+                    
+                    app_settings = get_settings()
+                    engine = create_async_engine(
+                        app_settings.database_url,
+                        echo=False,
+                        pool_size=1,
+                        max_overflow=0
+                    )
+                    
+                    session_factory = async_sessionmaker(
+                        engine,
+                        class_=AsyncSession,
+                        expire_on_commit=False
+                    )
+                    
+                    async with session_factory() as db:
+                        settings_data = await self._query_api_settings(db)
+                        if settings_data:
+                            self.logger.debug(f"✅ [V2 AWARDS FETCHER] API settings loaded via fresh engine")
+                    
+                    await engine.dispose()
+                    
+                except Exception as e:
+                    self.logger.debug(f"🔍 [V2 AWARDS FETCHER] Fresh engine failed: {e}")
+            
+            if settings_data:
+                # Cache the settings
+                self._api_settings_cache = settings_data
+                self._api_settings_cache_time = current_time
+                return settings_data
+            
+            self.logger.warning("⚠️ [V2 AWARDS FETCHER] No API keys found in database")
+            return None
                     
         except Exception as e:
             self.logger.error(f"❌ [V2 AWARDS FETCHER] Error getting API settings: {e}")
+            return None
+    
+    async def _query_api_settings(self, db_session) -> Optional[dict]:
+        """Query API settings from database session"""
+        try:
+            from sqlalchemy import text
+            
+            # First try the settings.yaml key (main settings)
+            result = await db_session.execute(text("SELECT value FROM system_config WHERE key = 'settings.yaml'"))
+            row = result.fetchone()
+            
+            if row:
+                settings_data = row[0]
+                # The API keys should be in the api_keys section
+                if isinstance(settings_data, dict) and 'api_keys' in settings_data:
+                    api_settings = {"api_keys": settings_data['api_keys']}
+                    return api_settings
+            
+            # Fallback: try direct api_keys key
+            result = await db_session.execute(text("SELECT value FROM system_config WHERE key = 'api_keys'"))
+            row = result.fetchone()
+            
+            if row:
+                api_settings = {"api_keys": row[0]}
+                return api_settings
+            
+            return None
+            
+        except Exception as e:
+            self.logger.error(f"❌ [V2 AWARDS FETCHER] Error querying API settings: {e}")
             return None
     
     def _get_primary_award(self, awards_list: List[str]) -> str:
