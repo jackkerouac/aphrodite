@@ -3,11 +3,11 @@
   "/favicon.ico/route": "/favicon.ico",
   "/diagnostics/page": "/diagnostics",
   "/about/page": "/about",
-  "/analytics/page": "/analytics",
   "/maintenance/page": "/maintenance",
+  "/analytics/page": "/analytics",
   "/page": "/",
-  "/poster-manager/page": "/poster-manager",
   "/preview/page": "/preview",
   "/schedules/page": "/schedules",
+  "/poster-manager/page": "/poster-manager",
   "/settings/page": "/settings"
 }

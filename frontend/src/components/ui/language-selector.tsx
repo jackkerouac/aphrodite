@@ -15,6 +15,7 @@ export interface LanguageOption {
 }
 
 const SUPPORTED_LANGUAGES: LanguageOption[] = [
+  { code: "null", name: "No Language (Textless)", native_name: "Textless" },
   { code: "en", name: "English", native_name: "English" },
   { code: "de", name: "German", native_name: "Deutsch" },
   { code: "fr", name: "French", native_name: "Français" },

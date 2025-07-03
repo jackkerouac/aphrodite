@@ -222,6 +222,15 @@ export function ReplacePosterModal({
                       </Badge>
                     </div>
                     
+                    {/* Textless Badge */}
+                    {!poster.language && (
+                      <div className="absolute top-2 left-2 mt-6">
+                        <Badge variant="outline" className="text-xs bg-green-100 text-green-800 border-green-300">
+                          Textless
+                        </Badge>
+                      </div>
+                    )}
+                    
                     {/* Resolution Badge */}
                     {poster.width && poster.height && (
                       <div className="absolute top-2 right-2">
@@ -245,9 +254,9 @@ export function ReplacePosterModal({
                   
                   <div className="p-3 space-y-1">
                     <div className="text-xs space-y-1">
-                      {poster.language && (
-                        <div><strong>Language:</strong> {poster.language}</div>
-                      )}
+                      <div>
+                        <strong>Language:</strong> {poster.language ? poster.language.toUpperCase() : 'Textless'}
+                      </div>
                       {poster.file_size_estimate && (
                         <div><strong>Size:</strong> {poster.file_size_estimate}</div>
                       )}

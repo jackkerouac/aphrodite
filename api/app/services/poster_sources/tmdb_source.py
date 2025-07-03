@@ -254,6 +254,13 @@ class TMDBPosterSource(BasePosterSource):
                 "aspect_ratio": aspect_ratio
             })
             
+            # Handle language - null/None means textless poster
+            language_code = poster_data.get("iso_639_1")
+            if language_code is None:
+                language = None  # This represents textless/no language posters
+            else:
+                language = language_code
+            
             return PosterOption(
                 id=f"tmdb_{tmdb_id}_{file_path.replace('/', '_')}",
                 source=PosterSource.TMDB,
@@ -262,7 +269,7 @@ class TMDBPosterSource(BasePosterSource):
                 width=width,
                 height=height,
                 aspect_ratio=aspect_ratio,
-                language=poster_data.get("iso_639_1") or "en",
+                language=language,
                 vote_average=poster_data.get("vote_average"),
                 vote_count=poster_data.get("vote_count"),
                 file_size_estimate=self._estimate_file_size(width, height),

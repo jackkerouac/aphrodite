@@ -206,7 +206,18 @@ class BulkPosterReplacementService:
     ) -> List[PosterOption]:
         """Filter posters by language preference"""
         
-        if language_preference == "en":
+        if language_preference == "null":
+            # For textless/no language, prioritize posters with null/None language
+            textless_posters = [
+                poster for poster in posters 
+                if poster.language is None or poster.language == "null"
+            ]
+            if textless_posters:
+                return textless_posters
+            # If no textless posters, fall back to all posters
+            return posters
+            
+        elif language_preference == "en":
             # For English, include both "en" and None (universal)
             return [
                 poster for poster in posters 

@@ -57,7 +57,7 @@ export const PosterReplacementModal: React.FC<PosterReplacementModalProps> = ({
   selectedItems,
   onSuccess
 }) => {
-  const [language, setLanguage] = useState("en")
+  const [language, setLanguage] = useState("null")
   const [isProcessing, setIsProcessing] = useState(false)
   const [results, setResults] = useState<BulkReplacePosterResponse | null>(null)
   const [currentStep, setCurrentStep] = useState<'setup' | 'processing' | 'results'>('setup')
@@ -111,7 +111,7 @@ export const PosterReplacementModal: React.FC<PosterReplacementModalProps> = ({
       setTimeout(() => {
         setCurrentStep('setup')
         setResults(null)
-        setLanguage('en')
+        setLanguage('null')
       }, 300)
     }
   }
@@ -124,7 +124,7 @@ export const PosterReplacementModal: React.FC<PosterReplacementModalProps> = ({
           <span className="text-lg font-medium">Replace {selectedItems.length} Poster{selectedItems.length !== 1 ? 's' : ''}</span>
         </div>
         <p className="text-sm text-muted-foreground">
-          This will replace the selected posters with random alternatives from external sources
+          This will replace the selected posters with alternatives from external sources like TMDB
         </p>
       </div>
 
@@ -135,6 +135,15 @@ export const PosterReplacementModal: React.FC<PosterReplacementModalProps> = ({
         onValueChange={setLanguage}
         label="Poster Language Preference"
       />
+      
+      {language === 'null' && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <div className="text-sm text-blue-800">
+            <strong>Textless Posters:</strong> These are special "No Language" posters from TMDB that contain no text, 
+            making them suitable for international audiences or cleaner visual aesthetics.
+          </div>
+        </div>
+      )}
 
       <Alert>
         <AlertCircle className="h-4 w-4" />
