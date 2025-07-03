@@ -8,6 +8,7 @@ import aiohttp
 from typing import List, Dict, Any, Optional, Tuple
 from urllib.parse import urljoin
 import asyncio
+from datetime import datetime, timedelta
 
 from app.core.config import get_settings
 from aphrodite_logging import get_logger
@@ -35,6 +36,11 @@ class JellyfinService:
         self.env_user_id = getattr(self.settings, 'jellyfin_user_id', None)
         
         self.session: Optional[aiohttp.ClientSession] = None
+        
+        # Rate limiting for batch processing
+        self._last_request_time = None
+        self._min_request_interval = 0.1  # Minimum 100ms between requests
+        self._request_lock = asyncio.Lock()
     
     async def _load_jellyfin_settings(self):
         """Load Jellyfin settings from database or environment variables"""
@@ -149,6 +155,7 @@ class JellyfinService:
         """Get or create HTTP session with proper Jellyfin headers"""
         # Always create a new session instead of reusing
         # This prevents "Event loop is closed" errors in worker environment
+        # and avoids session conflicts during batch processing
         timeout = aiohttp.ClientTimeout(total=30)
         # Use X-Emby-Token header like v1, not URL parameters
         headers = {
@@ -156,6 +163,20 @@ class JellyfinService:
             "Content-Type": "application/json"
         }
         return aiohttp.ClientSession(timeout=timeout, headers=headers)
+    
+    async def _throttle_request(self):
+        """Throttle API requests to prevent overwhelming Jellyfin during batch processing"""
+        async with self._request_lock:
+            if self._last_request_time is not None:
+                time_since_last = datetime.now() - self._last_request_time
+                min_interval = timedelta(seconds=self._min_request_interval)
+                
+                if time_since_last < min_interval:
+                    sleep_time = (min_interval - time_since_last).total_seconds()
+                    self.logger.debug(f"Throttling request: sleeping {sleep_time:.3f}s")
+                    await asyncio.sleep(sleep_time)
+            
+            self._last_request_time = datetime.now()
     
     async def close(self):
         """Close HTTP session"""
@@ -357,6 +378,9 @@ class JellyfinService:
     async def download_poster(self, item_id: str) -> Optional[bytes]:
         """Download poster image data"""
         try:
+            # Throttle requests to prevent overwhelming Jellyfin during batch processing
+            await self._throttle_request()
+            
             # Ensure settings are loaded first
             await self._load_jellyfin_settings()
             
@@ -420,20 +444,49 @@ class JellyfinService:
     async def get_media_item_by_id(self, jellyfin_id: str) -> Optional[Dict[str, Any]]:
         """Get media item details by Jellyfin ID using user-specific API"""
         try:
+            # Throttle requests to prevent overwhelming Jellyfin during batch processing
+            await self._throttle_request()
+            
             # Ensure settings are loaded
             await self._load_jellyfin_settings()
             
-            if not self.base_url or not self.api_key or not self.user_id:
-                self.logger.error(f"Jellyfin not fully configured when getting media item {jellyfin_id}")
-                self.logger.error(f"Missing: base_url={not self.base_url}, api_key={not self.api_key}, user_id={not self.user_id}")
+            if not self.base_url or not self.api_key:
+                self.logger.error(f"Jellyfin not configured when getting media item {jellyfin_id}")
+                self.logger.error(f"Missing: base_url={not self.base_url}, api_key={not self.api_key}")
                 return None
             
-            # Use user-specific API pattern like v1: /Users/{user_id}/Items/{item_id}
-            url = urljoin(self.base_url, f"/Users/{self.user_id}/Items/{jellyfin_id}")
+            # Try user-specific API first if user_id is available
+            if self.user_id:
+                url = urljoin(self.base_url, f"/Users/{self.user_id}/Items/{jellyfin_id}")
+                params = {
+                    "Fields": "MediaSources,MediaStreams"
+                }
+                
+                session = await self._get_session()
+                
+                try:
+                    async with session.get(url, params=params) as response:
+                        if response.status == 200:
+                            media_item = await response.json()
+                            self.logger.debug(f"Retrieved media item via user API {jellyfin_id}: {media_item.get('Name', 'Unknown')}")
+                            return media_item
+                        elif response.status == 400:
+                            self.logger.warning(f"User API returned 400 for {jellyfin_id}, trying general API")
+                        elif response.status == 401:
+                            self.logger.error(f"Jellyfin authentication failed (HTTP 401) - check API key and user ID")
+                            return None
+                        elif response.status == 404:
+                            self.logger.warning(f"Item not found via user API: {jellyfin_id}, trying general API")
+                        else:
+                            response_text = await response.text()
+                            self.logger.warning(f"User API failed for {jellyfin_id}: HTTP {response.status} - {response_text}")
+                finally:
+                    await session.close()
             
-            # Add MediaSources and MediaStreams fields for codec detection
+            # Fallback to general API endpoint
+            url = urljoin(self.base_url, f"/Items/{jellyfin_id}")
             params = {
-                "Fields": "MediaSources,MediaStreams"
+                "Fields": "MediaSources,MediaStreams,ProviderIds,Tags,Genres,Overview,ProductionYear,CommunityRating,OfficialRating"
             }
             
             session = await self._get_session()
@@ -442,14 +495,14 @@ class JellyfinService:
                 async with session.get(url, params=params) as response:
                     if response.status == 200:
                         media_item = await response.json()
-                        self.logger.debug(f"Retrieved media item {jellyfin_id}: {media_item.get('Name', 'Unknown')}")
+                        self.logger.debug(f"Retrieved media item via general API {jellyfin_id}: {media_item.get('Name', 'Unknown')}")
                         return media_item
                     elif response.status == 400:
                         self.logger.error(f"Invalid Jellyfin item ID: {jellyfin_id} (HTTP 400)")
                         self.logger.error(f"This item may have been deleted from Jellyfin or the ID is corrupted")
                         return None
                     elif response.status == 401:
-                        self.logger.error(f"Jellyfin authentication failed (HTTP 401) - check API key and user ID")
+                        self.logger.error(f"Jellyfin authentication failed (HTTP 401) - check API key configuration")
                         return None
                     elif response.status == 404:
                         self.logger.error(f"Jellyfin item not found: {jellyfin_id} (HTTP 404)")

@@ -149,6 +149,7 @@ async def get_user_jobs(
                 "total_posters": job.total_posters,
                 "completed_posters": job.completed_posters,
                 "failed_posters": job.failed_posters,
+                "badge_types": job.badge_types,  # Add badge_types to response
                 "created_at": job.created_at.isoformat()
             }
             for job in jobs

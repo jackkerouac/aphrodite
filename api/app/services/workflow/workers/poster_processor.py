@@ -58,11 +58,37 @@ class PosterProcessor:
         temp_poster_path = None
         
         try:
-            # Download the specific poster from Jellyfin
+            # Download the specific poster from Jellyfin with retry logic
             logger.debug(f"Downloading poster from Jellyfin for {poster_id}")
-            poster_data = await self.jellyfin_service.download_poster(poster_id)
+            
+            # Retry logic for poster download to handle transient HTTP 400 errors
+            max_retries = 3
+            retry_delay = 1.0  # Start with 1 second delay
+            poster_data = None
+            
+            for attempt in range(max_retries):
+                try:
+                    poster_data = await self.jellyfin_service.download_poster(poster_id)
+                    if poster_data:
+                        logger.debug(f"Successfully downloaded poster for {poster_id} on attempt {attempt + 1}")
+                        break
+                    else:
+                        logger.warning(f"No poster data returned for {poster_id} on attempt {attempt + 1}")
+                        if attempt < max_retries - 1:
+                            logger.info(f"Retrying poster download for {poster_id} in {retry_delay}s")
+                            await asyncio.sleep(retry_delay)
+                            retry_delay *= 2  # Exponential backoff
+                except Exception as download_error:
+                    logger.warning(f"Download attempt {attempt + 1} failed for {poster_id}: {download_error}")
+                    if attempt < max_retries - 1:
+                        logger.info(f"Retrying poster download for {poster_id} in {retry_delay}s")
+                        await asyncio.sleep(retry_delay)
+                        retry_delay *= 2  # Exponential backoff
+                    else:
+                        raise  # Re-raise on final attempt
+            
             if not poster_data:
-                error_msg = f"Failed to download poster for Jellyfin item: {poster_id}"
+                error_msg = f"Failed to download poster for Jellyfin item after {max_retries} attempts: {poster_id}"
                 logger.error(error_msg)
                 
                 # Emit progress update: failed to download

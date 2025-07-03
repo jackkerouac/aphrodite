@@ -115,8 +115,8 @@ class JobRepository:
         await self.session.commit()
         return result.rowcount > 0
     
-    async def update_job_error(self, job_id: str, error_message: str) -> bool:
-        """Update job error message"""
+    async def update_job_error(self, job_id: str, error_message: Optional[str]) -> bool:
+        """Update job error message (can be None to clear errors)"""
         result = await self.session.execute(
             update(BatchJobModel)
             .where(BatchJobModel.id == job_id)

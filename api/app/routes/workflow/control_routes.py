@@ -34,7 +34,8 @@ async def workflow_control_root():
         "endpoints": [
             "/{job_id}/pause",
             "/{job_id}/resume",
-            "/{job_id}/cancel"
+            "/{job_id}/cancel",
+            "/{job_id}/restart"
         ]
     }
 
@@ -108,3 +109,27 @@ async def cancel_job(
         logger.error(f"Failed to cancel job {job_id}: {e}", exc_info=True)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                           detail="Failed to cancel job")
+
+
+@router.post("/{job_id}/restart")
+async def restart_job(
+    job_id: str,
+    job_manager: JobManager = Depends(get_job_manager)
+):
+    """Restart stuck job"""
+    try:
+        success = await job_manager.restart_job(job_id)
+        
+        if not success:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                              detail="Job cannot be restarted (not found or not in valid state)")
+        
+        logger.info(f"Restarted job {job_id}")
+        return {"message": "Job restarted successfully", "job_id": job_id}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to restart job {job_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                          detail="Failed to restart job")

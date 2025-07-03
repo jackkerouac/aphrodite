@@ -6,7 +6,7 @@
 
 import React from 'react'
 import { Button } from '@/components/ui/button'
-import { Pause, Play, Square, Loader2 } from 'lucide-react'
+import { Pause, Play, Square, Loader2, RefreshCw } from 'lucide-react'
 import { useJobControls } from './hooks/useJobControls'
 
 interface JobControlsProps {
@@ -26,9 +26,11 @@ export const JobControls: React.FC<JobControlsProps> = ({
     isPausing, 
     isResuming, 
     isCancelling, 
+    isRestarting,
     pauseJob, 
     resumeJob, 
-    cancelJob 
+    cancelJob,
+    restartJob
   } = useJobControls(jobId)
 
   const handlePause = async () => {
@@ -52,9 +54,17 @@ export const JobControls: React.FC<JobControlsProps> = ({
     }
   }
 
-  const isLoading = isPausing || isResuming || isCancelling
+  const handleRestart = async () => {
+    const success = await restartJob()
+    if (success && onStatusChange) {
+      onStatusChange('queued')
+    }
+  }
+
+  const isLoading = isPausing || isResuming || isCancelling || isRestarting
   const isProcessing = jobStatus === 'processing'
   const isPaused = jobStatus === 'paused'
+  const isQueued = jobStatus === 'queued'
   const isCompleted = ['completed', 'failed', 'cancelled'].includes(jobStatus)
 
   if (isCompleted) {
@@ -105,6 +115,28 @@ export const JobControls: React.FC<JobControlsProps> = ({
             <>
               <Play className="w-4 h-4 mr-1" />
               Resume
+            </>
+          )}
+        </Button>
+      )}
+
+      {/* Restart Button for stuck queued jobs */}
+      {isQueued && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRestart}
+          disabled={disabled || isLoading}
+        >
+          {isRestarting ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+              Restarting...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="w-4 h-4 mr-1" />
+              Restart
             </>
           )}
         </Button>

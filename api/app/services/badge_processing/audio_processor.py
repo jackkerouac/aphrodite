@@ -242,10 +242,26 @@ class AudioBadgeProcessor(BaseBadgeProcessor):
                     """Get TV codec using v1 aggregator in isolated thread"""
                     try:
                         # Import v1 aggregator inside thread to isolate database connections
-                        from aphrodite_helpers.tv_episodes.tv_series_aggregator import get_dominant_audio_codec
+                        from aphrodite_helpers.tv_series_aggregator import get_dominant_audio_codec
+                        from aphrodite_helpers.v2_settings_bridge import load_settings
                         
-                        # Call v1 aggregator function
-                        codec = get_dominant_audio_codec(jellyfin_id)
+                        # Load settings to get Jellyfin connection details
+                        settings = load_settings()
+                        if not settings or 'api_keys' not in settings or 'Jellyfin' not in settings['api_keys']:
+                            print("V1 aggregator: Could not load Jellyfin settings")
+                            return None
+                        
+                        jellyfin_config = settings['api_keys']['Jellyfin'][0]
+                        url = jellyfin_config.get('url')
+                        api_key = jellyfin_config.get('api_key')
+                        user_id = jellyfin_config.get('user_id')
+                        
+                        if not all([url, api_key, user_id]):
+                            print("V1 aggregator: Incomplete Jellyfin configuration")
+                            return None
+                        
+                        # Call v1 aggregator function with proper parameters
+                        codec = get_dominant_audio_codec(url, api_key, user_id, jellyfin_id)
                         return codec if codec and codec != "UNKNOWN" else None
                         
                     except Exception as v1_error:

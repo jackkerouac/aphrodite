@@ -132,3 +132,31 @@ class JobManager:
             return False
         
         return await self.job_repository.update_job_status(job_id, JobStatus.CANCELLED)
+    
+    async def restart_job(self, job_id: str) -> bool:
+        """Restart stuck job by re-dispatching to worker"""
+        job = await self.job_repository.get_job_by_id(job_id)
+        if not job:
+            return False
+        
+        # Only restart jobs that are stuck in queued state or failed
+        if job.status not in [JobStatus.QUEUED.value, JobStatus.FAILED.value]:
+            return False
+        
+        try:
+            # Reset job to queued state
+            await self.job_repository.update_job_status(job_id, JobStatus.QUEUED)
+            
+            # Clear any previous errors
+            await self.job_repository.update_job_error(job_id, None)
+            
+            # Re-dispatch to worker
+            task_name = 'app.services.workflow.workers.batch_worker.process_batch_job'
+            task = celery_app.send_task(task_name, args=[str(job.id)])
+            print(f"Job re-dispatched to worker: {job.id} -> {task.id}")
+            
+            return True
+            
+        except Exception as e:
+            print(f"Failed to restart job {job_id}: {e}")
+            return False

@@ -10,23 +10,26 @@ interface JobControlsState {
   isPausing: boolean
   isResuming: boolean
   isCancelling: boolean
+  isRestarting: boolean
 }
 
 interface UseJobControlsReturn extends JobControlsState {
   pauseJob: () => Promise<boolean>
   resumeJob: () => Promise<boolean>
   cancelJob: () => Promise<boolean>
+  restartJob: () => Promise<boolean>
 }
 
 export const useJobControls = (jobId: string): UseJobControlsReturn => {
   const [state, setState] = useState<JobControlsState>({
     isPausing: false,
     isResuming: false,
-    isCancelling: false
+    isCancelling: false,
+    isRestarting: false
   })
 
   const makeRequest = useCallback(async (
-    action: 'pause' | 'resume' | 'cancel',
+    action: 'pause' | 'resume' | 'cancel' | 'restart',
     loadingKey: keyof JobControlsState
   ): Promise<boolean> => {
     setState(prev => ({ ...prev, [loadingKey]: true }))
@@ -62,10 +65,14 @@ export const useJobControls = (jobId: string): UseJobControlsReturn => {
   const cancelJob = useCallback(() => 
     makeRequest('cancel', 'isCancelling'), [makeRequest])
 
+  const restartJob = useCallback(() => 
+    makeRequest('restart', 'isRestarting'), [makeRequest])
+
   return {
     ...state,
     pauseJob,
     resumeJob,
-    cancelJob
+    cancelJob,
+    restartJob
   }
 }
