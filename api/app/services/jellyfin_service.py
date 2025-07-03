@@ -264,18 +264,26 @@ class JellyfinService:
             return []
     
     async def get_item_details(self, item_id: str) -> Optional[Dict[str, Any]]:
-        """Get detailed information for a specific item (alias for get_item_metadata)"""
+        """Get detailed information for a specific item (uses user-specific API first as it's more reliable)"""
         # Try the user-specific API first as it's more reliable
         result = await self.get_media_item_by_id(item_id)
         if result:
             return result
         
-        # Fallback to general metadata API
+        # Fallback to general metadata API (though this often fails with HTTP 400)
+        self.logger.warning(f"User-specific API failed for {item_id}, trying general metadata API")
         return await self.get_item_metadata(item_id)
     
     async def get_item_metadata(self, item_id: str) -> Optional[Dict[str, Any]]:
         """Get detailed metadata for a specific item"""
         try:
+            # Ensure settings are loaded
+            await self._load_jellyfin_settings()
+            
+            if not self.base_url or not self.api_key:
+                self.logger.error(f"Jellyfin not configured when getting metadata for {item_id}")
+                return None
+            
             # Use consistent header-based authentication like other methods
             url = urljoin(self.base_url, f"/Items/{item_id}")
             
@@ -292,14 +300,25 @@ class JellyfinService:
                         metadata = await response.json()
                         self.logger.debug(f"Retrieved metadata for item {item_id}")
                         return metadata
+                    elif response.status == 400:
+                        self.logger.error(f"Jellyfin item not found or invalid: {item_id} (HTTP 400)")
+                        self.logger.error(f"This usually means the item ID is invalid or the item was deleted from Jellyfin")
+                        return None
+                    elif response.status == 401:
+                        self.logger.error(f"Jellyfin authentication failed (HTTP 401) - check API key configuration")
+                        return None
+                    elif response.status == 404:
+                        self.logger.error(f"Jellyfin item not found: {item_id} (HTTP 404)")
+                        return None
                     else:
-                        self.logger.error(f"Failed to get item metadata: HTTP {response.status}")
+                        response_text = await response.text()
+                        self.logger.error(f"Failed to get item metadata: HTTP {response.status} - {response_text}")
                         return None
             finally:
                 await session.close()
                     
         except Exception as e:
-            self.logger.error(f"Error getting item metadata: {e}")
+            self.logger.error(f"Error getting item metadata for {item_id}: {e}")
             return None
     
     async def get_poster_url(self, item_id: str) -> Optional[str]:
@@ -401,6 +420,14 @@ class JellyfinService:
     async def get_media_item_by_id(self, jellyfin_id: str) -> Optional[Dict[str, Any]]:
         """Get media item details by Jellyfin ID using user-specific API"""
         try:
+            # Ensure settings are loaded
+            await self._load_jellyfin_settings()
+            
+            if not self.base_url or not self.api_key or not self.user_id:
+                self.logger.error(f"Jellyfin not fully configured when getting media item {jellyfin_id}")
+                self.logger.error(f"Missing: base_url={not self.base_url}, api_key={not self.api_key}, user_id={not self.user_id}")
+                return None
+            
             # Use user-specific API pattern like v1: /Users/{user_id}/Items/{item_id}
             url = urljoin(self.base_url, f"/Users/{self.user_id}/Items/{jellyfin_id}")
             
@@ -417,8 +444,19 @@ class JellyfinService:
                         media_item = await response.json()
                         self.logger.debug(f"Retrieved media item {jellyfin_id}: {media_item.get('Name', 'Unknown')}")
                         return media_item
+                    elif response.status == 400:
+                        self.logger.error(f"Invalid Jellyfin item ID: {jellyfin_id} (HTTP 400)")
+                        self.logger.error(f"This item may have been deleted from Jellyfin or the ID is corrupted")
+                        return None
+                    elif response.status == 401:
+                        self.logger.error(f"Jellyfin authentication failed (HTTP 401) - check API key and user ID")
+                        return None
+                    elif response.status == 404:
+                        self.logger.error(f"Jellyfin item not found: {jellyfin_id} (HTTP 404)")
+                        return None
                     else:
-                        self.logger.error(f"Failed to get media item {jellyfin_id}: HTTP {response.status}")
+                        response_text = await response.text()
+                        self.logger.error(f"Failed to get media item {jellyfin_id}: HTTP {response.status} - {response_text}")
                         return None
             finally:
                 await session.close()

@@ -13,7 +13,8 @@ import {
   Settings,
   Info,
   Github,
-  Coffee
+  Coffee,
+  Stethoscope
 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ThemeSwitcher } from '@/components/ui/theme-switcher';
@@ -27,6 +28,7 @@ const navigation = [
   { name: 'Preview', href: '/preview', icon: Eye },
   { name: 'Maintenance', href: '/maintenance', icon: Wrench },
   { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Diagnostics', href: '/diagnostics', icon: Stethoscope },
   { name: 'About', href: '/about', icon: Info },
 ];
 

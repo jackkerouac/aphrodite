@@ -33,7 +33,7 @@ from app.middleware.logging import LoggingMiddleware
 from app.middleware.correlation import CorrelationMiddleware
 
 # Import routes
-from app.routes import health, media, jobs, config, system, maintenance, preview, poster_manager, poster_replacement, image_proxy, schedules, analytics, resolution_diagnostics, audio_diagnostics
+from app.routes import health, media, jobs, config, system, maintenance, preview, poster_manager, poster_replacement, image_proxy, schedules, analytics, resolution_diagnostics, audio_diagnostics, jellyfin_diagnostics
 from app.routes.workflow import job_router, control_router, progress_router, websocket_endpoint
 
 # Import exception handlers
@@ -218,6 +218,7 @@ def create_application() -> FastAPI:
     app.include_router(poster_manager.router, prefix="/api/v1/poster-manager", tags=["Poster Manager"])
     app.include_router(poster_replacement.router, prefix="/api/v1/poster-replacement", tags=["Poster Replacement"])
     app.include_router(image_proxy.router, prefix="/api/v1/images", tags=["Image Proxy"])
+    app.include_router(jellyfin_diagnostics.router, prefix="/api/v1", tags=["Jellyfin Diagnostics"])
     
     # Workflow routes
     app.include_router(job_router, prefix="/api/v1", tags=["Workflow"])
@@ -434,6 +435,11 @@ def setup_frontend_routes(app: FastAPI):
     async def serve_settings():
         """Serve the settings page"""
         return serve_nextjs_page("settings")
+    
+    @app.get("/diagnostics")
+    async def serve_diagnostics():
+        """Serve the diagnostics page"""
+        return serve_nextjs_page("diagnostics")
     
     # Catch-all for any other routes
     @app.get("/{full_path:path}")
