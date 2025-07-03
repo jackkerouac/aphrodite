@@ -19,6 +19,11 @@ class V2AwardsDataFetcher:
     
     def __init__(self):
         self.logger = get_logger("aphrodite.badge.awards.fetcher.v2", service="badge")
+        self._awards_data_source_class = None
+        self._helpers_path_added = False
+        self._api_settings_cache = None
+        self._api_settings_cache_time = 0
+        self._cache_expiry = 300  # 5 minutes
     
     async def get_awards_for_media(self, jellyfin_id: str) -> Optional[str]:
         """Get awards data for media using pure V2 methods"""
@@ -121,45 +126,22 @@ class V2AwardsDataFetcher:
     async def _get_real_awards(self, title: str, year: Optional[int], tmdb_id: Optional[str], imdb_id: Optional[str], media_type: str) -> List[str]:
         """Get real awards using the comprehensive awards detection system"""
         try:
-            # Add the helpers directory to the path - adjust for Docker container
-            import sys
-            import os
+            # Ensure AwardsDataSource is imported and available
+            if not self._awards_data_source_class:
+                self._awards_data_source_class = await self._import_awards_data_source()
             
-            # Try multiple possible paths for the helpers directory
-            possible_paths = [
-                '/app/aphrodite_helpers',  # Docker container main path
-                os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'aphrodite_helpers'),  # Local development
-                os.path.join('/app', 'aphrodite_helpers'),  # Docker container alternative
-                os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'aphrodite_helpers'))  # Absolute path
-            ]
-            
-            awards_data_source_module = None
-            for helpers_path in possible_paths:
-                if os.path.exists(helpers_path) and helpers_path not in sys.path:
-                    sys.path.insert(0, helpers_path)
-                    self.logger.debug(f"🔍 [V2 AWARDS FETCHER] Added to path: {helpers_path}")
-                    
-                try:
-                    from awards_data_source import AwardsDataSource
-                    awards_data_source_module = AwardsDataSource
-                    self.logger.debug(f"✅ [V2 AWARDS FETCHER] Successfully imported AwardsDataSource from {helpers_path}")
-                    break
-                except ImportError:
-                    continue
-            
-            if not awards_data_source_module:
-                self.logger.error("❌ [V2 AWARDS FETCHER] Could not import AwardsDataSource from any path")
-                self.logger.debug(f"🔍 [V2 AWARDS FETCHER] Tried paths: {possible_paths}")
+            if not self._awards_data_source_class:
+                self.logger.error("❌ [V2 AWARDS FETCHER] AwardsDataSource not available")
                 return []
             
-            # Load settings for the awards data source
+            # Load settings for the awards data source (with caching)
             settings = await self._get_api_settings()
             if not settings:
                 self.logger.warning("⚠️ [V2 AWARDS FETCHER] No API settings available for awards detection")
                 return []
             
             # Create awards data source
-            awards_source = awards_data_source_module(settings)
+            awards_source = self._awards_data_source_class(settings)
             
             # Get awards based on media type
             if media_type == "movie":
@@ -179,9 +161,63 @@ class V2AwardsDataFetcher:
             self.logger.error(f"❌ [V2 AWARDS FETCHER] Error in real awards detection: {e}")
             return []
     
-    async def _get_api_settings(self) -> Optional[dict]:
-        """Get API settings for awards detection"""
+    async def _import_awards_data_source(self):
+        """Import AwardsDataSource class with robust path handling"""
         try:
+            # Only add paths once
+            if not self._helpers_path_added:
+                import sys
+                import os
+                
+                # Try multiple possible paths for the helpers directory
+                possible_paths = [
+                    '/app/aphrodite_helpers',  # Docker container main path
+                    os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'aphrodite_helpers'),  # Local development
+                    os.path.join('/app', 'aphrodite_helpers'),  # Docker container alternative
+                    os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'aphrodite_helpers'))  # Absolute path
+                ]
+                
+                helpers_path_found = False
+                for helpers_path in possible_paths:
+                    if os.path.exists(helpers_path):
+                        if helpers_path not in sys.path:
+                            sys.path.insert(0, helpers_path)
+                            self.logger.debug(f"🔍 [V2 AWARDS FETCHER] Added to path: {helpers_path}")
+                        helpers_path_found = True
+                        break
+                
+                if not helpers_path_found:
+                    self.logger.error("❌ [V2 AWARDS FETCHER] Could not find aphrodite_helpers directory")
+                    self.logger.debug(f"🔍 [V2 AWARDS FETCHER] Tried paths: {possible_paths}")
+                    return None
+                
+                self._helpers_path_added = True
+            
+            # Import the class
+            try:
+                from awards_data_source import AwardsDataSource
+                self.logger.debug(f"✅ [V2 AWARDS FETCHER] Successfully imported AwardsDataSource")
+                return AwardsDataSource
+            except ImportError as e:
+                self.logger.error(f"❌ [V2 AWARDS FETCHER] Failed to import AwardsDataSource: {e}")
+                return None
+                
+        except Exception as e:
+            self.logger.error(f"❌ [V2 AWARDS FETCHER] Error importing AwardsDataSource: {e}")
+            return None
+    
+    async def _get_api_settings(self) -> Optional[dict]:
+        """Get API settings for awards detection with caching"""
+        try:
+            import time
+            
+            # Check cache first
+            current_time = time.time()
+            if (self._api_settings_cache and 
+                current_time - self._api_settings_cache_time < self._cache_expiry):
+                self.logger.debug(f"👾 [V2 AWARDS FETCHER] Using cached API settings")
+                return self._api_settings_cache
+            
             from app.core.database import async_session_factory
             
             async with async_session_factory() as db:
@@ -198,6 +234,9 @@ class V2AwardsDataFetcher:
                     if isinstance(settings_data, dict) and 'api_keys' in settings_data:
                         api_settings = {"api_keys": settings_data['api_keys']}
                         self.logger.debug(f"✅ [V2 AWARDS FETCHER] API settings loaded from settings.yaml")
+                        # Cache the settings
+                        self._api_settings_cache = api_settings
+                        self._api_settings_cache_time = current_time
                         return api_settings
                 
                 # Fallback: try direct api_keys key
@@ -207,6 +246,9 @@ class V2AwardsDataFetcher:
                 if row:
                     api_settings = {"api_keys": row[0]}
                     self.logger.debug(f"✅ [V2 AWARDS FETCHER] API settings loaded from api_keys")
+                    # Cache the settings
+                    self._api_settings_cache = api_settings
+                    self._api_settings_cache_time = current_time
                     return api_settings
                 
                 # Debug: Show what keys are actually available
