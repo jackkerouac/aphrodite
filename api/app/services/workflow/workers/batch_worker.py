@@ -52,17 +52,56 @@ async def _process_batch_job_async(job_id: str) -> Dict[str, Any]:
     # Create fresh database engine and session factory for worker
     from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
     from app.core.config import get_settings
+    import asyncio
     
     settings = get_settings()
     
-    # Create new engine specifically for this worker task
-    worker_engine = create_async_engine(
-        settings.database_url,
-        echo=False,
-        pool_size=1,
-        max_overflow=0,
-        pool_pre_ping=True
-    )
+    # Get database URL with proper error handling
+    try:
+        database_url = settings.get_database_url()
+        logger.info(f"Worker using database URL: {database_url.split('@')[1] if '@' in database_url else 'hidden'}")
+    except Exception as e:
+        logger.error(f"Failed to get database URL: {e}")
+        return {"success": False, "error": f"Database configuration error: {e}"}
+    
+    # Create new engine specifically for this worker task with retries
+    max_retries = 3
+    retry_delay = 1.0
+    
+    for attempt in range(max_retries):
+        try:
+            worker_engine = create_async_engine(
+                database_url,
+                echo=False,
+                pool_size=1,
+                max_overflow=0,
+                pool_pre_ping=True,
+                pool_recycle=3600,
+                connect_args={
+                    "server_settings": {
+                        "application_name": "aphrodite_worker",
+                        "jit": "off"
+                    }
+                }
+            )
+            
+            # Test the connection
+            from sqlalchemy import text
+            async with worker_engine.begin() as conn:
+                await conn.execute(text("SELECT 1"))
+            
+            logger.info(f"Worker database connection successful on attempt {attempt + 1}")
+            break
+            
+        except Exception as e:
+            logger.warning(f"Worker database connection attempt {attempt + 1} failed: {e}")
+            if attempt < max_retries - 1:
+                logger.info(f"Retrying database connection in {retry_delay}s...")
+                await asyncio.sleep(retry_delay)
+                retry_delay *= 2
+            else:
+                logger.error(f"All database connection attempts failed for worker")
+                return {"success": False, "error": f"Database connection failed: {e}"}
     
     # Create session factory
     session_factory = async_sessionmaker(

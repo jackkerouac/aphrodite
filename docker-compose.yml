@@ -11,7 +11,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-aphrodite}
       POSTGRES_USER: ${POSTGRES_USER:-aphrodite}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aphrodite123}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -45,8 +45,8 @@ services:
       POSTGRES_PORT: 5432
       POSTGRES_DB: ${POSTGRES_DB:-aphrodite}
       POSTGRES_USER: ${POSTGRES_USER:-aphrodite}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
-      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://aphrodite:changeme@postgres:5432/aphrodite}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aphrodite123}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://aphrodite:aphrodite123@postgres:5432/aphrodite}
       
       # Redis Configuration
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
@@ -106,8 +106,8 @@ services:
       POSTGRES_PORT: 5432
       POSTGRES_DB: ${POSTGRES_DB:-aphrodite}
       POSTGRES_USER: ${POSTGRES_USER:-aphrodite}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
-      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://aphrodite:changeme@postgres:5432/aphrodite}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aphrodite123}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://aphrodite:aphrodite123@postgres:5432/aphrodite}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/1}

@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     
     # Database
     database_url: str = Field(
-        default="postgresql+asyncpg://aphrodite:changeme@postgres:5432/aphrodite",
+        default="postgresql+asyncpg://aphrodite:aphrodite123@postgres:5432/aphrodite",
         description="Database connection URL"
     )
     database_pool_size: int = Field(default=20, description="Database connection pool size")
