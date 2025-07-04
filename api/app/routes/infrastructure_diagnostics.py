@@ -631,6 +631,7 @@ async def _test_database_connection() -> ComponentStatus:
     """Helper to test database for overview"""
     try:
         # Try session factory first
+        async_session_factory = get_or_create_session_factory()
         if async_session_factory:
             try:
                 async with async_session_factory() as db:
