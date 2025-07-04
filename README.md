@@ -1,4 +1,6 @@
-# Aphrodite v4.0.0 - Modern Media Poster Enhancement System
+# Aphrodite v4.X.X - Modern Media Poster Enhancement System
+
+## Please note, I am aware of the batch processing issue. I am working on it, I promise!
 
 <div align="center">
 

@@ -32,7 +32,8 @@ class PosterProcessor:
                            badge_types: List[str],
                            job_id: str,
                            db_session,
-                           progress_tracker=None) -> Dict[str, Any]:
+                           progress_tracker=None,
+                           debug_logger=None) -> Dict[str, Any]:
         """
         Process single poster with badges.
         
@@ -61,6 +62,10 @@ class PosterProcessor:
             # Download the specific poster from Jellyfin with retry logic
             logger.debug(f"Downloading poster from Jellyfin for {poster_id}")
             
+            # Debug logging: Log session state before download
+            if debug_logger:
+                await debug_logger.log_session_state(self.jellyfin_service)
+            
             # Retry logic for poster download to handle transient HTTP 400 errors
             max_retries = 3
             retry_delay = 1.0  # Start with 1 second delay
@@ -68,7 +73,14 @@ class PosterProcessor:
             
             for attempt in range(max_retries):
                 try:
-                    poster_data = await self.jellyfin_service.download_poster(poster_id)
+                    # Debug logging: Log attempt details
+                    if debug_logger:
+                        await debug_logger.log_request_attempt(poster_id, attempt + 1, {
+                            "action": "download_poster",
+                            "retry_delay": retry_delay,
+                            "max_retries": max_retries
+                        })
+                    poster_data = await self.jellyfin_service.download_poster(poster_id, debug_logger)
                     if poster_data:
                         logger.debug(f"Successfully downloaded poster for {poster_id} on attempt {attempt + 1}")
                         break

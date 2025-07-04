@@ -33,7 +33,7 @@ from app.middleware.logging import LoggingMiddleware
 from app.middleware.correlation import CorrelationMiddleware
 
 # Import routes
-from app.routes import health, media, jobs, config, system, maintenance, preview, poster_manager, poster_replacement, image_proxy, schedules, analytics, resolution_diagnostics, audio_diagnostics, jellyfin_diagnostics
+from app.routes import health, media, jobs, config, system, maintenance, preview, poster_manager, poster_replacement, image_proxy, schedules, analytics, resolution_diagnostics, audio_diagnostics, jellyfin_diagnostics, infrastructure_diagnostics, batch_debug
 from app.routes.workflow import job_router, control_router, progress_router, websocket_endpoint
 
 # Import exception handlers
@@ -64,6 +64,22 @@ async def lifespan(app: FastAPI):
         # Initialize database
         await init_db()
         logger.info("Database initialized successfully")
+        
+        # Verify that session factory was created
+        from app.core.database import async_session_factory, get_session_factory_status
+        if async_session_factory is None:
+            logger.error("CRITICAL: Session factory is None after database initialization!")
+            status = get_session_factory_status()
+            logger.error(f"Session factory status: {status}")
+            # Try to reinitialize
+            logger.info("Attempting to reinitialize database...")
+            await init_db()
+            if async_session_factory is None:
+                logger.error("Session factory is still None after reinitialize - this will cause batch job failures")
+            else:
+                logger.info(f"Session factory recovered: {id(async_session_factory)}")
+        else:
+            logger.info(f"Session factory verified: {id(async_session_factory)}")
         
         # Auto-initialize badge settings if needed
         try:
@@ -219,6 +235,8 @@ def create_application() -> FastAPI:
     app.include_router(poster_replacement.router, prefix="/api/v1/poster-replacement", tags=["Poster Replacement"])
     app.include_router(image_proxy.router, prefix="/api/v1/images", tags=["Image Proxy"])
     app.include_router(jellyfin_diagnostics.router, prefix="/api/v1", tags=["Jellyfin Diagnostics"])
+    app.include_router(infrastructure_diagnostics.router, prefix="/api/v1", tags=["Infrastructure Diagnostics"])
+    app.include_router(batch_debug.router, prefix="/api/v1", tags=["Batch Debug"])
     
     # Workflow routes
     app.include_router(job_router, prefix="/api/v1", tags=["Workflow"])

@@ -1,0 +1,35 @@
+{
+  "timestamp": "2025-07-04T19:20:06.414752",
+  "tests": {
+    "api_availability": {
+      "status": "pass",
+      "details": "API responding"
+    },
+    "debug_status": {
+      "status": "pass",
+      "details": "Debug enabled: False"
+    },
+    "jellyfin_service": {
+      "status": "fail",
+      "details": "Service not properly configured"
+    },
+    "poster_manager_search": {
+      "status": "pass",
+      "details": "50 items shown, 0 total"
+    },
+    "debug_toggle": {
+      "status": "pass",
+      "details": "Enable/disable working"
+    },
+    "batch_worker_imports": {
+      "status": "pass",
+      "details": "Workflow endpoints accessible"
+    }
+  },
+  "summary": {
+    "total_tests": 6,
+    "passed_tests": 5,
+    "pass_rate": 83.3,
+    "overall_status": "partial"
+  }
+}

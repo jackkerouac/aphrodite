@@ -250,7 +250,7 @@ class JellyfinService:
             return []
     
     async def get_library_items(self, library_id: str) -> List[Dict[str, Any]]:
-        """Get all items from a specific library"""
+        """Get all items from a specific library using user-specific API for reliability"""
         try:
             # Load settings first
             await self._load_jellyfin_settings()
@@ -259,6 +259,35 @@ class JellyfinService:
                 self.logger.error("Jellyfin not configured")
                 return []
             
+            # Use user-specific API if available (more reliable than general /Items endpoint)
+            if self.user_id:
+                url = urljoin(
+                    self.base_url,
+                    f"/Users/{self.user_id}/Items"
+                )
+                
+                # Add Fields parameter to include Tags for badge status detection
+                params = {
+                    "ParentId": library_id,
+                    "Recursive": "true",
+                    "Fields": "Tags,Genres,Overview,ProductionYear,CommunityRating,OfficialRating"
+                }
+                
+                session = await self._get_session()
+                
+                try:
+                    async with session.get(url, params=params) as response:
+                        if response.status == 200:
+                            data = await response.json()
+                            items = data.get("Items", [])
+                            self.logger.info(f"Found {len(items)} items in library {library_id} via user API")
+                            return items
+                        else:
+                            self.logger.warning(f"User API failed for library items: HTTP {response.status}, falling back to general API")
+                finally:
+                    await session.close()
+            
+            # Fallback to general API
             url = urljoin(
                 self.base_url,
                 f"/Items"
@@ -278,7 +307,7 @@ class JellyfinService:
                     if response.status == 200:
                         data = await response.json()
                         items = data.get("Items", [])
-                        self.logger.info(f"Found {len(items)} items in library {library_id}")
+                        self.logger.info(f"Found {len(items)} items in library {library_id} via general API")
                         return items
                     else:
                         self.logger.error(f"Failed to get library items: HTTP {response.status}")
@@ -349,7 +378,7 @@ class JellyfinService:
             return None
     
     async def get_poster_url(self, item_id: str) -> Optional[str]:
-        """Get poster image URL for an item"""
+        """Get poster image URL for an item with enhanced error handling"""
         try:
             # Ensure settings are loaded first
             await self._load_jellyfin_settings()
@@ -371,6 +400,17 @@ class JellyfinService:
                     if response.status == 200:
                         self.logger.debug(f"Found poster for item {item_id}")
                         return poster_url
+                    elif response.status == 400:
+                        # HTTP 400 is common for this endpoint, but poster might still exist
+                        # Try a GET request to see if the image is actually available
+                        self.logger.debug(f"HEAD request returned 400 for {item_id}, trying GET")
+                        async with session.get(poster_url) as get_response:
+                            if get_response.status == 200:
+                                self.logger.debug(f"Found poster for item {item_id} via GET (HEAD failed)")
+                                return poster_url
+                            else:
+                                self.logger.warning(f"No poster found for item {item_id} (GET: HTTP {get_response.status})")
+                                return None
                     else:
                         self.logger.warning(f"No poster found for item {item_id} (HTTP {response.status})")
                         # Log more details for debugging
@@ -384,7 +424,7 @@ class JellyfinService:
             self.logger.error(f"Error getting poster URL for {item_id}: {e}")
             return None
     
-    async def download_poster(self, item_id: str) -> Optional[bytes]:
+    async def download_poster(self, item_id: str, debug_logger=None) -> Optional[bytes]:
         """Download poster image data"""
         try:
             # Throttle requests to prevent overwhelming Jellyfin during batch processing
@@ -402,12 +442,29 @@ class JellyfinService:
             self.logger.debug(f"Downloading poster from URL: {poster_url}")
             session = await self._get_session()
             try:
+                # Debug logging: Log session creation
+                if debug_logger:
+                    await debug_logger.log_session_creation("download_poster", {
+                        "poster_url": poster_url,
+                        "session_id": id(session),
+                        "item_id": item_id
+                    })
                 async with session.get(poster_url) as response:
+                    # Debug logging: Log response details
+                    if debug_logger:
+                        await debug_logger.log_response_analysis(item_id, response)
+                        
                     if response.status == 200:
                         poster_data = await response.read()
+                        # Debug logging: Log successful download
+                        if debug_logger:
+                            await debug_logger.log_response_analysis(item_id, response, poster_data)
                         self.logger.debug(f"Downloaded poster for item {item_id}: {len(poster_data)} bytes")
                         return poster_data
                     else:
+                        # Debug logging: Log failed download
+                        if debug_logger:
+                            await debug_logger.log_response_analysis(item_id, response)
                         self.logger.error(f"Failed to download poster for {item_id}: HTTP {response.status}")
                         return None
             finally:

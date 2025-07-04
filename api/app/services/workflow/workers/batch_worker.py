@@ -13,6 +13,7 @@ from aphrodite_logging import get_logger
 from app.core.database import async_session_factory
 from app.services.workflow.database import JobRepository
 from app.services.workflow.types import JobStatus, PosterStatus
+from app.services.diagnostics.batch_debug_logger import BatchDebugLogger
 from .poster_processor import PosterProcessor
 from .error_handler import ErrorHandler
 from .progress_updater import ProgressUpdater
@@ -117,6 +118,9 @@ async def _process_batch_job_async(job_id: str) -> Dict[str, Any]:
             error_handler = ErrorHandler()
             progress_updater = ProgressUpdater(job_repo)
             
+            # Initialize debug logger for this job
+            debug_logger = BatchDebugLogger(job_id)
+            
             # Get job details
             job = await job_repo.get_job_by_id(job_id)
             if not job:
@@ -151,6 +155,9 @@ async def _process_batch_job_async(job_id: str) -> Dict[str, Any]:
                 for poster_id in job.selected_poster_ids:
                     logger.info(f"Processing poster {poster_id} ({completed + failed + 1}/{job.total_posters})")
                     
+                    # Debug logging: Start poster processing
+                    await debug_logger.log_poster_processing_start(poster_id, job.badge_types)
+                    
                     # Check if job was cancelled or paused
                     current_job = await job_repo.get_job_by_id(job_id)
                     if current_job.status in [JobStatus.CANCELLED.value, JobStatus.PAUSED.value]:
@@ -161,13 +168,14 @@ async def _process_batch_job_async(job_id: str) -> Dict[str, Any]:
                     await job_repo.update_poster_status(job_id, poster_id, PosterStatus.PROCESSING)
                     
                     try:
-                        # Process single poster with progress tracking
+                        # Process single poster with progress tracking and debug logging
                         result = await poster_processor.process_poster(
                             poster_id=poster_id,
                             badge_types=job.badge_types,
                             job_id=job_id,
                             db_session=db_session,
-                            progress_tracker=progress_updater.progress_tracker
+                            progress_tracker=progress_updater.progress_tracker,
+                            debug_logger=debug_logger
                         )
                         
                         if result["success"]:
@@ -191,9 +199,13 @@ async def _process_batch_job_async(job_id: str) -> Dict[str, Any]:
                                 logger.warning(f"Skipping tag addition for {poster_id} - not uploaded to Jellyfin")
                             
                             logger.info(f"✅ Completed poster {poster_id} successfully")
+                            # Debug logging: Success
+                            await debug_logger.log_poster_processing_end(poster_id, True)
                         else:
                             error_msg = result["error"]
                             logger.error(f"❌ Failed to process poster {poster_id}: {error_msg}")
+                            # Debug logging: Failure
+                            await debug_logger.log_poster_processing_end(poster_id, False, error_msg)
                             await error_handler.handle_poster_error(
                                 job_repo, job_id, poster_id, error_msg
                             )
@@ -202,6 +214,8 @@ async def _process_batch_job_async(job_id: str) -> Dict[str, Any]:
                     except Exception as e:
                         error_msg = str(e)
                         logger.error(f"❌ Exception processing poster {poster_id}: {error_msg}", exc_info=True)
+                        # Debug logging: Exception
+                        await debug_logger.log_poster_processing_end(poster_id, False, error_msg)
                         await error_handler.handle_poster_error(
                             job_repo, job_id, poster_id, error_msg
                         )
@@ -221,11 +235,15 @@ async def _process_batch_job_async(job_id: str) -> Dict[str, Any]:
             await job_repo.update_job_status(job_id, final_status)
             await job_repo.update_job_completed_at(job_id, datetime.utcnow())
             
+            # Generate debug summary if debug mode was enabled
+            debug_summary = await debug_logger.generate_debug_summary()
+            
             result = {
                 "success": final_status == JobStatus.COMPLETED,
                 "completed": completed,
                 "failed": failed,
-                "total": job.total_posters
+                "total": job.total_posters,
+                "debug_summary": debug_summary if debug_summary.get("debug_enabled") else None
             }
             
             logger.info(f"Job {job_id} finished: {result}")

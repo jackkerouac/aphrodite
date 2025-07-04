@@ -208,3 +208,15 @@ class JobRepository:
         )
         await self.session.commit()
         return result.rowcount > 0
+    
+    async def get_recent_jobs_by_status(self, statuses: List[JobStatus], limit: int = 10) -> List[BatchJobModel]:
+        """Get recent jobs by status(es)"""
+        status_values = [status.value for status in statuses]
+        
+        result = await self.session.execute(
+            select(BatchJobModel)
+            .where(BatchJobModel.status.in_(status_values))
+            .order_by(BatchJobModel.created_at.desc())
+            .limit(limit)
+        )
+        return result.scalars().all()

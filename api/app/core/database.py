@@ -1,3 +1,41 @@
+def get_session_factory_status() -> dict:
+    """Get the current status of the session factory for debugging"""
+    global async_session_factory, async_engine
+    
+    return {
+        "session_factory_exists": async_session_factory is not None,
+        "session_factory_id": id(async_session_factory) if async_session_factory else None,
+        "session_factory_type": type(async_session_factory).__name__ if async_session_factory else None,
+        "engine_exists": async_engine is not None,
+        "engine_id": id(async_engine) if async_engine else None
+    }
+
+def get_or_create_session_factory():
+    """Get session factory, creating it if necessary"""
+    global async_session_factory, async_engine
+    
+    if async_session_factory is None:
+        logger = get_logger("aphrodite.database.session_recovery", service="database")
+        logger.warning("Session factory is None, attempting recovery")
+        
+        if async_engine is None:
+            logger.error("Engine is also None, cannot recover session factory")
+            return None
+            
+        try:
+            # Recreate session factory from existing engine
+            async_session_factory = async_sessionmaker(
+                async_engine,
+                class_=AsyncSession,
+                expire_on_commit=False
+            )
+            logger.info(f"Session factory recovered: {id(async_session_factory)}")
+        except Exception as e:
+            logger.error(f"Failed to recover session factory: {e}")
+            return None
+    
+    return async_session_factory
+
 """
 Database Configuration and Session Management
 
@@ -43,27 +81,38 @@ def get_engine() -> Engine:
     global async_engine
     if async_engine is None:
         settings = get_settings()
-        # Use the new method that handles both Docker and local development
-        database_url = settings.get_database_url()
         
-        async_engine = create_async_engine(
-            database_url,
-            echo=settings.debug,
-            pool_size=settings.database_pool_size,
-            max_overflow=settings.database_max_overflow,
-            pool_pre_ping=True,
-            pool_recycle=3600,
-            # CRITICAL FIX: Add connection error recovery options
-            pool_reset_on_return='commit',
-            pool_timeout=30,
-            connect_args={
-                "server_settings": {
-                    "application_name": "aphrodite_v2",
-                    "jit": "off"
-                }
-            },
-            poolclass=NullPool if settings.environment == "testing" else None
-        )
+        try:
+            # Use the new method that handles both Docker and local development
+            database_url = settings.get_database_url()
+            
+            async_engine = create_async_engine(
+                database_url,
+                echo=settings.debug,
+                pool_size=settings.database_pool_size,
+                max_overflow=settings.database_max_overflow,
+                pool_pre_ping=True,
+                pool_recycle=3600,
+                # CRITICAL FIX: Add connection error recovery options
+                pool_reset_on_return='commit',
+                pool_timeout=30,
+                connect_args={
+                    "server_settings": {
+                        "application_name": "aphrodite_v2",
+                        "jit": "off"
+                    }
+                },
+                poolclass=NullPool if settings.environment == "testing" else None
+            )
+            
+            logger = get_logger("aphrodite.database.engine", service="database")
+            logger.info(f"Created database engine with URL: {database_url.split('@')[1] if '@' in database_url else 'hidden'}")
+            
+        except Exception as e:
+            logger = get_logger("aphrodite.database.engine", service="database")
+            logger.error(f"Failed to create database engine: {e}")
+            raise
+    
     return async_engine
 
 def create_fresh_engine() -> Engine:
@@ -95,28 +144,56 @@ async def init_db() -> None:
     logger = get_logger("aphrodite.database", service="database")
     
     try:
+        # Always create a fresh engine during initialization
+        if async_engine:
+            try:
+                await async_engine.dispose()
+            except Exception:
+                pass
+        
+        # Reset globals to ensure clean state
+        async_engine = None
+        async_session_factory = None
+        
         # Get or create async engine
         async_engine = get_engine()
         
-        # Create session factory
+        # Test the engine connection before creating session factory
+        from sqlalchemy import text
+        async with async_engine.begin() as conn:
+            await conn.execute(text("SELECT 1"))
+        
+        # Import all models to ensure they're registered BEFORE creating session factory
+        # This prevents any model import side effects from affecting the session factory
+        from app.models import media, jobs, config, schedules
+        from app.services.workflow.database.models import BatchJobModel, PosterProcessingStatusModel
+        
+        # Create session factory AFTER model imports
         async_session_factory = async_sessionmaker(
             async_engine,
             class_=AsyncSession,
             expire_on_commit=False
         )
         
-        # Import all models to ensure they're registered
-        from app.models import media, jobs, config, schedules
-        from app.services.workflow.database.models import BatchJobModel, PosterProcessingStatusModel
+        # Test the session factory by creating and testing a session
+        async with async_session_factory() as test_session:
+            await test_session.execute(text("SELECT 1"))
         
         # Create tables
         async with async_engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         
-        logger.info("Database initialized successfully")
+        # Final verification that session factory is still valid
+        if not async_session_factory:
+            raise RuntimeError("Session factory became None after initialization")
+        
+        logger.info(f"Database initialized successfully with tested session factory (factory={id(async_session_factory)})")
         
     except Exception as e:
         logger.error(f"Failed to initialize database: {e}", exc_info=True)
+        # Reset globals on failure
+        async_engine = None
+        async_session_factory = None
         raise
 
 async def close_db() -> None:
@@ -136,8 +213,20 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     Yields:
         AsyncSession: Database session
     """
+    global async_session_factory
+    
+    # If session factory is not initialized or corrupted, try to reinitialize
     if not async_session_factory:
-        raise RuntimeError("Database not initialized")
+        logger = get_logger("aphrodite.database.session", service="database")
+        logger.warning("Session factory not initialized, attempting to reinitialize")
+        try:
+            await init_db()
+        except Exception as init_error:
+            logger.error(f"Failed to reinitialize database: {init_error}")
+            # Fall back to fresh session
+            async for session in get_fresh_db_session():
+                yield session
+                return
     
     session = None
     max_retries = 3
@@ -176,8 +265,11 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
                 session = None
             
             if retry_count >= max_retries:
-                logger.error(f"Failed to create database session after {max_retries} attempts")
-                raise
+                logger.error(f"Failed to create database session after {max_retries} attempts, falling back to fresh session")
+                # Final fallback: use fresh session
+                async for fresh_session in get_fresh_db_session():
+                    yield fresh_session
+                    return
             
             # Wait before retry
             import asyncio
