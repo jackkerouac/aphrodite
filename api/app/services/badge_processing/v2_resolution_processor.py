@@ -487,14 +487,13 @@ class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
             return None
     
     def _map_resolution_to_image(self, resolution: str) -> str:
-        """Enhanced resolution to image mapping with fallback to legacy"""
-        if self.enhanced_enabled:
-            try:
-                # Use enhanced image manager
+        """Enhanced resolution to image mapping (always uses enhanced logic)"""
+        try:
+            # Always use enhanced image manager if available
+            if hasattr(self, 'image_manager') and self.image_manager:
                 from .resolution_types import ResolutionInfo
                 
                 # Create a basic ResolutionInfo from the string for image mapping
-                # This is a simplified approach for backward compatibility
                 resolution_info = self._parse_resolution_string(resolution)
                 
                 # Get user mappings from settings (if available)
@@ -505,12 +504,14 @@ class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
                 
                 self.logger.debug(f"🎆 [V2 RESOLUTION] Enhanced image mapping: '{resolution}' -> {image_file}")
                 return image_file
-                
-            except Exception as e:
-                self.logger.warning(f"⚠️ [V2 RESOLUTION] Enhanced image mapping failed: {e}, using legacy")
+            else:
+                self.logger.debug(f"🔄 [V2 RESOLUTION] Using legacy image mapping for: {resolution}")
                 # Fall through to legacy mapping
+        except Exception as e:
+            self.logger.warning(f"⚠️ [V2 RESOLUTION] Enhanced image mapping failed: {e}, using legacy")
+            # Fall through to legacy mapping
         
-        # Legacy mapping (original implementation)
+        # Legacy mapping (always available as fallback)
         return self._map_resolution_to_image_legacy(resolution)
     
     def _parse_resolution_string(self, resolution: str) -> 'ResolutionInfo':
