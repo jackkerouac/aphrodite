@@ -315,14 +315,63 @@ class StorageManager:
             Optional[str]: Path to cached poster if found, None otherwise
         """
         try:
-            # Look for cached poster using jellyfin_id pattern
-            poster_pattern = f"jellyfin_{jellyfin_id}_*.jpg"
-            cached_posters = list(self.cache_path.glob(poster_pattern))
+            if not self.cache_path.exists():
+                self.logger.debug(f"Cache directory does not exist: {self.cache_path}")
+                return None
             
-            if cached_posters:
-                cached_poster = cached_posters[0]  # Use first match
-                if cached_poster.exists() and cached_poster.is_file():
-                    self.logger.debug(f"Found cached original for {jellyfin_id}: {cached_poster.name}")
+            # Look for cached poster files that match exactly
+            # Pattern: jellyfin_{jellyfin_id}_{8-char-uuid}.jpg
+            matching_files = []
+            
+            for cache_file in self.cache_path.glob("*.jpg"):
+                filename = cache_file.name
+                
+                # Check if filename matches our expected pattern
+                if filename.startswith(f"jellyfin_{jellyfin_id}_") and filename.endswith(".jpg"):
+                    # Extract the unique_id part to validate format
+                    prefix = f"jellyfin_{jellyfin_id}_"
+                    suffix = ".jpg"
+                    
+                    # Get the unique_id part
+                    if len(filename) > len(prefix) + len(suffix):
+                        unique_part = filename[len(prefix):-len(suffix)]
+                        
+                        # Validate it's exactly 8 characters (our UUID format)
+                        if len(unique_part) == 8 and unique_part.isalnum():
+                            # Verify the file exists and is readable
+                            if cache_file.exists() and cache_file.is_file():
+                                matching_files.append(cache_file)
+                                self.logger.debug(f"Found valid cache file: {filename}")
+            
+            if matching_files:
+                # Sort by modification time (newest first) to get the most recent cache
+                matching_files.sort(key=lambda f: f.stat().st_mtime, reverse=True)
+                
+                # Try each matching file until we find one with valid metadata
+                for cached_poster in matching_files:
+                    self.logger.debug(f"Checking cached original for {jellyfin_id}: {cached_poster.name}")
+                    
+                    # Additional validation: check if metadata file exists and validates
+                    meta_file = cached_poster.with_suffix('.meta')
+                    if meta_file.exists():
+                        try:
+                            with open(meta_file, 'r') as f:
+                                metadata = json.load(f)
+                            
+                            # Validate metadata matches the jellyfin_id
+                            if metadata.get('jellyfin_id') == jellyfin_id:
+                                self.logger.debug(f"Metadata validation passed for {jellyfin_id}")
+                                return str(cached_poster)
+                            else:
+                                self.logger.warning(f"Metadata validation failed for {cached_poster.name}: expected {jellyfin_id}, got {metadata.get('jellyfin_id')}")
+                                # Continue to check other files
+                                continue
+                        except Exception as meta_error:
+                            self.logger.warning(f"Could not read metadata for {cached_poster.name}: {meta_error}")
+                            # Metadata issues don't disqualify the file, just log the warning
+                            # Fall through to return this file
+                    
+                    # If we get here, either metadata is valid or doesn't exist (older cache)
                     return str(cached_poster)
             
             self.logger.debug(f"No cached original found for {jellyfin_id}")

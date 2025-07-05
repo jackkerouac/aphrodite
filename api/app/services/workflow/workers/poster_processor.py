@@ -16,6 +16,8 @@ from app.services.badge_processing.pipeline import UniversalBadgeProcessor
 from app.services.badge_processing.types import SingleBadgeRequest, ProcessingMode
 from app.services.jellyfin_service import get_jellyfin_service
 from app.services.workflow.types import PosterStatus
+from app.services.poster_management import StorageManager
+from app.services.tag_management_service import get_tag_management_service
 
 logger = get_logger("aphrodite.worker.poster")
 
@@ -26,6 +28,7 @@ class PosterProcessor:
     def __init__(self):
         self.badge_processor = UniversalBadgeProcessor()
         self.jellyfin_service = get_jellyfin_service()
+        self.storage_manager = StorageManager()
     
     async def process_poster(self, 
                            poster_id: str, 
@@ -116,6 +119,14 @@ class PosterProcessor:
                     "success": False,
                     "error": error_msg
                 }
+            
+            # Cache the original poster before processing for restore functionality
+            try:
+                cached_original_path = self.storage_manager.cache_original_poster(poster_data, poster_id)
+                logger.debug(f"Successfully cached original poster for {poster_id}: {cached_original_path}")
+            except Exception as cache_error:
+                logger.warning(f"Failed to cache original poster for {poster_id}: {cache_error}")
+                # Don't fail the whole operation if caching fails, but log the issue
             
             # Create temporary file for the downloaded poster
             with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
@@ -240,8 +251,12 @@ class PosterProcessor:
     async def _add_aphrodite_tag(self, poster_id: str) -> None:
         """Add aphrodite-overlay tag to processed item"""
         try:
-            # This would need to be implemented in JellyfinService
-            # For now, just log the intent
-            logger.debug(f"Would add 'aphrodite-overlay' tag to item {poster_id}")
+            tag_service = get_tag_management_service()
+            result = await tag_service.add_tag_to_items([poster_id], "aphrodite-overlay")
+            if result.processed_count > 0:
+                logger.debug(f"Successfully added 'aphrodite-overlay' tag to item {poster_id}")
+            else:
+                logger.warning(f"Tag addition reported no items processed for {poster_id}")
         except Exception as e:
             logger.warning(f"Failed to add aphrodite-overlay tag to {poster_id}: {e}")
+            # Don't fail the whole operation for tag addition failures
