@@ -65,6 +65,16 @@ class EnhancedAudioDetector:
             )
             
             self.logger.debug(f"Extracted audio: {audio_info.get_technical_summary()}")
+            
+            # Log the selected audio stream for debugging
+            stream_info = f"{codec} | {audio_format.value.lower().replace('_', ' ')} | {channels}ch"
+            if channel_layout != ChannelLayout.UNKNOWN:
+                stream_info += f" | {channel_layout.value}"
+            if bitrate:
+                stream_info += f" | {bitrate}kbps"
+            if sample_rate:
+                stream_info += f" | {sample_rate}Hz"
+            self.logger.debug(f"Selected audio stream details: {stream_info}")
             return audio_info
             
         except Exception as e:
@@ -72,20 +82,92 @@ class EnhancedAudioDetector:
             return None
     
     def _find_primary_audio_stream(self, media_item: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Find the primary audio stream from media item"""
+        """Find the highest quality audio stream from media item for badge purposes"""
         media_streams = media_item.get('MediaStreams', [])
         
-        # Look for primary audio stream first
-        for stream in media_streams:
-            if stream.get('Type') == 'Audio' and stream.get('IsDefault', False):
-                return stream
+        # Get all audio streams
+        audio_streams = [stream for stream in media_streams if stream.get('Type') == 'Audio']
+        if not audio_streams:
+            return None
         
-        # Fallback to first audio stream
-        for stream in media_streams:
-            if stream.get('Type') == 'Audio':
-                return stream
+        # If only one audio stream, return it
+        if len(audio_streams) == 1:
+            return audio_streams[0]
         
-        return None
+        # Find the highest quality audio stream using priority scoring
+        best_stream = None
+        best_score = -1
+        
+        for stream in audio_streams:
+            score = self._calculate_audio_quality_score(stream)
+            self.logger.debug(f"Audio stream quality score: {score} for {stream.get('Codec', 'Unknown')} {stream.get('Profile', '')} {stream.get('Channels', 0)}ch")
+            
+            if score > best_score:
+                best_score = score
+                best_stream = stream
+        
+        if best_stream:
+            self.logger.debug(f"Selected highest quality audio: {best_stream.get('Codec', 'Unknown')} {best_stream.get('Profile', '')} {best_stream.get('Channels', 0)}ch (score: {best_score})")
+        
+        return best_stream
+    
+    def _calculate_audio_quality_score(self, audio_stream: Dict[str, Any]) -> int:
+        """Calculate quality score for audio stream to find the best one"""
+        score = 0
+        
+        codec = audio_stream.get('Codec', '').upper()
+        profile = audio_stream.get('Profile', '').upper()
+        channels = audio_stream.get('Channels', 0)
+        bitrate = self._extract_bitrate(audio_stream) or 0
+        
+        # Codec scoring (higher is better)
+        codec_scores = {
+            'TRUEHD': 1000,  # Dolby TrueHD (lossless)
+            'MLP': 1000,     # MLP (TrueHD alternative)
+            'DTS': 800,      # DTS variants
+            'DTSHD': 900,    # DTS-HD
+            'DTSMA': 950,    # DTS-HD MA
+            'EAC3': 600,     # Dolby Digital Plus
+            'AC3': 400,      # Dolby Digital
+            'AAC': 300,      # AAC
+            'MP3': 200,      # MP3
+            'FLAC': 850,     # FLAC (lossless)
+            'PCM': 900,      # PCM (lossless)
+            'LPCM': 900      # LPCM (lossless)
+        }
+        
+        # Get base codec score
+        base_codec = codec.replace('-', '').replace('_', '')
+        for codec_key, codec_score in codec_scores.items():
+            if codec_key in base_codec:
+                score += codec_score
+                break
+        
+        # Object-based audio bonus (Atmos, DTS-X)
+        if 'ATMOS' in profile or 'ATMOS' in codec:
+            score += 500  # Atmos bonus
+        elif 'DTS-X' in profile or 'DTSX' in codec:
+            score += 450  # DTS-X bonus
+        
+        # Channel count bonus
+        if channels >= 8:
+            score += 200  # 7.1+ channels
+        elif channels >= 6:
+            score += 100  # 5.1 channels
+        elif channels >= 2:
+            score += 50   # Stereo
+        
+        # High bitrate bonus (for lossy formats)
+        if bitrate > 1000:
+            score += 100  # Very high bitrate
+        elif bitrate > 640:
+            score += 50   # High bitrate
+        
+        # Lossless format bonus
+        if self._detect_lossless(audio_stream):
+            score += 300
+        
+        return score
     
     def _detect_audio_format(self, audio_stream: Dict[str, Any]) -> AudioFormat:
         """Enhanced audio format detection using multiple metadata fields"""
