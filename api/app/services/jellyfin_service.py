@@ -710,71 +710,26 @@ class JellyfinService:
             return None
     
     async def get_video_resolution_info(self, media_item: Dict[str, Any]) -> Optional[str]:
-        """Extract video resolution information from Jellyfin media item"""
+        """Extract video resolution using enhanced width-based detection (replaces legacy height-only logic)"""
         try:
-            # Get MediaSources from the media item
-            media_sources = media_item.get('MediaSources', [])
-            if not media_sources:
-                self.logger.warning(f"No MediaSources found for item {media_item.get('Id', 'Unknown')}")
-                return None
+            # Import enhanced detector for consistent resolution detection
+            from app.services.badge_processing.resolution_detector import EnhancedResolutionDetector
             
-            # Use the first media source (primary file)
-            media_source = media_sources[0]
-            media_streams = media_source.get('MediaStreams', [])
+            # Use the enhanced detector for all resolution detection
+            detector = EnhancedResolutionDetector()
+            resolution_info = detector.extract_resolution_info(media_item)
             
-            # Find the video stream
-            video_streams = [stream for stream in media_streams if stream.get('Type') == 'Video']
-            if not video_streams:
-                self.logger.warning(f"No video streams found for item {media_item.get('Id', 'Unknown')}")
-                return None
-            
-            # Get the first video stream
-            video_stream = video_streams[0]
-            height = video_stream.get('Height')
-            width = video_stream.get('Width')
-            
-            if not height:
-                self.logger.warning(f"No height information for item {media_item.get('Id', 'Unknown')}")
-                return None
-            
-            # Check for HDR
-            video_range = video_stream.get('VideoRange', '').upper()
-            color_space = video_stream.get('ColorSpace', '').upper() 
-            codec = video_stream.get('Codec', '').upper()
-            
-            is_hdr = (
-                'HDR' in video_range or 
-                'HDR10' in video_range or 
-                'DOLBY' in video_range or
-                'BT2020' in color_space or
-                'HDR' in codec
-            )
-            
-            # Determine resolution based on height
-            if height >= 2160:
-                base_resolution = '4K'
-            elif height >= 1440:
-                base_resolution = '1440p'
-            elif height >= 1080:
-                base_resolution = '1080p'
-            elif height >= 720:
-                base_resolution = '720p'
-            elif height >= 480:
-                base_resolution = '480p'
+            if resolution_info:
+                # Convert ResolutionInfo to string representation
+                resolution_string = str(resolution_info)
+                self.logger.debug(f"Enhanced resolution detection for {media_item.get('Id', 'Unknown')}: {resolution_string}")
+                return resolution_string
             else:
-                base_resolution = f'{height}p'
-            
-            # Add HDR suffix if detected
-            if is_hdr:
-                resolution = f'{base_resolution} HDR'
-            else:
-                resolution = base_resolution
-            
-            self.logger.debug(f"Extracted resolution for {media_item.get('Id', 'Unknown')}: {resolution}")
-            return resolution
+                self.logger.warning(f"Enhanced resolution detection failed for {media_item.get('Id', 'Unknown')}")
+                return None
             
         except Exception as e:
-            self.logger.error(f"Error extracting video resolution info: {e}")
+            self.logger.error(f"Error in enhanced resolution detection: {e}")
             return None
     
     async def get_series_episodes(self, series_id: str, limit: int = 10) -> List[Dict[str, Any]]:

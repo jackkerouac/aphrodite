@@ -36,30 +36,28 @@ class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
         self.logger = get_logger("aphrodite.badge.resolution.v2", service="badge")
         self.renderer = UnifiedBadgeRenderer()
         
-        # Initialize enhanced detection components if available
-        if ENHANCED_DETECTION_AVAILABLE:
-            self.logger.info("🚀 [V2 RESOLUTION] Enhanced detection components available")
+        # Always use enhanced detection components (no legacy fallback)
+        self.logger.info("🚀 [V2 RESOLUTION] Initializing enhanced resolution detection")
+        try:
+            self.enhanced_detector = EnhancedResolutionDetector()
+            
+            # Try to initialize optional advanced components
             try:
-                self.enhanced_detector = EnhancedResolutionDetector()
                 self.image_manager = ResolutionImageManager()
                 self.parallel_processor = ParallelResolutionProcessor()
                 self.cache = ResolutionCache()
-                
-                # Load enhanced detection settings
-                enhanced_settings = self._load_enhanced_detection_settings()
-                self.enhanced_enabled = enhanced_settings.get('enabled', True)
-                
-                if self.enhanced_enabled:
-                    self.logger.info("✅ [V2 RESOLUTION] Enhanced detection enabled")
-                else:
-                    self.logger.info("🔄 [V2 RESOLUTION] Enhanced detection disabled by settings")
-                    
-            except Exception as e:
-                self.logger.error(f"❌ [V2 RESOLUTION] Enhanced component initialization failed: {e}")
-                self.enhanced_enabled = False
-        else:
-            self.logger.info("⚠️ [V2 RESOLUTION] Using legacy detection (enhanced components not available)")
-            self.enhanced_enabled = False
+                self.logger.info("✅ [V2 RESOLUTION] Advanced components loaded successfully")
+            except ImportError:
+                self.logger.info("⚠️ [V2 RESOLUTION] Advanced components not available, using basic enhanced detection")
+                self.image_manager = None
+                self.parallel_processor = None
+                self.cache = None
+            
+            self.logger.info("✅ [V2 RESOLUTION] Enhanced detection initialized successfully")
+            
+        except Exception as e:
+            self.logger.error(f"❌ [V2 RESOLUTION] Failed to initialize enhanced detection: {e}")
+            raise RuntimeError(f"Resolution detection initialization failed: {e}")
     
     async def process_single(
         self, 
@@ -262,7 +260,7 @@ class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
             return None
     
     async def _get_v2_jellyfin_resolution(self, jellyfin_id: str) -> Optional[str]:
-        """Get real resolution using enhanced detection when available, fallback to legacy"""
+        """Get real resolution using ONLY enhanced detection (no legacy fallback)"""
         try:
             self.logger.debug(f"🌐 [V2 RESOLUTION] Querying Jellyfin for ID: {jellyfin_id}")
             
@@ -280,34 +278,16 @@ class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
             self.logger.debug(f"📺 [V2 RESOLUTION] Media type: {media_type}")
             
             if media_type == 'Movie':
-                # For movies: use enhanced detection if available
-                if self.enhanced_enabled:
-                    return await self._get_enhanced_movie_resolution(media_item)
-                else:
-                    # Legacy detection
-                    resolution = await jellyfin_service.get_video_resolution_info(media_item)
-                    self.logger.debug(f"🎬 [V2 RESOLUTION] Movie resolution (legacy): {resolution}")
-                    return resolution
+                # For movies: use enhanced detection
+                return await self._get_enhanced_movie_resolution(media_item)
             
             elif media_type in ['Series', 'Season']:
-                # For TV: use enhanced parallel processing if available
-                if self.enhanced_enabled:
-                    return await self._get_enhanced_series_resolution(jellyfin_id, jellyfin_service)
-                else:
-                    # Legacy series detection
-                    resolution = await self._get_v2_tv_series_resolution_legacy(jellyfin_id, jellyfin_service)
-                    self.logger.debug(f"📺 [V2 RESOLUTION] TV series resolution (legacy): {resolution}")
-                    return resolution
+                # For TV: use enhanced parallel processing with enhanced detector
+                return await self._get_enhanced_series_resolution(jellyfin_id, jellyfin_service)
             
             elif media_type == 'Episode':
-                # For episodes: use enhanced detection if available
-                if self.enhanced_enabled:
-                    return await self._get_enhanced_movie_resolution(media_item)  # Same logic as movies
-                else:
-                    # Legacy detection
-                    resolution = await jellyfin_service.get_video_resolution_info(media_item)
-                    self.logger.debug(f"📻 [V2 RESOLUTION] Episode resolution (legacy): {resolution}")
-                    return resolution
+                # For episodes: use enhanced detection (same logic as movies)
+                return await self._get_enhanced_movie_resolution(media_item)
             
             else:
                 self.logger.warning(f"⚠️ [V2 RESOLUTION] Unsupported media type: {media_type}")
@@ -318,41 +298,50 @@ class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
             return None
     
     async def _get_enhanced_movie_resolution(self, media_item: Dict[str, Any]) -> Optional[str]:
-        """Get movie resolution using enhanced detection"""
+        """Get movie resolution using enhanced detection with improved fallback"""
         try:
+            # Always use enhanced detector (no legacy fallback)
             resolution_info = self.enhanced_detector.extract_resolution_info(media_item)
             if resolution_info:
                 result = str(resolution_info)
                 self.logger.debug(f"🎆 [V2 RESOLUTION] Enhanced movie resolution: {result}")
                 return result
             else:
-                self.logger.warning("⚠️ [V2 RESOLUTION] Enhanced detection failed, using fallback")
-                return None
+                self.logger.warning("⚠️ [V2 RESOLUTION] Enhanced detection failed, no fallback available")
+                # Return sensible default instead of None
+                return "1080p"  # Most common resolution
         except Exception as e:
             self.logger.error(f"❌ [V2 RESOLUTION] Enhanced movie detection error: {e}")
-            return None
+            return "1080p"  # Fallback default
     
     async def _get_enhanced_series_resolution(self, jellyfin_id: str, jellyfin_service) -> Optional[str]:
-        """Get series resolution using enhanced parallel processing and caching"""
+        """Get series resolution using enhanced detection with episode sampling"""
         try:
-            # Check cache first
-            cached_resolution = self.cache.get_cached_resolution(jellyfin_id)
-            if cached_resolution:
-                result = str(cached_resolution)
-                self.logger.debug(f"📦 [V2 RESOLUTION] Cached series resolution: {result}")
-                return result
+            # Check cache first if available
+            if hasattr(self, 'cache') and self.cache:
+                cached_resolution = self.cache.get_cached_resolution(jellyfin_id)
+                if cached_resolution:
+                    result = str(cached_resolution)
+                    self.logger.debug(f"📦 [V2 RESOLUTION] Cached series resolution: {result}")
+                    return result
             
             # Load performance settings
             max_episodes = self._get_performance_setting('max_episodes_to_sample', 5)
             
-            # Use parallel processing for fresh detection
-            resolution_info = await self.parallel_processor.get_series_resolution_parallel(
-                jellyfin_service, jellyfin_id, max_episodes=max_episodes
-            )
+            # Use enhanced detector for series resolution (with episode sampling)
+            if hasattr(self, 'parallel_processor') and self.parallel_processor:
+                # Use parallel processing if available
+                resolution_info = await self.parallel_processor.get_series_resolution_parallel(
+                    jellyfin_service, jellyfin_id, max_episodes=max_episodes
+                )
+            else:
+                # Fallback to sequential enhanced detection
+                resolution_info = await self._get_series_resolution_sequential(jellyfin_id, jellyfin_service, max_episodes)
             
             if resolution_info:
-                # Cache the result
-                self.cache.cache_series_resolution(jellyfin_id, resolution_info)
+                # Cache the result if caching is available
+                if hasattr(self, 'cache') and self.cache:
+                    self.cache.cache_series_resolution(jellyfin_id, resolution_info)
                 result = str(resolution_info)
                 self.logger.debug(f"🎆 [V2 RESOLUTION] Enhanced series resolution: {result}")
                 return result
@@ -364,40 +353,43 @@ class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
             self.logger.error(f"❌ [V2 RESOLUTION] Enhanced series detection error: {e}")
             return "1080p"  # Fallback default
     
-    async def _get_v2_tv_series_resolution_legacy(self, jellyfin_id: str, jellyfin_service) -> Optional[str]:
-        """Get TV series dominant resolution using PURE V2 methods (no V1 aggregator)"""
+    async def _get_series_resolution_sequential(self, jellyfin_id: str, jellyfin_service, max_episodes: int = 5) -> Optional[str]:
+        """Get TV series dominant resolution using sequential enhanced detection"""
         try:
             self.logger.debug(f"📺 [V2 RESOLUTION] Sampling TV series episodes for: {jellyfin_id}")
             
             # Get series episodes using V2 Jellyfin service
-            episodes = await jellyfin_service.get_series_episodes(jellyfin_id, limit=10)
+            episodes = await jellyfin_service.get_series_episodes(jellyfin_id, limit=max_episodes)
             
             if not episodes:
                 self.logger.warning(f"⚠️ [V2 RESOLUTION] No episodes found for series: {jellyfin_id}")
-                return "1080p"  # Reasonable default for TV series
+                return None
             
             self.logger.debug(f"📺 [V2 RESOLUTION] Found {len(episodes)} episodes to sample")
             
-            # Sample resolutions from episodes
-            resolutions = []
-            for i, episode in enumerate(episodes[:5]):  # Sample first 5 episodes
+            # Sample resolutions from episodes using enhanced detector
+            resolution_infos = []
+            for i, episode in enumerate(episodes[:max_episodes]):
                 try:
-                    resolution = await jellyfin_service.get_video_resolution_info(episode)
-                    if resolution and resolution != "UNKNOWN":
-                        resolutions.append(resolution)
-                        self.logger.debug(f"📻 [V2 RESOLUTION] Episode {i+1} resolution: {resolution}")
+                    # Use enhanced detector instead of legacy method
+                    resolution_info = self.enhanced_detector.extract_resolution_info(episode)
+                    if resolution_info:
+                        resolution_infos.append(resolution_info)
+                        self.logger.debug(f"📻 [V2 RESOLUTION] Episode {i+1} resolution: {resolution_info}")
                 except Exception as ep_error:
-                    self.logger.warning(f"⚠️ [V2 RESOLUTION] Episode {i+1} resolution error: {ep_error}")
+                    self.logger.warning(f"⚠️ [V2 RESOLUTION] Episode {i+1} enhanced detection error: {ep_error}")
                     continue
             
-            if not resolutions:
+            if not resolution_infos:
                 self.logger.warning(f"⚠️ [V2 RESOLUTION] No valid resolutions from episodes")
-                return "1080p"  # Reasonable default
+                return None
             
-            # Determine dominant resolution using simple frequency count
+            # Determine dominant resolution using enhanced resolution comparison
             resolution_counts = {}
-            for resolution in resolutions:
-                resolution_counts[resolution] = resolution_counts.get(resolution, 0) + 1
+            for resolution_info in resolution_infos:
+                # Use the string representation for grouping
+                resolution_str = str(resolution_info)
+                resolution_counts[resolution_str] = resolution_counts.get(resolution_str, 0) + 1
             
             # Get most common resolution
             dominant_resolution = max(resolution_counts.items(), key=lambda x: x[1])[0]
@@ -408,8 +400,8 @@ class V2ResolutionBadgeProcessor(BaseBadgeProcessor):
             return dominant_resolution
             
         except Exception as e:
-            self.logger.error(f"❌ [V2 RESOLUTION] TV series resolution error: {e}", exc_info=True)
-            return "1080p"  # Fallback default
+            self.logger.error(f"❌ [V2 RESOLUTION] Sequential series resolution error: {e}", exc_info=True)
+            return None
     
     def _get_v2_demo_resolution(self, poster_path: str) -> str:
         """Get demo resolution using V2 consistent algorithm"""
