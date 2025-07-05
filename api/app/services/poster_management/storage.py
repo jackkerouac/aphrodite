@@ -26,15 +26,15 @@ class StorageManager:
         
         # Default to API static directories if no paths provided
         if processed_path is None or preview_path is None or cache_path is None:
-            # Get the API directory path
-            api_dir = Path(__file__).parent.parent.parent.parent  # Go up from services/poster_management to api root
+            from api.app.core.config import get_settings
+            settings = get_settings()
             
             if processed_path is None:
-                processed_path = api_dir / "static" / "processed"
+                processed_path = settings.processed_dir
             if preview_path is None:
-                preview_path = api_dir / "static" / "preview"
+                preview_path = settings.preview_dir
             if cache_path is None:
-                cache_path = api_dir / "cache" / "posters"
+                cache_path = settings.cache_dir
         
         self.processed_path = Path(processed_path)
         self.preview_path = Path(preview_path)

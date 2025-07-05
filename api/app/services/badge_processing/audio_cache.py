@@ -30,7 +30,7 @@ class AudioCache:
         self.max_cache_size = 1000  # Limit memory usage
         
         # Persistent cache file (optional)
-        self.cache_file = Path("/app/cache/audio_cache.json")
+        self.cache_file = Path("/app/data/cache/audio/audio_cache.json")
         
         # Ensure cache directory exists
         self.cache_file.parent.mkdir(parents=True, exist_ok=True)

@@ -191,9 +191,17 @@ class Settings(BaseSettings):
         return origins_list if origins_list else ["*"]
     
     # File Storage
-    media_root: str = Field(default="./media", description="Media files root directory")
-    poster_cache_dir: str = Field(default="./cache/posters", description="Poster cache directory")
-    temp_dir: str = Field(default="./tmp", description="Temporary files directory")
+    data_dir: str = Field(default="/app/data", description="Application data directory")
+    logs_dir: str = Field(default="/app/logs", description="Application logs directory")
+    media_dir: str = Field(default="/app/media", description="Media files directory")
+    static_originals_dir: str = Field(default="/app/api/static/originals", description="Original posters directory")
+
+    # Derived paths
+    cache_dir: str = Field(default="/app/data/cache", description="Cache directory")
+    config_dir: str = Field(default="/app/data/config", description="Configuration directory")
+    temp_dir: str = Field(default="/app/media/temp", description="Temporary files directory")
+    preview_dir: str = Field(default="/app/media/preview", description="Preview files directory")
+    processed_dir: str = Field(default="/app/media/processed", description="Processed posters directory")
     
     # External APIs
     jellyfin_url: Optional[str] = Field(default=None, description="Jellyfin server URL")

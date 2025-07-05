@@ -18,7 +18,7 @@ class ResolutionCache:
     Significantly improves performance for repeated series processing.
     """
     
-    def __init__(self, cache_ttl_hours: int = 24, cache_file: str = "cache/resolution_cache.json"):
+    def __init__(self, cache_ttl_hours: int = 24, cache_file: str = "/app/data/cache/resolution/resolution_cache.json"):
         self.logger = get_logger("aphrodite.resolution.cache", service="badge")
         self.cache_ttl = timedelta(hours=cache_ttl_hours)
         self.cache_file = Path(cache_file)
