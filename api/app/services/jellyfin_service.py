@@ -12,7 +12,20 @@ from datetime import datetime, timedelta
 
 from app.core.config import get_settings
 from aphrodite_logging import get_logger
-from shared.types import MediaType, generate_id
+
+# Define MediaType enum locally to avoid shared module dependency
+from enum import Enum
+
+class MediaType(Enum):
+    MOVIE = "movie"
+    TV_SHOW = "tv_show"
+    SEASON = "season"
+    EPISODE = "episode"
+
+def generate_id() -> str:
+    """Generate a simple ID"""
+    import uuid
+    return str(uuid.uuid4())
 
 
 class JellyfinService:
@@ -651,9 +664,44 @@ class JellyfinService:
             self.logger.error(f"Error uploading poster for item {item_id}: {e}")
             return False
     
-    async def get_audio_codec_info(self, media_item: Dict[str, Any]) -> Optional[str]:
-        """Extract audio codec information from Jellyfin media item"""
+    async def get_enhanced_audio_info(self, media_item: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Get enhanced audio information including badge mapping (for V2 badge system)"""
         try:
+            from .badge_processing.enhanced_audio_metadata_extractor import EnhancedAudioMetadataExtractor
+            
+            extractor = EnhancedAudioMetadataExtractor()
+            return extractor.extract_audio_info(media_item)
+            
+        except Exception as e:
+            self.logger.error(f"Error getting enhanced audio info: {e}")
+            return None
+    
+    async def get_audio_codec_info(self, media_item: Dict[str, Any]) -> Optional[str]:
+        """Extract audio codec information from Jellyfin media item using enhanced metadata analysis"""
+        try:
+            # Use enhanced metadata extractor for better analysis
+            from .badge_processing.enhanced_audio_metadata_extractor import EnhancedAudioMetadataExtractor
+            
+            extractor = EnhancedAudioMetadataExtractor()
+            audio_info = extractor.extract_audio_info(media_item)
+            
+            if audio_info:
+                display_codec = audio_info.get('display_codec')
+                self.logger.debug(f"Enhanced audio extraction for {media_item.get('Id', 'Unknown')}: {display_codec}")
+                return display_codec
+            else:
+                self.logger.warning(f"Enhanced audio extraction failed for {media_item.get('Id', 'Unknown')}, using fallback")
+                return self._fallback_audio_codec_extraction(media_item)
+                
+        except Exception as e:
+            self.logger.error(f"Error in enhanced audio extraction: {e}")
+            return self._fallback_audio_codec_extraction(media_item)
+    
+    def _fallback_audio_codec_extraction(self, media_item: Dict[str, Any]) -> Optional[str]:
+        """Fallback audio codec extraction method (original logic)"""
+        try:
+            self.logger.info(f"🔄 [AUDIO FALLBACK] Using legacy audio extraction for {media_item.get('Id', 'Unknown')}")
+            
             # Get MediaSources from the media item
             media_sources = media_item.get('MediaSources', [])
             if not media_sources:
@@ -691,22 +739,25 @@ class JellyfinService:
             profile = audio_stream.get('Profile', '').upper()
             if 'ATMOS' in profile or 'ATMOS' in codec:
                 if codec in ['TRUEHD', 'DTSMA']:
-                    return f"{codec_mapping.get(codec, codec)} ATMOS"
+                    result = f"{codec_mapping.get(codec, codec)} ATMOS"
                 else:
-                    return 'ATMOS'
+                    result = 'ATMOS'
+                self.logger.info(f"🔄 [AUDIO FALLBACK] Detected Atmos: {result}")
+                return result
             
             # Check for DTS-X
             if 'DTS-X' in profile or 'DTSX' in codec:
+                self.logger.info(f"🔄 [AUDIO FALLBACK] Detected DTS-X")
                 return 'DTS-X'
             
             # Return mapped codec or original if no mapping found
             display_codec = codec_mapping.get(codec, codec)
             
-            self.logger.debug(f"Extracted audio codec for {media_item.get('Id', 'Unknown')}: {display_codec}")
+            self.logger.info(f"🔄 [AUDIO FALLBACK] Extracted codec: {display_codec}")
             return display_codec if display_codec else None
             
         except Exception as e:
-            self.logger.error(f"Error extracting audio codec info: {e}")
+            self.logger.error(f"❌ [AUDIO FALLBACK] Error in fallback extraction: {e}")
             return None
     
     async def get_video_resolution_info(self, media_item: Dict[str, Any]) -> Optional[str]:
