@@ -364,21 +364,43 @@ def setup_static_files(app: FastAPI):
                 response.headers['Expires'] = '0'
             return response
 
+    # CRITICAL FIX: Ensure directories exist before mounting static files
+    # This is especially important when using host directory mounts
+    directories_to_ensure = [
+        (settings.static_originals_dir, "Original static files"),
+        (settings.processed_dir, "Processed files"),
+        (settings.preview_dir, "Preview files"),
+        (settings.data_dir, "General API static files")
+    ]
+    
+    for dir_path, description in directories_to_ensure:
+        try:
+            Path(dir_path).mkdir(parents=True, exist_ok=True)
+            logger.info(f"✅ Ensured directory exists: {dir_path} ({description})")
+        except Exception as e:
+            logger.warning(f"⚠️ Failed to create directory {dir_path}: {e}")
+
     # Mount API static files from new volume locations
     # Original posters
     if Path(settings.static_originals_dir).exists():
         logger.info(f"Mounting original static files from {settings.static_originals_dir}")
         app.mount("/api/v1/static/originals", CORSStaticFiles(directory=settings.static_originals_dir), name="api-static-originals")
+    else:
+        logger.warning(f"Original static directory does not exist: {settings.static_originals_dir}")
 
     # Processed posters
     if Path(settings.processed_dir).exists():
         logger.info(f"Mounting processed static files from {settings.processed_dir}")
         app.mount("/api/v1/static/processed", CORSStaticFiles(directory=settings.processed_dir), name="api-static-processed")
+    else:
+        logger.warning(f"Processed directory does not exist: {settings.processed_dir}")
 
     # Preview files
     if Path(settings.preview_dir).exists():
         logger.info(f"Mounting preview static files from {settings.preview_dir}")
         app.mount("/api/v1/static/preview", CORSStaticFiles(directory=settings.preview_dir), name="api-static-preview")
+    else:
+        logger.warning(f"Preview directory does not exist: {settings.preview_dir}")
 
     # Mount Next.js static files (_next/static) - being specific to avoid conflicts
     if frontend_static.exists():
@@ -397,6 +419,8 @@ def setup_static_files(app: FastAPI):
     if Path(settings.data_dir).exists():
         logger.info(f"Mounting general API static files from {settings.data_dir}")
         app.mount("/api/v1/static", CORSStaticFiles(directory=settings.data_dir), name="api-static-general")
+    else:
+        logger.warning(f"Data directory does not exist: {settings.data_dir}")
 
 
 def setup_frontend_routes(app: FastAPI):
