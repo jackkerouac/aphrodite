@@ -51,18 +51,29 @@ class LoggingManager:
         if config_override:
             config = self._merge_configs(config, config_override)
         
-        # Ensure log directory exists in config paths
+        # Ensure log directory exists in config paths and handle permission issues
         self._ensure_log_directories(config)
         
-        # Apply configuration
-        logging.config.dictConfig(config)
+        # Check if we still have any handlers left
+        if not config.get("handlers"):
+            print("Warning: No handlers available, using console-only fallback")
+            config = self._get_fallback_config()
         
-        # Store current config
-        self.current_config = config
-        
-        # Log the initialization
-        logger = logging.getLogger("aphrodite.logging")
-        logger.info(f"Logging initialized for environment: {environment}")
+        try:
+            # Apply configuration
+            logging.config.dictConfig(config)
+            
+            # Store current config
+            self.current_config = config
+            
+            # Log the initialization
+            logger = logging.getLogger("aphrodite.logging")
+            logger.info(f"Logging initialized for environment: {environment}")
+        except Exception as e:
+            print(f"Warning: Failed to apply logging config: {e}")
+            print("Using basic console logging fallback")
+            self._setup_fallback_logging()
+            self.current_config = {}
     
     def _load_config(self, config_path: Path) -> Dict[str, Any]:
         """Load YAML configuration file"""
@@ -88,13 +99,65 @@ class LoggingManager:
         return result
     
     def _ensure_log_directories(self, config: Dict[str, Any]):
-        """Ensure all log file directories exist"""
+        """Ensure all log file directories exist and are writable"""
         handlers = config.get("handlers", {})
         
-        for handler_config in handlers.values():
+        for handler_name, handler_config in handlers.items():
             if "filename" in handler_config:
                 log_file = Path(handler_config["filename"])
-                log_file.parent.mkdir(parents=True, exist_ok=True)
+                try:
+                    log_file.parent.mkdir(parents=True, exist_ok=True)
+                    # Test write permissions by creating/touching the file
+                    log_file.touch(exist_ok=True)
+                except (PermissionError, OSError) as e:
+                    print(f"Warning: Cannot write to log file {log_file}: {e}")
+                    print(f"Disabling file handler '{handler_name}' due to permission issues")
+                    # Remove the problematic file handler from config
+                    if handler_name in config.get("handlers", {}):
+                        del config["handlers"][handler_name]
+                    
+                    # Remove handler from all loggers
+                    for logger_config in config.get("loggers", {}).values():
+                        if "handlers" in logger_config and handler_name in logger_config["handlers"]:
+                            logger_config["handlers"].remove(handler_name)
+                    
+                    # Remove from root logger
+                    if "handlers" in config.get("root", {}) and handler_name in config["root"]["handlers"]:
+                        config["root"]["handlers"].remove(handler_name)
+    
+    def _get_fallback_config(self) -> Dict[str, Any]:
+        """Get a basic console-only logging configuration"""
+        return {
+            "version": 1,
+            "disable_existing_loggers": False,
+            "formatters": {
+                "simple": {
+                    "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+                    "datefmt": "%Y-%m-%d %H:%M:%S"
+                }
+            },
+            "handlers": {
+                "console": {
+                    "class": "logging.StreamHandler",
+                    "level": "INFO",
+                    "formatter": "simple",
+                    "stream": "ext://sys.stdout"
+                }
+            },
+            "root": {
+                "level": "INFO",
+                "handlers": ["console"]
+            }
+        }
+    
+    def _setup_fallback_logging(self):
+        """Setup basic console logging as fallback"""
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+            force=True
+        )
     
     def get_logger(self, name: str, **extra_fields) -> logging.Logger:
         """
@@ -137,11 +200,18 @@ def setup_logging(environment: str = None, config_override: Optional[Dict[str, A
     Convenience function to setup logging
     
     Args:
-        environment: Environment name (defaults to ENVIRONMENT env var or 'development')
+        environment: Environment name (defaults to ENVIRONMENT env var or auto-detected)
         config_override: Optional configuration overrides
     """
     if environment is None:
-        environment = os.getenv("ENVIRONMENT", "development")
+        # Auto-detect environment
+        environment = os.getenv("ENVIRONMENT")
+        if environment is None:
+            # Check if we're running in Docker
+            if os.path.exists("/.dockerenv") or os.getenv("DOCKER_CONTAINER") == "true":
+                environment = "production"
+            else:
+                environment = "development"
     
     _logging_manager.setup_logging(environment, config_override)
 
@@ -159,5 +229,16 @@ def get_logger(name: str, **extra_fields) -> logging.Logger:
     return _logging_manager.get_logger(name, **extra_fields)
 
 # Auto-initialize logging when module is imported
-if not _logging_manager.current_config:
-    setup_logging()
+# Wrap in try-catch to handle permission issues gracefully
+try:
+    if not _logging_manager.current_config:
+        setup_logging()
+except Exception as e:
+    print(f"Warning: Failed to initialize logging: {e}")
+    print("Falling back to basic console logging")
+    # Set up minimal console-only logging as fallback
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )

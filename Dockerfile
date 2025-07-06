@@ -33,8 +33,12 @@ RUN apt-get update && apt-get install -y \
 # Copy Python packages from builder stage
 COPY --from=builder /root/.local /home/aphrodite/.local
 
-# Fix ownership of Python packages
-RUN chown -R aphrodite:aphrodite /home/aphrodite/.local
+# Fix ownership of Python packages and create symlinks for compatibility
+RUN chown -R aphrodite:aphrodite /home/aphrodite/.local && \
+    # Create symlink for python executable compatibility
+    mkdir -p /home/aphrodite/.local/bin && \
+    ln -sf /usr/local/bin/python3 /home/aphrodite/.local/bin/python && \
+    ln -sf /usr/local/bin/python3 /home/aphrodite/.local/bin/python3
 
 # Install Python dependencies
 WORKDIR /app
@@ -49,7 +53,8 @@ ENV PATH="/home/aphrodite/.local/bin:$PATH" \
     APHRODITE_ROOT=/app \
     APHRODITE_API_DIR=/app/api \
     APHRODITE_ASSETS_DIR=/app/assets \
-    APHRODITE_DATA_DIR=/app/data
+    APHRODITE_DATA_DIR=/app/data \
+    PYTHON_EXECUTABLE="python3"
 
 # Copy application code
 COPY --chown=aphrodite:aphrodite VERSION ./
@@ -58,6 +63,7 @@ COPY --chown=aphrodite:aphrodite shared/ ./shared/
 COPY --chown=aphrodite:aphrodite aphrodite_logging/ ./aphrodite_logging/
 COPY --chown=aphrodite:aphrodite aphrodite_helpers/ ./aphrodite_helpers/
 COPY --chown=aphrodite:aphrodite init-badge-settings-production.py ./
+COPY --chown=root:root docker-entrypoint.sh /docker-entrypoint.sh
 
 # Copy frontend files (pre-built .next directory should exist in repo)
 COPY --chown=aphrodite:aphrodite frontend/.next ./frontend/.next
@@ -87,11 +93,14 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Expose port
 EXPOSE 8000
 
-# Switch to non-root user
-USER aphrodite
+# Make entrypoint script executable
+RUN chmod +x /docker-entrypoint.sh
 
 # Set working directory to API
 WORKDIR /app/api
+
+# Use entrypoint script
+ENTRYPOINT ["/docker-entrypoint.sh"]
 
 # Start the FastAPI application directly
 CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
