@@ -69,23 +69,23 @@ mkdir aphrodite && cd aphrodite
 
 # Using wget (Linux/macOS with wget)
 wget https://github.com/jackkerouac/aphrodite/releases/latest/download/docker-compose.yml
-wget https://github.com/jackkerouac/aphrodite/releases/latest/download/.env.example
+wget https://github.com/jackkerouac/aphrodite/releases/latest/download/default.env.example
 
 # OR using curl (macOS/Linux/Windows with curl)
 curl -L https://github.com/jackkerouac/aphrodite/releases/latest/download/docker-compose.yml -o docker-compose.yml
-curl -L https://github.com/jackkerouac/aphrodite/releases/latest/download/.env.example -o .env.example
+curl -L https://github.com/jackkerouac/aphrodite/releases/latest/download/default.env.example -o default.env.example
 
 # Setup environment file
-mv .env.example .env
+mv default.env.example .env
 
 # 2. Configure for production (important!)
 nano .env  # Update passwords and security settings
 
 # 3. Start services
-docker-compose up -d
+docker compose up -d
 
 # 4. Check status
-docker-compose ps
+docker compose ps
 ```
 
 ### Quick Development Setup
@@ -93,8 +93,8 @@ docker-compose ps
 ```bash
 # For testing/development only
 curl -L https://github.com/jackkerouac/aphrodite/releases/latest/download/docker-compose.yml -o docker-compose.yml
-curl -L https://github.com/jackkerouac/aphrodite/releases/latest/download/.env.example -o .env
-docker-compose up -d
+curl -L https://github.com/jackkerouac/aphrodite/releases/latest/download/default.env.example -o .env
+docker compose up -d
 ```
 
 ### That's it! 
@@ -198,7 +198,7 @@ your-aphrodite/
 .\scripts\setup.ps1
 
 # Start services  
-docker-compose up -d
+docker compose up -d
 
 # Test everything
 .\scripts\test-docker.ps1
@@ -214,14 +214,14 @@ docker-compose up -d
 ./scripts/setup.sh
 
 # Start services
-docker-compose up -d
+docker compose up -d
 
 # Test everything
 ./scripts/test-docker.sh
 
 # Manage services
-docker-compose logs -f
-docker-compose restart
+docker compose logs -f
+docker compose restart
 ```
 
 ## 📊 Service Overview
@@ -256,17 +256,17 @@ curl http://localhost:8000/api/v1/workflow/jobs/{job_id}
 ### Production Maintenance
 ```bash
 # Update to latest version
-docker-compose pull
-docker-compose up -d
+docker compose pull
+docker compose up -d
 
 # Backup database
-docker-compose exec postgres pg_dump -U aphrodite aphrodite_v2 > backup-$(date +%Y%m%d).sql
+docker compose exec postgres pg_dump -U aphrodite aphrodite_v2 > backup-$(date +%Y%m%d).sql
 
 # View logs
-docker-compose logs -f --tail=100
+docker compose logs -f --tail=100
 
 # Restart specific service
-docker-compose restart api
+docker compose restart api
 ```
 
 ## Troubleshooting
@@ -276,7 +276,7 @@ docker-compose restart api
 **Services won't start:**
 ```bash
 # Check logs
-docker-compose logs
+docker compose logs
 
 # Ensure ports are free
 netstat -tlnp | grep :8000  # Linux
@@ -296,13 +296,13 @@ echo "PGID=$(id -g)" >> .env
 **Database connection issues:**
 ```bash
 # Check all services
-docker-compose ps
+docker compose ps
 
 # Restart database
-docker-compose restart postgres redis
+docker compose restart postgres redis
 
 # Check database logs
-docker-compose logs postgres
+docker compose logs postgres
 ```
 
 **Performance issues:**
@@ -314,14 +314,14 @@ docker stats
 curl http://localhost:8000/health/detailed
 
 # Scale workers (if needed)
-docker-compose up -d --scale worker=3
+docker compose up -d --scale worker=3
 ```
 
 **Reset everything:**
 ```bash
 # WARNING: Deletes all data
-docker-compose down -v
-docker-compose up -d
+docker compose down -v
+docker compose up -d
 ```
 
 ### Getting Help
@@ -334,10 +334,10 @@ docker-compose up -d
 
 ```bash
 # Pull latest images
-docker-compose pull
+docker compose pull
 
 # Recreate containers
-docker-compose up -d
+docker compose up -d
 
 # Clean up old images  
 docker image prune -f
