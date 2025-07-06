@@ -4,10 +4,11 @@ Job Management API Routes
 Endpoints for job creation, status, and management.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Union
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
+from uuid import UUID
 
 from app.core.database import get_db_session
 from app.services.workflow import (
@@ -23,19 +24,32 @@ logger = get_logger("aphrodite.api.workflow.jobs")
 class CreateBatchJobRequest(BaseModel):
     """Request model for creating batch jobs"""
     name: str
-    poster_ids: List[str]  # Changed from List[UUID] to List[str] to support Jellyfin IDs
+    poster_ids: List[Union[str, UUID]]  # Accept both strings and UUIDs
     badge_types: List[str]
     user_id: str = "default_user"
+    
+    @field_validator('poster_ids', mode='before')
+    @classmethod
+    def convert_poster_ids_to_strings(cls, v):
+        """Convert UUID objects to strings for internal processing"""
+        if isinstance(v, list):
+            return [str(item) for item in v]
+        return v
 
 
 async def get_job_manager(session: AsyncSession = Depends(get_db_session)) -> JobManager:
     """Dependency to create job manager with all dependencies"""
-    job_repository = JobRepository(session)
-    job_creator = JobCreator(job_repository)
-    priority_manager = PriorityManager(job_repository)
-    resource_manager = ResourceManager()
-    
-    return JobManager(job_repository, job_creator, priority_manager, resource_manager)
+    try:
+        job_repository = JobRepository(session)
+        job_creator = JobCreator(job_repository)
+        priority_manager = PriorityManager(job_repository)
+        resource_manager = ResourceManager()
+        
+        return JobManager(job_repository, job_creator, priority_manager, resource_manager)
+    except Exception as e:
+        logger.error(f"Failed to create job manager: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                          detail="Failed to initialize job manager")
 
 
 @router.post("/batch", response_model=dict)
@@ -56,7 +70,7 @@ async def create_batch_job(
             logger.error("No poster IDs provided in batch job request")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No poster IDs provided")
         
-        # Validate that poster IDs are valid UUIDs/strings
+        # Validate that poster IDs are valid strings after conversion
         invalid_ids = []
         for poster_id in request.poster_ids:
             if not poster_id or not isinstance(poster_id, str) or len(poster_id.strip()) == 0:
@@ -127,6 +141,9 @@ async def create_batch_job(
                 "jobs": created_jobs
             }
         
+    except HTTPException:
+        # Re-raise HTTP exceptions without modification
+        raise
     except ValueError as e:
         logger.warning(f"Invalid job request: {e}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
