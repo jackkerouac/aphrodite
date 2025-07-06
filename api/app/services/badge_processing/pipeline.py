@@ -156,9 +156,9 @@ class UniversalBadgeProcessor:
             try:
                 self.logger.info(f"🛠️ [V2 PIPELINE] About to call {badge_type} processor...")
                 
-                # CRITICAL FIX: Use isolated database connections with proper error recovery
-                result = await self._process_with_isolated_connection(
-                    processor, badge_type, current_poster_path, output_path, request
+                # CRITICAL FIX: Use shared database session from batch worker
+                result = await self._process_with_shared_session(
+                    processor, badge_type, current_poster_path, output_path, request, db_session
                 )
                 
                 self.logger.info(f"🛠️ [V2 PIPELINE] {badge_type} processor completed")
@@ -256,94 +256,37 @@ class UniversalBadgeProcessor:
         
         return ProcessingResult(success=True, results=[final_result])
     
-    async def _process_with_isolated_connection(
+    async def _process_with_shared_session(
         self, processor, badge_type: str, current_poster_path: str, 
-        output_path: str, request
+        output_path: str, request, shared_session: AsyncSession
     ):
-        """Process badge with completely isolated database connection and proper error recovery"""
+        """Process badge with shared database session from batch worker"""
         
-        # Strategy 1: Try with the main session factory with recovery
         try:
-            from app.core.database import async_session_factory, get_fresh_db_session
+            self.logger.debug(f"🔄 Using shared database session for {badge_type}")
             
-            if async_session_factory:
-                self.logger.debug(f"🔄 Creating database session for {badge_type}")
-                async with async_session_factory() as fresh_session:
-                    # Test the connection first
-                    from sqlalchemy import text
-                    await fresh_session.execute(text("SELECT 1"))
-                    await fresh_session.commit()
-                    
-                    self.logger.debug(f"✅ Database connection verified for {badge_type}")
-                    
-                    result = await processor.process_single(
-                        current_poster_path,
-                        output_path,
-                        request.use_demo_data,
-                        fresh_session,
-                        request.jellyfin_id
-                    )
-                    return result
-            else:
-                raise Exception("Session factory not available")
-                
-        except Exception as db_error:
-            self.logger.warning(f"⚠️ Main database session failed for {badge_type}: {db_error}")
+            result = await processor.process_single(
+                current_poster_path,
+                output_path,
+                request.use_demo_data,
+                shared_session,
+                request.jellyfin_id
+            )
             
-            # Strategy 2: Try with a completely fresh session using new engine
-            try:
-                self.logger.debug(f"🔄 Attempting fresh engine session for {badge_type}")
-                
-                async for fresh_session in get_fresh_db_session():
-                    self.logger.debug(f"✅ Fresh engine connection verified for {badge_type}")
-                    
-                    result = await processor.process_single(
-                        current_poster_path,
-                        output_path,
-                        request.use_demo_data,
-                        fresh_session,
-                        request.jellyfin_id
-                    )
-                    return result
-                    
-            except Exception as engine_error:
-                self.logger.warning(f"⚠️ Fresh engine strategy failed for {badge_type}: {engine_error}")
-                
-                # Strategy 3: Run without database session (failsafe mode)
-                try:
-                    self.logger.warning(f"🔄 Running {badge_type} in failsafe mode (no database)")
-                    
-                    result = await processor.process_single(
-                        current_poster_path,
-                        output_path,
-                        request.use_demo_data,
-                        None,  # No database session
-                        request.jellyfin_id
-                    )
-                    return result
-                    
-                except Exception as failsafe_error:
-                    self.logger.error(f"🚨 All strategies failed for {badge_type}: {failsafe_error}", exc_info=True)
-                    
-                    # Create a failed result to continue processing
-                    from .types import PosterResult
-                    return PosterResult(
-                        source_path=current_poster_path,
-                        output_path=current_poster_path,
-                        applied_badges=[],
-                        success=False,
-                        error=f"{badge_type} processor failed: {str(failsafe_error)}"
-                    )
-        except Exception as outer_error:
-            self.logger.error(f"🚨 OUTER EXCEPTION in {badge_type} processor: {outer_error}", exc_info=True)
-            # Always return a result to prevent pipeline termination
+            self.logger.debug(f"✅ {badge_type} processor completed successfully")
+            return result
+            
+        except Exception as processor_error:
+            self.logger.error(f"🚨 {badge_type} processor failed: {processor_error}", exc_info=True)
+            
+            # Create a failed result to continue processing
             from .types import PosterResult
             return PosterResult(
                 source_path=current_poster_path,
                 output_path=current_poster_path,
                 applied_badges=[],
                 success=False,
-                error=f"{badge_type} processor outer exception: {str(outer_error)}"
+                error=f"{badge_type} processor failed: {str(processor_error)}"
             )
 
     async def process_bulk_with_session(self, request: BulkBadgeRequest, db_session: AsyncSession) -> ProcessingResult:

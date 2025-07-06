@@ -145,90 +145,120 @@ async def _process_batch_job_async(job_id: str) -> Dict[str, Any]:
             await job_repo.update_job_status(job_id, JobStatus.PROCESSING)
             await job_repo.update_job_started_at(job_id, datetime.utcnow())
             
-            logger.info(f"Processing {job.total_posters} posters for job {job_id}")
+            logger.info(f"📋 Processing {job.total_posters} posters for job {job_id}")
+            logger.info(f"📋 Selected poster IDs: {job.selected_poster_ids}")
             
             completed = 0
             failed = 0
             
             try:
-                # Process each poster
-                for poster_id in job.selected_poster_ids:
-                    logger.info(f"Processing poster {poster_id} ({completed + failed + 1}/{job.total_posters})")
-                    
-                    # Debug logging: Start poster processing
-                    await debug_logger.log_poster_processing_start(poster_id, job.badge_types)
-                    
-                    # Check if job was cancelled or paused
-                    current_job = await job_repo.get_job_by_id(job_id)
-                    if current_job.status in [JobStatus.CANCELLED.value, JobStatus.PAUSED.value]:
-                        logger.info(f"Job {job_id} was {current_job.status}, stopping processing")
-                        break
-                    
-                    # Update poster status to processing
-                    await job_repo.update_poster_status(job_id, poster_id, PosterStatus.PROCESSING)
-                    
+                # Process each poster with robust error handling
+                for i, poster_id in enumerate(job.selected_poster_ids):
                     try:
-                        # Process single poster with progress tracking and debug logging
-                        result = await poster_processor.process_poster(
-                            poster_id=poster_id,
-                            badge_types=job.badge_types,
-                            job_id=job_id,
-                            db_session=db_session,
-                            progress_tracker=progress_updater.progress_tracker,
-                            debug_logger=debug_logger
-                        )
+                        logger.info(f"Processing poster {poster_id} ({i + 1}/{job.total_posters})")
                         
-                        if result["success"]:
-                            await job_repo.update_poster_status(
-                                job_id, poster_id, PosterStatus.COMPLETED,
-                                output_path=result.get("output_path")
+                        # Debug logging: Start poster processing
+                        await debug_logger.log_poster_processing_start(poster_id, job.badge_types)
+                        
+                        # Check if job was cancelled or paused
+                        current_job = await job_repo.get_job_by_id(job_id)
+                        if current_job.status in [JobStatus.CANCELLED.value, JobStatus.PAUSED.value]:
+                            logger.info(f"Job {job_id} was {current_job.status}, stopping processing")
+                            break
+                        
+                        # Update poster status to processing
+                        await job_repo.update_poster_status(job_id, poster_id, PosterStatus.PROCESSING)
+                        
+                        try:
+                            # Process single poster with progress tracking and debug logging
+                            result = await poster_processor.process_poster(
+                                poster_id=poster_id,
+                                badge_types=job.badge_types,
+                                job_id=job_id,
+                                db_session=db_session,
+                                progress_tracker=progress_updater.progress_tracker,
+                                debug_logger=debug_logger
                             )
-                            completed += 1
                             
-                            # Add aphrodite-overlay tag if successfully uploaded to Jellyfin
-                            if result.get("uploaded_to_jellyfin", False):
-                                try:
-                                    logger.info(f"Attempting to add aphrodite-overlay tag to {poster_id}")
-                                    from app.services.tag_management_service import get_tag_management_service
-                                    tag_service = get_tag_management_service()
-                                    await tag_service.add_tag_to_items([poster_id], "aphrodite-overlay")
-                                    logger.info(f"✅ Successfully added aphrodite-overlay tag to {poster_id}")
-                                except Exception as tag_error:
-                                    logger.error(f"❌ Failed to add tag to {poster_id}: {tag_error}", exc_info=True)
+                            if result["success"]:
+                                await job_repo.update_poster_status(
+                                    job_id, poster_id, PosterStatus.COMPLETED,
+                                    output_path=result.get("output_path")
+                                )
+                                completed += 1
+                                
+                                # Add aphrodite-overlay tag if successfully uploaded to Jellyfin
+                                if result.get("uploaded_to_jellyfin", False):
+                                    try:
+                                        logger.info(f"Attempting to add aphrodite-overlay tag to {poster_id}")
+                                        from app.services.tag_management_service import get_tag_management_service
+                                        tag_service = get_tag_management_service()
+                                        await tag_service.add_tag_to_items([poster_id], "aphrodite-overlay")
+                                        logger.info(f"✅ Successfully added aphrodite-overlay tag to {poster_id}")
+                                    except Exception as tag_error:
+                                        logger.error(f"❌ Failed to add tag to {poster_id}: {tag_error}", exc_info=True)
+                                else:
+                                    logger.warning(f"Skipping tag addition for {poster_id} - not uploaded to Jellyfin")
+                                
+                                logger.info(f"✅ Completed poster {poster_id} successfully")
+                                # Debug logging: Success
+                                await debug_logger.log_poster_processing_end(poster_id, True)
                             else:
-                                logger.warning(f"Skipping tag addition for {poster_id} - not uploaded to Jellyfin")
-                            
-                            logger.info(f"✅ Completed poster {poster_id} successfully")
-                            # Debug logging: Success
-                            await debug_logger.log_poster_processing_end(poster_id, True)
-                        else:
-                            error_msg = result["error"]
-                            logger.error(f"❌ Failed to process poster {poster_id}: {error_msg}")
-                            # Debug logging: Failure
+                                error_msg = result["error"]
+                                logger.error(f"❌ Failed to process poster {poster_id}: {error_msg}")
+                                # Debug logging: Failure
+                                await debug_logger.log_poster_processing_end(poster_id, False, error_msg)
+                                await error_handler.handle_poster_error(
+                                    job_repo, job_id, poster_id, error_msg
+                                )
+                                failed += 1
+                                
+                        except Exception as poster_exception:
+                            error_msg = str(poster_exception)
+                            logger.error(f"❌ Exception processing poster {poster_id}: {error_msg}", exc_info=True)
+                            # Debug logging: Exception
                             await debug_logger.log_poster_processing_end(poster_id, False, error_msg)
                             await error_handler.handle_poster_error(
                                 job_repo, job_id, poster_id, error_msg
                             )
                             failed += 1
-                            
-                    except Exception as e:
-                        error_msg = str(e)
-                        logger.error(f"❌ Exception processing poster {poster_id}: {error_msg}", exc_info=True)
-                        # Debug logging: Exception
-                        await debug_logger.log_poster_processing_end(poster_id, False, error_msg)
-                        await error_handler.handle_poster_error(
-                            job_repo, job_id, poster_id, error_msg
-                        )
-                        failed += 1
-                    
-                    # Update job progress
-                    await progress_updater.update_job_progress(job_id, completed, failed)
+                        
+                        # Update job progress after each poster
+                        try:
+                            await progress_updater.update_job_progress(job_id, completed, failed)
+                            logger.info(f"📊 Progress updated: {completed + failed}/{job.total_posters} posters processed")
+                        except Exception as progress_error:
+                            logger.warning(f"Failed to update progress: {progress_error}")
+                        
+                        # Add a small delay between posters to prevent overwhelming the system
+                        if i < len(job.selected_poster_ids) - 1:  # Don't delay after the last poster
+                            await asyncio.sleep(0.1)
+                        
+                    except Exception as loop_exception:
+                        logger.error(f"🚨 CRITICAL: Exception in main processing loop for poster {poster_id}: {loop_exception}", exc_info=True)
+                        # Try to update status and continue with next poster
+                        try:
+                            await job_repo.update_poster_status(job_id, poster_id, PosterStatus.FAILED, error_message=str(loop_exception))
+                            failed += 1
+                            await debug_logger.log_poster_processing_end(poster_id, False, str(loop_exception))
+                        except Exception as status_error:
+                            logger.error(f"Failed to update status for failed poster {poster_id}: {status_error}")
+                        
+                        # Continue processing the next poster
+                        logger.info(f"🔄 Continuing to next poster despite error with {poster_id}")
+                        continue
+                
+                logger.info(f"📋 Batch processing completed: {completed} successful, {failed} failed out of {job.total_posters} total")
+                logger.info(f"📋 Processing loop finished normally - all {len(job.selected_poster_ids)} posters were attempted")
             
-            except Exception as e:
-                logger.error(f"Critical error in job {job_id}: {e}", exc_info=True)
-                await job_repo.update_job_status(job_id, JobStatus.FAILED)
-                await job_repo.update_job_error(job_id, str(e))
-                return {"success": False, "error": str(e)}
+            except Exception as critical_error:
+                logger.error(f"🚨 CRITICAL ERROR in job {job_id}: {critical_error}", exc_info=True)
+                try:
+                    await job_repo.update_job_status(job_id, JobStatus.FAILED)
+                    await job_repo.update_job_error(job_id, str(critical_error))
+                except Exception as status_update_error:
+                    logger.error(f"Failed to update job status after critical error: {status_update_error}")
+                return {"success": False, "error": str(critical_error)}
             
             # Finalize job
             final_status = JobStatus.COMPLETED if failed == 0 else JobStatus.FAILED
