@@ -4,10 +4,10 @@ Job Management API Routes
 Endpoints for job creation, status, and management.
 """
 
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, model_validator
 from uuid import UUID
 
 from app.core.database import get_db_session
@@ -24,17 +24,20 @@ logger = get_logger("aphrodite.api.workflow.jobs")
 class CreateBatchJobRequest(BaseModel):
     """Request model for creating batch jobs"""
     name: str
-    poster_ids: List[Union[str, UUID]]  # Accept both strings and UUIDs
+    poster_ids: List[str]  # Will be strings after validation
     badge_types: List[str]
     user_id: str = "default_user"
     
-    @field_validator('poster_ids', mode='before')
+    @model_validator(mode='before')
     @classmethod
-    def convert_poster_ids_to_strings(cls, v):
-        """Convert UUID objects to strings for internal processing"""
-        if isinstance(v, list):
-            return [str(item) for item in v]
-        return v
+    def convert_uuids_to_strings(cls, values):
+        """Convert UUID objects to strings before validation"""
+        if isinstance(values, dict) and 'poster_ids' in values:
+            poster_ids = values['poster_ids']
+            if isinstance(poster_ids, list):
+                # Convert any UUID objects to strings
+                values['poster_ids'] = [str(item) for item in poster_ids]
+        return values
 
 
 async def get_job_manager(session: AsyncSession = Depends(get_db_session)) -> JobManager:
