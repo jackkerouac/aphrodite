@@ -69,14 +69,14 @@ mkdir aphrodite && cd aphrodite
 
 # Using wget (Linux/macOS with wget)
 wget https://github.com/jackkerouac/aphrodite/releases/latest/download/docker-compose.yml
-wget https://github.com/jackkerouac/aphrodite/releases/latest/download/.env.example
+wget https://github.com/jackkerouac/aphrodite/releases/latest/download/default.env.example
 
 # OR using curl (macOS/Linux/Windows with curl)
 curl -L https://github.com/jackkerouac/aphrodite/releases/latest/download/docker-compose.yml -o docker-compose.yml
-curl -L https://github.com/jackkerouac/aphrodite/releases/latest/download/.env.example -o .env.example
+curl -L https://github.com/jackkerouac/aphrodite/releases/latest/download/default.env.example -o default.env.example
 
 # Setup environment file
-mv .env.example .env
+mv default.env.example .env
 
 # 2. Configure for production (important!)
 nano .env  # Update passwords and security settings
@@ -93,7 +93,7 @@ docker-compose ps
 ```bash
 # For testing/development only
 curl -L https://github.com/jackkerouac/aphrodite/releases/latest/download/docker-compose.yml -o docker-compose.yml
-curl -L https://github.com/jackkerouac/aphrodite/releases/latest/download/.env.example -o .env
+curl -L https://github.com/jackkerouac/aphrodite/releases/latest/download/default.env.example -o .env
 docker-compose up -d
 ```
 
