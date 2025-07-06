@@ -7,7 +7,7 @@ Endpoints for job creation, status, and management.
 from typing import List, Optional, Union, Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel
 from uuid import UUID
 
 from app.core.database import get_db_session
@@ -19,25 +19,6 @@ from aphrodite_logging import get_logger
 
 router = APIRouter(prefix="/workflow/jobs", tags=["workflow"])
 logger = get_logger("aphrodite.api.workflow.jobs")
-
-
-class CreateBatchJobRequest(BaseModel):
-    """Request model for creating batch jobs"""
-    name: str
-    poster_ids: List[str]  # Will be strings after validation
-    badge_types: List[str]
-    user_id: str = "default_user"
-    
-    @model_validator(mode='before')
-    @classmethod
-    def convert_uuids_to_strings(cls, values):
-        """Convert UUID objects to strings before validation"""
-        if isinstance(values, dict) and 'poster_ids' in values:
-            poster_ids = values['poster_ids']
-            if isinstance(poster_ids, list):
-                # Convert any UUID objects to strings
-                values['poster_ids'] = [str(item) for item in poster_ids]
-        return values
 
 
 async def get_job_manager(session: AsyncSession = Depends(get_db_session)) -> JobManager:
@@ -57,7 +38,7 @@ async def get_job_manager(session: AsyncSession = Depends(get_db_session)) -> Jo
 
 @router.post("/batch", response_model=dict)
 async def create_batch_job(
-    request: CreateBatchJobRequest,
+    request: BatchJobRequest,
     job_manager: JobManager = Depends(get_job_manager)
 ):
     """Create new batch processing job(s) - automatically splits large batches"""
