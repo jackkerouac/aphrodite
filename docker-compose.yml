@@ -128,7 +128,7 @@ services:
         condition: service_healthy
     working_dir: /app/api
     healthcheck:
-      test: ["python3", "-c", "import sys; sys.path.insert(0, '/app'); from celery_app import celery_app; print('Worker healthy')"]
+      test: ["CMD", "python3", "-c", "import sys; sys.path.insert(0, '/app'); from celery_app import celery_app; print('Worker healthy')"]
       interval: 30s
       timeout: 10s
       retries: 3
