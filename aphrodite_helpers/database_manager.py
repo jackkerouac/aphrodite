@@ -25,7 +25,7 @@ class DatabaseManager:
     - Backward compatibility with existing installations
     """
     
-    def __init__(self, db_path: str = "data/aphrodite.db"):
+    def __init__(self, db_path: str = "/app/data/database/aphrodite.db"):
         self.db_path = db_path
         self.connection = None
         

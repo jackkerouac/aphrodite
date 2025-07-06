@@ -128,15 +128,15 @@ class PosterProcessor:
                 logger.warning(f"Failed to cache original poster for {poster_id}: {cache_error}")
                 # Don't fail the whole operation if caching fails, but log the issue
             
-            # Create temporary file for the downloaded poster
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
+            # Create a temporary path for processing using the StorageManager
+            temp_poster_path = self.storage_manager.create_preview_output_path(f"{poster_id}.jpg")
+            with open(temp_poster_path, 'wb') as temp_file:
                 temp_file.write(poster_data)
-                temp_poster_path = temp_file.name
             
             logger.debug(f"Downloaded poster for {poster_id} to {temp_poster_path}")
             
             # Generate output path
-            output_path = await self._generate_output_path(poster_id, job_id)
+            output_path = self.storage_manager.create_processed_output_path(f"{poster_id}.jpg", job_id)
             
             # Create badge processing request for V2 pipeline
             request = SingleBadgeRequest(
@@ -231,13 +231,8 @@ class PosterProcessor:
                 "error": error_msg
             }
         finally:
-            # Clean up temporary file
-            if temp_poster_path and os.path.exists(temp_poster_path):
-                try:
-                    os.unlink(temp_poster_path)
-                    logger.debug(f"Cleaned up temporary poster file: {temp_poster_path}")
-                except Exception as cleanup_error:
-                    logger.warning(f"Failed to clean up temporary file {temp_poster_path}: {cleanup_error}")
+            # The StorageManager now handles temporary files, so no need for manual cleanup
+            pass
     
     async def _generate_output_path(self, poster_id: str, job_id: str) -> str:
         """Generate output path for processed poster"""
