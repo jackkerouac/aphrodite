@@ -116,7 +116,7 @@ class V2UniversalBadgeProcessor:
         """Process single poster with database session using V2 processors"""
         from pathlib import Path
         from .poster_resizer import poster_resizer
-        from app.services.poster_management import StorageManager
+        from app.services.poster_management.storage import StorageManager
         
         # Log what badges are being processed
         self.logger.info(f"🎯 [V2 PIPELINE] PROCESSING BADGES: {request.badge_types}")

@@ -26,7 +26,7 @@ class StorageManager:
         
         # Default to API static directories if no paths provided
         if processed_path is None or preview_path is None or cache_path is None:
-            from api.app.core.config import get_settings
+            from app.core.config import get_settings
             settings = get_settings()
             
             if processed_path is None:

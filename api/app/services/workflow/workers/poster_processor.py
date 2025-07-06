@@ -236,12 +236,8 @@ class PosterProcessor:
     
     async def _generate_output_path(self, poster_id: str, job_id: str) -> str:
         """Generate output path for processed poster"""
-        processed_dir = Path("E:/programming/aphrodite/aphrodite-v2/api/static/posters/processed")
-        processed_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Create unique filename with job and poster ID
-        filename = f"job_{job_id}_poster_{poster_id}_{uuid.uuid4().hex[:8]}.jpg"
-        return str(processed_dir / filename)
+        # Use StorageManager to get proper configured path
+        return self.storage_manager.create_processed_output_path(f"{poster_id}.jpg", job_id)
     
     async def _add_aphrodite_tag(self, poster_id: str) -> None:
         """Add aphrodite-overlay tag to processed item"""

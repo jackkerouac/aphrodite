@@ -211,7 +211,7 @@ class Settings(BaseSettings):
     # Logging
     log_level: str = Field(default="DEBUG", description="Log level")
     log_format: str = Field(default="json", description="Log format (json/console)")
-    log_file_path: str = Field(default="./logs/aphrodite-v2.log", description="Log file path")
+    log_file_path: str = Field(default="/app/logs/aphrodite-v2.log", description="Log file path")
     log_max_size: str = Field(default="10MB", description="Log file max size")
     log_backup_count: int = Field(default=5, description="Log backup count")
     
