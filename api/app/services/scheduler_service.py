@@ -288,7 +288,7 @@ class SchedulerService:
                         else:
                             self.logger.debug(f"Skipping {item_name} (already has aphrodite-overlay tag)")
                     
-                    # Create batch job for this library if we have items to process
+                    # Create batch job(s) for this library if we have items to process
                     if items_to_process:
                         try:
                             # Convert string IDs to UUIDs for the job system
@@ -302,20 +302,48 @@ class SchedulerService:
                             
                             job_manager = JobManager(job_repository, job_creator, priority_manager, resource_manager)
                             
-                            # Create batch job for this library
-                            job_name = f"Schedule: {schedule.name} - Library {library_id}"
+                            # Split large libraries into multiple jobs to respect the 1000 poster limit
+                            MAX_POSTERS_PER_JOB = 1000
+                            total_posters = len(poster_ids)
                             
-                            job = await job_manager.create_job(
-                                user_id="scheduler",
-                                name=job_name,
-                                poster_ids=poster_ids,
-                                badge_types=schedule.badge_types
-                            )
-                            
-                            created_jobs.append(str(job.id))
-                            processed_items += len(items_to_process)
-                            
-                            self.logger.info(f"Created job {job.id} for {len(items_to_process)} items from library {library_id}")
+                            if total_posters <= MAX_POSTERS_PER_JOB:
+                                # Single job for small libraries
+                                job_name = f"Schedule: {schedule.name} - Library {library_id}"
+                                
+                                job = await job_manager.create_job(
+                                    user_id="scheduler",
+                                    name=job_name,
+                                    poster_ids=poster_ids,
+                                    badge_types=schedule.badge_types
+                                )
+                                
+                                created_jobs.append(str(job.id))
+                                processed_items += len(poster_ids)
+                                
+                                self.logger.info(f"Created job {job.id} for {len(poster_ids)} items from library {library_id}")
+                            else:
+                                # Split into multiple jobs for large libraries
+                                num_jobs = (total_posters + MAX_POSTERS_PER_JOB - 1) // MAX_POSTERS_PER_JOB
+                                self.logger.info(f"Library {library_id} has {total_posters} items, splitting into {num_jobs} jobs")
+                                
+                                for job_index in range(num_jobs):
+                                    start_idx = job_index * MAX_POSTERS_PER_JOB
+                                    end_idx = min(start_idx + MAX_POSTERS_PER_JOB, total_posters)
+                                    batch_poster_ids = poster_ids[start_idx:end_idx]
+                                    
+                                    job_name = f"Schedule: {schedule.name} - Library {library_id} (Batch {job_index + 1}/{num_jobs})"
+                                    
+                                    job = await job_manager.create_job(
+                                        user_id="scheduler",
+                                        name=job_name,
+                                        poster_ids=batch_poster_ids,
+                                        badge_types=schedule.badge_types
+                                    )
+                                    
+                                    created_jobs.append(str(job.id))
+                                    processed_items += len(batch_poster_ids)
+                                    
+                                    self.logger.info(f"Created batch job {job.id} ({job_index + 1}/{num_jobs}) for {len(batch_poster_ids)} items from library {library_id}")
                             
                         except Exception as job_error:
                             self.logger.error(f"Failed to create job for library {library_id}: {job_error}", exc_info=True)

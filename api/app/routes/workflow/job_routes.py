@@ -43,7 +43,7 @@ async def create_batch_job(
     request: CreateBatchJobRequest,
     job_manager: JobManager = Depends(get_job_manager)
 ):
-    """Create new batch processing job"""
+    """Create new batch processing job(s) - automatically splits large batches"""
     try:
         logger.info(f"Received batch job request: {request.dict()}")
         logger.info(f"Creating batch job: {request.name} with {len(request.poster_ids)} posters")
@@ -66,22 +66,66 @@ async def create_batch_job(
             logger.error(f"Invalid poster IDs found: {invalid_ids}")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid poster IDs: {invalid_ids}")
         
-        job = await job_manager.create_job(
-            user_id=request.user_id,
-            name=request.name, 
-            poster_ids=request.poster_ids, 
-            badge_types=request.badge_types
-        )
+        # Handle large batches by splitting them
+        MAX_POSTERS_PER_JOB = 1000
+        total_posters = len(request.poster_ids)
         
-        logger.info(f"Created batch job {job.id} successfully")
-        logger.info(f"Job stored with {len(job.selected_poster_ids)} poster IDs: {job.selected_poster_ids[:3]}{'...' if len(job.selected_poster_ids) > 3 else ''}")
-        return {
-            "job_id": job.id,
-            "name": job.name,
-            "status": job.status,
-            "total_posters": job.total_posters,
-            "created_at": job.created_at.isoformat()
-        }
+        if total_posters <= MAX_POSTERS_PER_JOB:
+            # Single job for small batches
+            job = await job_manager.create_job(
+                user_id=request.user_id,
+                name=request.name, 
+                poster_ids=request.poster_ids, 
+                badge_types=request.badge_types
+            )
+            
+            logger.info(f"Created batch job {job.id} successfully")
+            logger.info(f"Job stored with {len(job.selected_poster_ids)} poster IDs: {job.selected_poster_ids[:3]}{'...' if len(job.selected_poster_ids) > 3 else ''}")
+            return {
+                "job_id": job.id,
+                "name": job.name,
+                "status": job.status,
+                "total_posters": job.total_posters,
+                "created_at": job.created_at.isoformat()
+            }
+        else:
+            # Split into multiple jobs for large batches
+            num_jobs = (total_posters + MAX_POSTERS_PER_JOB - 1) // MAX_POSTERS_PER_JOB
+            logger.info(f"Large batch detected ({total_posters} posters), splitting into {num_jobs} jobs")
+            
+            created_jobs = []
+            for job_index in range(num_jobs):
+                start_idx = job_index * MAX_POSTERS_PER_JOB
+                end_idx = min(start_idx + MAX_POSTERS_PER_JOB, total_posters)
+                batch_poster_ids = request.poster_ids[start_idx:end_idx]
+                
+                job_name = f"{request.name} (Batch {job_index + 1}/{num_jobs})"
+                
+                job = await job_manager.create_job(
+                    user_id=request.user_id,
+                    name=job_name,
+                    poster_ids=batch_poster_ids,
+                    badge_types=request.badge_types
+                )
+                
+                created_jobs.append({
+                    "job_id": job.id,
+                    "name": job.name,
+                    "status": job.status,
+                    "total_posters": job.total_posters,
+                    "created_at": job.created_at.isoformat(),
+                    "batch_number": job_index + 1
+                })
+                
+                logger.info(f"Created batch job {job.id} ({job_index + 1}/{num_jobs}) for {len(batch_poster_ids)} posters")
+            
+            logger.info(f"Successfully created {len(created_jobs)} jobs for {total_posters} total posters")
+            return {
+                "split_into_multiple_jobs": True,
+                "total_jobs_created": len(created_jobs),
+                "total_posters": total_posters,
+                "jobs": created_jobs
+            }
         
     except ValueError as e:
         logger.warning(f"Invalid job request: {e}")

@@ -4,7 +4,7 @@ Job Manager
 Job lifecycle management and coordination.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Union
 from datetime import datetime
 from uuid import UUID
 
@@ -34,12 +34,21 @@ class JobManager:
     async def create_job(self, 
                         user_id: str,
                         name: str,
-                        poster_ids: List[UUID],
+                        poster_ids: Union[List[UUID], List[str]],
                         badge_types: List[str]) -> BatchJobModel:
         """Create new batch job and dispatch to worker"""
         
+        # Convert string IDs to UUIDs if needed
+        if poster_ids and isinstance(poster_ids[0], str):
+            try:
+                uuid_poster_ids = [UUID(str(pid)) for pid in poster_ids]
+            except ValueError as e:
+                raise ValueError(f"Invalid poster ID format: {e}")
+        else:
+            uuid_poster_ids = poster_ids
+        
         # Validate request
-        errors = self.job_creator.validate_job_request(poster_ids, badge_types)
+        errors = self.job_creator.validate_job_request(uuid_poster_ids, badge_types)
         if errors:
             raise ValueError(f"Invalid job request: {', '.join(errors)}")
         
@@ -47,7 +56,7 @@ class JobManager:
         job = await self.job_creator.create_batch_job(
             user_id=user_id,
             name=name,
-            poster_ids=poster_ids,
+            poster_ids=uuid_poster_ids,
             badge_types=badge_types
         )
         
