@@ -110,8 +110,8 @@ def main():
     )
     parser.add_argument(
         "--output", 
-        default="posters/working", 
-        help="Output directory for resized images (default: posters/working)"
+        default="/app/media/preview", 
+        help="Output directory for resized images (default: /app/media/preview)"
     )
     parser.add_argument(
         "--width", 

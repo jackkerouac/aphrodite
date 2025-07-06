@@ -342,16 +342,14 @@ def create_application() -> FastAPI:
 def setup_static_files(app: FastAPI):
     """Setup static file serving for Next.js and API files"""
     logger = get_logger("aphrodite.api.static", service="api")
-    
+    settings = get_settings()
+
     # Paths for frontend files
     project_root = Path(__file__).parent.parent
     frontend_build = project_root / "frontend" / ".next"
     frontend_static = project_root / "frontend" / ".next" / "static"
     frontend_public = project_root / "frontend" / "public"
-    
-    # API static files (processed/preview posters)
-    api_static = Path(__file__).parent / "static"
-    
+
     # Create custom StaticFiles class with proper CORS headers
     class CORSStaticFiles(StaticFiles):
         async def get_response(self, path: str, scope):
@@ -365,26 +363,41 @@ def setup_static_files(app: FastAPI):
                 response.headers['Pragma'] = 'no-cache'
                 response.headers['Expires'] = '0'
             return response
-    
-    # Mount API static files FIRST (highest priority) with CORS support
-    if api_static.exists():
-        logger.info(f"Mounting API static files from {api_static} with CORS support")
-        app.mount("/api/v1/static", CORSStaticFiles(directory=str(api_static)), name="api-static")
-    
+
+    # Mount API static files from new volume locations
+    # Original posters
+    if Path(settings.static_originals_dir).exists():
+        logger.info(f"Mounting original static files from {settings.static_originals_dir}")
+        app.mount("/api/v1/static/originals", CORSStaticFiles(directory=settings.static_originals_dir), name="api-static-originals")
+
+    # Processed posters
+    if Path(settings.processed_dir).exists():
+        logger.info(f"Mounting processed static files from {settings.processed_dir}")
+        app.mount("/api/v1/static/processed", CORSStaticFiles(directory=settings.processed_dir), name="api-static-processed")
+
+    # Preview files
+    if Path(settings.preview_dir).exists():
+        logger.info(f"Mounting preview static files from {settings.preview_dir}")
+        app.mount("/api/v1/static/preview", CORSStaticFiles(directory=settings.preview_dir), name="api-static-preview")
+
     # Mount Next.js static files (_next/static) - being specific to avoid conflicts
     if frontend_static.exists():
         logger.info(f"Mounting Next.js static files from {frontend_static}")
         app.mount("/_next/static", StaticFiles(directory=str(frontend_static), html=True), name="nextjs-static")
-        # Note: We do NOT mount the entire /_next directory here to avoid conflicts with /_next/image endpoint
-    
+
     # Mount public files
     if frontend_public.exists():
         logger.info(f"Mounting public files from {frontend_public}")
         app.mount("/public", StaticFiles(directory=str(frontend_public)), name="public")
-        # Also mount images directly for easier access
         images_dir = frontend_public / "images"
         if images_dir.exists():
             app.mount("/images", StaticFiles(directory=str(images_dir)), name="images")
+
+    # Mount the general /api/v1/static route to the data directory for other static assets
+    if Path(settings.data_dir).exists():
+        logger.info(f"Mounting general API static files from {settings.data_dir}")
+        app.mount("/api/v1/static", CORSStaticFiles(directory=settings.data_dir), name="api-static-general")
+
 
 def setup_frontend_routes(app: FastAPI):
     """Setup Next.js frontend page serving"""
