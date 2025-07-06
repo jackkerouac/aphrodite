@@ -39,7 +39,6 @@ services:
     image: ${APHRODITE_IMAGE:-ghcr.io/jackkerouac/aphrodite:latest}
     pull_policy: always
     restart: unless-stopped
-    user: "1000:1000"  # Run as user aphrodite (UID 1000)
     environment:
       # Database Configuration
       POSTGRES_HOST: postgres
@@ -100,8 +99,7 @@ services:
     image: ${APHRODITE_IMAGE:-ghcr.io/jackkerouac/aphrodite:latest}
     pull_policy: always
     restart: unless-stopped
-    user: "1000:1000"  # Run as user aphrodite (UID 1000)
-    command: ["python", "-m", "celery", "-A", "celery_app", "worker", "--loglevel=info", "--pool=solo", "--concurrency=1"]
+    command: ["/home/aphrodite/.local/bin/python", "-m", "celery", "-A", "celery_app", "worker", "--loglevel=info", "--pool=solo", "--concurrency=1"]
     environment:
       # Same environment as main application
       POSTGRES_HOST: postgres
