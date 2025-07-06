@@ -1,20 +1,4 @@
 # Multi-stage Dockerfile with ARM64 build support
-FROM python:3.11-slim AS builder
-
-# Install build dependencies for compiling Python packages
-RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
-    python3-dev \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Python dependencies
-WORKDIR /app
-COPY api/requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
-
-# Production stage
 FROM python:3.11-slim AS production
 
 # Install runtime dependencies and fonts
@@ -26,35 +10,31 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     fonts-dejavu-core \
     fonts-liberation \
+    gcc \
+    g++ \
+    python3-dev \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd -r aphrodite \
     && useradd -r -g aphrodite aphrodite
 
-# Copy Python packages from builder stage
-COPY --from=builder /root/.local /home/aphrodite/.local
-
-# Fix ownership of Python packages and create symlinks for compatibility
-RUN chown -R aphrodite:aphrodite /home/aphrodite/.local && \
-    # Create symlink for python executable compatibility
-    mkdir -p /home/aphrodite/.local/bin && \
-    ln -sf /usr/local/bin/python3 /home/aphrodite/.local/bin/python && \
-    ln -sf /usr/local/bin/python3 /home/aphrodite/.local/bin/python3
+# Install Python dependencies
+WORKDIR /app
+COPY api/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Install Python dependencies
 WORKDIR /app
 
 # Set environment variables
-ENV PATH="/home/aphrodite/.local/bin:$PATH" \
-    PYTHONPATH="/app" \
-    PYTHONUNBUFFERED=1 \
+ENV PYTHONUNBUFFERED=1 \
     API_HOST=0.0.0.0 \
     API_PORT=8000 \
     ENVIRONMENT=production \
     APHRODITE_ROOT=/app \
     APHRODITE_API_DIR=/app/api \
     APHRODITE_ASSETS_DIR=/app/assets \
-    APHRODITE_DATA_DIR=/app/data \
-    PYTHON_EXECUTABLE="python3"
+    APHRODITE_DATA_DIR=/app/data
 
 # Copy application code
 COPY --chown=aphrodite:aphrodite VERSION ./
@@ -103,4 +83,4 @@ WORKDIR /app/api
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
 # Start the FastAPI application directly
-CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+CMD ["python3", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

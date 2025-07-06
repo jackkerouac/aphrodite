@@ -40,36 +40,14 @@ ensure_directory "/app/api/static/awards/white"
 
 echo "Directory setup complete."
 
-# Determine the correct Python executable
-PYTHON_CMD="python3"
-if [ -x "/home/aphrodite/.local/bin/python" ]; then
-    PYTHON_CMD="/home/aphrodite/.local/bin/python"
-elif [ -x "/usr/local/bin/python" ]; then
-    PYTHON_CMD="/usr/local/bin/python"
-elif command -v python3 > /dev/null 2>&1; then
-    PYTHON_CMD="python3"
-elif command -v python > /dev/null 2>&1; then
-    PYTHON_CMD="python"
-fi
-
-echo "Using Python executable: $PYTHON_CMD"
-
-# Replace any python references in the command with our detected python
-COMMAND=("$@")
-for i in "${!COMMAND[@]}"; do
-    if [[ "${COMMAND[$i]}" == "python" ]] || [[ "${COMMAND[$i]}" == "/home/aphrodite/.local/bin/python" ]]; then
-        COMMAND[$i]="$PYTHON_CMD"
-    fi
-done
-
 # If running as root and DOCKER_USER is set, switch to that user
 if is_root && [ -n "$DOCKER_USER" ]; then
     echo "Switching to user: $DOCKER_USER"
-    exec gosu "$DOCKER_USER" "${COMMAND[@]}"
+    exec gosu "$DOCKER_USER" "$@"
 elif is_root; then
     echo "Switching to user: aphrodite"
-    exec gosu aphrodite "${COMMAND[@]}"
+    exec gosu aphrodite "$@"
 else
     echo "Running as current user: $(whoami)"
-    exec "${COMMAND[@]}"
+    exec "$@"
 fi

@@ -99,7 +99,7 @@ services:
     image: ${APHRODITE_IMAGE:-ghcr.io/jackkerouac/aphrodite:latest}
     pull_policy: always
     restart: unless-stopped
-    command: ["/home/aphrodite/.local/bin/python", "-m", "celery", "-A", "celery_app", "worker", "--loglevel=info", "--pool=solo", "--concurrency=1"]
+    command: ["python3", "-m", "celery", "-A", "celery_app", "worker", "--loglevel=info", "--pool=solo", "--concurrency=1"]
     environment:
       # Same environment as main application
       POSTGRES_HOST: postgres
@@ -128,7 +128,7 @@ services:
         condition: service_healthy
     working_dir: /app/api
     healthcheck:
-      test: ["CMD", "python", "-c", "import sys; sys.path.insert(0, '/app'); from celery_app import celery_app; print('Worker healthy')"]
+      test: ["python3", "-c", "import sys; sys.path.insert(0, '/app'); from celery_app import celery_app; print('Worker healthy')"]
       interval: 30s
       timeout: 10s
       retries: 3
