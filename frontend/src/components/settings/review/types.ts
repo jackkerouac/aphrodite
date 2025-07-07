@@ -95,7 +95,7 @@ export const defaultReviewSettings: ReviewSettings = {
     font: 'AvenirNextLTProBold.otf',
     fallback_font: 'DejaVuSans.ttf',
     'text-color': '#FFFFFF',
-    'text-size': 60
+    'text-size': 40
   },
   Background: {
     'background-color': '#2C2C2C',
