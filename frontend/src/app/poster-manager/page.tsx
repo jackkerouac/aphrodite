@@ -154,6 +154,13 @@ export default function PosterManagerPage() {
 
   useEffect(() => {
     if (selectedLibrary) {
+      // Reset filters and selection when library changes
+      setSearchQuery("")
+      setBadgeFilter('all')
+      setCurrentPage(1)
+      setSelectedItems(new Set())
+      setSelectionMode(false)
+      
       loadLibraryItems()
       loadLibraryStats()
     }

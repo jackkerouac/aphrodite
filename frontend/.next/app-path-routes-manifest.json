@@ -1,13 +1,13 @@
 {
   "/_not-found/page": "/_not-found",
   "/favicon.ico/route": "/favicon.ico",
-  "/about/page": "/about",
-  "/diagnostics/page": "/diagnostics",
-  "/analytics/page": "/analytics",
-  "/page": "/",
-  "/maintenance/page": "/maintenance",
-  "/preview/page": "/preview",
   "/poster-manager/page": "/poster-manager",
+  "/analytics/page": "/analytics",
+  "/about/page": "/about",
+  "/page": "/",
+  "/preview/page": "/preview",
+  "/maintenance/page": "/maintenance",
+  "/diagnostics/page": "/diagnostics",
   "/schedules/page": "/schedules",
   "/settings/page": "/settings"
 }
