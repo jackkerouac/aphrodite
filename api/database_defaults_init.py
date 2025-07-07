@@ -126,12 +126,12 @@ async def initialize_production_defaults(db):
             },
             "Background": {
                 "background_color": "#000000",
-                "background_opacity": 60
+                "background_opacity": 0
             },
             "Border": {
                 "border_color": "#000000",
                 "border_radius": 10,
-                "border_width": 1
+                "border_width": 0
             },
             "Shadow": {
                 "shadow_enable": False,
@@ -179,12 +179,12 @@ async def initialize_production_defaults(db):
                 "enable_critics_choice": False,
                 "enable_cesar": False,
                 "enable_imdb_top": True,
-                "enable_letterboxd": False,
-                "enable_metacritic": False,
+                "enable_letterboxd": True,
+                "enable_metacritic": True,
                 "enable_netflix": True,
                 "enable_razzie": True,
-                "enable_rotten_tomatoes": False,
-                "enable_rotten_tomatoes_verified": False
+                "enable_rotten_tomatoes": True,
+                "enable_rotten_tomatoes_verified": True
             }
         },
         "badge_settings_resolution.yml": {
