@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { LoadingSpinner } from "./poster-detail-modal"
-import { Search, Download, X } from "lucide-react"
+import { Search, Download, X, Filter } from "lucide-react"
 import Image from "next/image"
 import { toast } from "sonner"
 
@@ -51,6 +52,7 @@ export function ReplacePosterModal({
   const [posterOptions, setPosterOptions] = useState<PosterOption[]>([])
   const [selectedPoster, setSelectedPoster] = useState<PosterOption | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [languageFilter, setLanguageFilter] = useState<string>('all')
 
   // Reset state when modal opens/closes or item changes
   useEffect(() => {
@@ -60,6 +62,7 @@ export function ReplacePosterModal({
       setPosterOptions([])
       setSelectedPoster(null)
       setError(null)
+      setLanguageFilter('all')
     }
   }, [isOpen, item?.id])
 
@@ -97,6 +100,37 @@ export function ReplacePosterModal({
   const handlePosterSelect = (poster: PosterOption) => {
     setSelectedPoster(poster)
   }
+
+  // Compute available languages from poster options
+  const availableLanguages = useMemo(() => {
+    const languages = new Set<string>()
+    posterOptions.forEach(poster => {
+      if (poster.language) {
+        languages.add(poster.language)
+      } else {
+        languages.add('textless')
+      }
+    })
+    return Array.from(languages).sort()
+  }, [posterOptions])
+
+  // Filter posters by selected language
+  const filteredPosterOptions = useMemo(() => {
+    if (languageFilter === 'all') {
+      return posterOptions
+    }
+    if (languageFilter === 'textless') {
+      return posterOptions.filter(poster => !poster.language)
+    }
+    return posterOptions.filter(poster => poster.language === languageFilter)
+  }, [posterOptions, languageFilter])
+
+  // Clear selection if the selected poster is not in the filtered results
+  useEffect(() => {
+    if (selectedPoster && !filteredPosterOptions.find(p => p.id === selectedPoster.id)) {
+      setSelectedPoster(null)
+    }
+  }, [filteredPosterOptions, selectedPoster])
 
   const handleReplacePoster = async () => {
     if (!item || !selectedPoster) return
@@ -183,15 +217,49 @@ export function ReplacePosterModal({
           </div>
         )}
 
-        {/* Poster Grid */}
+        {/* Language Filter & Poster Grid */}
         {!isSearching && !error && posterOptions.length > 0 && (
           <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Language Filter:</span>
+              </div>
+              <Select value={languageFilter} onValueChange={setLanguageFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Filter by language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Languages ({posterOptions.length})</SelectItem>
+                  <SelectItem value="textless">
+                    Textless ({posterOptions.filter(p => !p.language).length})
+                  </SelectItem>
+                  {availableLanguages
+                    .filter(lang => lang !== 'textless')
+                    .map(lang => (
+                      <SelectItem key={lang} value={lang}>
+                        {lang.toUpperCase()} ({posterOptions.filter(p => p.language === lang).length})
+                      </SelectItem>
+                    ))
+                  }
+                </SelectContent>
+              </Select>
+            </div>
+            
             <div className="text-sm text-muted-foreground">
-              Found {posterOptions.length} alternative posters. Click to select:
+              {languageFilter === 'all' 
+                ? `Found ${posterOptions.length} alternative posters. Click to select:` 
+                : `Showing ${filteredPosterOptions.length} of ${posterOptions.length} posters. Click to select:`
+              }
+              {filteredPosterOptions.length === 0 && languageFilter !== 'all' && (
+                <span className="text-amber-600 ml-2">
+                  No posters available for selected language filter.
+                </span>
+              )}
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {posterOptions.map((poster) => (
+              {filteredPosterOptions.map((poster) => (
                 <div
                   key={poster.id}
                   className={`cursor-pointer rounded-lg border-2 transition-all hover:shadow-lg ${
