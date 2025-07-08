@@ -169,7 +169,7 @@ class TMDBPosterSource(BasePosterSource):
             
             # Include multiple languages to get more poster options
             params = {
-                "include_image_language": "en,null,de,fr,es,it,ja,ko,zh"  # Multiple languages for more variety
+                "include_image_language": "en,null,de,fr,es,it,ja,ko,zh,pt,ru,nl,sv,da,no,fi,pl,cs,hu,tr,ar,he,th,hi,ta"  # Expanded language variety
             }
             
             url = f"{self.base_url}/movie/{movie_id}/images"
@@ -204,7 +204,7 @@ class TMDBPosterSource(BasePosterSource):
             
             # Include multiple languages to get more poster options
             params = {
-                "include_image_language": "en,null,de,fr,es,it,ja,ko,zh"  # Multiple languages for more variety
+                "include_image_language": "en,null,de,fr,es,it,ja,ko,zh,pt,ru,nl,sv,da,no,fi,pl,cs,hu,tr,ar,he,th,hi,ta"  # Expanded language variety
             }
             
             url = f"{self.base_url}/tv/{tv_id}/images"

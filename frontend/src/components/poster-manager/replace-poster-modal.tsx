@@ -10,6 +10,34 @@ import { Search, Download, X, Filter } from "lucide-react"
 import Image from "next/image"
 import { toast } from "sonner"
 
+// Language code to display name mapping
+const LANGUAGE_NAMES: Record<string, string> = {
+  'en': 'English',
+  'de': 'German',
+  'fr': 'French',
+  'es': 'Spanish',
+  'it': 'Italian',
+  'ja': 'Japanese',
+  'ko': 'Korean',
+  'zh': 'Chinese',
+  'pt': 'Portuguese',
+  'ru': 'Russian',
+  'nl': 'Dutch',
+  'sv': 'Swedish',
+  'da': 'Danish',
+  'no': 'Norwegian',
+  'fi': 'Finnish',
+  'pl': 'Polish',
+  'cs': 'Czech',
+  'hu': 'Hungarian',
+  'tr': 'Turkish',
+  'ar': 'Arabic',
+  'he': 'Hebrew',
+  'th': 'Thai',
+  'hi': 'Hindi',
+  'ta': 'Tamil'
+}
+
 interface PosterOption {
   id: string
   source: string
@@ -52,7 +80,7 @@ export function ReplacePosterModal({
   const [posterOptions, setPosterOptions] = useState<PosterOption[]>([])
   const [selectedPoster, setSelectedPoster] = useState<PosterOption | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [languageFilter, setLanguageFilter] = useState<string>('all')
+  const [languageFilter, setLanguageFilter] = useState<string>('en')
 
   // Reset state when modal opens/closes or item changes
   useEffect(() => {
@@ -62,9 +90,20 @@ export function ReplacePosterModal({
       setPosterOptions([])
       setSelectedPoster(null)
       setError(null)
-      setLanguageFilter('all')
+      setLanguageFilter('en')
     }
   }, [isOpen, item?.id])
+
+  // Auto-adjust language filter if 'en' is not available
+  useEffect(() => {
+    if (posterOptions.length > 0 && languageFilter === 'en') {
+      const hasEnglish = posterOptions.some(poster => poster.language === 'en')
+      if (!hasEnglish) {
+        // If English is not available, default to 'all'
+        setLanguageFilter('all')
+      }
+    }
+  }, [posterOptions, languageFilter])
 
   const searchPosterSources = async () => {
     if (!item) return
@@ -111,7 +150,26 @@ export function ReplacePosterModal({
         languages.add('textless')
       }
     })
-    return Array.from(languages).sort()
+    
+    // Convert to array and sort: EN first, then alphabetically by language name
+    const langArray = Array.from(languages).filter(lang => lang !== 'textless')
+    const sortedLanguages = langArray.sort((a, b) => {
+      // English first
+      if (a === 'en') return -1
+      if (b === 'en') return 1
+      
+      // Then sort alphabetically by display name
+      const nameA = LANGUAGE_NAMES[a] || a.toUpperCase()
+      const nameB = LANGUAGE_NAMES[b] || b.toUpperCase()
+      return nameA.localeCompare(nameB)
+    })
+    
+    // Add textless at the end if it exists
+    if (languages.has('textless')) {
+      sortedLanguages.push('textless')
+    }
+    
+    return sortedLanguages
   }, [posterOptions])
 
   // Filter posters by selected language
@@ -231,17 +289,26 @@ export function ReplacePosterModal({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Languages ({posterOptions.length})</SelectItem>
-                  <SelectItem value="textless">
-                    Textless ({posterOptions.filter(p => !p.language).length})
-                  </SelectItem>
-                  {availableLanguages
-                    .filter(lang => lang !== 'textless')
-                    .map(lang => (
+                  {availableLanguages.map(lang => {
+                    const count = lang === 'textless' 
+                      ? posterOptions.filter(p => !p.language).length
+                      : posterOptions.filter(p => p.language === lang).length
+                    
+                    if (lang === 'textless') {
+                      return (
+                        <SelectItem key={lang} value={lang}>
+                          Textless ({count})
+                        </SelectItem>
+                      )
+                    }
+                    
+                    const displayName = LANGUAGE_NAMES[lang] || lang.toUpperCase()
+                    return (
                       <SelectItem key={lang} value={lang}>
-                        {lang.toUpperCase()} ({posterOptions.filter(p => p.language === lang).length})
+                        {displayName} ({count})
                       </SelectItem>
-                    ))
-                  }
+                    )
+                  })}
                 </SelectContent>
               </Select>
             </div>
