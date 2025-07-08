@@ -57,7 +57,7 @@ export const PosterReplacementModal: React.FC<PosterReplacementModalProps> = ({
   selectedItems,
   onSuccess
 }) => {
-  const [language, setLanguage] = useState("en")
+  const [language, setLanguage] = useState("null")
   const [isProcessing, setIsProcessing] = useState(false)
   const [results, setResults] = useState<BulkReplacePosterResponse | null>(null)
   const [currentStep, setCurrentStep] = useState<'setup' | 'processing' | 'results'>('setup')
@@ -111,7 +111,7 @@ export const PosterReplacementModal: React.FC<PosterReplacementModalProps> = ({
       setTimeout(() => {
         setCurrentStep('setup')
         setResults(null)
-        setLanguage('en')
+        setLanguage('null')
       }, 300)
     }
   }
@@ -141,14 +141,6 @@ export const PosterReplacementModal: React.FC<PosterReplacementModalProps> = ({
           <div className="text-sm text-blue-800">
             <strong>Textless Posters:</strong> These are special "No Language" posters from TMDB that contain no text, 
             making them suitable for international audiences or cleaner visual aesthetics.
-          </div>
-        </div>
-      )}
-      
-      {language === 'en' && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-          <div className="text-sm text-green-800">
-            <strong>English Posters:</strong> Most common poster language with English text and titles.
           </div>
         </div>
       )}

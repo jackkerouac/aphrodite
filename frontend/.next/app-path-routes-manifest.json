@@ -5,8 +5,8 @@
   "/diagnostics/page": "/diagnostics",
   "/analytics/page": "/analytics",
   "/maintenance/page": "/maintenance",
-  "/poster-manager/page": "/poster-manager",
   "/page": "/",
+  "/poster-manager/page": "/poster-manager",
   "/preview/page": "/preview",
   "/schedules/page": "/schedules",
   "/settings/page": "/settings"
