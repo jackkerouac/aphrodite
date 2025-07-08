@@ -32,10 +32,7 @@ const LANGUAGE_NAMES: Record<string, string> = {
   'hu': 'Hungarian',
   'tr': 'Turkish',
   'ar': 'Arabic',
-  'he': 'Hebrew',
-  'th': 'Thai',
-  'hi': 'Hindi',
-  'ta': 'Tamil'
+  'he': 'Hebrew'
 }
 
 interface PosterOption {
@@ -80,7 +77,7 @@ export function ReplacePosterModal({
   const [posterOptions, setPosterOptions] = useState<PosterOption[]>([])
   const [selectedPoster, setSelectedPoster] = useState<PosterOption | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [languageFilter, setLanguageFilter] = useState<string>('all')
+  const [languageFilter, setLanguageFilter] = useState<string>('en')
 
   // Reset state when modal opens/closes or item changes
   useEffect(() => {
@@ -90,9 +87,20 @@ export function ReplacePosterModal({
       setPosterOptions([])
       setSelectedPoster(null)
       setError(null)
-      setLanguageFilter('all')
+      setLanguageFilter('en')
     }
   }, [isOpen, item?.id])
+
+  // Auto-adjust language filter if 'en' is not available
+  useEffect(() => {
+    if (posterOptions.length > 0 && languageFilter === 'en') {
+      const hasEnglish = posterOptions.some(poster => poster.language === 'en')
+      if (!hasEnglish) {
+        // If English is not available, default to 'all'
+        setLanguageFilter('all')
+      }
+    }
+  }, [posterOptions, languageFilter])
 
 
   const searchPosterSources = async () => {

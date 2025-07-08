@@ -57,7 +57,7 @@ export const PosterReplacementModal: React.FC<PosterReplacementModalProps> = ({
   selectedItems,
   onSuccess
 }) => {
-  const [language, setLanguage] = useState("null")
+  const [language, setLanguage] = useState("en")
   const [isProcessing, setIsProcessing] = useState(false)
   const [results, setResults] = useState<BulkReplacePosterResponse | null>(null)
   const [currentStep, setCurrentStep] = useState<'setup' | 'processing' | 'results'>('setup')
@@ -111,7 +111,7 @@ export const PosterReplacementModal: React.FC<PosterReplacementModalProps> = ({
       setTimeout(() => {
         setCurrentStep('setup')
         setResults(null)
-        setLanguage('null')
+        setLanguage('en')
       }, 300)
     }
   }

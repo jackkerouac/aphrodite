@@ -15,15 +15,28 @@ export interface LanguageOption {
 }
 
 const SUPPORTED_LANGUAGES: LanguageOption[] = [
-  { code: "null", name: "No Language (Textless)", native_name: "Textless" },
   { code: "en", name: "English", native_name: "English" },
-  { code: "de", name: "German", native_name: "Deutsch" },
+  { code: "ar", name: "Arabic", native_name: "العربية" },
+  { code: "zh", name: "Chinese", native_name: "中文" },
+  { code: "cs", name: "Czech", native_name: "Čeština" },
+  { code: "da", name: "Danish", native_name: "Dansk" },
+  { code: "nl", name: "Dutch", native_name: "Nederlands" },
+  { code: "fi", name: "Finnish", native_name: "Suomi" },
   { code: "fr", name: "French", native_name: "Français" },
-  { code: "es", name: "Spanish", native_name: "Español" },
+  { code: "de", name: "German", native_name: "Deutsch" },
+  { code: "he", name: "Hebrew", native_name: "עברית" },
+  { code: "hu", name: "Hungarian", native_name: "Magyar" },
   { code: "it", name: "Italian", native_name: "Italiano" },
   { code: "ja", name: "Japanese", native_name: "日本語" },
   { code: "ko", name: "Korean", native_name: "한국어" },
-  { code: "zh", name: "Chinese", native_name: "中文" },
+  { code: "no", name: "Norwegian", native_name: "Norsk" },
+  { code: "pl", name: "Polish", native_name: "Polski" },
+  { code: "pt", name: "Portuguese", native_name: "Português" },
+  { code: "ru", name: "Russian", native_name: "Русский" },
+  { code: "es", name: "Spanish", native_name: "Español" },
+  { code: "sv", name: "Swedish", native_name: "Svenska" },
+  { code: "tr", name: "Turkish", native_name: "Türkçe" },
+  { code: "null", name: "No Language (Textless)", native_name: "Textless" },
 ]
 
 interface LanguageSelectorProps {
