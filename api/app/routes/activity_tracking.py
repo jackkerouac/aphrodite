@@ -10,7 +10,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
 from app.services.activity_tracking import get_activity_tracker
-from app.utils.json_response import create_response
 from shared.types import BaseResponse
 
 router = APIRouter()
@@ -40,17 +39,18 @@ async def get_media_activity_history(
             db_session=db
         )
         
-        return create_response(
-            data={
+        return {
+            "success": True,
+            "message": f"Retrieved {len(activities)} activities for media {media_id}",
+            "data": {
                 "media_id": media_id,
                 "activities": activities,
                 "total_returned": len(activities),
                 "offset": offset,
                 "limit": limit,
                 "filter": {"activity_type": activity_type} if activity_type else None
-            },
-            message=f"Retrieved {len(activities)} activities for media {media_id}"
-        )
+            }
+        }
         
     except Exception as e:
         raise HTTPException(
@@ -95,8 +95,10 @@ async def get_activity_summary(
         failed = sum(1 for a in activity_list if a.get('success') is False)
         pending = sum(1 for a in activity_list if a.get('success') is None)
         
-        return create_response(
-            data={
+        return {
+            "success": True,
+            "message": f"Retrieved {total_activities} recent activities",
+            "data": {
                 "summary": {
                     "total_activities": total_activities,
                     "successful": successful,
@@ -105,9 +107,8 @@ async def get_activity_summary(
                 },
                 "recent_activities": activity_list,
                 "filter": {"activity_type": activity_type} if activity_type else None
-            },
-            message=f"Retrieved {total_activities} recent activities"
-        )
+            }
+        }
         
     except Exception as e:
         raise HTTPException(
@@ -134,13 +135,14 @@ async def get_activity_types(db: AsyncSession = Depends(get_db_session)):
         result = await db.execute(query)
         activity_types = [row[0] for row in result.fetchall()]
         
-        return create_response(
-            data={
+        return {
+            "success": True,
+            "message": f"Found {len(activity_types)} different activity types",
+            "data": {
                 "activity_types": sorted(activity_types),
                 "count": len(activity_types)
-            },
-            message=f"Found {len(activity_types)} different activity types"
-        )
+            }
+        }
         
     except Exception as e:
         raise HTTPException(
