@@ -223,3 +223,7 @@ class VersionManager:
 
 # Global instance
 version_manager = VersionManager()
+
+def get_version() -> str:
+    """Get the current application version."""
+    return version_manager.current_version

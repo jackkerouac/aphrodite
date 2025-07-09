@@ -165,7 +165,7 @@ async def init_db() -> None:
         
         # Import all models to ensure they're registered BEFORE creating session factory
         # This prevents any model import side effects from affecting the session factory
-        from app.models import media, jobs, config, schedules
+        from app.models import media, jobs, config, schedules, media_activity
         from app.services.workflow.database.models import BatchJobModel, PosterProcessingStatusModel
         
         # Create session factory AFTER model imports

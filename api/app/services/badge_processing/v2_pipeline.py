@@ -34,6 +34,9 @@ class V2UniversalBadgeProcessor:
 
     def __init__(self):
         self.logger = get_logger("aphrodite.badge.pipeline.v2", service="badge")
+        # Import activity tracker
+        from app.services.activity_tracking import get_activity_tracker
+        self.activity_tracker = get_activity_tracker()
 
     async def process_request(self, request: UniversalBadgeRequest) -> ProcessingResult:
         start = time.perf_counter()
@@ -118,10 +121,42 @@ class V2UniversalBadgeProcessor:
         from .poster_resizer import poster_resizer
         from app.services.poster_management.storage import StorageManager
         
+        # Start activity tracking
+        activity_id = None
+        try:
+            # Extract media_id from the poster path or use jellyfin_id
+            media_id = request.jellyfin_id or Path(request.poster_path).stem
+            
+            # Create input parameters for tracking
+            input_params = {
+                'poster_path': request.poster_path,
+                'badge_types': request.badge_types,
+                'use_demo_data': request.use_demo_data,
+                'output_path': request.output_path,
+                'jellyfin_id': request.jellyfin_id
+            }
+            
+            # Start activity tracking
+            activity_id = await self.activity_tracker.start_activity(
+                media_id=media_id,
+                activity_type='badge_application',
+                activity_subtype='multi_badge' if len(request.badge_types) > 1 else 'single_badge',
+                initiated_by='api_call',
+                jellyfin_id=request.jellyfin_id,
+                input_parameters=input_params,
+                db_session=db_session
+            )
+            
+            self.logger.info(f"🎯 [V2 PIPELINE] Started activity tracking: {activity_id}")
+        except Exception as track_error:
+            self.logger.warning(f"⚠️ [V2 PIPELINE] Failed to start activity tracking: {track_error}")
+        
         # Log what badges are being processed
         self.logger.info(f"🎯 [V2 PIPELINE] PROCESSING BADGES: {request.badge_types}")
         self.logger.info(f"🎯 [V2 PIPELINE] USE_DEMO_DATA: {request.use_demo_data}")
         self.logger.info(f"🎯 [V2 PIPELINE] JELLYFIN_ID: {request.jellyfin_id}")
+        
+        try:
         
         # Step 1: Resize poster to standard 1,000px width
         self.logger.info(f"📏 [V2 PIPELINE] Resizing poster: {request.poster_path}")
@@ -260,16 +295,56 @@ class V2UniversalBadgeProcessor:
                 success=True
             )
         
-        # Clean up any remaining temporary resized poster
-        try:
-            if resized_poster_path != request.poster_path and resized_poster_path != final_result.output_path:
-                if Path(resized_poster_path).exists():
-                    Path(resized_poster_path).unlink()
-                    self.logger.debug(f"🧹 [V2 PIPELINE] Cleaned up temporary resized poster: {resized_poster_path}")
-        except Exception as e:
-            self.logger.warning(f"⚠️ [V2 PIPELINE] Failed to clean up temporary poster: {e}")
-        
-        return ProcessingResult(success=True, results=[final_result])
+            # Clean up any remaining temporary resized poster
+            try:
+                if resized_poster_path != request.poster_path and resized_poster_path != final_result.output_path:
+                    if Path(resized_poster_path).exists():
+                        Path(resized_poster_path).unlink()
+                        self.logger.debug(f"🧹 [V2 PIPELINE] Cleaned up temporary resized poster: {resized_poster_path}")
+            except Exception as e:
+                self.logger.warning(f"⚠️ [V2 PIPELINE] Failed to clean up temporary poster: {e}")
+            
+            # Complete activity tracking on success
+            if activity_id:
+                try:
+                    result_data = {
+                        'output_path': final_result.output_path,
+                        'applied_badges': final_result.applied_badges,
+                        'source_path': final_result.source_path
+                    }
+                    await self.activity_tracker.complete_activity(
+                        activity_id=activity_id,
+                        success=True,
+                        result_data=result_data,
+                        db_session=db_session
+                    )
+                    self.logger.info(f"✅ [V2 PIPELINE] Completed activity tracking: {activity_id}")
+                except Exception as track_error:
+                    self.logger.warning(f"⚠️ [V2 PIPELINE] Failed to complete activity tracking: {track_error}")
+            
+            return ProcessingResult(success=True, results=[final_result])
+            
+        except Exception as processing_error:
+            self.logger.error(f"❌ [V2 PIPELINE] Processing failed: {processing_error}", exc_info=True)
+            
+            # Complete activity tracking on failure
+            if activity_id:
+                try:
+                    await self.activity_tracker.fail_activity(
+                        activity_id=activity_id,
+                        error_message=str(processing_error),
+                        db_session=db_session
+                    )
+                    self.logger.info(f"❌ [V2 PIPELINE] Failed activity tracking: {activity_id}")
+                except Exception as track_error:
+                    self.logger.warning(f"⚠️ [V2 PIPELINE] Failed to track failure: {track_error}")
+            
+            # Return failed result
+            return ProcessingResult(
+                success=False,
+                results=[],
+                error=str(processing_error)
+            )
 
     async def process_bulk_with_session(self, request: BulkBadgeRequest, db_session: AsyncSession) -> ProcessingResult:
         """Process bulk with existing database session"""

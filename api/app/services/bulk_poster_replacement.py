@@ -28,6 +28,9 @@ class BulkPosterReplacementService:
     def __init__(self):
         self.storage_manager = StorageManager()
         self.semaphore = asyncio.Semaphore(3)  # Limit concurrent processing
+        # Import activity tracker
+        from app.services.activity_tracking import get_activity_tracker
+        self.activity_tracker = get_activity_tracker()
         
     async def process_bulk_replacement(
         self, 
@@ -117,6 +120,29 @@ class BulkPosterReplacementService:
         """Process a single item for poster replacement"""
         
         async with self.semaphore:  # Limit concurrent processing
+            # Start activity tracking
+            activity_id = None
+            try:
+                input_params = {
+                    'item_id': item_id,
+                    'jellyfin_id': jellyfin_id,
+                    'language_preference': language_preference,
+                    'random_selection': random_selection
+                }
+                
+                activity_id = await self.activity_tracker.start_activity(
+                    media_id=item_id,
+                    activity_type='poster_replacement',
+                    activity_subtype='external_replacement',
+                    initiated_by='api_call',
+                    jellyfin_id=jellyfin_id,
+                    input_parameters=input_params
+                )
+                
+                logger.info(f"📄 Started poster replacement activity: {activity_id} for {item_id}")
+            except Exception as track_error:
+                logger.warning(f"Failed to start activity tracking for {item_id}: {track_error}")
+            
             try:
                 # Get item details from Jellyfin
                 jellyfin_service = get_jellyfin_service()
@@ -184,13 +210,47 @@ class BulkPosterReplacementService:
                     item_id, 
                     jellyfin_id, 
                     selected_poster,
-                    title
+                    title,
+                    activity_id  # Pass activity_id for tracking
                 )
+                
+                # Complete activity tracking based on replacement result
+                if activity_id:
+                    try:
+                        if replacement_result.success:
+                            result_data = {
+                                'new_poster_url': replacement_result.new_poster_url,
+                                'selected_poster_source': replacement_result.selected_poster.source if replacement_result.selected_poster else None,
+                                'title': title
+                            }
+                            await self.activity_tracker.complete_activity(
+                                activity_id=activity_id,
+                                success=True,
+                                result_data=result_data
+                            )
+                        else:
+                            await self.activity_tracker.fail_activity(
+                                activity_id=activity_id,
+                                error_message=replacement_result.error_details or replacement_result.message
+                            )
+                    except Exception as track_error:
+                        logger.warning(f"Failed to complete activity tracking for {item_id}: {track_error}")
                 
                 return replacement_result
                 
             except Exception as e:
                 logger.error(f"Error processing item {item_id}: {e}", exc_info=True)
+                
+                # Complete activity tracking on exception
+                if activity_id:
+                    try:
+                        await self.activity_tracker.fail_activity(
+                            activity_id=activity_id,
+                            error_message=str(e)
+                        )
+                    except Exception as track_error:
+                        logger.warning(f"Failed to track failure for {item_id}: {track_error}")
+                
                 return BulkItemResult(
                     item_id=item_id,
                     jellyfin_id=jellyfin_id,
@@ -243,7 +303,8 @@ class BulkPosterReplacementService:
         item_id: str,
         jellyfin_id: str,
         selected_poster: PosterOption,
-        title: str
+        title: str,
+        activity_id: Optional[str] = None
     ) -> BulkItemResult:
         """Replace poster for a single item"""
         
