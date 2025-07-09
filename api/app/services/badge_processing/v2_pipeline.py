@@ -157,144 +157,149 @@ class V2UniversalBadgeProcessor:
         self.logger.info(f"🎯 [V2 PIPELINE] JELLYFIN_ID: {request.jellyfin_id}")
         
         try:
-        
-        # Step 1: Resize poster to standard 1,000px width
-        self.logger.info(f"📏 [V2 PIPELINE] Resizing poster: {request.poster_path}")
-        resized_poster_path = poster_resizer.resize_poster(request.poster_path)
-        
-        if not resized_poster_path:
-            self.logger.error(f"❌ [V2 PIPELINE] Failed to resize poster: {request.poster_path}")
-            return ProcessingResult(
-                success=False,
-                results=[],
-                error="Failed to resize poster to standard dimensions"
-            )
-        
-        self.logger.info(f"✅ [V2 PIPELINE] Poster resized: {resized_poster_path}")
-        
-        # Step 2: Initialize V2 badge processors
-        processors = {
-            "audio": V2AudioBadgeProcessor(),
-            "resolution": V2ResolutionBadgeProcessor(),
-            "review": V2ReviewBadgeProcessor(),
-            "awards": V2AwardsBadgeProcessor()
-        }
-        
-        # Start with the resized poster
-        current_poster_path = resized_poster_path
-        applied_badges = []
-        
-        self.logger.info(f"🔄 [V2 PIPELINE] Processing badges: {request.badge_types}")
-        
-        # Apply badges sequentially
-        for i, badge_type in enumerate(request.badge_types):
-            processor = processors.get(badge_type)
-            if not processor:
-                self.logger.warning(f"⚠️ [V2 PIPELINE] Unknown badge type: {badge_type}, skipping")
-                continue
+            # Step 1: Resize poster to standard 1,000px width
+            self.logger.info(f"📏 [V2 PIPELINE] Resizing poster: {request.poster_path}")
+            resized_poster_path = poster_resizer.resize_poster(request.poster_path)
             
-            self.logger.info(f"🔄 [V2 PIPELINE] STARTING {badge_type.upper()} PROCESSOR ({i+1}/{len(request.badge_types)})")
-            self.logger.info(f"🔄 [V2 PIPELINE] Current poster: {current_poster_path}")
-            
-            # For the last badge, use the final output path if specified
-            is_last_badge = (i == len(request.badge_types) - 1)
-            output_path = request.output_path if is_last_badge and request.output_path else None
-            
-            self.logger.info(f"🔄 [V2 PIPELINE] Output path for {badge_type}: {output_path}")
-            
-            # Process with the specific badge processor
-            try:
-                result = await processor.process_single(
-                    current_poster_path,
-                    output_path,
-                    request.use_demo_data,
-                    db_session,
-                    request.jellyfin_id
-                )
-                
-                self.logger.info(f"✅ [V2 PIPELINE] {badge_type.upper()} PROCESSOR COMPLETED")
-            except Exception as processor_error:
-                self.logger.error(f"🚨 [V2 PIPELINE] {badge_type.upper()} PROCESSOR FAILED: {processor_error}", exc_info=True)
-                # Continue processing other badges even if one fails
-                self.logger.warning(f"⚠️ [V2 PIPELINE] Continuing with remaining badges despite {badge_type} failure")
-                # Create a failed result to continue processing
-                result = PosterResult(
-                    source_path=current_poster_path,
-                    output_path=current_poster_path,
-                    applied_badges=[],
+            if not resized_poster_path:
+                self.logger.error(f"❌ [V2 PIPELINE] Failed to resize poster: {request.poster_path}")
+                if activity_id:
+                    await self.activity_tracker.fail_activity(
+                        activity_id=activity_id,
+                        error_message="Failed to resize poster to standard dimensions",
+                        db_session=db_session
+                    )
+                return ProcessingResult(
                     success=False,
-                    error=f"{badge_type} processor exception: {str(processor_error)}"
+                    results=[],
+                    error="Failed to resize poster to standard dimensions"
                 )
             
-            self.logger.info(f"📊 [V2 PIPELINE] {badge_type} result - Success: {result.success}, Applied: {result.applied_badges}")
+            self.logger.info(f"✅ [V2 PIPELINE] Poster resized: {resized_poster_path}")
             
-            if result.success:
-                self.logger.info(f"✅ [V2 PIPELINE] {badge_type} SUCCESS: {current_poster_path} -> {result.output_path}")
-                current_poster_path = result.output_path
-                applied_badges.extend(result.applied_badges)
-            else:
-                self.logger.error(f"❌ [V2 PIPELINE] {badge_type} FAILED: {result.error}")
-                # Continue with other badges even if one fails
-                self.logger.info(f"🔄 [V2 PIPELINE] Continuing to next processor despite {badge_type} failure")
-        
-        # Handle final output path
-        storage_manager = StorageManager()
-        
-        if applied_badges:
-            # Badges were applied - ensure final path has preview_ prefix
-            final_filename = Path(current_poster_path).name
+            # Step 2: Initialize V2 badge processors
+            processors = {
+                "audio": V2AudioBadgeProcessor(),
+                "resolution": V2ResolutionBadgeProcessor(),
+                "review": V2ReviewBadgeProcessor(),
+                "awards": V2AwardsBadgeProcessor()
+            }
             
-            if not final_filename.startswith("preview_"):
-                # File needs to be renamed to have preview_ prefix
-                proper_preview_path = storage_manager.create_preview_output_path(request.poster_path)
+            # Start with the resized poster
+            current_poster_path = resized_poster_path
+            applied_badges = []
+            
+            self.logger.info(f"🔄 [V2 PIPELINE] Processing badges: {request.badge_types}")
+            
+            # Apply badges sequentially
+            for i, badge_type in enumerate(request.badge_types):
+                processor = processors.get(badge_type)
+                if not processor:
+                    self.logger.warning(f"⚠️ [V2 PIPELINE] Unknown badge type: {badge_type}, skipping")
+                    continue
+                
+                self.logger.info(f"🔄 [V2 PIPELINE] STARTING {badge_type.upper()} PROCESSOR ({i+1}/{len(request.badge_types)})")
+                self.logger.info(f"🔄 [V2 PIPELINE] Current poster: {current_poster_path}")
+                
+                # For the last badge, use the final output path if specified
+                is_last_badge = (i == len(request.badge_types) - 1)
+                output_path = request.output_path if is_last_badge and request.output_path else None
+                
+                self.logger.info(f"🔄 [V2 PIPELINE] Output path for {badge_type}: {output_path}")
+                
+                # Process with the specific badge processor
                 try:
-                    # Copy/move the final result to proper preview location
+                    result = await processor.process_single(
+                        current_poster_path,
+                        output_path,
+                        request.use_demo_data,
+                        db_session,
+                        request.jellyfin_id
+                    )
+                    
+                    self.logger.info(f"✅ [V2 PIPELINE] {badge_type.upper()} PROCESSOR COMPLETED")
+                except Exception as processor_error:
+                    self.logger.error(f"🚨 [V2 PIPELINE] {badge_type.upper()} PROCESSOR FAILED: {processor_error}", exc_info=True)
+                    # Continue processing other badges even if one fails
+                    self.logger.warning(f"⚠️ [V2 PIPELINE] Continuing with remaining badges despite {badge_type} failure")
+                    # Create a failed result to continue processing
+                    result = PosterResult(
+                        source_path=current_poster_path,
+                        output_path=current_poster_path,
+                        applied_badges=[],
+                        success=False,
+                        error=f"{badge_type} processor exception: {str(processor_error)}"
+                    )
+                
+                self.logger.info(f"📊 [V2 PIPELINE] {badge_type} result - Success: {result.success}, Applied: {result.applied_badges}")
+                
+                if result.success:
+                    self.logger.info(f"✅ [V2 PIPELINE] {badge_type} SUCCESS: {current_poster_path} -> {result.output_path}")
+                    current_poster_path = result.output_path
+                    applied_badges.extend(result.applied_badges)
+                else:
+                    self.logger.error(f"❌ [V2 PIPELINE] {badge_type} FAILED: {result.error}")
+                    # Continue with other badges even if one fails
+                    self.logger.info(f"🔄 [V2 PIPELINE] Continuing to next processor despite {badge_type} failure")
+            
+            # Handle final output path
+            storage_manager = StorageManager()
+            
+            if applied_badges:
+                # Badges were applied - ensure final path has preview_ prefix
+                final_filename = Path(current_poster_path).name
+                
+                if not final_filename.startswith("preview_"):
+                    # File needs to be renamed to have preview_ prefix
+                    proper_preview_path = storage_manager.create_preview_output_path(request.poster_path)
+                    try:
+                        # Copy/move the final result to proper preview location
+                        import shutil
+                        Path(proper_preview_path).parent.mkdir(parents=True, exist_ok=True)
+                        shutil.move(current_poster_path, proper_preview_path)
+                        final_output_path = proper_preview_path
+                        self.logger.info(f"🔧 [V2 PIPELINE] Renamed to proper preview path: {final_output_path}")
+                    except Exception as e:
+                        self.logger.warning(f"⚠️ [V2 PIPELINE] Failed to rename to preview path: {e}")
+                        final_output_path = current_poster_path
+                else:
+                    final_output_path = current_poster_path
+                
+                final_result = PosterResult(
+                    source_path=request.poster_path,
+                    output_path=final_output_path,
+                    applied_badges=applied_badges,
+                    success=True
+                )
+                self.logger.info(f"✅ [V2 PIPELINE] SUCCESSFULLY PROCESSED with {len(applied_badges)} badges: {final_output_path}")
+            else:
+                # No badges were applied - create proper preview path
+                proper_preview_path = storage_manager.create_preview_output_path(request.poster_path)
+                
+                try:
+                    # Copy resized poster to proper preview location
                     import shutil
                     Path(proper_preview_path).parent.mkdir(parents=True, exist_ok=True)
-                    shutil.move(current_poster_path, proper_preview_path)
+                    shutil.copy2(resized_poster_path, proper_preview_path)
+                    
+                    # Clean up temp resized poster
+                    if resized_poster_path != request.poster_path:
+                        Path(resized_poster_path).unlink(missing_ok=True)
+                    
                     final_output_path = proper_preview_path
-                    self.logger.info(f"🔧 [V2 PIPELINE] Renamed to proper preview path: {final_output_path}")
+                    self.logger.info(f"🔧 [V2 PIPELINE] No badges applied, created proper preview path: {final_output_path}")
+                    
                 except Exception as e:
-                    self.logger.warning(f"⚠️ [V2 PIPELINE] Failed to rename to preview path: {e}")
-                    final_output_path = current_poster_path
-            else:
-                final_output_path = current_poster_path
-            
-            final_result = PosterResult(
-                source_path=request.poster_path,
-                output_path=final_output_path,
-                applied_badges=applied_badges,
-                success=True
-            )
-            self.logger.info(f"✅ [V2 PIPELINE] SUCCESSFULLY PROCESSED with {len(applied_badges)} badges: {final_output_path}")
-        else:
-            # No badges were applied - create proper preview path
-            proper_preview_path = storage_manager.create_preview_output_path(request.poster_path)
-            
-            try:
-                # Copy resized poster to proper preview location
-                import shutil
-                Path(proper_preview_path).parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(resized_poster_path, proper_preview_path)
+                    self.logger.error(f"❌ [V2 PIPELINE] Error creating proper preview path: {e}")
+                    final_output_path = resized_poster_path
                 
-                # Clean up temp resized poster
-                if resized_poster_path != request.poster_path:
-                    Path(resized_poster_path).unlink(missing_ok=True)
-                
-                final_output_path = proper_preview_path
-                self.logger.info(f"🔧 [V2 PIPELINE] No badges applied, created proper preview path: {final_output_path}")
-                
-            except Exception as e:
-                self.logger.error(f"❌ [V2 PIPELINE] Error creating proper preview path: {e}")
-                final_output_path = resized_poster_path
+                final_result = PosterResult(
+                    source_path=request.poster_path,
+                    output_path=final_output_path,
+                    applied_badges=[],
+                    success=True
+                )
             
-            final_result = PosterResult(
-                source_path=request.poster_path,
-                output_path=final_output_path,
-                applied_badges=[],
-                success=True
-            )
-        
             # Clean up any remaining temporary resized poster
             try:
                 if resized_poster_path != request.poster_path and resized_poster_path != final_result.output_path:
