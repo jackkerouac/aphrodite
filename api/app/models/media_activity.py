@@ -56,6 +56,7 @@ class MediaActivityModel(Base):
     # Relationships (one-way to avoid circular dependency)
     badge_application = relationship("BadgeApplicationModel", uselist=False, lazy="select", cascade="all, delete-orphan")
     poster_replacement = relationship("PosterReplacementModel", uselist=False, lazy="select", cascade="all, delete-orphan")
+    performance_metrics = relationship("ActivityPerformanceMetricModel", uselist=False, lazy="select", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<MediaActivity(id={self.id}, type='{self.activity_type}', status='{self.status}')>"

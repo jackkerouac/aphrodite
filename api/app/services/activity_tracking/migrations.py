@@ -1,7 +1,11 @@
 """
 Activity Tracking Database Migration
 
-Creates the media_activities table for Phase 1 of the activity tracking system.
+Creates all activity tracking tables:
+- Phase 1: media_activities (core activity tracking)
+- Phase 2: badge_applications (detailed badge tracking)
+- Phase 3: poster_replacements (detailed replacement tracking)
+- Phase 5: activity_performance_metrics (performance analytics)
 """
 
 from alembic import op
@@ -120,6 +124,114 @@ def downgrade_badge_applications():
     op.drop_table('badge_applications')
 
 
+# Phase 3: Poster Replacements Migration
+def upgrade_poster_replacements():
+    """Create poster_replacements table"""
+    
+    op.create_table(
+        'poster_replacements',
+        sa.Column('id', UUID(as_uuid=True), primary_key=True, server_default=sa.text('gen_random_uuid()')),
+        sa.Column('activity_id', UUID(as_uuid=True), nullable=False),
+        
+        # Source Information
+        sa.Column('replacement_source', sa.String(50), nullable=False),
+        sa.Column('source_poster_id', sa.String(100), nullable=True),
+        sa.Column('source_poster_url', sa.Text(), nullable=True),
+        sa.Column('search_query', sa.Text(), nullable=True),
+        sa.Column('search_results_count', sa.Integer(), nullable=True),
+        
+        # Original Poster Info
+        sa.Column('original_poster_url', sa.Text(), nullable=True),
+        sa.Column('original_poster_cached_path', sa.Text(), nullable=True),
+        sa.Column('original_poster_dimensions', sa.String(20), nullable=True),
+        sa.Column('original_file_size', sa.Integer(), nullable=True),
+        sa.Column('original_poster_hash', sa.String(64), nullable=True),
+        
+        # New Poster Info
+        sa.Column('new_poster_dimensions', sa.String(20), nullable=True),
+        sa.Column('new_file_size', sa.Integer(), nullable=True),
+        sa.Column('new_poster_hash', sa.String(64), nullable=True),
+        sa.Column('download_time_ms', sa.Integer(), nullable=True),
+        sa.Column('upload_time_ms', sa.Integer(), nullable=True),
+        
+        # Jellyfin Integration
+        sa.Column('jellyfin_upload_success', sa.Boolean(), nullable=True),
+        sa.Column('tag_operations', JSONB, nullable=True),
+        sa.Column('jellyfin_response', JSONB, nullable=True),
+        
+        # Quality Assessment
+        sa.Column('quality_improvement_score', sa.DECIMAL(3, 2), nullable=True),
+        sa.Column('visual_similarity_score', sa.DECIMAL(3, 2), nullable=True),
+        sa.Column('user_rating', sa.Integer(), nullable=True),
+        
+        # Timestamps
+        sa.Column('created_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('NOW()')),
+        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('NOW()')),
+        
+        # Foreign key constraints
+        sa.ForeignKeyConstraint(['activity_id'], ['media_activities.id'], ondelete='CASCADE'),
+    )
+    
+    # Additional indexes
+    op.create_index('idx_poster_replacements_activity', 'poster_replacements', ['activity_id'])
+    op.create_index('idx_poster_replacements_source', 'poster_replacements', ['replacement_source'])
+    op.create_index('idx_poster_replacements_created_at', 'poster_replacements', ['created_at'])
+
+
+def downgrade_poster_replacements():
+    """Drop poster_replacements table"""
+    op.drop_table('poster_replacements')
+
+
+# Phase 5: Performance Metrics Migration
+def upgrade_activity_performance_metrics():
+    """Create activity_performance_metrics table"""
+    
+    op.create_table(
+        'activity_performance_metrics',
+        sa.Column('id', UUID(as_uuid=True), primary_key=True, server_default=sa.text('gen_random_uuid()')),
+        sa.Column('activity_id', UUID(as_uuid=True), nullable=False),
+        
+        # System Performance
+        sa.Column('cpu_usage_percent', sa.DECIMAL(5, 2), nullable=True),
+        sa.Column('memory_usage_mb', sa.Integer(), nullable=True),
+        sa.Column('disk_io_read_mb', sa.DECIMAL(8, 2), nullable=True),
+        sa.Column('disk_io_write_mb', sa.DECIMAL(8, 2), nullable=True),
+        
+        # Network Performance
+        sa.Column('network_download_mb', sa.DECIMAL(8, 2), nullable=True),
+        sa.Column('network_upload_mb', sa.DECIMAL(8, 2), nullable=True),
+        sa.Column('network_latency_ms', sa.Integer(), nullable=True),
+        
+        # Processing Stages
+        sa.Column('stage_timings', JSONB, nullable=True),
+        sa.Column('bottleneck_stage', sa.String(50), nullable=True),
+        
+        # Quality Metrics
+        sa.Column('error_rate', sa.DECIMAL(3, 2), nullable=True),
+        sa.Column('throughput_items_per_second', sa.DECIMAL(6, 2), nullable=True),
+        
+        # Environment
+        sa.Column('server_load_average', sa.DECIMAL(4, 2), nullable=True),
+        sa.Column('concurrent_operations', sa.Integer(), nullable=True),
+        
+        # Timestamp
+        sa.Column('created_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('NOW()')),
+        
+        # Foreign key constraints
+        sa.ForeignKeyConstraint(['activity_id'], ['media_activities.id'], ondelete='CASCADE'),
+    )
+    
+    # Additional indexes
+    op.create_index('idx_performance_metrics_activity', 'activity_performance_metrics', ['activity_id'])
+    op.create_index('idx_performance_metrics_created_at', 'activity_performance_metrics', ['created_at'])
+
+
+def downgrade_activity_performance_metrics():
+    """Drop activity_performance_metrics table"""
+    op.drop_table('activity_performance_metrics')
+
+
 # Auto-run migration (this will be called from database initialization)
 def run_migration():
     """Run the migration if the table doesn't exist"""
@@ -148,5 +260,19 @@ def run_migration():
                 logger.info("badge_applications table created successfully")
             else:
                 logger.info("badge_applications table already exists")
+                
+            if 'poster_replacements' not in table_names:
+                logger.info("Creating poster_replacements table...")
+                upgrade_poster_replacements()
+                logger.info("poster_replacements table created successfully")
+            else:
+                logger.info("poster_replacements table already exists")
+                
+            if 'activity_performance_metrics' not in table_names:
+                logger.info("Creating activity_performance_metrics table...")
+                upgrade_activity_performance_metrics()
+                logger.info("activity_performance_metrics table created successfully")
+            else:
+                logger.info("activity_performance_metrics table already exists")
     
     return check_and_create()

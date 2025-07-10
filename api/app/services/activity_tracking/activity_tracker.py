@@ -525,6 +525,123 @@ class ActivityTracker:
         except Exception as e:
             self.logger.error(f"Failed to log replacement details for activity {activity_id}: {e}", exc_info=True)
             raise
+    
+    async def log_performance_metrics(
+        self,
+        activity_id: str,
+        cpu_usage_percent: Optional[float] = None,
+        memory_usage_mb: Optional[int] = None,
+        disk_io_read_mb: Optional[float] = None,
+        disk_io_write_mb: Optional[float] = None,
+        network_download_mb: Optional[float] = None,
+        network_upload_mb: Optional[float] = None,
+        network_latency_ms: Optional[int] = None,
+        stage_timings: Optional[Dict[str, float]] = None,
+        bottleneck_stage: Optional[str] = None,
+        error_rate: Optional[float] = None,
+        throughput_items_per_second: Optional[float] = None,
+        server_load_average: Optional[float] = None,
+        concurrent_operations: Optional[int] = None,
+        db_session: Optional[AsyncSession] = None
+    ) -> None:
+        """
+        Log detailed performance metrics data linked to an activity.
+        
+        Args:
+            activity_id: The parent activity ID
+            cpu_usage_percent: Peak CPU usage during operation
+            memory_usage_mb: Peak memory usage
+            disk_io_read_mb: Disk read in MB
+            disk_io_write_mb: Disk write in MB
+            network_download_mb: Data downloaded
+            network_upload_mb: Data uploaded
+            network_latency_ms: Average network latency
+            stage_timings: Breakdown of time per processing stage
+            bottleneck_stage: Slowest processing stage
+            error_rate: 0.00-1.00 error rate if batch operation
+            throughput_items_per_second: Processing throughput
+            server_load_average: System load during operation
+            concurrent_operations: Other operations running simultaneously
+            db_session: Optional database session
+        """
+        try:
+            from app.models.activity_performance_metric import ActivityPerformanceMetricModel
+            
+            # Ensure activity_id is a proper UUID object
+            if isinstance(activity_id, str):
+                activity_uuid = uuid.UUID(activity_id)
+            else:
+                activity_uuid = activity_id
+            
+            # Verify the activity exists before creating performance metrics
+            if db_session:
+                # Check if activity exists
+                activity_check = await db_session.execute(
+                    select(MediaActivityModel).where(MediaActivityModel.id == activity_uuid)
+                )
+                existing_activity = activity_check.scalar_one_or_none()
+                if not existing_activity:
+                    raise ValueError(f"Activity {activity_uuid} not found")
+                    
+                # Create the performance metrics with proper session management
+                performance_metrics = ActivityPerformanceMetricModel(
+                    activity_id=activity_uuid,
+                    cpu_usage_percent=cpu_usage_percent,
+                    memory_usage_mb=memory_usage_mb,
+                    disk_io_read_mb=disk_io_read_mb,
+                    disk_io_write_mb=disk_io_write_mb,
+                    network_download_mb=network_download_mb,
+                    network_upload_mb=network_upload_mb,
+                    network_latency_ms=network_latency_ms,
+                    stage_timings=stage_timings or {},
+                    bottleneck_stage=bottleneck_stage,
+                    error_rate=error_rate,
+                    throughput_items_per_second=throughput_items_per_second,
+                    server_load_average=server_load_average,
+                    concurrent_operations=concurrent_operations
+                )
+                
+                # Add to session and commit in one transaction
+                db_session.add(performance_metrics)
+                await db_session.commit()
+                self.logger.info(f"Logged performance metrics for activity {activity_id}")
+                
+            else:
+                # Handle case where no session is provided
+                async for db in get_db_session():
+                    # Check if activity exists
+                    activity_check = await db.execute(
+                        select(MediaActivityModel).where(MediaActivityModel.id == activity_uuid)
+                    )
+                    existing_activity = activity_check.scalar_one_or_none()
+                    if not existing_activity:
+                        raise ValueError(f"Activity {activity_uuid} not found")
+                        
+                    performance_metrics = ActivityPerformanceMetricModel(
+                        activity_id=activity_uuid,
+                        cpu_usage_percent=cpu_usage_percent,
+                        memory_usage_mb=memory_usage_mb,
+                        disk_io_read_mb=disk_io_read_mb,
+                        disk_io_write_mb=disk_io_write_mb,
+                        network_download_mb=network_download_mb,
+                        network_upload_mb=network_upload_mb,
+                        network_latency_ms=network_latency_ms,
+                        stage_timings=stage_timings or {},
+                        bottleneck_stage=bottleneck_stage,
+                        error_rate=error_rate,
+                        throughput_items_per_second=throughput_items_per_second,
+                        server_load_average=server_load_average,
+                        concurrent_operations=concurrent_operations
+                    )
+                    
+                    db.add(performance_metrics)
+                    await db.commit()
+                    self.logger.info(f"Logged performance metrics for activity {activity_id}")
+                    break
+                    
+        except Exception as e:
+            self.logger.error(f"Failed to log performance metrics for activity {activity_id}: {e}", exc_info=True)
+            raise
 
 
 # Global service instance

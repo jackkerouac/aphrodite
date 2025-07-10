@@ -172,6 +172,7 @@ async def init_db() -> None:
         from app.models import media_activity
         from app.models import badge_application
         from app.models import poster_replacement
+        from app.models import activity_performance_metric
         
         # Import workflow models
         from app.services.workflow.database.models import BatchJobModel, PosterProcessingStatusModel
