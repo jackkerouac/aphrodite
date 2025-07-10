@@ -370,6 +370,69 @@ export const apiService = {
     const response = await fetch(buildApiUrl('/api/v1/analytics/performance'));
     return handleResponse(response);
   },
+
+  // Advanced Analytics endpoints (Phase 6)
+  async advancedActivitySearch(searchParams: any) {
+    const response = await fetch(buildApiUrl('/api/v1/activities/search'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(searchParams),
+    });
+    return handleResponse(response);
+  },
+
+  async getSearchSuggestions() {
+    const response = await fetch(buildApiUrl('/api/v1/activities/search/suggestions'));
+    return handleResponse(response);
+  },
+
+  async getActivityStatistics(searchParams: any) {
+    const response = await fetch(buildApiUrl('/api/v1/activities/statistics'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(searchParams),
+    });
+    return handleResponse(response);
+  },
+
+  async getBatchAnalytics(batchJobId: string) {
+    const response = await fetch(buildApiUrl(`/api/v1/analytics/batch/${batchJobId}`));
+    return handleResponse(response);
+  },
+
+  async getBatchPerformanceAnalytics(batchJobId: string) {
+    const response = await fetch(buildApiUrl(`/api/v1/analytics/batch/${batchJobId}/performance`));
+    return handleResponse(response);
+  },
+
+  async getRecentBatches(days: number = 7, limit: number = 20) {
+    const response = await fetch(buildApiUrl(`/api/v1/analytics/batches/recent?days=${days}&limit=${limit}`));
+    return handleResponse(response);
+  },
+
+  async getUserActivitySummary(userId: string, days: number = 30) {
+    const response = await fetch(buildApiUrl(`/api/v1/analytics/users/${userId}/summary?days=${days}`));
+    return handleResponse(response);
+  },
+
+  async getUserActivityTimeline(userId: string, days: number = 30) {
+    const response = await fetch(buildApiUrl(`/api/v1/analytics/users/${userId}/timeline?days=${days}`));
+    return handleResponse(response);
+  },
+
+  async getTopUsers(days: number = 30, limit: number = 10) {
+    const response = await fetch(buildApiUrl(`/api/v1/analytics/users/top?days=${days}&limit=${limit}`));
+    return handleResponse(response);
+  },
+
+  async getSystemAnalyticsOverview(days: number = 7) {
+    const response = await fetch(buildApiUrl(`/api/v1/analytics/system/overview?days=${days}`));
+    return handleResponse(response);
+  },
 };
 
 export default apiService;

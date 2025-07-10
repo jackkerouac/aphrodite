@@ -1,25 +1,51 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AnalyticsOverview } from '@/components/analytics/analytics-overview';
-import { JobAnalytics } from '@/components/analytics/job-analytics';
-import { ScheduleAnalytics } from '@/components/analytics/schedule-analytics';
-import { SystemPerformance } from '@/components/analytics/system-performance';
-import { Loader2, BarChart3, TrendingUp, Calendar, Activity } from 'lucide-react';
-// import apiService from '@/services/api'; // Unused in current implementation
+import { Button } from '@/components/ui/button';
+import { Loader2, Search, Activity, Users, BarChart3, TrendingUp } from 'lucide-react';
+import apiService from '@/services/api';
 import { toast } from 'sonner';
+
+import { OverviewTab } from '@/components/analytics/OverviewTab';
+import { SearchTab } from '@/components/analytics/SearchTab';
+import { UsersTab } from '@/components/analytics/UsersTab';
+import { PerformanceTab } from '@/components/analytics/PerformanceTab';
+import type { SystemOverview, ActivitySearchParams, SearchResult } from '@/components/analytics/types';
 
 export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [systemOverview, setSystemOverview] = useState<SystemOverview | null>(null);
+  const [searchParams, setSearchParams] = useState<ActivitySearchParams>({
+    limit: 50,
+    offset: 0,
+    sort_by: 'created_at',
+    sort_order: 'desc',
+    include_details: false
+  });
+  const [searchResults, setSearchResults] = useState<SearchResult | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState('overview');
 
   const refreshData = async (silent = false) => {
     if (!silent) setRefreshing(true);
     
     try {
+      // Get system overview
+      const overviewData = await apiService.getSystemAnalyticsOverview(7);
+      if (overviewData.success) {
+        setSystemOverview(overviewData.data);
+      }
+      
+      // Get search suggestions for filters
+      const suggestionsData = await apiService.getSearchSuggestions();
+      if (suggestionsData.success) {
+        setSuggestions(suggestionsData.suggestions);
+      }
+      
       setLastUpdated(new Date());
       if (!silent) {
         toast.success('Analytics data refreshed');
@@ -33,6 +59,23 @@ export default function AnalyticsPage() {
     }
   };
 
+  const performSearch = async () => {
+    setSearchLoading(true);
+    try {
+      const result = await apiService.advancedActivitySearch(searchParams);
+      if (result.success) {
+        setSearchResults(result.data);
+      } else {
+        toast.error('Search failed: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Search failed:', error);
+      toast.error('Search failed');
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
   useEffect(() => {
     refreshData(true);
     
@@ -41,6 +84,12 @@ export default function AnalyticsPage() {
     
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'search' && !searchResults) {
+      performSearch();
+    }
+  }, [activeTab]);
 
   if (loading) {
     return (
@@ -58,9 +107,9 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Activity Tracking Analytics</h1>
           <p className="text-muted-foreground mt-2">
-            System performance and processing insights
+            Comprehensive insights into system activity, performance, and user patterns
           </p>
         </div>
         
@@ -71,71 +120,65 @@ export default function AnalyticsPage() {
             </span>
           )}
           
-          <button
+          <Button
             onClick={() => refreshData()}
             disabled={refreshing}
-            className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
+            variant="outline"
           >
             {refreshing ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
             ) : (
-              <Activity className="h-4 w-4" />
+              <Activity className="h-4 w-4 mr-2" />
             )}
-            <span>Refresh</span>
-          </button>
+            Refresh
+          </Button>
         </div>
       </div>
 
-      {/* Overview Section */}
-      <AnalyticsOverview />
-
-      {/* Detailed Analytics Tabs */}
-      <Tabs defaultValue="jobs" className="space-y-6">
+      {/* Main Content */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="jobs" className="flex items-center space-x-2">
+          <TabsTrigger value="overview" className="flex items-center space-x-2">
             <BarChart3 className="h-4 w-4" />
-            <span>Job Analytics</span>
+            <span>Overview</span>
           </TabsTrigger>
-          <TabsTrigger value="schedules" className="flex items-center space-x-2">
-            <Calendar className="h-4 w-4" />
-            <span>Schedules</span>
+          <TabsTrigger value="search" className="flex items-center space-x-2">
+            <Search className="h-4 w-4" />
+            <span>Advanced Search</span>
+          </TabsTrigger>
+          <TabsTrigger value="users" className="flex items-center space-x-2">
+            <Users className="h-4 w-4" />
+            <span>User Analytics</span>
           </TabsTrigger>
           <TabsTrigger value="performance" className="flex items-center space-x-2">
             <TrendingUp className="h-4 w-4" />
             <span>Performance</span>
           </TabsTrigger>
-          <TabsTrigger value="trends" className="flex items-center space-x-2">
-            <Activity className="h-4 w-4" />
-            <span>Trends</span>
-          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="jobs" className="space-y-6">
-          <JobAnalytics />
+        <TabsContent value="overview" className="space-y-6">
+          {systemOverview && (
+            <OverviewTab systemOverview={systemOverview} />
+          )}
         </TabsContent>
 
-        <TabsContent value="schedules" className="space-y-6">
-          <ScheduleAnalytics />
+        <TabsContent value="search" className="space-y-6">
+          <SearchTab
+            searchParams={searchParams}
+            setSearchParams={setSearchParams}
+            searchResults={searchResults}
+            searchLoading={searchLoading}
+            suggestions={suggestions}
+            onSearch={performSearch}
+          />
+        </TabsContent>
+
+        <TabsContent value="users" className="space-y-6">
+          <UsersTab />
         </TabsContent>
 
         <TabsContent value="performance" className="space-y-6">
-          <SystemPerformance />
-        </TabsContent>
-
-        <TabsContent value="trends" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Processing Trends</CardTitle>
-              <CardDescription>
-                Historical view of processing activity and patterns
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center text-muted-foreground py-8">
-                Processing trends chart will be displayed here
-              </div>
-            </CardContent>
-          </Card>
+          <PerformanceTab />
         </TabsContent>
       </Tabs>
     </div>
