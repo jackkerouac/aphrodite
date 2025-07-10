@@ -250,14 +250,11 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
             
             try:
                 yield session
+            except Exception:
+                await session.rollback()
+                raise
             finally:
-                # CRITICAL FIX: Ensure session is always closed properly
-                if session:
-                    try:
-                        await session.close()
-                    except Exception as close_error:
-                        logger = get_logger("aphrodite.database.session", service="database")
-                        logger.warning(f"Error closing database session: {close_error}")
+                await session.close()
             break
             
         except Exception as e:

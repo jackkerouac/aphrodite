@@ -303,3 +303,5 @@ async def get_system_analytics_overview(
             status_code=500,
             detail=f"Failed to get system overview: {str(e)}"
         )
+    finally:
+        await db.close()
