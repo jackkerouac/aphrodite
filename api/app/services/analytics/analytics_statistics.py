@@ -145,8 +145,8 @@ class AnalyticsStatisticsService:
         type_breakdown_query = select(
             MediaActivityModel.activity_type,
             func.count(MediaActivityModel.id).label('count'),
-            func.sum(func.case([(MediaActivityModel.success == True, 1)], else_=0)).label('successful'),
-            func.sum(func.case([(MediaActivityModel.success == False, 1)], else_=0)).label('failed')
+            func.sum(func.case([(MediaActivity_Model.success == True, 1)], else_=0)).label('successful'),
+            func.sum(func.case([(MediaActivity_Model.success == False, 1)], else_=0)).label('failed')
         )
         
         if filters:

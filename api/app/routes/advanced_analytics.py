@@ -139,7 +139,7 @@ async def get_recent_batches(
     """
     try:
         batch_service = get_batch_analytics_service()
-        batches = await batch_service.get_recent_batches(days, limit, db)
+        batches = await batch_service.get_recent_batches(db, days, limit)
         
         return {
             "success": True,
@@ -173,7 +173,7 @@ async def get_user_activity_summary(
     """
     try:
         user_service = get_user_analytics_service()
-        result = await user_service.get_user_summary(user_id, days, db)
+        result = await user_service.get_user_summary(user_id, db, days)
         return result
         
     except Exception as e:
@@ -194,7 +194,7 @@ async def get_user_activity_timeline(
     """
     try:
         user_service = get_user_analytics_service()
-        result = await user_service.get_user_activity_timeline(user_id, days, db)
+        result = await user_service.get_user_activity_timeline(user_id, db, days)
         return result
         
     except Exception as e:
@@ -215,7 +215,7 @@ async def get_top_users(
     """
     try:
         user_service = get_user_analytics_service()
-        users = await user_service.get_top_users(days, limit, db)
+        users = await user_service.get_top_users(db, days, limit)
         
         return {
             "success": True,
@@ -266,10 +266,10 @@ async def get_system_analytics_overview(
         stats_result = await statistics_service.get_aggregated_statistics(search_params, db)
         
         # Get recent batches
-        recent_batches = await batch_service.get_recent_batches(days, 10, db)
+        recent_batches = await batch_service.get_recent_batches(db, days, 10)
         
         # Get top users
-        top_users = await user_service.get_top_users(days, 5, db)
+        top_users = await user_service.get_top_users(db, days, 5)
         
         return {
             "success": True,

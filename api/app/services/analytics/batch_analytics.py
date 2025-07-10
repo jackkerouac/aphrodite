@@ -223,9 +223,9 @@ class BatchAnalyticsService:
     
     async def get_recent_batches(
         self,
+        db_session: AsyncSession,
         days: int = 7,
-        limit: int = 20,
-        db_session: AsyncSession
+        limit: int = 20
     ) -> List[Dict[str, Any]]:
         """
         Get summary of recent batch operations.

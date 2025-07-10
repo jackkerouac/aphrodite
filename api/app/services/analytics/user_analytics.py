@@ -21,8 +21,8 @@ class UserAnalyticsService:
     async def get_user_summary(
         self,
         user_id: str,
-        days: int = 30,
-        db_session: AsyncSession
+        db_session: AsyncSession,
+        days: int = 30
     ) -> Dict[str, Any]:
         """
         Get comprehensive activity summary for a specific user.
@@ -168,9 +168,9 @@ class UserAnalyticsService:
     
     async def get_top_users(
         self,
+        db_session: AsyncSession,
         days: int = 30,
-        limit: int = 10,
-        db_session: AsyncSession
+        limit: int = 10
     ) -> List[Dict[str, Any]]:
         """
         Get the most active users in the specified time period.
@@ -225,8 +225,8 @@ class UserAnalyticsService:
     async def get_user_activity_timeline(
         self,
         user_id: str,
-        days: int = 30,
-        db_session: AsyncSession
+        db_session: AsyncSession,
+        days: int = 30
     ) -> Dict[str, Any]:
         """
         Get a timeline of user activity showing daily patterns and trends.
