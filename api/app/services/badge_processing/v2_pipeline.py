@@ -123,6 +123,16 @@ class V2UniversalBadgeProcessor:
         
         # Start activity tracking
         activity_id = None
+        detailed_metrics = {
+            'badge_types': request.badge_types,
+            'poster_source': 'uploaded' if request.poster_path else 'jellyfin',
+            'original_poster_path': request.poster_path,
+            'intermediate_files': [],
+            'badges_applied': [],
+            'badges_failed': [],
+            'processing_start_time': time.perf_counter()
+        }
+        
         try:
             # Extract media_id from the poster path or use jellyfin_id
             media_id = request.jellyfin_id or Path(request.poster_path).stem
@@ -158,11 +168,16 @@ class V2UniversalBadgeProcessor:
         
         try:
             # Step 1: Resize poster to standard 1,000px width
+            resize_start = time.perf_counter()
             self.logger.info(f"📏 [V2 PIPELINE] Resizing poster: {request.poster_path}")
             resized_poster_path = poster_resizer.resize_poster(request.poster_path)
             
             if not resized_poster_path:
                 self.logger.error(f"❌ [V2 PIPELINE] Failed to resize poster: {request.poster_path}")
+                detailed_metrics['badges_failed'].append({
+                    'type': 'resize',
+                    'error': 'Failed to resize poster to standard dimensions'
+                })
                 if activity_id:
                     await self.activity_tracker.fail_activity(
                         activity_id=activity_id,
@@ -175,7 +190,11 @@ class V2UniversalBadgeProcessor:
                     error="Failed to resize poster to standard dimensions"
                 )
             
-            self.logger.info(f"✅ [V2 PIPELINE] Poster resized: {resized_poster_path}")
+            resize_time = int((time.perf_counter() - resize_start) * 1000)
+            detailed_metrics['poster_processing_time_ms'] = resize_time
+            detailed_metrics['intermediate_files'].append(resized_poster_path)
+            
+            self.logger.info(f"✅ [V2 PIPELINE] Poster resized: {resized_poster_path} ({resize_time}ms)")
             
             # Step 2: Initialize V2 badge processors
             processors = {
@@ -208,6 +227,7 @@ class V2UniversalBadgeProcessor:
                 self.logger.info(f"🔄 [V2 PIPELINE] Output path for {badge_type}: {output_path}")
                 
                 # Process with the specific badge processor
+                badge_start_time = time.perf_counter()
                 try:
                     result = await processor.process_single(
                         current_poster_path,
@@ -216,10 +236,36 @@ class V2UniversalBadgeProcessor:
                         db_session,
                         request.jellyfin_id
                     )
+                    badge_time = int((time.perf_counter() - badge_start_time) * 1000)
                     
-                    self.logger.info(f"✅ [V2 PIPELINE] {badge_type.upper()} PROCESSOR COMPLETED")
+                    self.logger.info(f"✅ [V2 PIPELINE] {badge_type.upper()} PROCESSOR COMPLETED ({badge_time}ms)")
+                    
+                    # Track badge application details
+                    if result.success:
+                        detailed_metrics['badges_applied'].append({
+                            'type': badge_type,
+                            'processing_time_ms': badge_time,
+                            'badges': result.applied_badges,
+                            'output_path': result.output_path
+                        })
+                    else:
+                        detailed_metrics['badges_failed'].append({
+                            'type': badge_type,
+                            'processing_time_ms': badge_time,
+                            'error': result.error
+                        })
+                        
                 except Exception as processor_error:
-                    self.logger.error(f"🚨 [V2 PIPELINE] {badge_type.upper()} PROCESSOR FAILED: {processor_error}", exc_info=True)
+                    badge_time = int((time.perf_counter() - badge_start_time) * 1000)
+                    self.logger.error(f"🚨 [V2 PIPELINE] {badge_type.upper()} PROCESSOR FAILED: {processor_error} ({badge_time}ms)", exc_info=True)
+                    
+                    # Track failed badge
+                    detailed_metrics['badges_failed'].append({
+                        'type': badge_type,
+                        'processing_time_ms': badge_time,
+                        'error': str(processor_error)
+                    })
+                    
                     # Continue processing other badges even if one fails
                     self.logger.warning(f"⚠️ [V2 PIPELINE] Continuing with remaining badges despite {badge_type} failure")
                     # Create a failed result to continue processing
@@ -244,6 +290,8 @@ class V2UniversalBadgeProcessor:
             
             # Handle final output path
             storage_manager = StorageManager()
+            processing_end_time = time.perf_counter()
+            total_processing_time = int((processing_end_time - detailed_metrics['processing_start_time']) * 1000)
             
             if applied_badges:
                 # Badges were applied - ensure final path has preview_ prefix
@@ -264,6 +312,25 @@ class V2UniversalBadgeProcessor:
                         final_output_path = current_poster_path
                 else:
                     final_output_path = current_poster_path
+                
+                # Calculate final file metrics
+                try:
+                    final_file_size = Path(final_output_path).stat().st_size
+                    detailed_metrics['final_file_size'] = final_file_size
+                    
+                    # Calculate compression ratio if original size is available
+                    if Path(detailed_metrics['original_poster_path']).exists():
+                        original_size = Path(detailed_metrics['original_poster_path']).stat().st_size
+                        if original_size > 0:
+                            detailed_metrics['compression_ratio'] = final_file_size / original_size
+                    
+                    # Get final poster dimensions
+                    from PIL import Image
+                    with Image.open(final_output_path) as img:
+                        detailed_metrics['final_poster_dimensions'] = f"{img.width}x{img.height}"
+                        
+                except Exception as metrics_error:
+                    self.logger.warning(f"⚠️ [V2 PIPELINE] Failed to calculate file metrics: {metrics_error}")
                 
                 final_result = PosterResult(
                     source_path=request.poster_path,
@@ -287,6 +354,18 @@ class V2UniversalBadgeProcessor:
                         Path(resized_poster_path).unlink(missing_ok=True)
                     
                     final_output_path = proper_preview_path
+                    
+                    # Calculate final file metrics for no-badge case
+                    try:
+                        final_file_size = Path(final_output_path).stat().st_size
+                        detailed_metrics['final_file_size'] = final_file_size
+                        
+                        from PIL import Image
+                        with Image.open(final_output_path) as img:
+                            detailed_metrics['final_poster_dimensions'] = f"{img.width}x{img.height}"
+                    except Exception:
+                        pass
+                    
                     self.logger.info(f"🔧 [V2 PIPELINE] No badges applied, created proper preview path: {final_output_path}")
                     
                 except Exception as e:
@@ -323,7 +402,35 @@ class V2UniversalBadgeProcessor:
                         result_data=result_data,
                         db_session=db_session
                     )
-                    self.logger.info(f"✅ [V2 PIPELINE] Completed activity tracking: {activity_id}")
+                    
+                    # Log detailed badge application data
+                    detailed_metrics.update({
+                        'output_poster_path': final_result.output_path,
+                        'total_processing_time_ms': total_processing_time,
+                        'badge_generation_time_ms': sum(
+                            badge['processing_time_ms'] for badge in detailed_metrics['badges_applied']
+                        ) if detailed_metrics['badges_applied'] else 0
+                    })
+                    
+                    await self.activity_tracker.log_badge_details(
+                        activity_id=activity_id,
+                        badge_types=detailed_metrics['badge_types'],
+                        poster_source=detailed_metrics['poster_source'],
+                        original_poster_path=detailed_metrics['original_poster_path'],
+                        output_poster_path=detailed_metrics.get('output_poster_path'),
+                        intermediate_files=detailed_metrics['intermediate_files'],
+                        badges_applied=detailed_metrics['badges_applied'],
+                        badges_failed=detailed_metrics['badges_failed'],
+                        final_poster_dimensions=detailed_metrics.get('final_poster_dimensions'),
+                        final_file_size=detailed_metrics.get('final_file_size'),
+                        badge_generation_time_ms=detailed_metrics.get('badge_generation_time_ms'),
+                        poster_processing_time_ms=detailed_metrics.get('poster_processing_time_ms'),
+                        total_processing_time_ms=detailed_metrics.get('total_processing_time_ms'),
+                        compression_ratio=detailed_metrics.get('compression_ratio'),
+                        db_session=db_session
+                    )
+                    
+                    self.logger.info(f"✅ [V2 PIPELINE] Completed activity tracking with detailed metrics: {activity_id}")
                 except Exception as track_error:
                     self.logger.warning(f"⚠️ [V2 PIPELINE] Failed to complete activity tracking: {track_error}")
             

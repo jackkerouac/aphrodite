@@ -66,6 +66,60 @@ def downgrade_media_activities():
     op.drop_table('media_activities')
 
 
+# Phase 2: Badge Applications Migration
+def upgrade_badge_applications():
+    """Create badge_applications table"""
+    
+    op.create_table(
+        'badge_applications',
+        sa.Column('id', UUID(as_uuid=True), primary_key=True, server_default=sa.text('gen_random_uuid()')),
+        sa.Column('activity_id', UUID(as_uuid=True), nullable=False),
+        
+        # Badge Configuration
+        sa.Column('badge_types', JSONB, nullable=False),
+        sa.Column('badge_settings_snapshot', JSONB, nullable=True),
+        sa.Column('badge_configuration_id', sa.String(50), nullable=True),
+        
+        # Processing Details
+        sa.Column('poster_source', sa.String(100), nullable=True),
+        sa.Column('original_poster_path', sa.Text(), nullable=True),
+        sa.Column('output_poster_path', sa.Text(), nullable=True),
+        sa.Column('intermediate_files', JSONB, nullable=True),
+        
+        # Badge Results
+        sa.Column('badges_applied', JSONB, nullable=True),
+        sa.Column('badges_failed', JSONB, nullable=True),
+        sa.Column('final_poster_dimensions', sa.String(20), nullable=True),
+        sa.Column('final_file_size', sa.Integer(), nullable=True),
+        
+        # Performance Metrics
+        sa.Column('badge_generation_time_ms', sa.Integer(), nullable=True),
+        sa.Column('poster_processing_time_ms', sa.Integer(), nullable=True),
+        sa.Column('total_processing_time_ms', sa.Integer(), nullable=True),
+        
+        # Quality Metrics
+        sa.Column('poster_quality_score', sa.DECIMAL(3, 2), nullable=True),
+        sa.Column('compression_ratio', sa.DECIMAL(5, 2), nullable=True),
+        
+        # Timestamps
+        sa.Column('created_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('NOW()')),
+        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('NOW()')),
+        
+        # Foreign key constraints
+        sa.ForeignKeyConstraint(['activity_id'], ['media_activities.id'], ondelete='CASCADE'),
+    )
+    
+    # Additional indexes
+    op.create_index('idx_badge_applications_activity', 'badge_applications', ['activity_id'])
+    op.create_index('idx_badge_applications_types', 'badge_applications', ['badge_types'], postgresql_using='gin')
+    op.create_index('idx_badge_applications_created_at', 'badge_applications', ['created_at'])
+
+
+def downgrade_badge_applications():
+    """Drop badge_applications table"""
+    op.drop_table('badge_applications')
+
+
 # Auto-run migration (this will be called from database initialization)
 def run_migration():
     """Run the migration if the table doesn't exist"""
@@ -79,12 +133,20 @@ def run_migration():
         engine = get_engine()
         async with engine.begin() as conn:
             inspector = inspect(await conn.get_sync_connection())
+            table_names = inspector.get_table_names()
             
-            if 'media_activities' not in inspector.get_table_names():
+            if 'media_activities' not in table_names:
                 logger.info("Creating media_activities table...")
                 upgrade_media_activities()
                 logger.info("media_activities table created successfully")
             else:
                 logger.info("media_activities table already exists")
+                
+            if 'badge_applications' not in table_names:
+                logger.info("Creating badge_applications table...")
+                upgrade_badge_applications()
+                logger.info("badge_applications table created successfully")
+            else:
+                logger.info("badge_applications table already exists")
     
     return check_and_create()

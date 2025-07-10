@@ -7,6 +7,7 @@ SQLAlchemy model for the media_activities table.
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, Text, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
 
@@ -51,6 +52,10 @@ class MediaActivityModel(Base):
     # Metadata
     system_version = Column(String(20), nullable=True)
     additional_metadata = Column(JSONB, nullable=True)
+    
+    # Relationships (one-way to avoid circular dependency)
+    badge_application = relationship("BadgeApplicationModel", uselist=False, lazy="select", cascade="all, delete-orphan")
+    poster_replacement = relationship("PosterReplacementModel", uselist=False, lazy="select", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<MediaActivity(id={self.id}, type='{self.activity_type}', status='{self.status}')>"

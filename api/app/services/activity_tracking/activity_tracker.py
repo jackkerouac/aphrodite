@@ -13,6 +13,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.models.media_activity import MediaActivityModel
+from app.models.badge_application import BadgeApplicationModel
+from app.models.poster_replacement import PosterReplacementModel
 from app.core.database import get_db_session
 from app.utils.version_manager import get_version
 from aphrodite_logging import get_logger
@@ -249,6 +251,280 @@ class ActivityTracker:
         activities = result.scalars().all()
         
         return [activity.to_dict() for activity in activities]
+    
+    async def log_badge_details(
+        self,
+        activity_id: str,
+        badge_types: List[str],
+        badge_settings_snapshot: Optional[Dict[str, Any]] = None,
+        badge_configuration_id: Optional[str] = None,
+        poster_source: Optional[str] = None,
+        original_poster_path: Optional[str] = None,
+        output_poster_path: Optional[str] = None,
+        intermediate_files: Optional[List[str]] = None,
+        badges_applied: Optional[List[Dict[str, Any]]] = None,
+        badges_failed: Optional[List[Dict[str, Any]]] = None,
+        final_poster_dimensions: Optional[str] = None,
+        final_file_size: Optional[int] = None,
+        badge_generation_time_ms: Optional[int] = None,
+        poster_processing_time_ms: Optional[int] = None,
+        total_processing_time_ms: Optional[int] = None,
+        poster_quality_score: Optional[float] = None,
+        compression_ratio: Optional[float] = None,
+        db_session: Optional[AsyncSession] = None
+    ) -> None:
+        """
+        Log detailed badge application data linked to an activity.
+        
+        Args:
+            activity_id: The parent activity ID
+            badge_types: List of badge types applied
+            badge_settings_snapshot: Settings used at time of application
+            badge_configuration_id: Reference to settings version
+            poster_source: Source of the poster ('original', 'jellyfin', 'cached', 'uploaded')
+            original_poster_path: Path to original poster used
+            output_poster_path: Path to final badged poster
+            intermediate_files: List of paths to intermediate files
+            badges_applied: Details of each badge applied
+            badges_failed: Details of any badges that failed
+            final_poster_dimensions: "width x height"
+            final_file_size: Final file size in bytes
+            badge_generation_time_ms: Time to generate badges
+            poster_processing_time_ms: Time to apply badges to poster
+            total_processing_time_ms: Total time including I/O
+            poster_quality_score: 0.00-1.00 quality assessment
+            compression_ratio: Original vs final file size ratio
+            db_session: Optional database session
+        """
+        try:
+            # Ensure activity_id is a proper UUID object
+            if isinstance(activity_id, str):
+                activity_uuid = uuid.UUID(activity_id)
+            else:
+                activity_uuid = activity_id
+            
+            # Verify the activity exists before creating badge application
+            if db_session:
+                # Check if activity exists
+                activity_check = await db_session.execute(
+                    select(MediaActivityModel).where(MediaActivityModel.id == activity_uuid)
+                )
+                existing_activity = activity_check.scalar_one_or_none()
+                if not existing_activity:
+                    raise ValueError(f"Activity {activity_uuid} not found")
+                    
+                # Create the badge application with proper session management
+                badge_application = BadgeApplicationModel(
+                    activity_id=activity_uuid,
+                    badge_types=badge_types,
+                    badge_settings_snapshot=badge_settings_snapshot,
+                    badge_configuration_id=badge_configuration_id,
+                    poster_source=poster_source,
+                    original_poster_path=original_poster_path,
+                    output_poster_path=output_poster_path,
+                    intermediate_files=intermediate_files or [],
+                    badges_applied=badges_applied or [],
+                    badges_failed=badges_failed or [],
+                    final_poster_dimensions=final_poster_dimensions,
+                    final_file_size=final_file_size,
+                    badge_generation_time_ms=badge_generation_time_ms,
+                    poster_processing_time_ms=poster_processing_time_ms,
+                    total_processing_time_ms=total_processing_time_ms,
+                    poster_quality_score=poster_quality_score,
+                    compression_ratio=compression_ratio
+                )
+                
+                # Add to session and commit in one transaction
+                db_session.add(badge_application)
+                await db_session.commit()
+                self.logger.info(f"Logged badge details for activity {activity_id}")
+                
+            else:
+                # Handle case where no session is provided
+                async for db in get_db_session():
+                    # Check if activity exists
+                    activity_check = await db.execute(
+                        select(MediaActivityModel).where(MediaActivityModel.id == activity_uuid)
+                    )
+                    existing_activity = activity_check.scalar_one_or_none()
+                    if not existing_activity:
+                        raise ValueError(f"Activity {activity_uuid} not found")
+                        
+                    badge_application = BadgeApplicationModel(
+                        activity_id=activity_uuid,
+                        badge_types=badge_types,
+                        badge_settings_snapshot=badge_settings_snapshot,
+                        badge_configuration_id=badge_configuration_id,
+                        poster_source=poster_source,
+                        original_poster_path=original_poster_path,
+                        output_poster_path=output_poster_path,
+                        intermediate_files=intermediate_files or [],
+                        badges_applied=badges_applied or [],
+                        badges_failed=badges_failed or [],
+                        final_poster_dimensions=final_poster_dimensions,
+                        final_file_size=final_file_size,
+                        badge_generation_time_ms=badge_generation_time_ms,
+                        poster_processing_time_ms=poster_processing_time_ms,
+                        total_processing_time_ms=total_processing_time_ms,
+                        poster_quality_score=poster_quality_score,
+                        compression_ratio=compression_ratio
+                    )
+                    
+                    db.add(badge_application)
+                    await db.commit()
+                    self.logger.info(f"Logged badge details for activity {activity_id}")
+                    break
+                    
+        except Exception as e:
+            self.logger.error(f"Failed to log badge details for activity {activity_id}: {e}", exc_info=True)
+            raise
+    
+    async def log_replacement_details(
+        self,
+        activity_id: str,
+        replacement_source: str,
+        source_poster_id: Optional[str] = None,
+        source_poster_url: Optional[str] = None,
+        search_query: Optional[str] = None,
+        search_results_count: Optional[int] = None,
+        original_poster_url: Optional[str] = None,
+        original_poster_cached_path: Optional[str] = None,
+        original_poster_dimensions: Optional[str] = None,
+        original_file_size: Optional[int] = None,
+        original_poster_hash: Optional[str] = None,
+        new_poster_dimensions: Optional[str] = None,
+        new_file_size: Optional[int] = None,
+        new_poster_hash: Optional[str] = None,
+        download_time_ms: Optional[int] = None,
+        upload_time_ms: Optional[int] = None,
+        jellyfin_upload_success: Optional[bool] = None,
+        tag_operations: Optional[Dict[str, Any]] = None,
+        jellyfin_response: Optional[Dict[str, Any]] = None,
+        quality_improvement_score: Optional[float] = None,
+        visual_similarity_score: Optional[float] = None,
+        user_rating: Optional[int] = None,
+        db_session: Optional[AsyncSession] = None
+    ) -> None:
+        """
+        Log detailed poster replacement data linked to an activity.
+        
+        Args:
+            activity_id: The parent activity ID
+            replacement_source: Source of the replacement ('tmdb', 'fanart_tv', 'manual_upload', 'local_file')
+            source_poster_id: External ID from source
+            source_poster_url: Original URL (if applicable)
+            search_query: Query used to find replacement
+            search_results_count: Number of options found
+            original_poster_url: Original Jellyfin poster URL
+            original_poster_cached_path: Path where original was cached
+            original_poster_dimensions: "width x height"
+            original_file_size: Original file size in bytes
+            original_poster_hash: SHA256 hash of original
+            new_poster_dimensions: "width x height"
+            new_file_size: New file size in bytes
+            new_poster_hash: SHA256 hash of new poster
+            download_time_ms: Time to download new poster
+            upload_time_ms: Time to upload to Jellyfin
+            jellyfin_upload_success: Successfully uploaded to Jellyfin
+            tag_operations: Tag additions/removals performed
+            jellyfin_response: Jellyfin API responses
+            quality_improvement_score: -1.00 to 1.00 (negative = worse)
+            visual_similarity_score: 0.00-1.00 similarity to original
+            user_rating: 1-5 user rating (if provided)
+            db_session: Optional database session
+        """
+        try:
+            # Ensure activity_id is a proper UUID object
+            if isinstance(activity_id, str):
+                activity_uuid = uuid.UUID(activity_id)
+            else:
+                activity_uuid = activity_id
+            
+            # Verify the activity exists before creating poster replacement
+            if db_session:
+                # Check if activity exists
+                activity_check = await db_session.execute(
+                    select(MediaActivityModel).where(MediaActivityModel.id == activity_uuid)
+                )
+                existing_activity = activity_check.scalar_one_or_none()
+                if not existing_activity:
+                    raise ValueError(f"Activity {activity_uuid} not found")
+                    
+                # Create the poster replacement with proper session management
+                poster_replacement = PosterReplacementModel(
+                    activity_id=activity_uuid,
+                    replacement_source=replacement_source,
+                    source_poster_id=source_poster_id,
+                    source_poster_url=source_poster_url,
+                    search_query=search_query,
+                    search_results_count=search_results_count,
+                    original_poster_url=original_poster_url,
+                    original_poster_cached_path=original_poster_cached_path,
+                    original_poster_dimensions=original_poster_dimensions,
+                    original_file_size=original_file_size,
+                    original_poster_hash=original_poster_hash,
+                    new_poster_dimensions=new_poster_dimensions,
+                    new_file_size=new_file_size,
+                    new_poster_hash=new_poster_hash,
+                    download_time_ms=download_time_ms,
+                    upload_time_ms=upload_time_ms,
+                    jellyfin_upload_success=jellyfin_upload_success,
+                    tag_operations=tag_operations or {},
+                    jellyfin_response=jellyfin_response or {},
+                    quality_improvement_score=quality_improvement_score,
+                    visual_similarity_score=visual_similarity_score,
+                    user_rating=user_rating
+                )
+                
+                # Add to session and commit in one transaction
+                db_session.add(poster_replacement)
+                await db_session.commit()
+                self.logger.info(f"Logged replacement details for activity {activity_id}")
+                
+            else:
+                # Handle case where no session is provided
+                async for db in get_db_session():
+                    # Check if activity exists
+                    activity_check = await db.execute(
+                        select(MediaActivityModel).where(MediaActivityModel.id == activity_uuid)
+                    )
+                    existing_activity = activity_check.scalar_one_or_none()
+                    if not existing_activity:
+                        raise ValueError(f"Activity {activity_uuid} not found")
+                        
+                    poster_replacement = PosterReplacementModel(
+                        activity_id=activity_uuid,
+                        replacement_source=replacement_source,
+                        source_poster_id=source_poster_id,
+                        source_poster_url=source_poster_url,
+                        search_query=search_query,
+                        search_results_count=search_results_count,
+                        original_poster_url=original_poster_url,
+                        original_poster_cached_path=original_poster_cached_path,
+                        original_poster_dimensions=original_poster_dimensions,
+                        original_file_size=original_file_size,
+                        original_poster_hash=original_poster_hash,
+                        new_poster_dimensions=new_poster_dimensions,
+                        new_file_size=new_file_size,
+                        new_poster_hash=new_poster_hash,
+                        download_time_ms=download_time_ms,
+                        upload_time_ms=upload_time_ms,
+                        jellyfin_upload_success=jellyfin_upload_success,
+                        tag_operations=tag_operations or {},
+                        jellyfin_response=jellyfin_response or {},
+                        quality_improvement_score=quality_improvement_score,
+                        visual_similarity_score=visual_similarity_score,
+                        user_rating=user_rating
+                    )
+                    
+                    db.add(poster_replacement)
+                    await db.commit()
+                    self.logger.info(f"Logged replacement details for activity {activity_id}")
+                    break
+                    
+        except Exception as e:
+            self.logger.error(f"Failed to log replacement details for activity {activity_id}: {e}", exc_info=True)
+            raise
 
 
 # Global service instance
