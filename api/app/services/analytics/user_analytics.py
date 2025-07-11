@@ -1,18 +1,15 @@
 """
-User Analytics Service
+User Analytics Service - Fixed Version
 
-Provides analytics for user-specific activity tracking including
-usage patterns, success rates, and activity summaries.
+Provides analytics for user-specific activity tracking using safe manual calculations.
 """
 
 from typing import Dict, List, Optional, Any
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_, desc
+from sqlalchemy import select, and_, desc
 from datetime import datetime, timedelta
 
 from app.models.media_activity import MediaActivityModel
-from app.models.badge_application import BadgeApplicationModel
-from app.models.poster_replacement import PosterReplacementModel
 
 
 class UserAnalyticsService:
@@ -26,8 +23,6 @@ class UserAnalyticsService:
     ) -> Dict[str, Any]:
         """
         Get comprehensive activity summary for a specific user.
-        
-        Returns activity counts, success rates, and usage patterns.
         """
         try:
             # Calculate date range
@@ -174,50 +169,70 @@ class UserAnalyticsService:
     ) -> List[Dict[str, Any]]:
         """
         Get the most active users in the specified time period.
+        Using manual calculation to avoid SQLAlchemy issues.
         """
         try:
             # Calculate date range
             end_date = datetime.utcnow()
             start_date = end_date - timedelta(days=days)
             
-            # Get user activity statistics
-            query = select(
-                MediaActivityModel.user_id,
-                func.count(MediaActivityModel.id).label('total_activities'),
-                func.sum(func.case([(MediaActivityModel.success == True, 1)], else_=0)).label('successful'),
-                func.sum(func.case([(MediaActivityModel.success == False, 1)], else_=0)).label('failed'),
-                func.avg(MediaActivityModel.processing_duration_ms).label('avg_processing_time')
-            ).where(
+            # Get all activities in the time range with user_id
+            query = select(MediaActivityModel).where(
                 and_(
                     MediaActivityModel.user_id.isnot(None),
                     MediaActivityModel.created_at >= start_date
                 )
-            ).group_by(
-                MediaActivityModel.user_id
-            ).order_by(
-                desc(func.count(MediaActivityModel.id))
-            ).limit(limit)
+            )
             
             result = await db_session.execute(query)
-            user_data = result.fetchall()
+            activities = result.scalars().all()
             
+            # Group by user_id and calculate stats manually
+            user_stats = {}
+            for activity in activities:
+                user_id = activity.user_id
+                if user_id not in user_stats:
+                    user_stats[user_id] = {
+                        "total": 0,
+                        "successful": 0,
+                        "failed": 0,
+                        "processing_times": []
+                    }
+                
+                user_stats[user_id]["total"] += 1
+                if activity.success is True:
+                    user_stats[user_id]["successful"] += 1
+                elif activity.success is False:
+                    user_stats[user_id]["failed"] += 1
+                
+                if activity.processing_duration_ms:
+                    user_stats[user_id]["processing_times"].append(activity.processing_duration_ms)
+            
+            # Convert to final format
             users = []
-            for row in user_data:
-                total = row.total_activities or 0
-                successful = row.successful or 0
-                failed = row.failed or 0
+            for user_id, stats in user_stats.items():
+                total = stats["total"]
+                successful = stats["successful"]
+                failed = stats["failed"]
+                processing_times = stats["processing_times"]
+                
+                avg_processing_time = None
+                if processing_times:
+                    avg_processing_time = round(sum(processing_times) / len(processing_times))
                 
                 users.append({
-                    "user_id": row.user_id,
+                    "user_id": user_id,
                     "total_activities": total,
                     "successful": successful,
                     "failed": failed,
                     "pending": total - successful - failed,
                     "success_rate": round(successful / total * 100, 2) if total > 0 else 0,
-                    "average_processing_time_ms": round(float(row.avg_processing_time)) if row.avg_processing_time else None
+                    "average_processing_time_ms": avg_processing_time
                 })
             
-            return users
+            # Sort by total activities descending and limit
+            users.sort(key=lambda x: x["total_activities"], reverse=True)
+            return users[:limit]
             
         except Exception as e:
             raise Exception(f"Failed to retrieve top users: {str(e)}")

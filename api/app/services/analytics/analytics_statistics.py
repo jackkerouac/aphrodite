@@ -1,7 +1,7 @@
 """
-Analytics Statistics Service
+Analytics Statistics Service - Fixed Version
 
-Provides aggregated statistics and analysis capabilities for activity tracking data.
+Provides aggregated statistics using safe SQLAlchemy patterns.
 """
 
 from typing import Dict, List, Optional, Any
@@ -29,17 +29,61 @@ class AnalyticsStatisticsService:
             # Build the same filters as in search
             filters = self._build_filters(search_params)
             
-            # Get basic statistics
-            stats = await self._get_basic_statistics(db_session, filters)
+            # Get all matching activities and calculate stats manually to avoid SQLAlchemy issues
+            query = select(MediaActivityModel)
+            if filters:
+                query = query.where(and_(*filters))
             
-            # Get activity type breakdown
-            type_breakdown = await self._get_activity_type_breakdown(db_session, filters)
+            result = await db_session.execute(query)
+            activities = result.scalars().all()
             
-            # Format results
-            total_count = stats.total_count or 0
-            successful_count = stats.successful_count or 0
-            failed_count = stats.failed_count or 0
-            pending_count = stats.pending_count or 0
+            # Calculate basic statistics manually
+            total_count = len(activities)
+            successful_count = sum(1 for a in activities if a.success is True)
+            failed_count = sum(1 for a in activities if a.success is False)
+            pending_count = sum(1 for a in activities if a.success is None)
+            
+            # Performance stats
+            processing_times = [a.processing_duration_ms for a in activities if a.processing_duration_ms]
+            avg_processing_time = sum(processing_times) / len(processing_times) if processing_times else None
+            
+            # Scope stats
+            unique_users = len(set(a.user_id for a in activities if a.user_id))
+            unique_media_items = len(set(a.media_id for a in activities if a.media_id))
+            
+            # Date range
+            created_times = [a.created_at for a in activities if a.created_at]
+            earliest_activity = min(created_times) if created_times else None
+            latest_activity = max(created_times) if created_times else None
+            
+            # Activity type breakdown
+            type_breakdown = {}
+            for activity in activities:
+                activity_type = activity.activity_type
+                if activity_type not in type_breakdown:
+                    type_breakdown[activity_type] = {
+                        "total": 0,
+                        "successful": 0,
+                        "failed": 0
+                    }
+                
+                type_breakdown[activity_type]["total"] += 1
+                if activity.success is True:
+                    type_breakdown[activity_type]["successful"] += 1
+                elif activity.success is False:
+                    type_breakdown[activity_type]["failed"] += 1
+            
+            # Convert to list format
+            activity_type_breakdown = [
+                {
+                    "activity_type": activity_type,
+                    "total": stats["total"],
+                    "successful": stats["successful"],
+                    "failed": stats["failed"],
+                    "success_rate": round(stats["successful"] / stats["total"] * 100, 2) if stats["total"] > 0 else 0
+                }
+                for activity_type, stats in type_breakdown.items()
+            ]
             
             return {
                 "success": True,
@@ -52,24 +96,15 @@ class AnalyticsStatisticsService:
                         "success_rate": round(successful_count / total_count * 100, 2) if total_count > 0 else 0
                     },
                     "performance": {
-                        "average_processing_time_ms": round(float(stats.avg_processing_time)) if stats.avg_processing_time else None
+                        "average_processing_time_ms": round(avg_processing_time) if avg_processing_time else None
                     },
                     "scope": {
-                        "unique_users": stats.unique_users or 0,
-                        "unique_media_items": stats.unique_media_items or 0,
-                        "earliest_activity": stats.earliest_activity.isoformat() if stats.earliest_activity else None,
-                        "latest_activity": stats.latest_activity.isoformat() if stats.latest_activity else None
+                        "unique_users": unique_users,
+                        "unique_media_items": unique_media_items,
+                        "earliest_activity": earliest_activity.isoformat() if earliest_activity else None,
+                        "latest_activity": latest_activity.isoformat() if latest_activity else None
                     },
-                    "activity_type_breakdown": [
-                        {
-                            "activity_type": row.activity_type,
-                            "total": row.count,
-                            "successful": row.successful or 0,
-                            "failed": row.failed or 0,
-                            "success_rate": round((row.successful or 0) / row.count * 100, 2) if row.count > 0 else 0
-                        }
-                        for row in type_breakdown
-                    ]
+                    "activity_type_breakdown": activity_type_breakdown
                 },
                 "search_params": search_params
             }
@@ -119,42 +154,6 @@ class AnalyticsStatisticsService:
                 pass
         
         return filters
-    
-    async def _get_basic_statistics(self, db_session: AsyncSession, filters: List):
-        """Get basic aggregated statistics"""
-        stats_query = select(
-            func.count(MediaActivityModel.id).label('total_count'),
-            func.sum(func.case([(MediaActivityModel.success == True, 1)], else_=0)).label('successful_count'),
-            func.sum(func.case([(MediaActivityModel.success == False, 1)], else_=0)).label('failed_count'),
-            func.sum(func.case([(MediaActivityModel.success.is_(None), 1)], else_=0)).label('pending_count'),
-            func.avg(MediaActivityModel.processing_duration_ms).label('avg_processing_time'),
-            func.min(MediaActivityModel.created_at).label('earliest_activity'),
-            func.max(MediaActivityModel.created_at).label('latest_activity'),
-            func.count(MediaActivityModel.user_id.distinct()).label('unique_users'),
-            func.count(MediaActivityModel.media_id.distinct()).label('unique_media_items')
-        )
-        
-        if filters:
-            stats_query = stats_query.where(and_(*filters))
-        
-        result = await db_session.execute(stats_query)
-        return result.fetchone()
-    
-    async def _get_activity_type_breakdown(self, db_session: AsyncSession, filters: List):
-        """Get breakdown by activity type"""
-        type_breakdown_query = select(
-            MediaActivityModel.activity_type,
-            func.count(MediaActivityModel.id).label('count'),
-            func.sum(func.case([(MediaActivity_Model.success == True, 1)], else_=0)).label('successful'),
-            func.sum(func.case([(MediaActivity_Model.success == False, 1)], else_=0)).label('failed')
-        )
-        
-        if filters:
-            type_breakdown_query = type_breakdown_query.where(and_(*filters))
-        
-        type_breakdown_query = type_breakdown_query.group_by(MediaActivityModel.activity_type)
-        result = await db_session.execute(type_breakdown_query)
-        return result.fetchall()
 
 
 def get_analytics_statistics_service() -> AnalyticsStatisticsService:

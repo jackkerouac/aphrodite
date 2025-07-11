@@ -1,8 +1,7 @@
 """
-Batch Analytics Service
+Batch Analytics Service - Fixed Version
 
-Provides analytics for batch operations including aggregated stats,
-performance metrics, and parent-child activity relationships.
+Provides analytics for batch operations using modern SQLAlchemy patterns.
 """
 
 from typing import Dict, List, Optional, Any
@@ -229,57 +228,77 @@ class BatchAnalyticsService:
     ) -> List[Dict[str, Any]]:
         """
         Get summary of recent batch operations.
+        
+        Using modern SQLAlchemy filter approach instead of func.case
         """
         try:
             # Calculate date range
             end_date = datetime.utcnow()
             start_date = end_date - timedelta(days=days)
             
-            # Get recent batch jobs
-            query = select(
-                MediaActivityModel.batch_job_id,
-                func.count(MediaActivityModel.id).label('total_activities'),
-                func.sum(func.case([(MediaActivityModel.success == True, 1)], else_=0)).label('successful'),
-                func.sum(func.case([(MediaActivityModel.success == False, 1)], else_=0)).label('failed'),
-                func.min(MediaActivityModel.created_at).label('start_time'),
-                func.max(MediaActivityModel.completed_at).label('end_time'),
-                func.avg(MediaActivityModel.processing_duration_ms).label('avg_processing_time')
-            ).where(
+            # Use subqueries for counting with filters - more reliable approach
+            base_query = select(MediaActivityModel).where(
                 and_(
                     MediaActivityModel.batch_job_id.isnot(None),
                     MediaActivityModel.created_at >= start_date
                 )
-            ).group_by(
-                MediaActivityModel.batch_job_id
-            ).order_by(
-                desc(func.min(MediaActivityModel.created_at))
-            ).limit(limit)
+            )
             
-            result = await db_session.execute(query)
-            batch_data = result.fetchall()
+            # Get the distinct batch job IDs first
+            batch_ids_query = select(MediaActivityModel.batch_job_id.distinct()).where(
+                and_(
+                    MediaActivityModel.batch_job_id.isnot(None),
+                    MediaActivityModel.created_at >= start_date
+                )
+            ).order_by(desc(MediaActivityModel.batch_job_id)).limit(limit)
+            
+            batch_ids_result = await db_session.execute(batch_ids_query)
+            batch_ids = [row[0] for row in batch_ids_result.fetchall()]
             
             batches = []
-            for row in batch_data:
-                total = row.total_activities or 0
-                successful = row.successful or 0
-                failed = row.failed or 0
+            
+            # For each batch, calculate stats separately to avoid SQLAlchemy issues
+            for batch_id in batch_ids:
+                batch_activities_query = select(MediaActivityModel).where(
+                    MediaActivityModel.batch_job_id == batch_id
+                )
+                
+                result = await db_session.execute(batch_activities_query)
+                activities = result.scalars().all()
+                
+                if not activities:
+                    continue
+                
+                # Calculate stats manually - more reliable
+                total = len(activities)
+                successful = sum(1 for a in activities if a.success is True)
+                failed = sum(1 for a in activities if a.success is False)
+                
+                start_time = min(a.created_at for a in activities if a.created_at)
+                end_time = max(a.completed_at for a in activities if a.completed_at)
                 
                 batch_duration = None
-                if row.start_time and row.end_time:
-                    batch_duration = int((row.end_time - row.start_time).total_seconds() * 1000)
+                if start_time and end_time:
+                    batch_duration = int((end_time - start_time).total_seconds() * 1000)
+                
+                processing_times = [a.processing_duration_ms for a in activities if a.processing_duration_ms]
+                avg_processing_time = sum(processing_times) / len(processing_times) if processing_times else None
                 
                 batches.append({
-                    "batch_job_id": row.batch_job_id,
+                    "batch_job_id": batch_id,
                     "total_activities": total,
                     "successful": successful,
                     "failed": failed,
                     "pending": total - successful - failed,
                     "success_rate": round(successful / total * 100, 2) if total > 0 else 0,
-                    "start_time": row.start_time.isoformat() if row.start_time else None,
-                    "end_time": row.end_time.isoformat() if row.end_time else None,
+                    "start_time": start_time.isoformat() if start_time else None,
+                    "end_time": end_time.isoformat() if end_time else None,
                     "batch_duration_ms": batch_duration,
-                    "average_processing_time_ms": round(float(row.avg_processing_time)) if row.avg_processing_time else None
+                    "average_processing_time_ms": round(avg_processing_time) if avg_processing_time else None
                 })
+            
+            # Sort by start time descending
+            batches.sort(key=lambda x: x["start_time"] or "", reverse=True)
             
             return batches
             

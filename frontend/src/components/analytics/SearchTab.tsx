@@ -81,11 +81,11 @@ export function SearchTab({
                 <div>
                   <label className="text-sm font-medium mb-2 block">Activity Types</label>
                   <Select
-                    value={searchParams.activity_types?.[0] || ''}
+                    value={searchParams.activity_types?.[0] || 'all'}
                     onValueChange={(value) => 
                       setSearchParams(prev => ({
                         ...prev, 
-                        activity_types: value ? [value] : undefined
+                        activity_types: value === 'all' ? undefined : [value]
                       }))
                     }
                   >
@@ -93,7 +93,7 @@ export function SearchTab({
                       <SelectValue placeholder="All types" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All types</SelectItem>
+                      <SelectItem value="all">All types</SelectItem>
                       {suggestions.activity_types?.map((type: string) => (
                         <SelectItem key={type} value={type}>
                           {type.replace('_', ' ')}
@@ -106,11 +106,11 @@ export function SearchTab({
                 <div>
                   <label className="text-sm font-medium mb-2 block">Status</label>
                   <Select
-                    value={searchParams.statuses?.[0] || ''}
+                    value={searchParams.statuses?.[0] || 'all'}
                     onValueChange={(value) => 
                       setSearchParams(prev => ({
                         ...prev, 
-                        statuses: value ? [value] : undefined
+                        statuses: value === 'all' ? undefined : [value]
                       }))
                     }
                   >
@@ -118,7 +118,7 @@ export function SearchTab({
                       <SelectValue placeholder="All statuses" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All statuses</SelectItem>
+                      <SelectItem value="all">All statuses</SelectItem>
                       {suggestions.statuses?.map((status: string) => (
                         <SelectItem key={status} value={status}>
                           {status}
@@ -131,11 +131,11 @@ export function SearchTab({
                 <div>
                   <label className="text-sm font-medium mb-2 block">Success</label>
                   <Select
-                    value={searchParams.success !== undefined ? searchParams.success.toString() : ''}
+                    value={searchParams.success !== undefined ? searchParams.success.toString() : 'all'}
                     onValueChange={(value) => 
                       setSearchParams(prev => ({
                         ...prev, 
-                        success: value === '' ? undefined : value === 'true'
+                        success: value === 'all' ? undefined : value === 'true'
                       }))
                     }
                   >
@@ -143,7 +143,7 @@ export function SearchTab({
                       <SelectValue placeholder="All results" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All results</SelectItem>
+                      <SelectItem value="all">All results</SelectItem>
                       <SelectItem value="true">Successful only</SelectItem>
                       <SelectItem value="false">Failed only</SelectItem>
                     </SelectContent>
