@@ -1,7 +1,7 @@
 {
   "metadata": {
     "source": "Crunchyroll Anime Awards with TMDb integration",
-    "created_date": "2025-06-08T08:47:08.979606",
+    "created_date": "2025-07-11T20:23:17.776047",
     "note": "Enhanced data with TMDb IDs for Aphrodite integration",
     "total_ceremonies": 9,
     "years_covered": "2017-2025",
@@ -160,7 +160,7 @@
       ],
       "identifiers": {
         "tmdb_tv_id": 100136,
-        "tmdb_movie_id": 18897,
+        "tmdb_movie_id": 1244492,
         "tmdb_tv_data": {
           "tmdb_id": 100136,
           "tmdb_name": "Never Look Back",
@@ -168,10 +168,10 @@
           "overview": ""
         },
         "tmdb_movie_data": {
-          "tmdb_id": 18897,
-          "tmdb_name": "Don't Look Back",
-          "release_date": "2009-06-03",
-          "overview": "Panic attacks and memory loss signal the plight of a writer whose body is inexplicably being taken over by another woman."
+          "tmdb_id": 1244492,
+          "tmdb_name": "Look Back",
+          "release_date": "2024-06-28",
+          "overview": "Popular, outgoing Fujino is celebrated by her classmates for her funny comics in the class newspaper. One day, her teacher asks her to share the space with Kyomoto, a truant recluse whose beautiful artwork sparks a competitive fervor in Fujino. What starts as jealousy transforms when Fujino realizes their shared passion for drawing."
         }
       },
       "search_variants": [
@@ -224,11 +224,11 @@
         "tmdb_movie_data": null
       },
       "search_variants": [
+        "Demon Slayer",
         "Kimetsu no Yaiba",
-        "Demon Slayer  Kimetsu no Yaiba",
         "Demon Slayer: Kimetsu no Yaiba",
-        "Demon Slayer Kimetsu no Yaiba",
-        "Demon Slayer"
+        "Demon Slayer  Kimetsu no Yaiba",
+        "Demon Slayer Kimetsu no Yaiba"
       ]
     },
     "Frieren: Beyond Journey's End": {
@@ -247,14 +247,14 @@
           "tmdb_id": 209867,
           "tmdb_name": "Frieren: Beyond Journey's End",
           "first_air_date": "2023-09-29",
-          "overview": "After the party of heroes defeated the Demon King, they restored peace to the land and returned to lives of solitude. Generations pass, and the elven mage Frieren comes face to face with humanity’s mortality. She takes on a new apprentice and promises to fulfill old friends’ dying wishes. Can an elven mind make peace with the nature of life and death? Frieren embarks on her quest to find out."
+          "overview": "Decades after her party defeated the Demon King, an old friend's funeral launches the elf wizard Frieren on a journey of self-discovery."
         },
         "tmdb_movie_data": null
       },
       "search_variants": [
-        "Frieren  Beyond Journey's End",
+        "Frieren: Beyond Journey's End",
         "Frieren Beyond Journey's End",
-        "Frieren: Beyond Journey's End"
+        "Frieren  Beyond Journey's End"
       ]
     },
     "Makeine: Too Many Losing Heroines!": {
@@ -278,11 +278,11 @@
         "tmdb_movie_data": null
       },
       "search_variants": [
-        "Makeine  Too Many Losing Heroines",
         "Too Many Losing Heroines",
         "Makeine",
-        "Makeine Too Many Losing Heroines",
-        "Makeine: Too Many Losing Heroines!"
+        "Makeine: Too Many Losing Heroines!",
+        "Makeine  Too Many Losing Heroines",
+        "Makeine Too Many Losing Heroines"
       ]
     },
     "DAN DA DAN": {
@@ -311,8 +311,8 @@
         "tmdb_movie_data": null
       },
       "search_variants": [
-        "Dandadan",
-        "DAN DA DAN"
+        "DAN DA DAN",
+        "Dandadan"
       ]
     },
     "Attack on Titan": {
@@ -395,9 +395,9 @@
         "tmdb_movie_data": null
       },
       "search_variants": [
-        "Cyberpunk  Edgerunners",
+        "Cyberpunk Edgerunners",
         "Cyberpunk: Edgerunners",
-        "Cyberpunk Edgerunners"
+        "Cyberpunk  Edgerunners"
       ]
     },
     "My Hero Academia": {
@@ -445,13 +445,13 @@
         }
       ],
       "identifiers": {
-        "tmdb_tv_id": 292370,
+        "tmdb_tv_id": 65930,
         "tmdb_movie_id": null,
         "tmdb_tv_data": {
-          "tmdb_id": 292370,
-          "tmdb_name": "Boku no Hero Academia Memories",
-          "first_air_date": "2024-04-06",
-          "overview": ""
+          "tmdb_id": 65930,
+          "tmdb_name": "My Hero Academia",
+          "first_air_date": "2016-04-03",
+          "overview": "For his entire life, Izuku has dreamed of being a hero—an ambitious goal for anyone, but an especially challenging one for a boy without superpowers. That’s right: in a world where 80% of the population has some sort of special gift, Izuku was unlucky enough to be born completely normal. But that won’t stop him from enrolling in one of the most prestigious hero academies in the world to learn what it truly means to be a hero."
         },
         "tmdb_movie_data": null
       },
@@ -506,7 +506,7 @@
           "tmdb_id": 68129,
           "tmdb_name": "Yuri!!! on Ice",
           "first_air_date": "2016-10-06",
-          "overview": "Yuuri Katsuki carried all of Japan's hopes on his shoulders to win at the Gran Prix Finale ice skating competition, but suffered a crushing defeat. He returns home to Kyushu and half feels like he wants to retire, and half feels like he wants to continue ice skating. Suddenly the five-time consecutive world championship ice skater Victor Nikiforov appears before him with Yuri Plisetsky, a young Russian figure skater who is already defeating his seniors. Victor and both Yuris take up the challenge on an unprecedented Gran Prix series."
+          "overview": "While on the verge of retirement, skater Yuri Katsuki meets Yuri Plisetsky and Victor Nikiforov, two skaters who rekindle his competitive fire."
         },
         "tmdb_movie_data": null
       },
