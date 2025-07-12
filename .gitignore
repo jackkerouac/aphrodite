@@ -146,6 +146,8 @@ docker-compose.datredis.yml
 docker-compose.local.yml
 force-rebuild.bat
 debug_omdb_test.py
+debug_scripts/
+debug_scripts/*
 
 # Ignore specific old test files but not our new test scripts
 test/
