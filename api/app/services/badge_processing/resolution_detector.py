@@ -328,65 +328,90 @@ class EnhancedResolutionDetector:
             video_stream.get('ColorPrimaries', ''),
             video_stream.get('Profile', ''),
             video_stream.get('DisplayTitle', ''),
-            video_stream.get('Title', '')
+            video_stream.get('Title', ''),
+            video_stream.get('Comment', ''),      # NEW
+            video_stream.get('PixelFormat', ''),  # NEW
+            video_stream.get('Codec', ''),        # NEW
+            video_stream.get('Description', '')   # NEW
         ]
         
         # Combine all fields for pattern matching
         combined_text = ' '.join(str(field) for field in check_fields if field).upper()
         
-        # Check against HDR patterns
+        # Log what we're checking for debugging
+        self.logger.debug(f"Checking for HDR in: '{combined_text}'")
+        
+        # Check against HDR patterns (but exclude HDR10+ which should be detected separately)
         for pattern in self.patterns.hdr_patterns:
             if re.search(pattern.upper(), combined_text):
-                self.logger.debug(f"HDR detected via pattern: {pattern}")
-                return True
+                # Make sure this isn't HDR10+ or Dolby Vision
+                if not self._detect_hdr_plus(video_stream) and not self._detect_dolby_vision(video_stream):
+                    self.logger.info(f"✅ HDR detected via pattern: '{pattern}' in '{combined_text}'")
+                    return True
         
         # Check bit depth (10+ bit often indicates HDR)
         bit_depth = self._extract_bit_depth(video_stream)
         if bit_depth and bit_depth >= 10:
             # Additional checks to avoid false positives
-            if any(keyword in combined_text for keyword in ['BT2020', 'PQ', 'HLG']):
-                self.logger.debug(f"HDR detected via {bit_depth}-bit + color space")
-                return True
+            if any(keyword in combined_text for keyword in ['BT2020', 'PQ', 'HLG', 'REC2020']):
+                if not self._detect_hdr_plus(video_stream) and not self._detect_dolby_vision(video_stream):
+                    self.logger.info(f"✅ HDR detected via {bit_depth}-bit + color space")
+                    return True
         
+        self.logger.debug(f"❌ No HDR patterns found in: '{combined_text}'")
         return False
     
     def _detect_dolby_vision(self, video_stream: Dict[str, Any]) -> bool:
-        """Enhanced Dolby Vision detection"""
+        """Enhanced Dolby Vision detection with comprehensive field checking"""
         check_fields = [
             video_stream.get('VideoRange', ''),
             video_stream.get('Profile', ''),
             video_stream.get('DisplayTitle', ''),
             video_stream.get('Title', ''),
-            video_stream.get('Codec', '')
+            video_stream.get('Codec', ''),
+            video_stream.get('Comment', ''),      # NEW
+            video_stream.get('Description', ''),  # NEW
+            video_stream.get('PixelFormat', '')   # NEW
         ]
         
         combined_text = ' '.join(str(field) for field in check_fields if field).upper()
+        
+        # Log what we're checking for debugging
+        self.logger.debug(f"Checking for Dolby Vision in: '{combined_text}'")
         
         # Check against Dolby Vision patterns
         for pattern in self.patterns.dv_patterns:
             if re.search(pattern.upper(), combined_text):
-                self.logger.debug(f"Dolby Vision detected via pattern: {pattern}")
+                self.logger.info(f"✅ Dolby Vision detected via pattern: '{pattern}' in '{combined_text}'")
                 return True
         
+        self.logger.debug(f"❌ No Dolby Vision patterns found in: '{combined_text}'")
         return False
     
     def _detect_hdr_plus(self, video_stream: Dict[str, Any]) -> bool:
-        """Detect HDR10+ content"""
+        """Detect HDR10+ content with enhanced field checking"""
         check_fields = [
             video_stream.get('VideoRange', ''),
             video_stream.get('Profile', ''),
             video_stream.get('DisplayTitle', ''),
-            video_stream.get('Title', '')
+            video_stream.get('Title', ''),
+            video_stream.get('Comment', ''),      # NEW
+            video_stream.get('Description', ''),  # NEW
+            video_stream.get('Codec', '')         # NEW
         ]
         
         combined_text = ' '.join(str(field) for field in check_fields if field).upper()
         
+        # Log what we're checking for debugging
+        self.logger.debug(f"Checking for HDR10+ in: '{combined_text}'")
+        
         # Check against HDR10+ patterns
         for pattern in self.patterns.hdr_plus_patterns:
             if re.search(pattern.upper(), combined_text):
-                self.logger.debug(f"HDR10+ detected via pattern: {pattern}")
+                self.logger.info(f"✅ HDR10+ detected via pattern: '{pattern}' in '{combined_text}'")
                 return True
         
+        self.logger.debug(f"❌ No HDR10+ patterns found in: '{combined_text}'")
         return False
     
     def _extract_codec(self, video_stream: Dict[str, Any]) -> Optional[str]:

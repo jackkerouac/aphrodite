@@ -120,6 +120,23 @@ class EnhancedAudioDetector:
         channels = audio_stream.get('Channels', 0)
         bitrate = self._extract_bitrate(audio_stream) or 0
         
+        # Check for commentary or secondary tracks (heavy penalty)
+        title = audio_stream.get('Title', '').upper()
+        display_title = audio_stream.get('DisplayTitle', '').upper()
+        combined_title = title + ' ' + display_title
+        
+        # Heavy penalties for unwanted tracks
+        unwanted_keywords = [
+            'COMMENTARY', 'DIRECTOR', 'SUBTITLE', 'SECONDARY', 'COMMENT',
+            'DESCRIPTIVE', 'DESCRIPTION', 'NARRATOR', 'AUDIO DESCRIPTION'
+        ]
+        
+        for keyword in unwanted_keywords:
+            if keyword in combined_title:
+                score -= 2000  # Heavy penalty
+                self.logger.debug(f"Audio track penalty for '{keyword}' in '{combined_title}'")
+                break
+        
         # Codec scoring (higher is better)
         codec_scores = {
             'TRUEHD': 1000,  # Dolby TrueHD (lossless)
@@ -143,11 +160,19 @@ class EnhancedAudioDetector:
                 score += codec_score
                 break
         
-        # Object-based audio bonus (Atmos, DTS-X)
-        if 'ATMOS' in profile or 'ATMOS' in codec:
-            score += 500  # Atmos bonus
-        elif 'DTS-X' in profile or 'DTSX' in codec:
-            score += 450  # DTS-X bonus
+        # Object-based audio bonus (Atmos, DTS-X) - check more fields
+        all_fields = ' '.join([
+            codec, profile, title, display_title,
+            audio_stream.get('Comment', ''),
+            audio_stream.get('Description', '')
+        ]).upper()
+        
+        if any(keyword in all_fields for keyword in ['ATMOS', 'DOLBY ATMOS']):
+            score += 800  # Highest bonus for Atmos
+            self.logger.debug(f"Atmos bonus applied: +800")
+        elif any(keyword in all_fields for keyword in ['DTS-X', 'DTSX', 'DTS:X']):
+            score += 750  # High bonus for DTS-X
+            self.logger.debug(f"DTS-X bonus applied: +750")
         
         # Channel count bonus
         if channels >= 8:
@@ -171,18 +196,24 @@ class EnhancedAudioDetector:
     
     def _detect_audio_format(self, audio_stream: Dict[str, Any]) -> AudioFormat:
         """Enhanced audio format detection using multiple metadata fields"""
+        self.logger.debug("Starting audio format detection...")
+        
         # Check for advanced formats first (most specific)
         if self._detect_atmos(audio_stream):
+            self.logger.info("Detected Dolby Atmos (highest priority)")
             return AudioFormat.DOLBY_ATMOS
         
         if self._detect_dts_x(audio_stream):
+            self.logger.info("Detected DTS-X (high priority)")
             return AudioFormat.DTS_X
         
         # Check codec-based detection
         codec = audio_stream.get('Codec', '').upper()
+        self.logger.debug(f"Checking codec-based detection for: '{codec}'")
         
         # TrueHD detection
         if 'TRUEHD' in codec or codec == 'MLP':
+            self.logger.info(f"Detected TrueHD via codec: '{codec}'")
             return AudioFormat.DOLBY_TRUEHD
         
         # DTS variants
@@ -214,45 +245,61 @@ class EnhancedAudioDetector:
         return AudioFormat.UNKNOWN
     
     def _detect_atmos(self, audio_stream: Dict[str, Any]) -> bool:
-        """Enhanced Dolby Atmos detection"""
+        """Enhanced Dolby Atmos detection with comprehensive field checking"""
         # Check multiple fields for Atmos indicators
         check_fields = [
             audio_stream.get('Profile', ''),
             audio_stream.get('Title', ''),
             audio_stream.get('DisplayTitle', ''),
             audio_stream.get('Codec', ''),
-            audio_stream.get('Language', '')
+            audio_stream.get('Language', ''),
+            audio_stream.get('Comment', ''),        # NEW
+            audio_stream.get('Description', ''),    # NEW
+            audio_stream.get('ChannelLayout', ''),  # NEW
+            audio_stream.get('CodecDescription', '') # NEW
         ]
         
         combined_text = ' '.join(str(field) for field in check_fields if field).upper()
         
+        # Log what we're checking for debugging
+        self.logger.debug(f"Checking for Atmos in: '{combined_text}'")
+        
         # Check against Atmos patterns
         for pattern in self.patterns.atmos_patterns:
             if re.search(pattern.upper(), combined_text):
-                self.logger.debug(f"Atmos detected via pattern: {pattern}")
+                self.logger.info(f"Atmos detected via pattern: '{pattern}' in '{combined_text}'")
                 return True
         
+        self.logger.debug(f"No Atmos patterns found in: '{combined_text}'")
         return False
     
     def _detect_dts_x(self, audio_stream: Dict[str, Any]) -> bool:
-        """Enhanced DTS-X detection"""
+        """Enhanced DTS-X detection with comprehensive field checking"""
         # Check multiple fields for DTS-X indicators
         check_fields = [
             audio_stream.get('Profile', ''),
             audio_stream.get('Title', ''),
             audio_stream.get('DisplayTitle', ''),
             audio_stream.get('Codec', ''),
-            audio_stream.get('Language', '')
+            audio_stream.get('Language', ''),
+            audio_stream.get('Comment', ''),        # NEW
+            audio_stream.get('Description', ''),    # NEW
+            audio_stream.get('ChannelLayout', ''),  # NEW
+            audio_stream.get('CodecDescription', '') # NEW
         ]
         
         combined_text = ' '.join(str(field) for field in check_fields if field).upper()
         
+        # Log what we're checking for debugging
+        self.logger.debug(f"Checking for DTS-X in: '{combined_text}'")
+        
         # Check against DTS-X patterns
         for pattern in self.patterns.dts_x_patterns:
             if re.search(pattern.upper(), combined_text):
-                self.logger.debug(f"DTS-X detected via pattern: {pattern}")
+                self.logger.info(f"DTS-X detected via pattern: '{pattern}' in '{combined_text}'")
                 return True
         
+        self.logger.debug(f"No DTS-X patterns found in: '{combined_text}'")
         return False
     
     def _detect_lossless(self, audio_stream: Dict[str, Any]) -> bool:

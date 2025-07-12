@@ -123,11 +123,13 @@ class AudioImageManager:
         # Primary candidates based on detected format
         if audio_info.format.value == "dolby_atmos":
             candidates.extend([
-                "truehd_atmos", "atmos", "truehd", "dolby_digital_plus", "dolby_digital"
+                "truehd_atmos", "atmos", "dolby_atmos",  # Atmos-specific first
+                "truehd", "dolby_digital_plus", "dolby_digital"  # Fallbacks
             ])
         elif audio_info.format.value == "dts_x":
             candidates.extend([
-                "dts_x", "dts_hd_ma", "dts_hd", "dts"
+                "dts_x", "dtsx",  # DTS-X specific first
+                "dts_hd_ma", "dts_hd", "dts"  # Fallbacks
             ])
         elif audio_info.format.value == "dolby_truehd":
             candidates.extend([

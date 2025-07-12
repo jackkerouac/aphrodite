@@ -129,15 +129,20 @@ class DetectionPatterns:
         """Default detection patterns based on industry standards"""
         return cls(
             hdr_patterns=[
-                "HDR", "HDR10", "BT2020", "BT.2020",
-                "PQ", "ST2084", "ST.2084", "HLG", "ARIB"
+                "HDR", "HDR10", "BT2020", "BT.2020", "PQ", "ST2084", "ST.2084", 
+                "HLG", "ARIB", "HIGH DYNAMIC RANGE", "WIDE COLOR GAMUT", "WCG",
+                "REC2020", "REC.2020", "10BIT", "10-BIT", "SMPTE2084",
+                "HDR_", "_HDR", "HDR.", ".HDR", "HDR10_", "_HDR10"
             ],
             dv_patterns=[
-                "DV", "DOLBY VISION", "DVHE", "DVH1", 
-                "DOLBY.VISION", "DV.PROFILE"
+                "DV", "DOLBY VISION", "DVHE", "DVH1", "DOLBY.VISION", "DV.PROFILE",
+                "DOLBYVISION", "DV_", "_DV", "DV.", ".DV", "DVISION",
+                "DOLBY_VISION", "DV PROFILE", "PROFILE.DV"
             ],
             hdr_plus_patterns=[
-                "HDR10+", "HDR10PLUS", "PLUS", "ST2094"
+                "HDR10+", "HDR10PLUS", "HDR10.PLUS", "PLUS", "ST2094",
+                "DYNAMIC HDR", "ENHANCED HDR", "TONE MAPPING", "HDR10_PLUS",
+                "HDR10 PLUS", "HDR_PLUS", "HDRPLUS", "HDR+"
             ]
         )
 

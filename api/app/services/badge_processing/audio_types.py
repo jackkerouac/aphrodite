@@ -146,14 +146,19 @@ class DetectionPatterns:
         """Default detection patterns based on industry standards"""
         return cls(
             atmos_patterns=[
-                "ATMOS", "DOLBY ATMOS", "TRUEHD ATMOS", 
-                "TrueHD Atmos", "Atmos", "atmos"
+                "ATMOS", "DOLBY ATMOS", "TRUEHD ATMOS", "TrueHD Atmos", 
+                "Atmos", "atmos", "ATMOS TrueHD", "TrueHD+Atmos",
+                "DD+ ATMOS", "DDPLUS ATMOS", "EAC3 ATMOS",
+                "OBJECT", "SPATIAL", "3D AUDIO", "OVERHEAD",
+                "ATMOS TRUEHD", "DOLBY.ATMOS", "DolbyAtmos"
             ],
             dts_x_patterns=[
-                "DTS-X", "DTS:X", "DTSX", "DTS X", "dts-x"
+                "DTS-X", "DTS:X", "DTSX", "DTS X", "dts-x",
+                "DTS.X", "DTS_X", "DTSX_", "DTS-X_"
             ],
             lossless_patterns=[
-                "TrueHD", "TRUEHD", "DTS-HD MA", "DTSHDMA", "FLAC", "PCM"
+                "TrueHD", "TRUEHD", "DTS-HD MA", "DTSHDMA", "FLAC", "PCM",
+                "MLP", "LPCM", "DTS-MA", "DTSMA"
             ]
         )
 
