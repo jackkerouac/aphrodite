@@ -33,7 +33,7 @@ from app.middleware.logging import LoggingMiddleware
 from app.middleware.correlation import CorrelationMiddleware
 
 # Import routes
-from app.routes import health, media, jobs, config, system, maintenance, preview, poster_manager, poster_replacement, image_proxy, schedules, analytics, resolution_diagnostics, audio_diagnostics, jellyfin_diagnostics, infrastructure_diagnostics, batch_debug, activity_tracking, advanced_analytics
+from app.routes import health, media, jobs, config, system, maintenance, preview, poster_manager, poster_replacement, image_proxy, schedules, analytics, resolution_diagnostics, audio_diagnostics, jellyfin_diagnostics, infrastructure_diagnostics, batch_debug, activity_tracking, advanced_analytics, debug_routes
 from app.routes.workflow import job_router, control_router, progress_router, websocket_endpoint
 
 # Import exception handlers
@@ -239,6 +239,7 @@ def create_application() -> FastAPI:
     app.include_router(batch_debug.router, prefix="/api/v1", tags=["Batch Debug"])
     app.include_router(activity_tracking.router, prefix="/api/v1", tags=["Activity Tracking"])
     app.include_router(advanced_analytics.router, prefix="/api/v1", tags=["Advanced Analytics"])
+    app.include_router(debug_routes.router, prefix="/api/v1", tags=["Debug"])
     
     # Workflow routes
     app.include_router(job_router, prefix="/api/v1", tags=["Workflow"])

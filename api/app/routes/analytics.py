@@ -488,106 +488,16 @@ async def get_activity_type_details(
 ):
     """Get detailed list of activities for a specific activity type"""
     
-    try:
-        # Import workflow models
-        from app.services.workflow.database.models import BatchJobModel
-        
-        # Map activity types to job characteristics
-        activity_mapping = {
-            "badge_application": ["badge", "badges"],
-            "poster_replacement": ["poster", "posters", "replacement"]
-        }
-        
-        if activity_type not in activity_mapping:
-            raise HTTPException(status_code=400, detail=f"Unknown activity type: {activity_type}")
-        
-        # Calculate date range
-        end_date = datetime.now(timezone.utc)
-        start_date = end_date - timedelta(days=days)
-        
-        # Build base query
-        query = select(BatchJobModel).where(
-            BatchJobModel.created_at >= start_date
-        )
-        
-        # Filter by status if provided
-        if status:
-            query = query.where(BatchJobModel.status == status)
-        
-        # Get all jobs in date range
-        jobs_result = await db.execute(query)
-        all_jobs = jobs_result.scalars().all()
-        
-        # Filter jobs based on activity type by checking name or badge_types
-        keywords = activity_mapping[activity_type]
-        filtered_jobs = []
-        
-        for job in all_jobs:
-            job_matches = False
-            
-            # Check job name for keywords
-            if job.name:
-                job_name_lower = job.name.lower()
-                if any(keyword in job_name_lower for keyword in keywords):
-                    job_matches = True
-            
-            # For badge application, also check badge_types
-            if activity_type == "badge_application" and job.badge_types:
-                job_matches = True
-            
-            # For poster replacement, check if no badge types (pure poster operations)
-            if activity_type == "poster_replacement" and (not job.badge_types or len(job.badge_types) == 0):
-                job_matches = True
-            
-            if job_matches:
-                filtered_jobs.append(job)
-        
-        # Sort by created_at descending
-        filtered_jobs.sort(key=lambda j: j.created_at or datetime.min, reverse=True)
-        
-        # Calculate pagination
-        total_count = len(filtered_jobs)
-        total_pages = (total_count + limit - 1) // limit
-        offset = (page - 1) * limit
-        paginated_jobs = filtered_jobs[offset:offset + limit]
-        
-        # Build response
-        activities = []
-        for job in paginated_jobs:
-            activities.append(ActivityDetail(
-                id=job.id,
-                name=job.name,
-                status=job.status,
-                badge_types=job.badge_types or [],
-                total_posters=job.total_posters,
-                completed_posters=job.completed_posters,
-                failed_posters=job.failed_posters,
-                created_at=job.created_at.isoformat() if job.created_at else "",
-                started_at=job.started_at.isoformat() if job.started_at else None,
-                completed_at=job.completed_at.isoformat() if job.completed_at else None,
-                user_id=job.user_id,
-                error_summary=job.error_summary
-            ))
-        
-        return ActivityDetailResponse(
-            activity_type=activity_type,
-            total_count=total_count,
-            activities=activities,
-            pagination={
-                "page": page,
-                "limit": limit,
-                "total_pages": total_pages,
-                "total_count": total_count,
-                "has_next": page < total_pages,
-                "has_prev": page > 1
-            }
-        )
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error in get_activity_type_details: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to fetch activity details: {str(e)}")
+    from .activity_details_helper import get_activity_type_details_fixed
+    
+    return await get_activity_type_details_fixed(
+        activity_type=activity_type,
+        page=page,
+        limit=limit,
+        status=status,
+        days=days,
+        db=db
+    )
 
 
 async def get_live_media_count() -> int:
