@@ -14,6 +14,7 @@ Aphrodite is a service that automatically enhances your media posters by adding 
 
 <div align="center">
 <img src="https://github.com/jackkerouac/aphrodite/blob/main/example01.png" alt="Example 1" width="400"/>
+<br />
 <img src="https://github.com/jackkerouac/aphrodite/blob/main/example02.png" alt="Example 2" width="400"/>
 </div>
 
