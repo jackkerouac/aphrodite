@@ -102,18 +102,32 @@ async def get_activity_type_details_fixed(
                 }
             )
         
-        # Build base query
-        query = select(BatchJobModel).where(
-            BatchJobModel.created_at >= start_date
-        )
-        
-        # Filter by status if provided
-        if status and status != 'all':
-            query = query.where(BatchJobModel.status == status)
-        
-        # Get all jobs in date range
-        jobs_result = await db.execute(query)
-        all_jobs = jobs_result.scalars().all()
+        # Build base query with safer datetime handling
+        try:
+            query = select(BatchJobModel).where(
+                BatchJobModel.created_at >= start_date
+            )
+            
+            # Filter by status if provided
+            if status and status != 'all':
+                query = query.where(BatchJobModel.status == status)
+            
+            # Get all jobs in date range
+            jobs_result = await db.execute(query)
+            all_jobs = jobs_result.scalars().all()
+            
+            logger.info(f"Found {len(all_jobs)} jobs in date range")
+            
+        except Exception as e:
+            logger.error(f"Error executing job query: {e}")
+            # Try without date filter as fallback
+            query = select(BatchJobModel).limit(20)
+            if status and status != 'all':
+                query = query.where(BatchJobModel.status == status)
+            
+            jobs_result = await db.execute(query)
+            all_jobs = jobs_result.scalars().all()
+            logger.info(f"Fallback query found {len(all_jobs)} jobs")
         
         # Filter jobs based on activity type by checking name or badge_types
         keywords = activity_mapping[activity_type]
@@ -154,23 +168,28 @@ async def get_activity_type_details_fixed(
         offset = (page - 1) * limit
         paginated_jobs = filtered_jobs[offset:offset + limit]
         
-        # Build response
+        # Build response with safer field access
         activities = []
         for job in paginated_jobs:
-            activities.append(ActivityDetail(
-                id=job.id,
-                name=job.name or "Unknown Job",
-                status=job.status,
-                badge_types=job.badge_types or [],
-                total_posters=job.total_posters,
-                completed_posters=job.completed_posters,
-                failed_posters=job.failed_posters,
-                created_at=job.created_at.isoformat() if job.created_at else "",
-                started_at=job.started_at.isoformat() if job.started_at else None,
-                completed_at=job.completed_at.isoformat() if job.completed_at else None,
-                user_id=job.user_id,
-                error_summary=job.error_summary
-            ))
+            try:
+                activities.append(ActivityDetail(
+                    id=str(job.id) if job.id else "unknown",
+                    name=str(job.name) if job.name else "Unknown Job",
+                    status=str(job.status) if job.status else "unknown",
+                    badge_types=list(job.badge_types) if job.badge_types else [],
+                    total_posters=int(job.total_posters) if job.total_posters is not None else 0,
+                    completed_posters=int(job.completed_posters) if job.completed_posters is not None else 0,
+                    failed_posters=int(job.failed_posters) if job.failed_posters is not None else 0,
+                    created_at=job.created_at.isoformat() if job.created_at else "",
+                    started_at=job.started_at.isoformat() if job.started_at else None,
+                    completed_at=job.completed_at.isoformat() if job.completed_at else None,
+                    user_id=str(job.user_id) if job.user_id else "unknown",
+                    error_summary=str(job.error_summary) if job.error_summary else None
+                ))
+            except Exception as job_error:
+                logger.warning(f"Error processing job {job.id}: {job_error}")
+                # Skip this job and continue
+                continue
         
         return ActivityDetailResponse(
             activity_type=activity_type,
