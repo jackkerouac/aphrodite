@@ -1,0 +1,4 @@
+# Simple PowerShell test command
+# Copy and paste this into PowerShell:
+
+Invoke-RestMethod -Uri "http://localhost:8000/api/v1/analytics/activity-details/badge_application?limit=3" -Method Get | ConvertTo-Json -Depth 3

@@ -77,8 +77,8 @@ async def get_activity_type_details_fixed(
         if activity_type not in activity_mapping:
             raise HTTPException(status_code=400, detail=f"Unknown activity type: {activity_type}")
         
-        # Calculate date range
-        end_date = datetime.now(timezone.utc)
+        # Calculate date range - make sure we use naive datetimes for PostgreSQL
+        end_date = datetime.now()  # Remove timezone.utc to make it naive
         start_date = end_date - timedelta(days=days)
         
         # Check if BatchJobModel table exists by trying a simple query first
@@ -153,12 +153,12 @@ async def get_activity_type_details_fixed(
             if job_matches:
                 filtered_jobs.append(job)
         
-        # Sort by created_at descending with timezone-aware datetime
+        # Sort by created_at descending with safe datetime handling
         def safe_sort_key(job):
             if job.created_at:
                 return job.created_at
             else:
-                return datetime.min.replace(tzinfo=timezone.utc)
+                return datetime.min  # Use naive datetime.min
         
         filtered_jobs.sort(key=safe_sort_key, reverse=True)
         
