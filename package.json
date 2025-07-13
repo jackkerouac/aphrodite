@@ -1,6 +1,8 @@
 {
   "dependencies": {
     "app": "^0.1.0",
+    "react-circle-flags": "^0.0.23",
+    "react-flags": "^0.1.18",
     "shared": "^0.2.0"
   }
 }
