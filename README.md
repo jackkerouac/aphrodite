@@ -89,11 +89,11 @@ Here are the basic commands for managing your Aphrodite instance:
 ## Credits
 
 Built with:
-- FastAPI(https://fastapi.tiangolo.com/)
-- [https://react.dev/]React
-- [https://www.postgresql.org/]PostgreSQL
-- [https://redis.io/]Redis
-- [https://www.docker.com/]Docker
+- [FastAPI](https://fastapi.tiangolo.com/)
+- [React](https://react.dev/)
+- [PostgreSQL](https://www.postgresql.org/)
+- [Redis](https://redis.io/)
+- [Docker](https://www.docker.com/)
 
 ## License
 
