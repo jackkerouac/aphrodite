@@ -450,6 +450,11 @@ export const apiService = {
     const response = await fetch(url);
     return handleResponse(response);
   },
+
+  async getPerformanceMetrics() {
+    const response = await fetch(buildApiUrl('/api/v1/analytics/performance-metrics'));
+    return handleResponse(response);
+  },
 };
 
 export default apiService;

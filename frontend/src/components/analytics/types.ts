@@ -114,3 +114,32 @@ export interface ActivityDetailResponse {
     has_prev: boolean;
   };
 }
+
+export interface PerformanceMetrics {
+  avg_job_duration_seconds: number | null;
+  total_jobs_processed: number;
+  average_throughput_posters_per_job: number;
+  success_rate_percentage: number;
+  jobs_per_hour_24h: number;
+  peak_processing_times: Array<{
+    hour: string;
+    jobs_count: number;
+    total_posters: number;
+    avg_duration_seconds: number;
+    efficiency_score: number;
+  }>;
+  processing_efficiency: {
+    fastest_job_duration: number;
+    slowest_job_duration: number;
+    median_duration: number;
+    efficiency_variance: number;
+    high_throughput_jobs: number;
+  };
+  system_load_trends: Array<{
+    date: string;
+    total_jobs: number;
+    total_posters: number;
+    success_rate: number;
+    load_score: number;
+  }>;
+}

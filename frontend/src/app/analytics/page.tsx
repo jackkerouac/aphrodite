@@ -3,13 +3,12 @@
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Loader2, Search, Activity, Users, BarChart3, TrendingUp } from 'lucide-react';
+import { Loader2, Search, Activity, BarChart3, TrendingUp } from 'lucide-react';
 import apiService from '@/services/api';
 import { toast } from 'sonner';
 
 import { OverviewTab } from '@/components/analytics/OverviewTab';
 import { SearchTab } from '@/components/analytics/SearchTab';
-import { UsersTab } from '@/components/analytics/UsersTab';
 import { PerformanceTab } from '@/components/analytics/PerformanceTab';
 import type { SystemOverview, ActivitySearchParams, SearchResult } from '@/components/analytics/types';
 
@@ -137,7 +136,7 @@ export default function AnalyticsPage() {
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview" className="flex items-center space-x-2">
             <BarChart3 className="h-4 w-4" />
             <span>Overview</span>
@@ -145,10 +144,6 @@ export default function AnalyticsPage() {
           <TabsTrigger value="search" className="flex items-center space-x-2">
             <Search className="h-4 w-4" />
             <span>Advanced Search</span>
-          </TabsTrigger>
-          <TabsTrigger value="users" className="flex items-center space-x-2">
-            <Users className="h-4 w-4" />
-            <span>User Analytics</span>
           </TabsTrigger>
           <TabsTrigger value="performance" className="flex items-center space-x-2">
             <TrendingUp className="h-4 w-4" />
@@ -171,10 +166,6 @@ export default function AnalyticsPage() {
             suggestions={suggestions}
             onSearch={performSearch}
           />
-        </TabsContent>
-
-        <TabsContent value="users" className="space-y-6">
-          <UsersTab />
         </TabsContent>
 
         <TabsContent value="performance" className="space-y-6">

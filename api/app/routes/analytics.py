@@ -500,6 +500,164 @@ async def get_activity_type_details(
     )
 
 
+class PerformanceMetrics(BaseModel):
+    """Performance metrics data"""
+    avg_job_duration_seconds: Optional[float]
+    total_jobs_processed: int
+    average_throughput_posters_per_job: float
+    success_rate_percentage: float
+    jobs_per_hour_24h: float
+    peak_processing_times: List[Dict[str, Any]]
+    processing_efficiency: Dict[str, Any]
+    system_load_trends: List[Dict[str, Any]]
+
+
+@router.get("/performance-metrics", response_model=PerformanceMetrics)
+async def get_performance_metrics(db: AsyncSession = Depends(get_db_session)):
+    """Get comprehensive performance metrics from batch jobs data"""
+    
+    try:
+        # Import workflow models
+        from app.services.workflow.database.models import BatchJobModel
+        
+        # Get all completed jobs with timing data
+        completed_jobs_result = await db.execute(
+            select(BatchJobModel)
+            .where(
+                and_(
+                    BatchJobModel.status == "completed",
+                    BatchJobModel.started_at.isnot(None),
+                    BatchJobModel.completed_at.isnot(None)
+                )
+            )
+        )
+        completed_jobs = completed_jobs_result.scalars().all()
+        
+        # Get all jobs for broader statistics
+        all_jobs_result = await db.execute(select(BatchJobModel))
+        all_jobs = all_jobs_result.scalars().all()
+        
+        # Calculate basic metrics
+        total_jobs = len(all_jobs)
+        completed_count = len([j for j in all_jobs if j.status == "completed"])
+        success_rate = (completed_count / total_jobs * 100) if total_jobs > 0 else 0
+        
+        # Calculate duration metrics
+        durations = []
+        throughput_data = []
+        
+        for job in completed_jobs:
+            if job.started_at and job.completed_at:
+                duration_seconds = (job.completed_at - job.started_at).total_seconds()
+                durations.append(duration_seconds)
+                
+                # Calculate throughput (posters per second)
+                if duration_seconds > 0 and job.total_posters:
+                    throughput = job.total_posters / duration_seconds
+                    throughput_data.append({
+                        "job_id": job.id,
+                        "duration": duration_seconds,
+                        "posters": job.total_posters,
+                        "throughput": throughput,
+                        "created_at": job.created_at.isoformat() if job.created_at else None
+                    })
+        
+        avg_duration = sum(durations) / len(durations) if durations else None
+        avg_throughput = sum(job["posters"] for job in throughput_data) / len(throughput_data) if throughput_data else 0
+        
+        # Calculate jobs per hour (last 24 hours)
+        twenty_four_hours_ago = datetime.now() - timedelta(hours=24)
+        recent_jobs = [
+            job for job in all_jobs 
+            if job.created_at and job.created_at >= twenty_four_hours_ago
+        ]
+        jobs_per_hour = len(recent_jobs) / 24.0
+        
+        # Find peak processing times (group by hour)
+        hourly_stats = {}
+        for job in completed_jobs:
+            if job.created_at:
+                hour_key = job.created_at.replace(minute=0, second=0, microsecond=0)
+                if hour_key not in hourly_stats:
+                    hourly_stats[hour_key] = {"count": 0, "total_posters": 0, "total_duration": 0}
+                
+                hourly_stats[hour_key]["count"] += 1
+                hourly_stats[hour_key]["total_posters"] += job.total_posters or 0
+                
+                if job.started_at and job.completed_at:
+                    duration = (job.completed_at - job.started_at).total_seconds()
+                    hourly_stats[hour_key]["total_duration"] += duration
+        
+        # Convert to list and sort by activity
+        peak_times = []
+        for hour, stats in hourly_stats.items():
+            avg_duration_hour = stats["total_duration"] / stats["count"] if stats["count"] > 0 else 0
+            peak_times.append({
+                "hour": hour.isoformat(),
+                "jobs_count": stats["count"],
+                "total_posters": stats["total_posters"],
+                "avg_duration_seconds": round(avg_duration_hour, 2),
+                "efficiency_score": round(stats["total_posters"] / max(avg_duration_hour, 1), 2)
+            })
+        
+        # Sort by jobs count and take top 5
+        peak_times.sort(key=lambda x: x["jobs_count"], reverse=True)
+        top_peak_times = peak_times[:5]
+        
+        # Processing efficiency analysis
+        efficiency_analysis = {
+            "fastest_job_duration": min(durations) if durations else 0,
+            "slowest_job_duration": max(durations) if durations else 0,
+            "median_duration": sorted(durations)[len(durations)//2] if durations else 0,
+            "efficiency_variance": round(max(durations) - min(durations), 2) if durations else 0,
+            "high_throughput_jobs": len([d for d in throughput_data if d["throughput"] > 1]) if throughput_data else 0
+        }
+        
+        # System load trends (last 7 days)
+        seven_days_ago = datetime.now() - timedelta(days=7)
+        daily_loads = {}
+        
+        for job in all_jobs:
+            if job.created_at and job.created_at >= seven_days_ago:
+                day_key = job.created_at.date()
+                if day_key not in daily_loads:
+                    daily_loads[day_key] = {"jobs": 0, "posters": 0, "completed": 0}
+                
+                daily_loads[day_key]["jobs"] += 1
+                daily_loads[day_key]["posters"] += job.total_posters or 0
+                if job.status == "completed":
+                    daily_loads[day_key]["completed"] += 1
+        
+        load_trends = []
+        for day, stats in daily_loads.items():
+            success_rate_day = (stats["completed"] / stats["jobs"] * 100) if stats["jobs"] > 0 else 0
+            load_trends.append({
+                "date": day.isoformat(),
+                "total_jobs": stats["jobs"],
+                "total_posters": stats["posters"],
+                "success_rate": round(success_rate_day, 2),
+                "load_score": round(stats["jobs"] * stats["posters"] / 100, 2)  # Normalized load score
+            })
+        
+        # Sort by date
+        load_trends.sort(key=lambda x: x["date"])
+        
+        return PerformanceMetrics(
+            avg_job_duration_seconds=round(avg_duration, 2) if avg_duration else None,
+            total_jobs_processed=total_jobs,
+            average_throughput_posters_per_job=round(avg_throughput, 2),
+            success_rate_percentage=round(success_rate, 2),
+            jobs_per_hour_24h=round(jobs_per_hour, 2),
+            peak_processing_times=top_peak_times,
+            processing_efficiency=efficiency_analysis,
+            system_load_trends=load_trends
+        )
+        
+    except Exception as e:
+        logger.error(f"Error in get_performance_metrics: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch performance metrics: {str(e)}")
+
+
 async def get_live_media_count() -> int:
     """Get live media count from Jellyfin"""
     try:
