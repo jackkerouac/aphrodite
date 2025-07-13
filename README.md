@@ -9,8 +9,9 @@
 [![Production Ready](https://img.shields.io/badge/status-production%20ready-green.svg)](https://github.com/jackkerouac/aphrodite/releases/tag/v4.0.0)
 
 
-
 Aphrodite is a service that automatically enhances your media posters by adding badges for audio formats, video resolution, awards, and review scores. It is designed to work with media servers like Jellyfin and Plex.
+
+</div>
 
 <div align="center">
 <img src="https://github.com/jackkerouac/aphrodite/blob/main/example01.png" alt="Example 1" width="400"/>
