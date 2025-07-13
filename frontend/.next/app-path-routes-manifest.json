@@ -5,9 +5,9 @@
   "/about/page": "/about",
   "/analytics/page": "/analytics",
   "/maintenance/page": "/maintenance",
-  "/page": "/",
   "/preview/page": "/preview",
   "/poster-manager/page": "/poster-manager",
+  "/page": "/",
   "/schedules/page": "/schedules",
   "/settings/page": "/settings"
 }

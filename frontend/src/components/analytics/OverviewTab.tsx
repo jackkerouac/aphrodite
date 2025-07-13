@@ -1,69 +1,16 @@
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Activity, Users, BarChart3, CheckCircle } from 'lucide-react';
-
-interface SystemOverview {
-  analysis_period: {
-    days: number;
-    start_date: string;
-    end_date: string;
-  };
-  overall_statistics: {
-    totals: {
-      total_activities: number;
-      successful: number;
-      failed: number;
-      pending: number;
-      success_rate: number;
-    };
-    performance: {
-      average_processing_time_ms: number | null;
-    };
-    scope: {
-      unique_users: number;
-      unique_media_items: number;
-    };
-    activity_type_breakdown: Array<{
-      activity_type: string;
-      total: number;
-      successful: number;
-      failed: number;
-      success_rate: number;
-    }>;
-  };
-  recent_batches: {
-    count: number;
-    batches: Array<{
-      batch_job_id: string;
-      total_activities: number;
-      successful: number;
-      failed: number;
-      success_rate: number;
-      start_time: string | null;
-      batch_duration_ms: number | null;
-    }>;
-  };
-  top_users: {
-    count: number;
-    users: Array<{
-      user_id: string;
-      total_activities: number;
-      successful: number;
-      failed: number;
-      success_rate: number;
-    }>;
-  };
-  summary: {
-    total_activities: number;
-    success_rate: number;
-    active_users: number;
-    active_batches: number;
-  };
-}
+import { Button } from '@/components/ui/button';
+import { Activity, Users, BarChart3, CheckCircle, ExternalLink } from 'lucide-react';
+import { ActivityDetailsDialog } from './dialogs';
+import type { SystemOverview } from './types';
 
 interface OverviewTabProps {
   systemOverview: SystemOverview;
 }
+
+
 
 const formatDuration = (ms: number | null) => {
   if (!ms) return 'N/A';
@@ -78,7 +25,27 @@ const formatDate = (dateString: string | null) => {
 };
 
 export function OverviewTab({ systemOverview }: OverviewTabProps) {
+  const [selectedActivityType, setSelectedActivityType] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const handleActivityTypeClick = (activityType: string) => {
+    setSelectedActivityType(activityType);
+    setDialogOpen(true);
+  };
+
+  const getActivityTypeName = (activityType: string) => {
+    switch (activityType) {
+      case 'badge_application':
+        return 'Badge Application';
+      case 'poster_replacement':
+        return 'Poster Replacement';
+      default:
+        return activityType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    }
+  };
+
   return (
+    <>
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -145,29 +112,36 @@ export function OverviewTab({ systemOverview }: OverviewTabProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-2">
               {systemOverview.overall_statistics.activity_type_breakdown.map((type) => (
-                <div key={type.activity_type} className="flex items-center justify-between">
-                  <div className="flex flex-col">
-                    <span className="font-medium capitalize">
-                      {type.activity_type.replace('_', ' ')}
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      {type.total.toLocaleString()} total
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge
-                      variant={type.success_rate >= 90 ? 'default' : type.success_rate >= 70 ? 'secondary' : 'destructive'}
-                    >
-                      {type.success_rate.toFixed(1)}%
-                    </Badge>
-                    <div className="flex space-x-1">
-                      <span className="text-xs text-green-600">{type.successful}</span>
-                      <span className="text-xs text-muted-foreground">/</span>
-                      <span className="text-xs text-red-600">{type.failed}</span>
+                <div key={type.activity_type} className="group">
+                  <Button
+                    variant="ghost"
+                    className="w-full p-3 h-auto justify-between hover:bg-muted/50"
+                    onClick={() => handleActivityTypeClick(type.activity_type)}
+                  >
+                    <div className="flex flex-col items-start">
+                      <span className="font-medium capitalize">
+                        {type.activity_type.replace('_', ' ')}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        {type.total.toLocaleString()} total
+                      </span>
                     </div>
-                  </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge
+                        variant={type.success_rate >= 90 ? 'default' : type.success_rate >= 70 ? 'secondary' : 'destructive'}
+                      >
+                        {type.success_rate.toFixed(1)}%
+                      </Badge>
+                      <div className="flex space-x-1">
+                        <span className="text-xs text-green-600">{type.successful}</span>
+                        <span className="text-xs text-muted-foreground">/</span>
+                        <span className="text-xs text-red-600">{type.failed}</span>
+                      </div>
+                      <ExternalLink className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </Button>
                 </div>
               ))}
             </div>
@@ -246,5 +220,16 @@ export function OverviewTab({ systemOverview }: OverviewTabProps) {
         </CardContent>
       </Card>
     </div>
+
+    {/* Activity Details Dialog */}
+    {selectedActivityType && (
+      <ActivityDetailsDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        activityType={selectedActivityType}
+        activityTypeName={getActivityTypeName(selectedActivityType)}
+      />
+    )}
+    </>
   );
 }

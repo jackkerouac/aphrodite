@@ -85,3 +85,32 @@ export interface SearchResult {
     current_page: number;
   };
 }
+
+export interface ActivityDetail {
+  id: string;
+  name: string;
+  status: string;
+  badge_types: string[];
+  total_posters: number;
+  completed_posters: number;
+  failed_posters: number;
+  created_at: string;
+  started_at?: string;
+  completed_at?: string;
+  user_id: string;
+  error_summary?: string;
+}
+
+export interface ActivityDetailResponse {
+  activity_type: string;
+  total_count: number;
+  activities: ActivityDetail[];
+  pagination: {
+    page: number;
+    limit: number;
+    total_pages: number;
+    total_count: number;
+    has_next: boolean;
+    has_prev: boolean;
+  };
+}

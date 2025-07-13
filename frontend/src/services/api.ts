@@ -433,6 +433,23 @@ export const apiService = {
     const response = await fetch(buildApiUrl(`/api/v1/analytics/system/overview?days=${days}`));
     return handleResponse(response);
   },
+
+  async getActivityTypeDetails(activityType: string, params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    days?: number;
+  }) {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.set('page', params.page.toString());
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+    if (params?.status) searchParams.set('status', params.status);
+    if (params?.days) searchParams.set('days', params.days.toString());
+
+    const url = buildApiUrl(`/api/v1/analytics/activity-details/${activityType}${searchParams.toString() ? '?' + searchParams.toString() : ''}`);
+    const response = await fetch(url);
+    return handleResponse(response);
+  },
 };
 
 export default apiService;
