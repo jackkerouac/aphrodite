@@ -200,6 +200,12 @@ export function ApiSettings() {
 
   // Save settings
   const saveSettings = async () => {
+    // Validate required Jellyfin fields
+    if (!jellyfin.url || !jellyfin.api_key || !jellyfin.user_id) {
+      toast.error('Please fill in all required Jellyfin fields (Server URL, API Key, and User ID)');
+      return;
+    }
+    
     setSaving(true);
     
     try {
@@ -550,39 +556,44 @@ export function ApiSettings() {
             </CardTitle>
             <CardDescription>
               Configure your Jellyfin media server connection
+              <br />
+              <span className="text-sm text-red-600">* Required fields</span>
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="jellyfin-url">Server URL</Label>
+              <Label htmlFor="jellyfin-url">Server URL *</Label>
               <Input
                 id="jellyfin-url"
                 type="text"
                 placeholder="https://jellyfin.example.com"
                 value={jellyfin.url}
                 onChange={(e) => setJellyfin(prev => ({ ...prev, url: e.target.value }))}
+                required
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="jellyfin-api-key">API Key</Label>
+              <Label htmlFor="jellyfin-api-key">API Key *</Label>
               <Input
                 id="jellyfin-api-key"
                 type="text"
                 placeholder="Your Jellyfin API key"
                 value={jellyfin.api_key}
                 onChange={(e) => setJellyfin(prev => ({ ...prev, api_key: e.target.value }))}
+                required
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="jellyfin-user-id">User ID</Label>
+              <Label htmlFor="jellyfin-user-id">User ID *</Label>
               <Input
                 id="jellyfin-user-id"
                 type="text"
                 placeholder="Your Jellyfin user ID"
                 value={jellyfin.user_id}
                 onChange={(e) => setJellyfin(prev => ({ ...prev, user_id: e.target.value }))}
+                required
               />
             </div>
 
