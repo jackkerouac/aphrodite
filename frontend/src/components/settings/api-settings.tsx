@@ -595,6 +595,16 @@ export function ApiSettings() {
                 onChange={(e) => setJellyfin(prev => ({ ...prev, user_id: e.target.value }))}
                 required
               />
+              <p className="text-xs text-muted-foreground">
+                <a 
+                  href="https://github.com/jackkerouac/aphrodite/blob/main/docs/SETUP.md" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 underline"
+                >
+                  How to find your Jellyfin User ID
+                </a>
+              </p>
             </div>
 
             <div className="flex items-center gap-2">
