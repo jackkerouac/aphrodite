@@ -15,7 +15,7 @@ Aphrodite is a sophisticated media management platform designed to streamline yo
 
 - [Installation and Setup](https://github.com/jackkerouac/aphrodite/blob/main/website/installation.md)
 - [Dashboard](https://github.com/jackkerouac/aphrodite/blob/main/website/dashboard.md)
-- Analytics
+- [Analytics](https://github.com/jackkerouac/aphrodite/blob/main/website/analytics.md)
 - Poster Manager
 - Schedules
 - Preview
