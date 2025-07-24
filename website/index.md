@@ -5,6 +5,10 @@
 
 ---
 
+[![License](https://img.shields.io/github/license/jackkerouac/aphrodite)](LICENSE.md)
+[![GitHub Release](https://img.shields.io/github/v/release/jackkerouac/aphrodite)](https://github.com/jackkerouac/aphrodite/releases)
+[![Production Ready](https://img.shields.io/badge/status-production%20ready-green.svg)](https://github.com/jackkerouac/aphrodite/releases/tag/v4.0.0)
+
 ## Welcome to Aphrodite
 
 Aphrodite is a sophisticated media management platform designed to streamline your digital content workflow. Built with modern web technologies, it provides comprehensive tools for managing, processing, and organizing your media libraries with intelligent automation and beautiful visual interfaces.
@@ -36,6 +40,12 @@ Generate and customize badges, posters, and visual elements with real-time previ
 
 ### **Advanced Maintenance**  
 Keep your system running smoothly with built-in diagnostic tools, cleanup utilities, and health monitoring.
+
+<div align="center">
+<img src="https://github.com/jackkerouac/aphrodite/blob/main/example01.png" alt="Example 1" width="400"/>
+<br />
+<img src="https://github.com/jackkerouac/aphrodite/blob/main/example02.png" alt="Example 2" width="400"/>
+</div>
 
 ## Core Features
 
