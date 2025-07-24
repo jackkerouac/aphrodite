@@ -13,7 +13,7 @@
 
 Aphrodite is a sophisticated media management platform designed to streamline your digital content workflow. Built with modern web technologies, it provides comprehensive tools for managing, processing, and organizing your media libraries with intelligent automation and beautiful visual interfaces.
 
-- Installation and Setup
+- [Installation and Setup](https://github.com/jackkerouac/aphrodite/blob/main/website/installation.md)
 - Dashboard
 - Analytics
 - Poster Manager
