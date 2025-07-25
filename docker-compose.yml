@@ -63,6 +63,7 @@ services:
       
       # Logging
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FILE_PATH: ${LOG_FILE_PATH:-/app/logs/aphrodite-v2.log}
       DEBUG: ${DEBUG:-false}
       
       # Background Jobs
@@ -114,6 +115,7 @@ services:
       ENVIRONMENT: ${ENVIRONMENT:-production}
       SECRET_KEY: ${SECRET_KEY:-please-change-this-secret-key-in-production}
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FILE_PATH: ${LOG_FILE_PATH:-/app/logs/aphrodite-v2.log}
       PYTHONPATH: /app
     volumes:
       # Share volumes with main application
