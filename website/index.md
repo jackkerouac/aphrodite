@@ -18,11 +18,11 @@ Aphrodite is a sophisticated media management platform designed to streamline yo
 - [Analytics](https://github.com/jackkerouac/aphrodite/blob/main/website/analytics.md)
 - [Poster Manager](https://github.com/jackkerouac/aphrodite/blob/main/website/postermanager.md)
 - [Schedules](https://github.com/jackkerouac/aphrodite/blob/main/website/schedules.md)
-- [Preview]()
-- [Maintenance]()
-- [Settings]()
-- [Diagnostics]()
-- [About]()
+- [Preview](https://github.com/jackkerouac/aphrodite/blob/main/website/preview.md)
+- [Maintenance](https://github.com/jackkerouac/aphrodite/blob/main/website/maintenance.md)
+- [Settings](https://github.com/jackkerouac/aphrodite/blob/main/website/settings.md)
+- [Diagnostics](https://github.com/jackkerouac/aphrodite/blob/main/website/diagnostics.md)
+- [About](https://github.com/jackkerouac/aphrodite/blob/main/website/about.md)
 
 ## What Aphrodite Does
 
