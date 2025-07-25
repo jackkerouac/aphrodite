@@ -19,7 +19,7 @@ The Jellyfin API can be found by:
 1. Visiting your Jellyfin URL and then selecting Dashboard -> API Keys
 2. Either use an existing key or create a new key
 
-### User ID
+### Jellyfin User ID
 Your User ID is **mandatory** and can be found by:
 
 1. Selecting your User icon and choosing Profile:
