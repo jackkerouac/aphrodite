@@ -114,3 +114,5 @@ Whether you're managing a personal media collection or running a large-scale med
 ---
 
 *Ready to transform your media management experience? Dive into Aphrodite and discover the perfect balance of power and elegance.*
+
+<img width="1024" height="1536" alt="example_poster_light" src="https://github.com/user-attachments/assets/57c698e1-0709-4cd5-98ac-2ca117750967" />
