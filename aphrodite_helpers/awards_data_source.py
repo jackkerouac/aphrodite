@@ -204,11 +204,14 @@ class AwardsDataSource:
             # Get movie details including awards keywords
             url = f"{self.tmdb_base_url}/movie/{tmdb_id}"
             params = {
-                "api_key": api_key,
                 "append_to_response": "keywords,reviews"
             }
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "accept": "application/json"
+            }
             
-            response = requests.get(url, params=params, timeout=10)
+            response = requests.get(url, params=params, headers=headers, timeout=10)
             response.raise_for_status()
             
             movie_data = response.json()
@@ -238,11 +241,14 @@ class AwardsDataSource:
             # Get TV show details including awards keywords
             url = f"{self.tmdb_base_url}/tv/{tmdb_id}"
             params = {
-                "api_key": api_key,
                 "append_to_response": "keywords,reviews"
             }
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "accept": "application/json"
+            }
             
-            response = requests.get(url, params=params, timeout=10)
+            response = requests.get(url, params=params, headers=headers, timeout=10)
             response.raise_for_status()
             
             tv_data = response.json()

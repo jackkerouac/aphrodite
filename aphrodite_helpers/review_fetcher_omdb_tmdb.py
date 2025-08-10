@@ -51,12 +51,15 @@ class OmdbTmdbMixin:
         # Fetch from TMDB API
         url = f"https://api.themoviedb.org/3/{media_type}/{tmdb_id}"
         params = {
-            "api_key": self.tmdb_settings.get("api_key"),
             "language": self.tmdb_settings.get("language", "en")
+        }
+        headers = {
+            "Authorization": f"Bearer {self.tmdb_settings.get('api_key')}",
+            "accept": "application/json"
         }
         
         try:
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, headers=headers)
             response.raise_for_status()
             data = response.json()
             
